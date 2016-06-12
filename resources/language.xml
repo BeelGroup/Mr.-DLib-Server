@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<matching>
+	<generic_matching>
+		<mdl_lan name="(om)">
+			<original_lan name="Galla"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(oc)">
+			<original_lan name="Provencal"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(el)">
+			<original_lan name="Griechisch (GR)"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(cu)">
+			<original_lan name="Slawisch"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(lv)">
+			<original_lan name="Lettisch (LE)"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(be)">
+			<original_lan name="Belorussisch"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(bm)">
+			<original_lan name="Mandingo"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(hi)">
+			<original_lan name="Hindi"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(yi)">
+			<original_lan name="Jiddisch"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(gn)">
+			<original_lan name="Guarani"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(cs)">
+			<original_lan name="Tschechisch (CZ)"></original_lan>
+		</mdl_lan>
+		<mdl_lan name="(sq)">
+			<original_lan name="Albanisch"></original_lan>
+		</mdl_lan>
+		
+	</generic_matching>
+</matching>

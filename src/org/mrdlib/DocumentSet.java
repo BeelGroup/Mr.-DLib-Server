@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "related_articles")
 public class DocumentSet {
 	
-	private List<Document> documentList = new ArrayList<Document>();;
+	private List<Document> documentList = new ArrayList<Document>();
 	
 	private String recommendationSetId;
 	private String suggestedLabel;

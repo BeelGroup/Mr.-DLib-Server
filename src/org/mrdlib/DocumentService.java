@@ -14,13 +14,14 @@ import org.mrdlib.database.NoEntryException;
 public class DocumentService {
 
 	DocumentExamples documentExample = new DocumentExamples();
+	private DBConnection con = new DBConnection();
 
 	@GET
 	//set end of Path
 	@Path("/related_documents")
 	@Produces(MediaType.APPLICATION_XML)
 	public DocumentSet getDocumentSet(@PathParam("documentId") String documentId) throws Exception {
-		DocumentSet documentset = DBConnection.getDocumentSetByOriginalId(documentId);
+		DocumentSet documentset = con.getDocumentSetByOriginalId(documentId);
 		if(documentset.getSize() == 0)
 			throw new NoEntryException();
 		else
