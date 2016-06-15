@@ -10,9 +10,13 @@
 		</mdl_type>
 		<mdl_type name="in_book">
 			<original_type name="Book Chapter"></original_type>
+			<original_type name="Special Section"></original_type>
+			<original_type name="Special Section: Insider Insights"></original_type>
 		</mdl_type>
 		<mdl_type name="review_book">
 			<original_type name="Book Review"></original_type>
+			<original_type name="Book Reviews"></original_type>
+			<original_type name="Book Reviews / Research Commentary"></original_type>
 		</mdl_type>
 		<mdl_type name="conference_article">
 			<original_type name="Conference Paper"></original_type>
@@ -30,10 +34,13 @@
 			<original_type name="Film Review"></original_type>
 		</mdl_type>
 		<mdl_type name="journal_article">
+			<original_type name="Aufsatz"></original_type>
 			<original_type name="Journal Article"></original_type>
 			<original_type name="Journal Article (aja)"></original_type>
 			<original_type name="Zeitschriftenaufsatz"></original_type>
 			<original_type name="Zeitschriftenaufsatz; Graue Literatur"></original_type>
+			<original_type name="Articles"></original_type>
+			<original_type name="Special Issue: Articles"></original_type>
 		</mdl_type>
 		<mdl_type name="monograph">
 			<original_type name="Monograph"></original_type>
@@ -60,8 +67,31 @@
 			<original_type name="Zeitungsartikel"></original_type>
 			<original_type name="Zeitungsartikel; Themenheft"></original_type>
 		</mdl_type>
+		<mdl_type name="letter_from_editor">
+			<original_type name="From the Editors"></original_type>
+			<original_type name="Editorial Notes"></original_type>
+		</mdl_type>
+		<mdl_type name="comment">
+			<original_type name="Commentaries"></original_type>
+		</mdl_type>
+		<mdl_type name="conference_abstracts">
+			<original_type name="Conference Abstracts"></original_type>
+		</mdl_type>
+		<mdl_type name="insider_insights">
+			<original_type name="Insider Insights"></original_type>
+		</mdl_type>
+		<mdl_type name="seminar_article">
+			<original_type name="Research Articles/Revised Seminar Papers"></original_type>
+		</mdl_type>
+		<mdl_type name="review_essay">
+			<original_type name="Review Essays"></original_type>
+		</mdl_type>
+		<mdl_type name="dossier">
+			<original_type name="Dossier"></original_type>
+		</mdl_type>
 		<mdl_type name="unknown">
 			<original_type name="3; Government Document, International"></original_type>
+			<original_type name="AVANT-PROPOS"></original_type>
 			<original_type name="a"></original_type>
 			<original_type name="Book Monograph; Conference"></original_type>
 			<original_type name="Book Monograph; Conference; Summary"></original_type>
@@ -103,6 +133,7 @@
 			<original_type name="Statement"></original_type>
 			<original_type name="t"></original_type>
 			<original_type name="Themenheft; Zeitschriftenaufsatz"></original_type>
+			<original_type name="Varia"></original_type>
 			<original_type name="Website, Government Document, i"></original_type>
 			<original_type name="Website, Government Document, International"></original_type>
 			<original_type name="Website, Government Document, Local"></original_type>
@@ -119,6 +150,7 @@
 			<original_type name="Website; Government Document, State or Regional"></original_type>
 			<original_type name="Website; Government Document, State or Regional >> 000000956000000038"></original_type>
 			<original_type name="z"></original_type>
+			<original_type name=""></original_type>
 		</mdl_type>
 	</generic_matching>
 </matching>

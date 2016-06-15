@@ -8,14 +8,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
 
 import org.mrdlib.Document;
 import org.mrdlib.DocumentSet;
+import org.mrdlib.Snippet;
+import org.mrdlib.tools.Abstract;
 import org.mrdlib.tools.Person;
 import org.mrdlib.tools.XMLDocument;
 
@@ -26,16 +28,31 @@ public class DBConnection {
 	private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
 
 	public DBConnection() {
+		Statement stmt = null;
+		ResultSet rs = null;
+		ResultSet rs2 = null;
+		ResultSet rs3 = null;
 		try {
 			createConnection();
-			Statement stmt = con.createStatement();
+			stmt = con.createStatement();
 			stmt.executeQuery("SET NAMES 'utf8'");
-			ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
+			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
 			fillMap(rs);
-			ResultSet rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getPersons());
+			rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getAbstracts());
 			fillMap(rs2);
+			rs3 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getPersons());
+			fillMap(rs3);
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+				rs.close();
+				rs2.close();
+				rs3.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -52,11 +69,10 @@ public class DBConnection {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	protected void finalize() throws Throwable {
-
+		con.close();
 		super.finalize();
 	}
 
@@ -73,12 +89,14 @@ public class DBConnection {
 
 	public Person getPersonById(Long authorID) {
 		Person person = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
 		String query = "SELECT * FROM " + constants.getPersons() + " WHERE " + constants.getPersonID() + " = '"
 				+ authorID + "'";
 		try {
-			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
 			rs.next();
 			person = new Person(rs.getString(constants.getFirstname()), rs.getString(constants.getMiddlename()),
@@ -86,8 +104,14 @@ public class DBConnection {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
-
 		return person;
 	}
 
@@ -104,6 +128,7 @@ public class DBConnection {
 	public Long addPersonToDbIfNotExists(XMLDocument document, Person author) {
 		PreparedStatement stateAuthorExists = null;
 		PreparedStatement stateInsertAuthor = null;
+		ResultSet rs = null;
 		Long authorKey = null;
 		int count = 1;
 
@@ -134,50 +159,84 @@ public class DBConnection {
 			if (unstructured != null)
 				stateAuthorExists.setString(count++, unstructured);
 
-			ResultSet rs = stateAuthorExists.executeQuery();
+			rs = stateAuthorExists.executeQuery();
 
 			if (!rs.next()) {
+				ResultSet rs2 = null;
+
 				String queryAuthor = "INSERT INTO " + constants.getPersons() + " (" + constants.getFirstname() + ", "
 						+ constants.getMiddlename() + ", " + constants.getSurname() + ", " + constants.getUnstructured()
 						+ ")" + "VALUES (?, ?, ?, ?)";
 
-				stateInsertAuthor = con.prepareStatement(queryAuthor, Statement.RETURN_GENERATED_KEYS);
+				try {
+					stateInsertAuthor = con.prepareStatement(queryAuthor, Statement.RETURN_GENERATED_KEYS);
 
-				SetIfNull(document, stateInsertAuthor, author.getFirstname(), 1, "string", constants.getFirstname());
-				SetIfNull(document, stateInsertAuthor, author.getMiddlename(), 2, "string", constants.getMiddlename());
-				SetIfNull(document, stateInsertAuthor, author.getSurname(), 3, "string", constants.getSurname());
-				SetIfNull(document, stateInsertAuthor, author.getUnstructured(), 4, "string",
-						constants.getUnstructured());
+					SetIfNull(document, stateInsertAuthor, author.getFirstname(), 1, "string",
+							constants.getFirstname());
+					SetIfNull(document, stateInsertAuthor, author.getMiddlename(), 2, "string",
+							constants.getMiddlename());
+					SetIfNull(document, stateInsertAuthor, author.getSurname(), 3, "string", constants.getSurname());
+					SetIfNull(document, stateInsertAuthor, author.getUnstructured(), 4, "string",
+							constants.getUnstructured());
 
-				authorKey = (long) stateInsertAuthor.executeUpdate();
+					stateInsertAuthor.executeUpdate();
 
+					rs2 = stateInsertAuthor.getGeneratedKeys();
+					if (rs2.next())
+						authorKey = rs2.getLong(1);
+
+				} catch (Exception e) {
+					System.out.println(document.getDocumentPath() + ": " + document.getId());
+					e.printStackTrace();
+				} finally {
+					rs.close();
+					rs2.close();
+					stateInsertAuthor.close();
+				}
 			} else
 				authorKey = (long) rs.getInt(constants.getPersonID());
-		} catch (SQLException sqle) {
+		} catch (
+
+		SQLException sqle) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
 			sqle.printStackTrace();
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
 			e.printStackTrace();
+		} finally {
+			try {
+				stateAuthorExists.close();
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
-
 		return authorKey;
 	}
 
-	public void addPersonDocumentRelation(XMLDocument document, Long documentId, Long authorID) {
+	public void addPersonDocumentRelation(XMLDocument document, Long documentId, Long authorID, int rank) {
+		Statement stmt = null;
 		try {
-			Statement stmt = con.createStatement();
+			stmt = con.createStatement();
 			String query = "INSERT INTO " + constants.getDocPers() + " (" + constants.getDocumentIDInDocPers() + ", "
-					+ constants.getPersonIDInDocPers() + ") VALUES (" + documentId + ", " + authorID + ");";
+					+ constants.getPersonIDInDocPers() + ", " + constants.getRank() + ") VALUES (" + documentId + ", "
+					+ authorID + ", " + rank + ");";
 
 			stmt.executeUpdate(query);
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
 			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public Long getCollectionIDByName(XMLDocument document, String collectionName) {
+		Statement stmt = null;
 		ResultSet rs = null;
 		Long id = null;
 
@@ -185,7 +244,7 @@ public class DBConnection {
 				+ " = '" + collectionName + "'";
 
 		try {
-			Statement stmt = con.createStatement();
+			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 
 			while (rs.next())
@@ -193,17 +252,25 @@ public class DBConnection {
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
 			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
-
 		return id;
 	}
 
 	public <T> PreparedStatement SetIfNull(XMLDocument document, PreparedStatement stmt, T value, int index,
 			String type, String coloumnName) {
+
 		try {
 			if (value instanceof String) {
 				String valueString = replaceHighComma((String) value);
-				if (!coloumnName.equals(constants.getType()) && !coloumnName.equals(constants.getUnstructured())) {
+				if (!(coloumnName.equals(constants.getType()) || coloumnName.equals(constants.getUnstructured())
+						|| coloumnName.equals(constants.getAbstr()))) {
 					if (valueString.length() > lengthMap.get(coloumnName))
 						System.out.println("Truncate because too long!");
 				}
@@ -214,27 +281,38 @@ public class DBConnection {
 					stmt.setNull(index, java.sql.Types.VARCHAR);
 				else if (type.equals("int") || type.equals("long"))
 					stmt.setNull(index, java.sql.Types.INTEGER);
+			} else if (coloumnName.equals(constants.getYear())) {
+				if (((int) value) == 0)
+					stmt.setNull(index, java.sql.Types.INTEGER);
+				else
+					stmt.setObject(index, value);
 			} else
 				stmt.setObject(index, value);
 
 		} catch (SQLException e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			System.out.println(coloumnName);
 			e.printStackTrace();
 		}
 		return stmt;
 	}
 
 	public void makeQueryOfDocument(XMLDocument document) throws SQLException {
-		if (document.getAuthors().size() == 0)
-			System.out.println(document.getDocumentPath() + ": " + document.getId() + ": No Authors!");
+		Statement stmt = null;
+		ResultSet rs = null;
+		PreparedStatement stateQueryDoc = null;
+		Long docKey = null;
+		LinkedHashSet<Person> authors = document.getAuthors();
+		Long[] authorKey = new Long[authors.size()];
+		// if (document.getAuthors().size() == 0)
+		// System.out.println(document.getDocumentPath() + ": " +
+		// document.getId() + ": No Authors!");
 
+		// Doc Exists already?
 		String docExists = "SELECT * FROM " + constants.getDocuments() + " WHERE " + constants.getIdOriginal() + " = '"
 				+ document.getId() + "'";
-
 		try {
-			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery(docExists);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(docExists);
 			if (rs.next()) {
 				System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
 				return;
@@ -242,15 +320,17 @@ public class DBConnection {
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
 			e.printStackTrace();
+		} finally {
+			stmt.close();
+			rs.close();
 		}
 
-		PreparedStatement stateQueryDoc = null;
-		Long docKey = null;
-		Set<Person> authorSet = new HashSet<Person>(document.getAuthors());
-		Long[] authorKey = new Long[authorSet.size()];
+		// Doc don't exists, insert!
 		try {
-			for (int i = 0; i < authorKey.length; i++) {
-				Person author = authorSet.iterator().next();
+			Iterator<Person> it = authors.iterator();
+
+			for (int i = 0; i < authors.size(); i++) {
+				Person author = it.next();
 				authorKey[i] = addPersonToDbIfNotExists(document, author);
 			}
 
@@ -258,7 +338,7 @@ public class DBConnection {
 					+ constants.getDocumentCollectionID() + ", " + constants.getTitle() + ", "
 					+ constants.getTitleClean() + ", " + constants.getPublishedId() + ", " + ""
 					+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
-					+ constants.getKeywords() + ")" + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ constants.getKeywords() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 			Long collectionId = getCollectionIDByName(document, document.getCollection());
 
@@ -285,8 +365,11 @@ public class DBConnection {
 				}
 			}
 
-			for (int i = 0; i < authorKey.length; i++) {
-				addPersonDocumentRelation(document, docKey, authorKey[i]);
+			for (int i = 0; i < document.getAbstracts().size(); i++)
+				addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+
+			for (int i = 0; i < authors.size(); i++) {
+				addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
 			}
 
 		} catch (SQLException sqle) {
@@ -295,18 +378,47 @@ public class DBConnection {
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
 			e.printStackTrace();
+		} finally {
+			stateQueryDoc.close();
+		}
+	}
+
+	private void addAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) {
+		PreparedStatement stmt = null;
+		try {
+			String query = "INSERT INTO " + constants.getAbstracts() + " (" + constants.getAbstractDocumentId() + ", "
+					+ constants.getAbstractLanguage() + ", " + constants.getAbstr() + ") VALUES (?, ?, ?)";
+
+			stmt = con.prepareStatement(query);
+
+			SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
+			SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
+			SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
+
+			stmt.executeUpdate();
+		} catch (Exception e) {
+			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public List<Person> getPersonsByDocumentID(Long documentID) {
+		Statement stmt = null;
+		ResultSet rs = null;
 		List<Person> persons = new ArrayList<Person>();
 
 		String query = "SELECT * FROM " + constants.getDocPers() + " WHERE " + constants.getDocumentIDInDocPers()
 				+ " = '" + documentID + "'";
 
 		try {
-			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
 				persons.add(getPersonById(rs.getLong(constants.getPersonIDInDocPers())));
@@ -314,6 +426,13 @@ public class DBConnection {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		return persons;
 	}
@@ -324,14 +443,16 @@ public class DBConnection {
 		documentSet.setRecommendationSetId("DummyId");
 		documentSet.setSuggested_label("Dummy Articles");
 		StringJoiner joiner = new StringJoiner(", ");
+		Statement stmt = null;
+		ResultSet rs = null;
 
 		try {
-			Statement stmt = con.createStatement();
+			stmt = con.createStatement();
 
 			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + constants.getIdOriginal() + " = '"
 					+ originalid + "'";
 
-			ResultSet rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery(query);
 			while (rs.next()) {
 
 				List<Person> authors = getPersonsByDocumentID((rs.getLong(constants.getDocumentId())));
@@ -342,13 +463,11 @@ public class DBConnection {
 
 				Document document = new Document("dummyRec", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666,
-						rs.getString(constants.getTitle()) + ". " + authorNames + ". "
-								+ rs.getString(constants.getPublishedId()) + ". " + rs.getInt(constants.getYear()),
-						"&lt;span class='title'&gt;" + rs.getString(constants.getTitle())
+						new Snippet("&lt;span class='title'&gt;" + rs.getString(constants.getTitle())
 								+ "&lt;/span&gt;. &lt;span class='authors'&gt;" + authorNames
 								+ ";/span&gt;. &lt;span class='journal'&gt;" + rs.getString(constants.getPublishedId())
 								+ "&lt;/span&gt;. &lt;span class='volume_and_number'&gt;6:66&lt;/span&gt;. &lt;span class='year'&gt;"
-								+ rs.getInt(constants.getYear()) + "&lt;/span&gt;",
+								+ rs.getInt(constants.getYear()) + "&lt;/span&gt;", "html_and_css"),
 						"DummyURL", "DummyFallBackURL");
 				documentSet.addDocument(document);
 			}
@@ -356,6 +475,9 @@ public class DBConnection {
 			sqle.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			stmt.close();
+			rs.close();
 		}
 		return documentSet;
 	}

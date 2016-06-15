@@ -1,12 +1,15 @@
 package org.mrdlib.tools;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,78 +22,71 @@ public class XMLDocument {
 	private String fulltitle;
 	private String cleantitle;
 	private String language;
+	private ArrayList<Abstract> abstr = new ArrayList<Abstract>();
 	private int year;
 	private int facetYear;
 	private Set<String> keywords = new HashSet<String>();
 	private String type;
-	private String[] typeList = new String[3];
+	private Set<String> typeSet = new HashSet<String>();
 	private String publishedIn;
-	private String[] publishedInList = new String[3];
-	private ArrayList<Person> authors = new ArrayList<Person>();
+	private int publishedInRank;
+	private LinkedHashSet<Person> authors = new LinkedHashSet<Person>();
 	private Map<String, String> typeMap = new HashMap<String, String>();
 	private Map<String, String> languageMap = new HashMap<String, String>();
-	
-
-	public void selectPublishedIn() {
-		// set to [0] IF: only [0] is set || every entry is the same || ([0] ==
-		// [1] && [2] is empty) || ([0] == [2] && [1] is empty)
-		if ((!publishedInList[0].equals("") && publishedInList[1].equals("") && publishedInList[2].equals(""))
-				|| (publishedInList[0].equals(publishedInList[1]) && publishedInList[2].equals(""))
-				|| (publishedInList[0].equals(publishedInList[2]) && publishedInList[1].equals("")))
-			publishedIn = publishedInList[0];
-		// set to [1] IF: only [1] is set || ([1] == [2] && [0] is empty)
-		else if ((publishedInList[0].equals("") && !publishedInList[1].equals("") && publishedInList[2].equals(""))
-				|| (publishedInList[1].equals(publishedInList[2]) && publishedInList[0].equals("")))
-			publishedIn = publishedInList[1];
-		// set to [2] IF: only [2] is set
-		else if (publishedInList[0].equals("") && publishedInList[1].equals("") && !publishedInList[2].equals(""))
-			publishedIn = publishedInList[2];
-		else {
-			System.out.println("In Export " + documentPath + " In Document: " + id + ": Multiple Publisher: "
-					+ publishedInList[0] + ", " + publishedInList[1] + ", " + publishedInList[2]);
-			publishedIn = null;
-		}
-	}
+	private Map<Tuple, String> typeResolveMap = new HashMap<Tuple, String>();
 
 	public String chooseType(String type) {
 		String tempType;
-
-		tempType = typeMap.get(type.toLowerCase());
-		if (!(tempType == null))
-			return tempType;
+		if (type.equals(""))
+			return "unknown";
 		else {
-			System.out.println("In Export " + documentPath + " In Document: " + id + ": Undefined Type: " + type);
-			return "unkown";
+			tempType = typeMap.get(type.toLowerCase());
+			if (tempType != null && !tempType.equals(""))
+				return tempType;
+			else {
+				System.out.println("In Export " + documentPath + " In Document: " + id + ": Undefined Type: " + type);
+				return "unknown";
+			}
 		}
 	}
 
 	public void selectType() {
-		// set to [0] IF: only [0] is set || every entry is the same || ([0] ==
-		// [1] && [2] is empty) || ([0] == [2] && [1] is empty)
-		if ((!typeList[0].equals("") && typeList[1].equals("") && typeList[2].equals(""))
-				|| (typeList[0].equals(typeList[1]) && typeList[2].equals(typeList[2]))
-				|| (typeList[0].equals(typeList[1]) && typeList[2].equals(""))
-				|| (typeList[0].equals(typeList[2]) && typeList[1].equals("")))
-			type = typeList[0];
-		// set to [1] IF: only [1] is set || ([1] == [2] && [0] is empty)
-		else if ((typeList[0].equals("") && !typeList[1].equals("") && typeList[2].equals(""))
-				|| (typeList[1].equals(typeList[2]) && typeList[0].equals("")))
-			type = typeList[1];
-		// set to [2] IF: only [2] is set
-		else if (typeList[0].equals("") && typeList[1].equals("") && !typeList[2].equals("")
-				|| (!typeList[0].equals("") && !typeList[2].equals("")))
-			type = typeList[2];
-		else {
-			System.out.println("In Export " + documentPath + " In Document: " + id + ": Multiple Types: " + typeList[0]
-					+ ", " + typeList[1] + ", " + typeList[2]);
+		Iterator<String> it;
+		String allTypes = "";
+		String current;
+
+		if (typeSet.isEmpty())
 			type = "unknown";
+		else {
+			it = typeSet.iterator();
+			while (it.hasNext()) {
+				current = it.next();
+				allTypes = allTypes + ", " + current.toString();
+
+				if (type == null || type.equals("unknown"))
+					type = current.toString();
+				else if (!type.equals(current.toString())) {
+					Tuple tupleKey = new Tuple(type, current.toString());
+					if (typeResolveMap.containsKey(tupleKey))
+						type = typeResolveMap.get(tupleKey);
+					else {
+						System.out.println(
+								"In Export " + documentPath + " In Document: " + id + ": Multiple Types: " + allTypes);
+						type = "unknown";
+					}
+				}
+			}
 		}
 	}
 
 	public String getAuthorsAsString() {
 		String authorsString = "";
-		for (int i = 0; i < authors.size(); i++) {
-			authorsString = authorsString + authors.get(i).getName() + ", ";
+		Person current;
+		Iterator<Person> it = authors.iterator();
+
+		while (it.hasNext()) {
+			current = it.next();
+			authorsString = authorsString + current.getName() + ", ";
 		}
 		return authorsString;
 	}
@@ -134,7 +130,7 @@ public class XMLDocument {
 		selectTitle();
 		calculateTitleClean();
 		setCleanTitle();
-		setLanguageToStandard();
+		language = setLanguageToStandard(language);
 		selectYear();
 		tidyUpKeywords();
 		normalizeTitle();
@@ -144,6 +140,8 @@ public class XMLDocument {
 	private void normalizeTitle() {
 		if (title.matches("[^a-z]*"))
 			title = WordUtils.capitalizeFully(title);
+		if (title.contains(" :"))
+			title.replace(" :", ":");
 	}
 
 	private void tidyUpKeywords() {
@@ -229,7 +227,7 @@ public class XMLDocument {
 		return Integer.parseInt(year);
 	}
 
-	private void setLanguageToStandard() {
+	private String setLanguageToStandard(String language) {
 		boolean validLanguage = true;
 		String tempLan;
 		if (!(language == null || language.equals("Keine Angabe") || language.equals("Multilingual"))) {
@@ -257,15 +255,19 @@ public class XMLDocument {
 					+ language);
 			language = null;
 		}
+
+		return language;
 	}
-	
+
 	public String getCollection() {
-		//File file = new File(documentPath.toString());
-		//String dir = file.getParent().substring(file.getParent().lastIndexOf(File.separator) + 1);
+		// File file = new File(documentPath.toString());
+		// String dir =
+		// file.getParent().substring(file.getParent().lastIndexOf(File.separator)
+		// + 1);
 		return "gesis";
 	}
-	
-	public ArrayList<Person>getAuthors() {
+
+	public LinkedHashSet<Person> getAuthors() {
 		return authors;
 	}
 
@@ -274,7 +276,20 @@ public class XMLDocument {
 	}
 
 	public String getKeywordsAsString() {
-		return keywords.toString();
+		String keywordString = "";
+		StringJoiner joiner = new StringJoiner(", ");
+		Iterator<String> it = keywords.iterator();
+
+		while (it.hasNext()) {
+			joiner.add(it.next());
+			it.remove();
+		}
+
+		keywordString = joiner.toString();
+		keywordString.replace("<", "");
+		keywordString.replace(">", "");
+		keywordString.trim();
+		return keywordString;
 	}
 
 	public int getFacetYyear() {
@@ -285,12 +300,9 @@ public class XMLDocument {
 		this.facetYear = makeYearInt(facetYear);
 	}
 
-	public void setPublishedInList(String published, int i) {
-		this.publishedInList[i] = published;
-	}
-
-	public void setTypeList(String type, int i) {
-		this.typeList[i] = chooseType(type);
+	public void addType(String type) {
+		if (!chooseType(type).equals("unknown"))
+			this.typeSet.add(chooseType(type));
 	}
 
 	public int getYear() {
@@ -302,29 +314,24 @@ public class XMLDocument {
 	}
 
 	public String getLanguage() {
-		if (language == null)
-			return "";
-		else
-			return language;
+		return language;
 	}
 
 	public void setLanguage(String language) {
 		this.language = language;
 	}
 
-	public XMLDocument(Map<String, String> typeMap, Map<String, String> languageMap) {
-		Arrays.fill(typeList, "");
+	public XMLDocument(Map<String, String> typeMap, Map<String, String> languageMap,
+			Map<Tuple, String> typeResolveMap) {
 		this.typeMap = typeMap;
 		this.languageMap = languageMap;
+		this.typeResolveMap = typeResolveMap;
 		type = "unknown";
+		publishedInRank = 10;
 	}
 
 	public String getType() {
 		return type;
-	}
-
-	public void setTypeList(String[] typeList) {
-		this.typeList = typeList;
 	}
 
 	public String getId() {
@@ -365,5 +372,36 @@ public class XMLDocument {
 
 	public String getPublishedIn() {
 		return publishedIn;
+	}
+
+	public void setPublishedIn(String publishedIn, String type) {
+		if (type.equals("journal_full_txt_mv")) {
+			this.publishedIn = publishedIn;
+			this.publishedInRank = 1;
+		} else if (type.equals("journal_title_txt_mv") && publishedInRank > 1) {
+			this.publishedIn = publishedIn;
+			this.publishedInRank = 2;
+		} else if (type.equals("journal_short_txt_mv") && publishedInRank > 2) {
+			this.publishedIn = publishedIn;
+			this.publishedInRank = 3;
+		} else if (type.equals("Satit_str") && publishedInRank > 3) {
+			this.publishedIn = publishedIn;
+			this.publishedInRank = 4;
+		} else if (type.equals("Sseries_str_mv") && publishedInRank > 4) {
+			this.publishedIn = publishedIn;
+			this.publishedInRank = 5;
+		} else if (type.equals("publisher") && publishedInRank > 5) {
+			this.publishedIn = publishedIn;
+			this.publishedInRank = 6;
+		}
+	}
+
+	public ArrayList<Abstract> getAbstracts() {
+		return abstr;
+	}
+
+	public void addAbstract(String abstr, String lan) {
+		lan = setLanguageToStandard("(" + lan + ")");
+		this.abstr.add(new Abstract(abstr, lan));
 	}
 }

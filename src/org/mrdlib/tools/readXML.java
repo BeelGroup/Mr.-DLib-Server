@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 
@@ -20,21 +21,52 @@ public class readXML {
 	//"/home/mrdlib"
 	protected String configFolder = "/home/mrdlib";
 	protected String type_config = "/document_types.xml";
+	protected String type_resolved_config = "/document_types_resolved.xml";
 	protected String language_config = "/language.xml";
 	public Map<String, String> typeMap = new HashMap<String, String>();
 	public Map<String, String> languageMap = new HashMap<String, String>();
-	private DBConnection con = new DBConnection();
-	//private static Set<String> types = new HashSet<String>();
+	public Map<Tuple, String> typeResolveMap = new HashMap<Tuple, String>();
 	
-	public readXML() {}
+	private DBConnection con;
+	
+	public readXML() {
+		con = new DBConnection();
+	}
+	
+	public Document getDocFromPath(String path) {
+		Document doc = null;
+		try {
+			File inputFile = new File(path);
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			doc = dBuilder.parse(inputFile);
+			doc.getDocumentElement().normalize();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return doc;
+	}
+	
+	public Map<Tuple, String> createResolveMap(String path, Map<Tuple, String> map, String nodeText) {
+		try {
+			Document doc = getDocFromPath(configFolder.concat(path));
+			NodeList originalTypeNodes = doc.getElementsByTagName(nodeText);
+			for (int i = 0; i < originalTypeNodes.getLength(); i++) {
+				String rootNode = originalTypeNodes.item(i).getAttributes().getNamedItem("name").getNodeValue().toLowerCase();
+				NodeList childNodes = originalTypeNodes.item(i).getChildNodes();
+				Tuple tuple = new Tuple(childNodes.item(1).getAttributes().getNamedItem("name").getNodeValue().toLowerCase(),
+						childNodes.item(2).getNextSibling().getAttributes().getNamedItem("name").getNodeValue().toLowerCase());
+				map.put(tuple, rootNode);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
 	
 	public Map<String, String> createMap(String path, Map<String, String> map, String nodeText) {
 		try {
-			File inputFile = new File(configFolder.concat(path).toString());
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(inputFile);
-			doc.getDocumentElement().normalize();
+			Document doc = getDocFromPath(configFolder.concat(path));
 
 			NodeList originalTypeNodes = doc.getElementsByTagName(nodeText);
 			for (int i = 0; i < originalTypeNodes.getLength(); i++) {
@@ -49,18 +81,14 @@ public class readXML {
 
 	public void processXML(Path path) {
 		try {
-			File inputFile = new File(path.toString());
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(inputFile);
-			doc.getDocumentElement().normalize();
+			Document doc = getDocFromPath(path.toString());
 
 			NodeList docList = doc.getElementsByTagName("doc");
 
 			XMLDocument[] inf = new XMLDocument[docList.getLength()];
 
 			for (int i = 0; i < docList.getLength(); i++) {
-				inf[i] = new XMLDocument(typeMap, languageMap);
+				inf[i] = new XMLDocument(typeMap, languageMap, typeResolveMap);
 				inf[i].setDocumentPath(path.toString());
 
 				Node nNode = docList.item(i).getFirstChild();
@@ -68,6 +96,13 @@ public class readXML {
 					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 						Element eElement = (Element) nNode;
 						String attribute = eElement.getAttribute("name");
+						if(attribute.matches("description_[A-Za-z]+_txt_mv")) {
+							int firstPos = attribute.indexOf("_")+1;
+							int secondPos = attribute.substring(attribute.indexOf("_")+1).indexOf("_") + firstPos;
+							String lan = attribute.substring(firstPos, secondPos);
+							inf[i].addAbstract(eElement.getTextContent(), lan);
+						}
+						
 						switch (attribute) {
 						case "id":
 							inf[i].setId(eElement.getTextContent());
@@ -88,9 +123,9 @@ public class readXML {
 							inf[i].setFacetYear(eElement.getTextContent());
 							break;
 						case "person_author_txtP_mv":
-						case "person_other_txtP_mv":
+						/*case "person_other_txtP_mv":
 						case "person_other_normalized_str_mv":
-						case "search_person_txtP_mv":
+						case "search_person_txtP_mv":*/
 							inf[i].addAuthor(eElement.getTextContent());
 							break;
 						case "search_schlagwoerter_txtP_mv":
@@ -101,25 +136,17 @@ public class readXML {
 							inf[i].addKeyWord(eElement.getTextContent());
 							break;
 						case "doctype_lit_str":
-							inf[i].setTypeList(eElement.getTextContent(), 0);
-							//types.add(eElement.getTextContent());
-							break;
 						case "doctype_lit_add_str":
-							inf[i].setTypeList(eElement.getTextContent(), 1);
-							//types.add(eElement.getTextContent());
-							break;
 						case "temp_doctypes_orginal_str":
-							inf[i].setTypeList(eElement.getTextContent(), 2);
-							//types.add(eElement.getTextContent());
+							inf[i].addType(eElement.getTextContent());
 							break;
 						case "publisher":
-							inf[i].setPublishedInList(eElement.getTextContent(), 0);
-							break;
-						case "Sseries_str_mv ":
-							inf[i].setPublishedInList(eElement.getTextContent(), 1);
-							break;
+						case "Sseries_str_mv":
 						case "Satit_str":
-							inf[i].setPublishedInList(eElement.getTextContent(), 2);
+						case "journal_full_txt_mv":
+						case "journal_short_txt_mv":
+						case "journal_title_txt_mv":
+							inf[i].setPublishedIn(eElement.getTextContent(), attribute);
 							break;
 						default:
 							break;
@@ -128,15 +155,6 @@ public class readXML {
 					nNode = nNode.getNextSibling();
 				}
 				inf[i].normalize();
-				 /*System.out.println("id: " + inf[i].getId()+"\r\ntitle: " +
-				 inf[i].getTitle() + "\r\ncleantitle: "
-				 + inf[i].getCleanTitle() + "\r\nlanguage: " +
-				 inf[i].getLanguage() + "\r\nyear: "
-				 + inf[i].getYear() + "\r\nauthors: " +
-				 inf[i].getAuthorsAsString() + "\r\nkeywords: "
-				 + inf[i].getKeywordsAsString() + "\r\ntype: " +
-				 inf[i].getType());
-				 System.out.println("---------------------------------------------");*/
 				con.makeQueryOfDocument(inf[i]);
 			}
 		} catch (Exception e) {
@@ -145,24 +163,20 @@ public class readXML {
 	}
 
 	public static void main(String[] args) throws IOException {
-		
 		readXML rxml = new readXML();
 		
 		rxml.typeMap = rxml.createMap(rxml.type_config, rxml.typeMap, "original_type");
 		rxml.languageMap = rxml.createMap(rxml.language_config, rxml.languageMap, "original_lan");
-		//System.out.println(typeMap.toString());
+		rxml.typeResolveMap = rxml.createResolveMap(rxml.type_resolved_config, rxml.typeResolveMap, "mdl_type");
+		
 		try {
-			//Files.walk(Paths.get(args[0]))
-					//.filter((p) -> !p.toFile().isDirectory() && p.toFile().getAbsolutePath().endsWith(".xml"))
-					//.forEach(p -> processXML(p));
-			rxml.processXML(Paths.get("/home/mrdlib/data/fes/solr-export-1.xml"));
-			/*
-			Iterator<String> iterator = types.iterator();
-			while (iterator.hasNext()) {
-				System.out.println("Type" + iterator.next() + " ");
-			}*/
+			Files.walk(Paths.get(args[0]))
+					.filter((p) -> !p.toFile().isDirectory() && p.toFile().getAbsolutePath().endsWith(".xml"))
+					.forEach(p -> rxml.processXML(p));
+			//rxml.processXML(Paths.get("/home/mrdlib/data/fes/solr-export-1.xml"));
+
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 
 	}

@@ -4,6 +4,9 @@
 		<mdl_lan name="(om)">
 			<original_lan name="Galla"></original_lan>
 		</mdl_lan>
+		<mdl_lan name="(de)">
+			<original_lan name="de"></original_lan>
+		</mdl_lan>
 		<mdl_lan name="(oc)">
 			<original_lan name="Provencal"></original_lan>
 		</mdl_lan>

@@ -9,6 +9,7 @@ public class Constants {
 	private String configPath = "config.properties";
 
 	private String dbClass;
+
 	private String db;
 	private String url;
 	private String user;
@@ -19,6 +20,13 @@ public class Constants {
 	private String persons;
 	private String docPers;
 	private String collections;
+	private String abstracts;
+	
+	//db table abstract
+	private String abstractId;
+	private String abstractDocumentId;
+	private String abstractLanguage;
+	private String abstr;
 
 	//db table document
 	private String documentID;
@@ -49,6 +57,7 @@ public class Constants {
 	//db table doc_pers
 	private String documentIDInDocPers;
 	private String personIDInDocPers;
+	private String rank;
 
 
 	// load the config file
@@ -72,6 +81,12 @@ public class Constants {
 			this.persons = prop.getProperty("persons");
 			this.docPers = prop.getProperty("doc_pers");
 			this.collections = prop.getProperty("collections");
+			this.abstracts = prop.getProperty("abstracts");
+
+			this.abstractId =prop.getProperty("abstractId");
+			this.abstractDocumentId = prop.getProperty("abstractDocumentId");
+			this.abstractLanguage = prop.getProperty("abstractLanguage");
+			this.abstr = prop.getProperty("abstract");
 			
 			this.documentID = prop.getProperty("documentId");
 			this.idOriginal = prop.getProperty("idOriginal");
@@ -98,6 +113,7 @@ public class Constants {
 			
 			this.documentIDInDocPers = prop.getProperty("documentIdInDocPers");
 			this.personIDInDocPers = prop.getProperty("personIdInDocPers");
+			this.rank = prop.getProperty("authorRank");
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -112,6 +128,26 @@ public class Constants {
 		}
 	}
 	
+	public String getRank() {
+		return rank;
+	}
+
+	public String getAbstractId() {
+		return abstractId;
+	}
+
+	public String getAbstractDocumentId() {
+		return abstractDocumentId;
+	}
+
+	public String getAbstractLanguage() {
+		return abstractLanguage;
+	}
+
+	public String getAbstr() {
+		return abstr;
+	}
+
 	public String getCollectionID() {
 		return collectionID;
 	}
@@ -234,5 +270,8 @@ public class Constants {
 
 	public String getYear() {
 		return year;
+	}
+	public String getAbstracts() {
+		return abstracts;
 	}
 }

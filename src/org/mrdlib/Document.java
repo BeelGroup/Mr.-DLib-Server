@@ -13,26 +13,24 @@ public class Document implements Serializable {
 	private String recommendationId;
 	private String documentId;
 	private String originalDocumentId;
-	private int suggestedRank;
 
 	// elements
-	private String snippetPlain;
-	private String snippetHtml;
+	private Snippet snippet;
 	private String clickUrl;
 	private String fallbackUrl;
+	private int suggestedRank;
 
 	public Document() {
 	}
 
 	public Document(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
-			String snippetPlain, String snippetHtml, String clickUrl, String fallbackUrl) {
+			Snippet snippet, String clickUrl, String fallbackUrl) {
 		super();
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
 		this.suggestedRank = suggestedRank;
-		this.snippetPlain = snippetPlain;
-		this.snippetHtml = snippetHtml;
+		this.snippet = snippet;
 		this.clickUrl = clickUrl;
 		this.fallbackUrl = fallbackUrl;
 	}
@@ -68,27 +66,18 @@ public class Document implements Serializable {
 		return suggestedRank;
 	}
 
-	@XmlAttribute(name="suggested_rank")
+	@XmlElement(name="suggested_rank")
 	public void setSuggestedRank(int suggestedRank) {
 		this.suggestedRank = suggestedRank;
 	}
 
-	public String getSnippetPlain() {
-		return snippetPlain;
+	public Snippet getSnippet() {
+		return snippet;
 	}
-
-	@XmlElement(name="snippet_plain")
-	public void setSnippetPlain(String snippetPlain) {
-		this.snippetPlain = snippetPlain;
-	}
-
-	public String getSnippetHtml() {
-		return snippetHtml;
-	}
-
-	@XmlElement(name="snippet_html")
-	public void setSnippetHtml(String snippetHtml) {
-		this.snippetHtml = snippetHtml;
+	
+	@XmlElement(name = "snippet")
+	public void setSnippet(Snippet snippet) {
+		this.snippet = snippet;
 	}
 
 	public String getClickUrl() {
