@@ -58,6 +58,15 @@ public class Constants {
 	private String documentIDInDocPers;
 	private String personIDInDocPers;
 	private String rank;
+	
+	//solr
+	private String solrWebService;
+	private String solrMrdlib;
+	private String solrCollectionShortName;
+	
+	//collections
+	private String gesis;
+	private String gesisCollectionLink;
 
 
 	// load the config file
@@ -114,6 +123,13 @@ public class Constants {
 			this.documentIDInDocPers = prop.getProperty("documentIdInDocPers");
 			this.personIDInDocPers = prop.getProperty("personIdInDocPers");
 			this.rank = prop.getProperty("authorRank");
+			
+			this.solrWebService = prop.getProperty("solrWebService");
+			this.solrMrdlib = prop.getProperty("solrMrdlib");
+			this.solrCollectionShortName = prop.getProperty("solrCollectionShortName");
+			
+			this.gesisCollectionLink = prop.getProperty("gesisCollectionLink");
+			this.gesis = prop.getProperty("gesis");
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -126,6 +142,23 @@ public class Constants {
 				}
 			}
 		}
+	}	
+	public String getSolrCollectionShortName() {
+		return solrCollectionShortName;
+	}
+	public String getGesisCollectionLink() {
+		return gesisCollectionLink;
+	}
+
+	public String getSolrWebService() {
+		return solrWebService;
+	}
+
+	public String getSolrMrdlib() {
+		return solrMrdlib;
+	}
+	public String getGesis() {
+		return gesis;
 	}
 	
 	public String getRank() {

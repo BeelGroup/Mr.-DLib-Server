@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.mrdlib.Document;
 import org.mrdlib.DocumentSet;
 import org.mrdlib.Snippet;
@@ -92,8 +93,9 @@ public class DBConnection {
 		Statement stmt = null;
 		ResultSet rs = null;
 
-		String query = "SELECT * FROM " + constants.getPersons() + " WHERE " + constants.getPersonID() + " = '"
-				+ authorID + "'";
+		String query = "SELECT " + constants.getFirstname() + "," + constants.getMiddlename() + ","
+				+ constants.getSurname() + "," + constants.getUnstructured() + " FROM " + constants.getPersons()
+				+ " WHERE " + constants.getPersonID() + " = '" + authorID + "'";
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
@@ -137,11 +139,11 @@ public class DBConnection {
 		String surname = replaceHighComma(author.getSurname());
 		String unstructured = replaceHighComma(author.getUnstructured());
 
-		String queryAuthorExists = "SELECT * FROM " + constants.getPersons() + " WHERE " + constants.getFirstname()
-				+ (firstname == null ? " is null" : " = ? ") + " AND " + constants.getMiddlename()
-				+ (middlename == null ? " is null" : " = ? ") + " AND " + constants.getSurname()
-				+ (surname == null ? " is null" : " = ? ") + " AND " + constants.getUnstructured()
-				+ (unstructured == null ? " is null" : " = ? ");
+		String queryAuthorExists = "SELECT " + constants.getPersonID() + " FROM " + constants.getPersons() + " WHERE "
+				+ constants.getFirstname() + (firstname == null ? " is null" : " = ? ") + " AND "
+				+ constants.getMiddlename() + (middlename == null ? " is null" : " = ? ") + " AND "
+				+ constants.getSurname() + (surname == null ? " is null" : " = ? ") + " AND "
+				+ constants.getUnstructured() + (unstructured == null ? " is null" : " = ? ");
 
 		try {
 			stateAuthorExists = con.prepareStatement(queryAuthorExists, Statement.RETURN_GENERATED_KEYS);
@@ -240,8 +242,8 @@ public class DBConnection {
 		ResultSet rs = null;
 		Long id = null;
 
-		String query = "SELECT * FROM " + constants.getCollections() + " WHERE " + constants.getCollectionShortName()
-				+ " = '" + collectionName + "'";
+		String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
+				+ constants.getCollectionShortName() + " = '" + collectionName + "'";
 
 		try {
 			stmt = con.createStatement();
@@ -308,8 +310,8 @@ public class DBConnection {
 		// document.getId() + ": No Authors!");
 
 		// Doc Exists already?
-		String docExists = "SELECT * FROM " + constants.getDocuments() + " WHERE " + constants.getIdOriginal() + " = '"
-				+ document.getId() + "'";
+		String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
+				+ constants.getIdOriginal() + " = '" + document.getId() + "'";
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(docExists);
@@ -413,8 +415,8 @@ public class DBConnection {
 		ResultSet rs = null;
 		List<Person> persons = new ArrayList<Person>();
 
-		String query = "SELECT * FROM " + constants.getDocPers() + " WHERE " + constants.getDocumentIDInDocPers()
-				+ " = '" + documentID + "'";
+		String query = "SELECT " + constants.getPersonIDInDocPers() + " FROM " + constants.getDocPers() + " WHERE "
+				+ constants.getDocumentIDInDocPers() + " = '" + documentID + "'";
 
 		try {
 			stmt = con.createStatement();
@@ -437,48 +439,90 @@ public class DBConnection {
 		return persons;
 	}
 
+	public String getCollectionShortNameById(Long id) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String name = "";
+
+		String query = "SELECT " + constants.getCollectionShortName() + " FROM " + constants.getCollections()
+				+ " WHERE " + constants.getCollectionID() + " = '" + id + "'";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			while (rs.next())
+				name = rs.getString(constants.getCollectionShortName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return name;
+	}
+
 	public DocumentSet getDocumentSetByOriginalId(String originalid) throws Exception {
 		DocumentSet documentSet = new DocumentSet();
-		String authorNames = "";
 		documentSet.setRecommendationSetId("DummyId");
 		documentSet.setSuggested_label("Dummy Articles");
+		documentSet.addDocument(getDocumentBy(constants.getIdOriginal(), originalid));
+		return documentSet;
+	}
+
+	public Document getDocumentBy(String coloumnName, String id) throws Exception {
+		Document document = null;
+		String authorNames = "";
 		StringJoiner joiner = new StringJoiner(", ");
 		Statement stmt = null;
 		ResultSet rs = null;
+		String title = null;
+		String publishedIn = null;
 
 		try {
 			stmt = con.createStatement();
 
-			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + constants.getIdOriginal() + " = '"
-					+ originalid + "'";
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = '" + id + "'";
 
 			rs = stmt.executeQuery(query);
-			while (rs.next()) {
+			if (rs.next()) {
 
 				List<Person> authors = getPersonsByDocumentID((rs.getLong(constants.getDocumentId())));
 				for (int i = 0; i < authors.size(); i++)
 					joiner.add(authors.get(i).getName());
 
 				authorNames = joiner.toString();
+				authorNames = StringEscapeUtils.escapeHtml4(authorNames);
+				title = StringEscapeUtils.escapeHtml4(rs.getString(constants.getTitle()));
+				publishedIn = rs.getString(constants.getPublishedId());
 
-				Document document = new Document("dummyRec", String.valueOf(rs.getLong(constants.getDocumentId())),
+				document = new Document("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666,
-						new Snippet("&lt;span class='title'&gt;" + rs.getString(constants.getTitle())
+						new Snippet("&lt;span class='mdl-title'&gt;" + title
 								+ "&lt;/span&gt;. &lt;span class='authors'&gt;" + authorNames
-								+ ";/span&gt;. &lt;span class='journal'&gt;" + rs.getString(constants.getPublishedId())
+								+ ";/span&gt;. &lt;span class='journal'&gt;" + publishedIn
 								+ "&lt;/span&gt;. &lt;span class='volume_and_number'&gt;6:66&lt;/span&gt;. &lt;span class='year'&gt;"
 								+ rs.getInt(constants.getYear()) + "&lt;/span&gt;", "html_and_css"),
-						"DummyURL", "DummyFallBackURL");
-				documentSet.addDocument(document);
-			}
+						"", "", "");
+				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
+				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
+				return document;
+			} else
+				throw new NoEntryException(id);
 		} catch (SQLException sqle) {
 			sqle.printStackTrace();
+		} catch (NoEntryException e) {
+			throw e;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			stmt.close();
 			rs.close();
 		}
-		return documentSet;
+		return document;
 	}
 }

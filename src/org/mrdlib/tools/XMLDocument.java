@@ -135,13 +135,20 @@ public class XMLDocument {
 		tidyUpKeywords();
 		normalizeTitle();
 		selectType();
+		normalizePublishedIn();
+	}
+
+	private void normalizePublishedIn() {
+		if(publishedIn != null)
+			if (publishedIn.endsWith(" ; ..."))
+				publishedIn = publishedIn.replace(" ; ...", "");
 	}
 
 	private void normalizeTitle() {
 		if (title.matches("[^a-z]*"))
 			title = WordUtils.capitalizeFully(title);
 		if (title.contains(" :"))
-			title.replace(" :", ":");
+			title = title.replace(" :", ":");
 	}
 
 	private void tidyUpKeywords() {
