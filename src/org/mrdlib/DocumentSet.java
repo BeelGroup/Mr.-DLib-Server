@@ -7,6 +7,15 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * 
+ * @author Millah
+ * 
+ * This class handles the presentation of the documentSet.
+ * The XML format is automatically generated through the class structure.
+ *
+ */
+
 @XmlRootElement(name = "related_articles")
 public class DocumentSet {
 	

@@ -1,5 +1,12 @@
 package org.mrdlib.tools;
 
+/**
+ * 
+ * @author Millah
+ *
+ * a class which wraps the structure of an abstract (containing content and language)
+ *
+ */
 public class Abstract {
 	private String content;
 	private String language;

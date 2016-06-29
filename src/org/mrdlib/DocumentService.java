@@ -14,7 +14,8 @@ import org.mrdlib.solrHandler.solrConnection;
 @Path("{documentId : [a-zA-Z0-9-_.,]+}")
 public class DocumentService {
 
-	DocumentExamples documentExample = new DocumentExamples();
+	//set up the necessary connections and load the config
+	//DocumentExamples documentExample = new DocumentExamples();
 	private DBConnection con = new DBConnection();
 	private solrConnection scon = new solrConnection();
 	private Constants constants = new Constants();
@@ -23,8 +24,19 @@ public class DocumentService {
 	//set end of Path
 	@Path("/related_documents")
 	@Produces(MediaType.APPLICATION_XML)
-	public DocumentSet getDocumentSet(@PathParam("documentId") String documentIdOriginal) throws Exception {
-		DocumentSet documentset = scon.getRelatedDocumentSetByDocument(con.getDocumentBy(constants.getIdOriginal(),documentIdOriginal));
+	/**
+	 * Get the related documentSet of a given document
+	 * 
+	 * @param documentIdOriginal - id from the cooperation partner
+	 * @return a document set of related documents
+	 */
+	public DocumentSet getDocumentSet(@PathParam("documentId") String documentIdOriginal) {
+		DocumentSet documentset = null;
+		try {
+			documentset = scon.getRelatedDocumentSetByDocument(con.getDocumentBy(constants.getIdOriginal(),documentIdOriginal));
+		} catch (Exception e){
+			e.printStackTrace();
+		}
 		//DocumentSet documentset = con.getDocumentSetByOriginalId(documentId);
 		//documentset.addDocument(con.getDocumentByOriginalId(documentId));
 		//return documentExample.getDocumentSet();

@@ -5,7 +5,14 @@ import java.io.Serializable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
-
+/**
+ * 
+ * @author Millah
+ * 
+ * This class handles the presentation of the document information of one document.
+ * The XML format is automatically generated through the class structure.
+ *
+ */
 public class Document implements Serializable {
 
 	private static final long serialVersionUID = 1L;

@@ -3,13 +3,18 @@ package org.mrdlib.database;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+/**
+ * @author Millah
+ * 
+ * This class reads in the constants from a property file, which is defined in configPath.
+ */
 
 public class Constants {
 
 	private String configPath = "config.properties";
 
+	//db connection properties
 	private String dbClass;
-
 	private String db;
 	private String url;
 	private String user;

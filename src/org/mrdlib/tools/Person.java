@@ -1,4 +1,12 @@
 package org.mrdlib.tools;
+
+/**
+ * 
+ * @author Millah
+ *
+ * a class which wraps the structure of a person (containing the names)
+ * 
+ */
 public class Person {
 	String firstname;
 	String middlename;
@@ -32,6 +40,8 @@ public class Person {
 	public void setUnstructured(String unstructured) {
 		this.unstructured = unstructured;
 	}
+	
+	//get the whole name as String with "firstname (middlename?) surname" or "unstructured"
 	public String getName() {
 		if((firstname == null || surname == null) && unstructured != null)
 			return unstructured;

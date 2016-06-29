@@ -16,23 +16,45 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 
+/**
+ * 
+ * @author Millah
+ * 
+ * class which reads the information of a xml document containing documents (haha) and write it in a database.
+ * The information is passed to XMLDocument where it is preprocessed and after that it is written to a database
+ *
+ */
+
 public class readXML {
-	//C:\Users\Sophie\workspace\MrDlib\resources
+	//C:\Users\{name}\workspace\MrDlib\resources
 	//"/home/mrdlib"
+	
+	//set config pathes
 	protected String configFolder = "/home/mrdlib";
 	protected String type_config = "/document_types.xml";
 	protected String type_resolved_config = "/document_types_resolved.xml";
 	protected String language_config = "/language.xml";
+	
 	public Map<String, String> typeMap = new HashMap<String, String>();
 	public Map<String, String> languageMap = new HashMap<String, String>();
 	public Map<Tuple, String> typeResolveMap = new HashMap<Tuple, String>();
 	
 	private DBConnection con;
 	
+	/**
+	 * create new DBConnection
+	 */
 	public readXML() {
 		con = new DBConnection();
 	}
 	
+	/**
+	 * 
+	 * get a ready to process XML file from a given path
+	 * 
+	 * @param path where the document is
+	 * @return ready to process XML document
+	 */
 	public Document getDocFromPath(String path) {
 		Document doc = null;
 		try {
@@ -47,16 +69,35 @@ public class readXML {
 		return doc;
 	}
 	
-	public Map<Tuple, String> createResolveMap(String path, Map<Tuple, String> map, String nodeText) {
+	/**
+	 * 
+	 * creates a map which is used to resolve conflicts when to different types of publishedIn information is given
+	 * 
+	 * @param path of the xml-config file
+	 * @param map of the conflicts and their solution
+	 * @return the filled map (key is conflicting tuple, value is solution)
+	 */
+	public Map<Tuple, String> createResolveMap(String path, Map<Tuple, String> map) {
+		//this is the node which is looked for (containing the solution for the conflict)
+		String solutionNodeText = "mdl_type";
 		try {
+			//get the ready to process XML
 			Document doc = getDocFromPath(configFolder.concat(path));
-			NodeList originalTypeNodes = doc.getElementsByTagName(nodeText);
+			//get every node which contains a solution, get the nodes which contains the conflict 
+			NodeList originalTypeNodes = doc.getElementsByTagName(solutionNodeText);
+			
 			for (int i = 0; i < originalTypeNodes.getLength(); i++) {
-				String rootNode = originalTypeNodes.item(i).getAttributes().getNamedItem("name").getNodeValue().toLowerCase();
+				//get the solution (contained in the solution node)
+				String solution = originalTypeNodes.item(i).getAttributes().getNamedItem("name").getNodeValue().toLowerCase();
+				//get the nodes which contain the conflicting parts
 				NodeList childNodes = originalTypeNodes.item(i).getChildNodes();
+				
+				//create a tuple so that order dont matter in comparing later
 				Tuple tuple = new Tuple(childNodes.item(1).getAttributes().getNamedItem("name").getNodeValue().toLowerCase(),
 						childNodes.item(2).getNextSibling().getAttributes().getNamedItem("name").getNodeValue().toLowerCase());
-				map.put(tuple, rootNode);
+				
+				//put the conflicting types and the solution to a map (which is searchable by the tuple)
+				map.put(tuple, solution);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -64,12 +105,24 @@ public class readXML {
 		return map;
 	}
 	
+	/**
+	 * 
+	 * create a map which maps original strings to custom enums
+	 * 
+	 * @param path of the xml-config file to use
+	 * @param map where the mapping is stored
+	 * @param nodeText contains the name of the node the custom enum is stored (child nodes are the original strings)
+	 * @return the filled map (key is original string, value is custum enum)
+	 */
 	public Map<String, String> createMap(String path, Map<String, String> map, String nodeText) {
 		try {
 			Document doc = getDocFromPath(configFolder.concat(path));
 
+			//get the original string nodes
 			NodeList originalTypeNodes = doc.getElementsByTagName(nodeText);
+			
 			for (int i = 0; i < originalTypeNodes.getLength(); i++) {
+				//put both the original string and the corresponding enum in a map, first the original one, than the custom enum one
 				map.put(originalTypeNodes.item(i).getAttributes().getNamedItem("name").getNodeValue().toLowerCase(), 
 						originalTypeNodes.item(i).getParentNode().getAttributes().getNamedItem("name").getNodeValue().toLowerCase());
 				}
@@ -79,30 +132,49 @@ public class readXML {
 		return map;
 	}
 
+	/**
+	 * process the XML file which has to be read in
+	 * creates a document and write it to database
+	 * 
+	 * @param path of the document to process
+	 */
 	public void processXML(Path path) {
 		try {
 			Document doc = getDocFromPath(path.toString());
-
+			
+			//get each (academic) document
 			NodeList docList = doc.getElementsByTagName("doc");
 
+			//create a arrays where each (academic) document of an xml document is stored in
 			XMLDocument[] inf = new XMLDocument[docList.getLength()];
 
+			//for each (academix) document do
 			for (int i = 0; i < docList.getLength(); i++) {
+				//get a mapping of the config files
 				inf[i] = new XMLDocument(typeMap, languageMap, typeResolveMap);
+				//save the path for error backtracking
 				inf[i].setDocumentPath(path.toString());
 
 				Node nNode = docList.item(i).getFirstChild();
+				
+				//pass through each node
 				while (nNode.getNextSibling() != null) {
 					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 						Element eElement = (Element) nNode;
+						//get the attribute value of attribute name
 						String attribute = eElement.getAttribute("name");
+						
+						//add the abstracts to the XML documents
 						if(attribute.matches("description_[A-Za-z]+_txt_mv")) {
+							//get the language which is hidden in the attribute value
 							int firstPos = attribute.indexOf("_")+1;
 							int secondPos = attribute.substring(attribute.indexOf("_")+1).indexOf("_") + firstPos;
 							String lan = attribute.substring(firstPos, secondPos);
+							//add abstract and corresponding language
 							inf[i].addAbstract(eElement.getTextContent(), lan);
 						}
 						
+						//switch over the intresting nodes and write the information to the corresponding field.
 						switch (attribute) {
 						case "id":
 							inf[i].setId(eElement.getTextContent());
@@ -155,7 +227,7 @@ public class readXML {
 					nNode = nNode.getNextSibling();
 				}
 				inf[i].normalize();
-				con.makeQueryOfDocument(inf[i]);
+				con.insertDocument(inf[i]);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -165,10 +237,12 @@ public class readXML {
 	public static void main(String[] args) throws IOException {
 		readXML rxml = new readXML();
 		
+		//create the maps for language mapping, type mapping and type resolving
 		rxml.typeMap = rxml.createMap(rxml.type_config, rxml.typeMap, "original_type");
 		rxml.languageMap = rxml.createMap(rxml.language_config, rxml.languageMap, "original_lan");
-		rxml.typeResolveMap = rxml.createResolveMap(rxml.type_resolved_config, rxml.typeResolveMap, "mdl_type");
+		rxml.typeResolveMap = rxml.createResolveMap(rxml.type_resolved_config, rxml.typeResolveMap);
 		
+		//walk through every file in a folder and call processXML on it
 		try {
 			Files.walk(Paths.get(args[0]))
 					.filter((p) -> !p.toFile().isDirectory() && p.toFile().getAbsolutePath().endsWith(".xml"))
