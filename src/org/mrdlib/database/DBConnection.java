@@ -250,7 +250,7 @@ public class DBConnection {
 					if (rs2.next())
 						authorKey = rs2.getLong(1);
 
-				} catch (Exception e) {
+				} catch (SQLException e) {
 					System.out.println(document.getDocumentPath() + ": " + document.getId());
 					e.printStackTrace();
 				} finally {
@@ -380,7 +380,8 @@ public class DBConnection {
 						|| coloumnName.equals(constants.getAbstr()))) {
 					// check for truncation error
 					if (valueString.length() > lengthMap.get(coloumnName))
-						System.out.println("Truncate because too long!");
+						System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
+								+ coloumnName + " because too long!");
 				}
 				value = (T) valueString;
 			}
@@ -446,10 +447,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				System.out.println(document.getDocumentPath() + ": " + document.getId());
 				stmt.close();
 				rs.close();
 			} catch (SQLException e) {
+				System.out.println(document.getDocumentPath() + ": " + document.getId());
 				e.printStackTrace();
 			}
 		}
@@ -711,8 +712,9 @@ public class DBConnection {
 						rs.getString(constants.getIdOriginal()), 666,
 						new Snippet(title, authorNames, publishedIn, rs.getInt(constants.getYear()), "html_and_css"),
 						"", "", "");
-				
-				//get the collection id and then the shortName of the collection
+
+				// get the collection id and then the shortName of the
+				// collection
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
 				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
 				return document;
@@ -733,5 +735,35 @@ public class DBConnection {
 			}
 		}
 		return document;
+	}
+
+	public List<String> getAllDocumentTitles() {
+		List<String> documentTitles = new ArrayList<>();
+		
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			stmt = con.createStatement();
+
+			String query = "SELECT " + constants.getTitle() + " FROM " + constants.getDocuments() +" LIMIT 1000";
+
+			rs = stmt.executeQuery(query);
+			// if there is a document
+			
+			if (rs.next()) {
+				documentTitles.add(rs.getString(constants.getTitle()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documentTitles;
 	}
 }

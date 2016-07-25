@@ -4,6 +4,22 @@
 		<mdl_type name="unknown">
 			<original_type name="conference_abstracts"></original_type>
 			<original_type name="journal_article"></original_type>
+		</mdl_type>		
+		<mdl_type name="unknown">
+			<original_type name="conference_article"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="unknown">
+			<original_type name="tech_report"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="conference_article">
+			<original_type name="conference_article"></original_type>
+			<original_type name="in_book"></original_type>
+		</mdl_type>
+		<mdl_type name="review_software">
+			<original_type name="review_software"></original_type>
+			<original_type name="journal_article"></original_type>
 		</mdl_type>
 		<mdl_type name="letter_from_editor">
 			<original_type name="journal_article"></original_type>
