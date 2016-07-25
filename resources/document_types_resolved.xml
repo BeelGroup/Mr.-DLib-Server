@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<matching>
+	<generic_matching>
+		<mdl_type name="unknown">
+			<original_type name="conference_abstracts"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="letter_from_editor">
+			<original_type name="journal_article"></original_type>
+			<original_type name="letter_from_editor"></original_type>
+		</mdl_type>
+		<mdl_type name="comment">
+			<original_type name="comment"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="insider_insights">
+			<original_type name="insider_insights"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="review_book">
+			<original_type name="review_book"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="unknown">
+			<original_type name="journal_article"></original_type>
+			<original_type name="in_book"></original_type>
+		</mdl_type>
+		<mdl_type name="seminar_article">
+			<original_type name="seminar_article"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="review_essay">
+			<original_type name="review_essay"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+		<mdl_type name="dossier">
+			<original_type name="journal_article"></original_type>
+			<original_type name="dossier"></original_type>
+		</mdl_type>
+		<mdl_type name="thesis_unspecified">
+			<original_type name="book"></original_type>
+			<original_type name="thesis_unspecified"></original_type>
+		</mdl_type>
+		<mdl_type name="monograph">
+			<original_type name="monograph"></original_type>
+			<original_type name="book"></original_type>
+		</mdl_type>
+		<mdl_type name="review_film">
+			<original_type name="review_film"></original_type>
+			<original_type name="journal_article"></original_type>
+		</mdl_type>
+	</generic_matching>
+</matching>

@@ -4,7 +4,15 @@ import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-
+import javax.xml.bind.annotation.XmlTransient;
+/**
+ * 
+ * @author Millah
+ * 
+ * This class handles the presentation of the document information of one document.
+ * The XML format is automatically generated through the class structure.
+ *
+ */
 public class Document implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -13,44 +21,60 @@ public class Document implements Serializable {
 	private String recommendationId;
 	private String documentId;
 	private String originalDocumentId;
-	private int suggestedRank;
 
 	// elements
-	private String snippetPlain;
-	private String snippetHtml;
+	private Snippet snippet;
 	private String clickUrl;
 	private String fallbackUrl;
+	private int suggestedRank;
+	private String collectionShortName;
+	private Long collectionId;
+
 
 	public Document() {
 	}
 
 	public Document(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
-			String snippetPlain, String snippetHtml, String clickUrl, String fallbackUrl) {
-		super();
+			Snippet snippet, String clickUrl, String fallbackUrl, String collectionShortName) {
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
 		this.suggestedRank = suggestedRank;
-		this.snippetPlain = snippetPlain;
-		this.snippetHtml = snippetHtml;
+		this.snippet = snippet;
 		this.clickUrl = clickUrl;
 		this.fallbackUrl = fallbackUrl;
+		this.collectionShortName = collectionShortName;
+	}
+	public Long getCollectionId() {
+		return collectionId;
+	}
+	@XmlTransient
+	public void setCollectionId(Long collectionId) {
+		this.collectionId = collectionId;
 	}
 
+	public String getCollectionShortName() {
+		return collectionShortName;
+	}
+	@XmlTransient
+	public void setCollectionShortName(String collectionShortName) {
+		this.collectionShortName = collectionShortName;
+	}
+	/*
 	public String getRecommendationId() {
 		return recommendationId;
 	}
 
-	@XmlAttribute(name="recommendation_id")
+	@XmlAttribute(name = "recommendation_id")
 	public void setRecommendationId(String recommendationId) {
 		this.recommendationId = recommendationId;
-	}
+	}*/
 
 	public String getDocumentId() {
 		return documentId;
 	}
 
-	@XmlAttribute(name="document_id")
+	@XmlAttribute(name = "document_id")
 	public void setDocumentId(String documentId) {
 		this.documentId = documentId;
 	}
@@ -59,7 +83,7 @@ public class Document implements Serializable {
 		return originalDocumentId;
 	}
 
-	@XmlAttribute(name="original_document_id")
+	@XmlAttribute(name = "original_document_id")
 	public void setOriginalDocumentId(String originalDocumentId) {
 		this.originalDocumentId = originalDocumentId;
 	}
@@ -68,34 +92,25 @@ public class Document implements Serializable {
 		return suggestedRank;
 	}
 
-	@XmlAttribute(name="suggested_rank")
+	@XmlElement(name = "suggested_rank")
 	public void setSuggestedRank(int suggestedRank) {
 		this.suggestedRank = suggestedRank;
 	}
 
-	public String getSnippetPlain() {
-		return snippetPlain;
+	public Snippet getSnippet() {
+		return snippet;
 	}
 
-	@XmlElement(name="snippet_plain")
-	public void setSnippetPlain(String snippetPlain) {
-		this.snippetPlain = snippetPlain;
-	}
-
-	public String getSnippetHtml() {
-		return snippetHtml;
-	}
-
-	@XmlElement(name="snippet_html")
-	public void setSnippetHtml(String snippetHtml) {
-		this.snippetHtml = snippetHtml;
+	@XmlElement(name = "snippet")
+	public void setSnippet(Snippet snippet) {
+		this.snippet = snippet;
 	}
 
 	public String getClickUrl() {
 		return clickUrl;
 	}
 
-	@XmlElement(name="click_url")
+	@XmlElement(name = "click_url")
 	public void setClickUrl(String clickUrl) {
 		this.clickUrl = clickUrl;
 	}
@@ -104,7 +119,7 @@ public class Document implements Serializable {
 		return fallbackUrl;
 	}
 
-	@XmlElement(name="fallback_url")
+	@XmlElement(name = "fallback_url")
 	public void setFallbackUrl(String fallbackUrl) {
 		this.fallbackUrl = fallbackUrl;
 	}
