@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 /**
  * 
- * @author Millah
+ * @author Millah //JB: can we somehow agree on a nickname that at least indicates who you are? 
  * 
  * This class handles the presentation of the snippet part of the Document.java and serves as a wrapper.
  * The XML format is automatically generated through the class structure.

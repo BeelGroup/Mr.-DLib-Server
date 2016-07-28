@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * The XML format is automatically generated through the class structure.
  *
  */
-public class Document implements Serializable {
+public class Document implements Serializable { 			//JB: Is "Document" really an appropriate class name? Wouldnt RelatedDocuments be better or some other less generic name? I am pretty sure that we will need a class "Document" later in other places, so it might make more sense to have a generic class Document and then other classes that inherit from the Document class.
 
 	private static final long serialVersionUID = 1L;
 
@@ -74,7 +74,7 @@ public class Document implements Serializable {
 		return documentId;
 	}
 
-	@XmlAttribute(name = "document_id")
+	@XmlAttribute(name = "document_id")		//JB: this shouldn't be hardcoded here, should it?
 	public void setDocumentId(String documentId) {
 		this.documentId = documentId;
 	}

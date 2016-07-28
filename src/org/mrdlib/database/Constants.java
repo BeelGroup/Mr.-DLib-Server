@@ -11,7 +11,7 @@ import java.util.Properties;
 
 public class Constants {
 
-	private String configPath = "config.properties";
+	private String configPath = "config.properties";	//JB: where is the file config.properties?
 
 	//db connection properties
 	private String dbClass;
