@@ -1,4 +1,5 @@
-package org.mrdlib;
+package org.mrdlib.display;
+
 /**
  * 
  * @author Millah
@@ -10,7 +11,7 @@ public class DocumentExamples {
 	public DocumentSet getDocumentSet() {
 		DocumentSet documentSet = new DocumentSet();
 		// Hardcode Example document
-		Document document1 = new Document("5524543354", "exmp-thepowerofscience-4423232", "thepowerofscience", 5, new Snippet(
+		DisplayDocument document1 = new DisplayDocument("5524543354", "exmp-thepowerofscience-4423232", "thepowerofscience", 5, new Snippet(
 				"The Power of Science","A. Einstein and J Doe","Journal of Science 4:42", 1960, "html_and_css"),
 				"https://api.mr-dlib.org/related_articles/5524543354/", "http://partner.com/library/documents/thepowerofscience/", "");
 		documentSet.addDocument(document1);

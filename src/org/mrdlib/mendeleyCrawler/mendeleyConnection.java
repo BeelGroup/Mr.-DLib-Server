@@ -1,193 +1,185 @@
-package org.mrdlib.mendeleyCrawler;
+package org.mrdlib.MendeleyCrawler;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.mrdlib.DocumentData;
 import org.mrdlib.Readership;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.oauth.OAuth2Client;
 
-import net.oauth.OAuth;
-import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthException;
-import net.oauth.OAuthMessage;
-import net.oauth.OAuthProblemException;
-import net.oauth.OAuthServiceProvider;
-import net.oauth.client.OAuthClient;
-import net.oauth.client.httpclient4.HttpClient4;
+public class MendeleyConnection {
 
-public class mendeleyConnection {
-
-	private OAuthAccessor client;
-	private String access_token;
-	private String request_token;
+	private String accessToken;
 	private DBConnection con;
+	OAuth2Client oclient = new OAuth2Client();
+	private int countAll = 0;
+	private int countSuc = 0;
 
-	public mendeleyConnection() {
+	public MendeleyConnection() throws Exception {
 		con = new DBConnection();
+		accessToken = oclient.getAccessToken();
 	}
 
-	public String convertToAccessToken(String request_token) {
-		ArrayList<Map.Entry<String, String>> params = new ArrayList<Map.Entry<String, String>>();
-		OAuthClient oclient = new OAuthClient(new HttpClient4());
-		OAuthAccessor accessor = client;
-		params.add(new OAuth.Parameter("oauth_token", request_token));
-		try {
-			OAuthMessage omessage = oclient.invoke(accessor, "POST", accessor.consumer.serviceProvider.accessTokenURL,
-					params);
-			return omessage.getParameter("oauth_token");
-		} catch (OAuthProblemException e) {
-			e.printStackTrace();
-			System.out.println("Ac: " + accessor.accessToken + "req: " + accessor.requestToken + "sec: "
-					+ accessor.tokenSecret + "con: " + accessor.consumer + "str: " + accessor.toString());
-			return "";
-		} catch (Exception ioe) {
-			ioe.printStackTrace();
-			return "";
-		}
-	}
-
-	public OAuthAccessor defaultClient() {
-		String callbackUrl = "www.mr-dlib.org";
-		String consumerKey = "id";
-		String consumerSecret = "secret";
-		String reqUrl = "https://www.mendeley.com/oauth/request_token/";
-		String authzUrl = "https://api-oauth2.mendeley.com/oauth/authorize/";
-		String accessUrl = "https://www.mendeley.com/oauth/access_token/";
-		OAuthServiceProvider provider = new OAuthServiceProvider(reqUrl, authzUrl, accessUrl);
-		OAuthConsumer consumer = new OAuthConsumer(callbackUrl, consumerKey, consumerSecret, provider);
-		OAuthAccessor accessor = new OAuthAccessor(consumer);
-
-		OAuthClient oaclient = new OAuthClient(new HttpClient4());
-
-		try {
-			oaclient.getRequestToken(accessor);
-			request_token = accessor.requestToken;
-		} catch (OAuthProblemException e) {
-			System.out.println("hello default client");
-			e.printStackTrace();
-			System.out.println(e.getMessage());
-			System.out.println(e.getProblem());
-			System.out.println(e.getCause());
-			System.out.println(e.toString());
-			System.out.println(e.getHttpStatusCode());
-			System.out.println(e.getSuppressed());
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OAuthException e) {
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return accessor;
-	}
-
-	public HashMap<String, Readership> getReadership() {
-		HashMap<String, Readership> map = new HashMap<String, Readership>();
-		List<String> documentTitles = new ArrayList<>();
-		Readership readership = null;
+	public void getReadership() throws SQLException {
+		List<DocumentData> documentDataList = new ArrayList<DocumentData>();
+		DocumentData documentData = new DocumentData();
 		String mendeleyId = null;
-		int score = 0;
-		HttpPost httppost = new HttpPost();
+		HttpGet httpget = new HttpGet();
 		URL url = null;
 		String nullFragment = null;
 		JSONObject jsonObject = null;
+		JSONArray documents = null;
+		JSONObject document = null;
+		JSONObject highlights = null;
+		JSONArray titleJson = null;
+		String title = null;
+		HttpClient httpclient = HttpClientBuilder.create().build();
+		String data = null;
+		URI uri = null;
+		/*
+		 * PoolingHttpClientConnectionManager cm = new
+		 * PoolingHttpClientConnectionManager(); cm.setMaxTotal(200); //
+		 * Increase default max connection per route to 20
+		 * cm.setDefaultMaxPerRoute(20); // Increase max connections for
+		 * localhost:80 to 50 HttpHost localhost = new HttpHost("locahost", 80);
+		 * cm.setMaxPerRoute(new HttpRoute(localhost), 50);
+		 */
+			
+		int numberOfDocuments = con.getBiggestIdFromDocuments();
+			
+			
+		for (int k = 0; k < numberOfDocuments; k = k + 1000000) {
+			documentDataList = con.getMillionDocumentData(k);
 
-		documentTitles = con.getAllDocumentTitles();
+			for (int i = 0; i < documentDataList.size(); i++) {
+				documentData = documentDataList.get(i);
+				String current = documentData.getTitle();
+				// String current = "Introducing Mr. DLib, a Machine-readable Digital Library";
 
-		for (int i = 0; i < documentTitles.size(); i++) {
-			String current = documentTitles.get(i);
+				current = current.replaceAll("[^_a-zA-Z0-9 .]", "");
+				String urlString = "https://api.mendeley.com/catalog?title=" + current;
 
-			HttpClient httpclient = HttpClientBuilder.create().build();
-			String urlString = "https://api.mendeley.com/catalog?title=" + current;
+				try {
+					url = new URL(urlString);
+					uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
+					httpget = new HttpGet(uri);
+					httpget.addHeader("Authorization", "Bearer " + accessToken);
+					HttpResponse response = httpclient.execute(httpget);
+					data = EntityUtils.toString(response.getEntity());
 
-			client = defaultClient();
-			access_token = convertToAccessToken(client.requestToken);
-			System.out.println(client.consumer.serviceProvider.userAuthorizationURL + "?oauth_token="
-					+ client.requestToken + "&oauth_callback=" + client.consumer.callbackURL);
-			System.out.println("-----");
-			System.out.println("Ac: " + client.accessToken + " req: " + client.requestToken + " sec: "
-					+ client.tokenSecret + " con: " + client.consumer + " str: " + client.toString());
-			System.out.println("-----");
-			System.out.println("Access Token: " + access_token);
-			System.out.println("Request Token: " + request_token);
+					if (data.isEmpty())
+						break;
 
-			try {
-				url = new URL(urlString);
-				URI uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
-				httppost = new HttpPost(uri);
-				httppost.addHeader("Authorization", "Bearer " + client.requestToken);
-				// HttpGet request = new
-				// HttpGet("https://api.mendeley.com/oauth/token?grant_type=client_credentials&scope=all&client_id=3367&client_secret=AOlZEEKVRHyutUo5");
+					jsonObject = (JSONObject) JSONValue.parse(data);
+					documents = (JSONArray) jsonObject.get("documents");
 
-				List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-				nameValuePairs.add(new BasicNameValuePair("action", "getjson"));
-
-				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-				HttpResponse response = httpclient.execute(httppost);
-				String data = EntityUtils.toString(response.getEntity());
-
-				System.out.println(current + ":  ");
-				System.out.println(data);
-				jsonObject = (JSONObject) JSONValue.parse(data);
-				mendeleyId = (String) jsonObject.get("id");
-				score = (Integer) jsonObject.get("score");
-
-			} catch (Exception e) {
-				e.printStackTrace();
+					Iterator j = documents.iterator();
+					while (j.hasNext()) {
+						document = (JSONObject) j.next();
+						if (document.toString().contains("highlights")) {
+							highlights = (JSONObject) document.get("highlights");
+							titleJson = (JSONArray) highlights.get("title");
+							title = (String) titleJson.get(0);
+							if (title.contains("<strong>") || title.contains("<\\/strong>"))
+								title = title.replaceAll("<strong>|<\\/strong>", "");
+							if (calculateTitleClean(current).equals(calculateTitleClean(title))) {
+								mendeleyId = (String) document.get("id");
+								countSuc++;
+								writeToFile(documentData, getReadershipData(mendeleyId));
+								break;
+							}
+						}
+					}
+					httpget.releaseConnection();
+					countAll++;
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println(uri);
+					System.out.println(data);
+				}
 			}
-
-			try {
-				urlString = "https://api.mendeley.com/catalog/" + mendeleyId + "?view=stats";
-				url = new URL(urlString);
-				URI uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
-				httppost = new HttpPost(uri);
-				httppost.addHeader("Authorization", "Bearer " + client.requestToken);
-				// httppost.addHeader("Accept", );
-
-				List<NameValuePair> nameValuePairsStats = new ArrayList<NameValuePair>(2);
-				nameValuePairsStats.add(new BasicNameValuePair("action", "getjson"));
-
-				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairsStats));
-				HttpResponse response = httpclient.execute(httppost);
-				String data = EntityUtils.toString(response.getEntity());
-
-				System.out.println("Title: " + current);
-				System.out.println("Score: " + score);
-				System.out.println("Data: " + data);
-				System.out.println("---------------------------------------");
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			map.put(current, readership);
 		}
-		return map;
 	}
 
-	public static void main(String[] args) {
-		mendeleyConnection mcon = new mendeleyConnection();
-		mcon.getReadership();
+	private String getReadershipData(String mendeleyId) {
+		String urlString = "https://api.mendeley.com/catalog/" + mendeleyId + "?view=stats";
+		HttpClient httpclient = HttpClientBuilder.create().build();
+		String data = null;
+		String nullFragment = null;
 
+		try {
+			URL url = new URL(urlString);
+			URI uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
+
+			HttpGet httpget = new HttpGet(uri);
+			httpget.addHeader("Authorization", "Bearer " + accessToken);
+			HttpResponse response = httpclient.execute(httpget);
+			data = EntityUtils.toString(response.getEntity());
+
+			// System.out.println("Title: " + title);
+			// System.out.println("MendeleyId: " + mendeleyId);
+			// System.out.println("Data: " + data);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return data;
+	}
+
+	private static void writeToFile(DocumentData documentData, String input) {
+		JSONObject jsonObject = (JSONObject) JSONValue.parse(input);
+		jsonObject.put("timestamp", new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new java.util.Date()));
+		input = jsonObject.toString();
+
+		String dirName = "MendeleyData" + File.separator + (int) (Math.floor(documentData.getId() / 10000)) + "";
+		String path = dirName + File.separator + documentData.getId() + " " + documentData.getOriginalId() + ".txt";
+
+		try {
+			new File(dirName).mkdirs();
+			FileWriter writer = new FileWriter(path, false);
+			writer.write(input);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public String calculateTitleClean(String s) {
+		s = s.replaceAll("[^a-zA-Z0-9]", "");
+		s = s.toLowerCase();
+		return s;
+	}
+
+	public static void main(String[] args) throws Exception {
+		MendeleyConnection mcon = new MendeleyConnection();
+		mcon.getReadership();
+		System.out.println(mcon.countSuc + "/" + mcon.countAll);
+		// writeToFile(new DocumentData("keks", 0, "keks"), "\nBlub");
 	}
 
 }

@@ -45,7 +45,11 @@ public class readXML {
 	 * create new DBConnection
 	 */
 	public readXML() {
-		con = new DBConnection();
+		try {
+			con = new DBConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**

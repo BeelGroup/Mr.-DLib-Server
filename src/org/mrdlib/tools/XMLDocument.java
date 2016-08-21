@@ -178,7 +178,7 @@ public class XMLDocument {
 	 */
 	public void normalize() {
 		selectTitle();
-		calculateTitleClean();
+		this.cleantitle = calculateTitleClean(this.title);
 		setCleanTitle();
 		language = setLanguageToStandard(language);
 		selectYear();
@@ -269,11 +269,11 @@ public class XMLDocument {
 	/**
 	 * set a clean title, dismissing every character which is not a character from a-z or a number. And put it in lower case
 	 */
-	private void calculateTitleClean() {
+	public String calculateTitleClean(String title) {
 		String temp;
 		temp = title.replaceAll("[^a-zA-Z0-9]", "");
 		temp = temp.toLowerCase();
-		this.cleantitle = temp;
+		return temp;
 	}
 
 	/**

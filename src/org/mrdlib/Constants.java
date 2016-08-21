@@ -1,4 +1,4 @@
-package org.mrdlib.database;
+package org.mrdlib;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,6 +72,9 @@ public class Constants {
 	//collections
 	private String gesis;
 	private String gesisCollectionLink;
+	
+	//settings
+	private boolean debugModeOn = false;
 
 
 	// load the config file
@@ -135,6 +138,12 @@ public class Constants {
 			
 			this.gesisCollectionLink = prop.getProperty("gesisCollectionLink");
 			this.gesis = prop.getProperty("gesis");
+			
+			String debugModeOn = prop.getProperty("debugModeOn");
+			if(debugModeOn.equals("true"))
+				this.debugModeOn = true;
+			else
+				this.debugModeOn = false;
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -147,7 +156,12 @@ public class Constants {
 				}
 			}
 		}
-	}	
+	}
+	
+	public boolean getDebugModeOn() {
+		return debugModeOn;
+	}
+	
 	public String getSolrCollectionShortName() {
 		return solrCollectionShortName;
 	}

@@ -4,15 +4,14 @@ import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.MoreLikeThisParams;
-import org.mrdlib.Document;
-import org.mrdlib.DocumentSet;
-import org.mrdlib.database.Constants;
+import org.mrdlib.Constants;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.display.DisplayDocument;
+import org.mrdlib.display.DocumentSet;
 /**
  * 
  * @author Millah
@@ -27,11 +26,12 @@ public class solrConnection {
 
 	/**
 	 * create a solr connection
+	 * @throws Exception 
 	 */
-	public solrConnection() {
+	public solrConnection(DBConnection con) throws Exception {
 		String urlString = constants.getSolrWebService().concat(constants.getSolrMrdlib());
 		solr = new HttpSolrClient.Builder(urlString).build();
-		con = new DBConnection();
+		this.con = con;
 	}
 
 	/**
@@ -41,6 +41,10 @@ public class solrConnection {
 		solr.close();
 		super.finalize();
 	}
+	
+	public void close() throws IOException {
+		solr.close();
+	}
 
 	/**
 	 * 
@@ -48,13 +52,14 @@ public class solrConnection {
 	 * 
 	 * @param document, where similar documents are searched for
 	 * @return the 10 most related documents in a document set
+	 * @throws Exception 
 	 */
-	public DocumentSet getRelatedDocumentSetByDocument(Document document) {
+	public DocumentSet getRelatedDocumentSetByDocument(DisplayDocument document) throws Exception {
 		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
 		int delimitedRows = 10;
-		Document relDocument = new Document();
+		DisplayDocument relDocument = new DisplayDocument();
 		query.setRequestHandler("/" + MoreLikeThisParams.MLT);
 		String url = "";
 		
@@ -73,7 +78,7 @@ public class solrConnection {
 
 			//no related documents found
 			if (docs.isEmpty())
-				throw new NoRelatedDocumentsException(document.getOriginalDocumentId());
+				throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
 			else {
 				relatedDocuments.setSuggested_label("Related Articles");
 				//for each document add it to documentSet
@@ -93,14 +98,9 @@ public class solrConnection {
 					relatedDocuments.addDocument(relDocument);
 				}
 			}
-		} catch (SolrServerException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (NoRelatedDocumentsException e) {
-			throw e;
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("test: "+e.getStackTrace());
+			throw e;
 		}
 
 		return relatedDocuments;

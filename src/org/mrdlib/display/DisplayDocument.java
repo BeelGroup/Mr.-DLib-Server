@@ -1,4 +1,4 @@
-package org.mrdlib;
+package org.mrdlib.display;
 
 import java.io.Serializable;
 
@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * The XML format is automatically generated through the class structure.
  *
  */
-public class Document implements Serializable {
+public class DisplayDocument implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -31,10 +31,10 @@ public class Document implements Serializable {
 	private Long collectionId;
 
 
-	public Document() {
+	public DisplayDocument() {
 	}
 
-	public Document(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
+	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
 			Snippet snippet, String clickUrl, String fallbackUrl, String collectionShortName) {
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
@@ -64,7 +64,6 @@ public class Document implements Serializable {
 	public String getRecommendationId() {
 		return recommendationId;
 	}
-
 	@XmlAttribute(name = "recommendation_id")
 	public void setRecommendationId(String recommendationId) {
 		this.recommendationId = recommendationId;

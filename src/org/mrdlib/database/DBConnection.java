@@ -14,10 +14,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
+
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.mrdlib.Document;
-import org.mrdlib.DocumentSet;
-import org.mrdlib.Snippet;
+import org.mrdlib.Constants;
+import org.mrdlib.DocumentData;
+import org.mrdlib.display.DisplayDocument;
+import org.mrdlib.display.DocumentSet;
+import org.mrdlib.display.Snippet;
 import org.mrdlib.tools.Abstract;
 import org.mrdlib.tools.Person;
 import org.mrdlib.tools.XMLDocument;
@@ -33,17 +39,19 @@ public class DBConnection {
 
 	private Connection con = null;
 	private Constants constants = new Constants();
+	Context ctx = null;
 	// stores the length of the database fields to check for truncation error
 	private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
 
-	public DBConnection() {
+	public DBConnection() throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		ResultSet rs2 = null;
 		ResultSet rs3 = null;
 		// get all the lengths of the database fields and store it in a map
 		try {
-			createConnection();
+			createConnectionJar();
+			// createConnectionTomcat();
 			stmt = con.createStatement();
 			stmt.executeQuery("SET NAMES 'utf8'");
 			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
@@ -53,7 +61,7 @@ public class DBConnection {
 			rs3 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getPersons());
 			fillMap(rs3);
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
@@ -61,7 +69,7 @@ public class DBConnection {
 				rs2.close();
 				rs3.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 	}
@@ -71,8 +79,9 @@ public class DBConnection {
 	 * 
 	 * @param ResultSet
 	 *            of a query which asked for coloumn information of the database
+	 * @throws SQLException
 	 */
-	private void fillMap(ResultSet rs) {
+	private void fillMap(ResultSet rs) throws SQLException {
 		String result = "";
 		try {
 			while (rs.next()) {
@@ -84,7 +93,7 @@ public class DBConnection {
 				}
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw e;
 		}
 	}
 
@@ -96,10 +105,29 @@ public class DBConnection {
 		super.finalize();
 	}
 
+	public void close() throws SQLException {
+		con.close();
+	}
+
 	/**
-	 * create connection
+	 * create connection from Connection Pool (configured in the tomcat config
+	 * files)
+	 * 
+	 * @throws Exception
 	 */
-	public void createConnection() {
+
+	public void createConnectionTomcat() throws Exception {
+		try {
+			Context initContext = new InitialContext();
+			Context envContext = (Context) initContext.lookup("java:comp/env");
+			DataSource ds = (DataSource) envContext.lookup("jdbc/mrdlib");
+			con = ds.getConnection();
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	public void createConnectionJar() throws Exception {
 		try {
 			Class.forName(constants.getDbClass());
 			con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
@@ -115,8 +143,9 @@ public class DBConnection {
 	 * 
 	 * @param authorID
 	 * @return complete Author
+	 * @throws Exception
 	 */
-	public Person getPersonById(Long authorID) {
+	public Person getPersonById(Long authorID) throws Exception {
 		Person person = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -136,13 +165,13 @@ public class DBConnection {
 					rs.getString(constants.getSurname()), rs.getString(constants.getUnstructured()));
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
 				rs.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 		return person;
@@ -176,8 +205,9 @@ public class DBConnection {
 	 * @param author,
 	 *            the author who has to be inserted
 	 * @return the id the (inserted or retrieved) author
+	 * @throws SQLException
 	 */
-	public Long addPersonToDbIfNotExists(XMLDocument document, Person author) {
+	public Long addPersonToDbIfNotExists(XMLDocument document, Person author) throws SQLException {
 		PreparedStatement stateAuthorExists = null;
 		PreparedStatement stateInsertAuthor = null;
 		ResultSet rs = null;
@@ -252,7 +282,7 @@ public class DBConnection {
 
 				} catch (SQLException e) {
 					System.out.println(document.getDocumentPath() + ": " + document.getId());
-					e.printStackTrace();
+					throw e;
 				} finally {
 					rs.close();
 					rs2.close();
@@ -263,16 +293,16 @@ public class DBConnection {
 				authorKey = (long) rs.getInt(constants.getPersonID());
 		} catch (SQLException sqle) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			sqle.printStackTrace();
+			throw sqle;
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stateAuthorExists.close();
 				rs.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 		return authorKey;
@@ -289,8 +319,10 @@ public class DBConnection {
 	 * @param rank,
 	 *            location of the naming of the author of the respective
 	 *            document
+	 * @throws Exception
 	 */
-	public void addPersonDocumentRelation(XMLDocument document, Long documentId, Long authorId, int rank) {
+	public void addPersonDocumentRelation(XMLDocument document, Long documentId, Long authorId, int rank)
+			throws Exception {
 		Statement stmt = null;
 		try {
 			stmt = con.createStatement();
@@ -303,12 +335,12 @@ public class DBConnection {
 			stmt.executeUpdate(query);
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 	}
@@ -321,8 +353,9 @@ public class DBConnection {
 	 * @param collectionName
 	 *            the short name of the collection
 	 * @return the id of the collection
+	 * @throws SQLException
 	 */
-	public Long getCollectionIDByName(XMLDocument document, String collectionName) {
+	public Long getCollectionIDByName(XMLDocument document, String collectionName) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		Long id = null;
@@ -338,13 +371,13 @@ public class DBConnection {
 				id = rs.getLong(constants.getCollectionID());
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
 				rs.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 		return id;
@@ -367,9 +400,10 @@ public class DBConnection {
 	 * @param coloumnName,
 	 *            the coloumn name of the value
 	 * @return
+	 * @throws SQLException
 	 */
 	public <T> PreparedStatement SetIfNull(XMLDocument document, PreparedStatement stmt, T value, int index,
-			String type, String coloumnName) {
+			String type, String coloumnName) throws SQLException {
 
 		try {
 			if (value instanceof String) {
@@ -407,7 +441,7 @@ public class DBConnection {
 
 		} catch (SQLException e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			e.printStackTrace();
+			throw e;
 		}
 		return stmt;
 	}
@@ -419,8 +453,9 @@ public class DBConnection {
 	 * 
 	 * @param document,
 	 *            the parsed XMLDocument
+	 * @throws Exception
 	 */
-	public void insertDocument(XMLDocument document) {
+	public void insertDocument(XMLDocument document) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		PreparedStatement stateQueryDoc = null;
@@ -444,14 +479,14 @@ public class DBConnection {
 			}
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
 				rs.close();
 			} catch (SQLException e) {
 				System.out.println(document.getDocumentPath() + ": " + document.getId());
-				e.printStackTrace();
+				throw e;
 			}
 		}
 
@@ -516,16 +551,16 @@ public class DBConnection {
 
 		} catch (SQLException sqle) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			sqle.printStackTrace();
+			throw sqle;
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stateQueryDoc.close();
 			} catch (SQLException e) {
 				System.out.println(document.getDocumentPath() + ": " + document.getId());
-				e.printStackTrace();
+				throw e;
 			}
 		}
 	}
@@ -539,8 +574,9 @@ public class DBConnection {
 	 *            the corresponding Abstract object
 	 * @param docKey,
 	 *            the document key from the database
+	 * @throws Exception
 	 */
-	private void addAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) {
+	private void addAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) throws Exception {
 		PreparedStatement stmt = null;
 		try {
 			// query which inserts the abstract information
@@ -558,12 +594,12 @@ public class DBConnection {
 			stmt.executeUpdate();
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 	}
@@ -573,8 +609,9 @@ public class DBConnection {
 	 * 
 	 * @param documentID
 	 * @return a list of authors
+	 * @throws Exception
 	 */
-	public List<Person> getPersonsByDocumentID(Long documentID) {
+	public List<Person> getPersonsByDocumentID(Long documentID) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		List<Person> persons = new ArrayList<Person>();
@@ -596,13 +633,13 @@ public class DBConnection {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
 				rs.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 		return persons;
@@ -614,8 +651,9 @@ public class DBConnection {
 	 * @param id
 	 *            of the collection
 	 * @return the short name of the collection
+	 * @throws SQLException
 	 */
-	public String getCollectionShortNameById(Long id) {
+	public String getCollectionShortNameById(Long id) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String name = "";
@@ -631,13 +669,13 @@ public class DBConnection {
 			while (rs.next())
 				name = rs.getString(constants.getCollectionShortName());
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				stmt.close();
 				rs.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 		return name;
@@ -649,15 +687,16 @@ public class DBConnection {
 	 * 
 	 * @param originalid
 	 * @return
+	 * @throws Exception
 	 */
-	public DocumentSet getDocumentSetByOriginalId(String originalid) {
+	public DocumentSet getDocumentSetByOriginalId(String originalid) throws Exception {
 		DocumentSet documentSet = new DocumentSet();
 		documentSet.setRecommendationSetId("DummyId");
 		documentSet.setSuggested_label("Dummy Articles");
 		try {
 			documentSet.addDocument(getDocumentBy(constants.getIdOriginal(), originalid));
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		}
 		return documentSet;
 	}
@@ -673,9 +712,10 @@ public class DBConnection {
 	 * @param id,
 	 *            either original id or id
 	 * @return the (first) retrieved Document
+	 * @throws Exception
 	 */
-	public Document getDocumentBy(String coloumnName, String id) {
-		Document document = null;
+	public DisplayDocument getDocumentBy(String coloumnName, String id) throws Exception {
+		DisplayDocument document = null;
 		String authorNames = "";
 		StringJoiner joiner = new StringJoiner(", ");
 		Statement stmt = null;
@@ -708,7 +748,7 @@ public class DBConnection {
 				publishedIn = StringEscapeUtils.escapeHtml4(rs.getString(constants.getPublishedId()));
 
 				// create a new document with values from the database
-				document = new Document("", String.valueOf(rs.getLong(constants.getDocumentId())),
+				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666,
 						new Snippet(title, authorNames, publishedIn, rs.getInt(constants.getYear()), "html_and_css"),
 						"", "", "");
@@ -720,10 +760,35 @@ public class DBConnection {
 				return document;
 			} else
 				throw new NoEntryException(id);
-		} catch (SQLException sqle) {
-			sqle.printStackTrace();
+		} catch (SQLException e) {
+			throw e;
 		} catch (NoEntryException e) {
 			throw e;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				stmt.close();
+				rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+	}
+
+	public int getBiggestIdFromDocuments() {
+		Statement stmt = null;
+		ResultSet rs = null;
+		int size = 0;
+
+		try {
+			stmt = con.createStatement();
+			String query = "SELECT MAX(" + constants.getDocumentId() + ") FROM " + constants.getDocuments();
+			rs = stmt.executeQuery(query);
+
+			while (rs.next()) {
+				size = rs.getInt("MAX(" + constants.getDocumentId() + ")");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -734,25 +799,26 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		return document;
+		return size;
+
 	}
 
-	public List<String> getAllDocumentTitles() {
-		List<String> documentTitles = new ArrayList<>();
-		
+	public List<DocumentData> getMillionDocumentData(int start) {
+		List<DocumentData> documentDataList = new ArrayList<DocumentData>();
+
 		Statement stmt = null;
 		ResultSet rs = null;
 
 		try {
 			stmt = con.createStatement();
-
-			String query = "SELECT " + constants.getTitle() + " FROM " + constants.getDocuments() +" LIMIT 1000";
-
+			String query = "SELECT " + constants.getDocumentId() + ", " + constants.getIdOriginal() + ", "
+					+ constants.getTitle() + " FROM " + constants.getDocuments() + " WHERE " + constants.getDocumentId()
+					+ " >= " + start + " AND " + constants.getDocumentId() + " < " + (start + 1000000);
 			rs = stmt.executeQuery(query);
-			// if there is a document
-			
-			if (rs.next()) {
-				documentTitles.add(rs.getString(constants.getTitle()));
+
+			while (rs.next()) {
+				documentDataList.add(new DocumentData(rs.getString(constants.getTitle()),
+						rs.getInt(constants.getDocumentId()), rs.getString(constants.getIdOriginal())));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -764,6 +830,6 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		return documentTitles;
+		return documentDataList;
 	}
 }

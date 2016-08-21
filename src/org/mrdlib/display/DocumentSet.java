@@ -1,11 +1,10 @@
-package org.mrdlib;
+package org.mrdlib.display;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * 
@@ -16,17 +15,16 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  */
 
-@XmlRootElement(name = "related_articles")
 public class DocumentSet {
 	
-	private List<Document> documentList = new ArrayList<Document>();
+	private List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 	
 	private String recommendationSetId;
 	private String suggestedLabel;
 	
 	public DocumentSet() {}
 
-	public DocumentSet(List<Document> documentList, String recommendationSetId, String suggestedLabel) {
+	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel) {
 		this.documentList = documentList;
 		this.recommendationSetId = recommendationSetId;
 		this.suggestedLabel = suggestedLabel;
@@ -36,15 +34,15 @@ public class DocumentSet {
 		return documentList.size();
 	}
 	
-	public void addDocument(Document document) {
+	public void addDocument(DisplayDocument document) {
 		documentList.add(document);
 	}
 	
-	public List<Document> getDocumentList() {
+	public List<DisplayDocument> getDocumentList() {
 		return documentList;
 	}
 	@XmlElement(name = "related_article")
-	public void setDocumentList(List<Document> documentList) {
+	public void setDocumentList(List<DisplayDocument> documentList) {
 		this.documentList = documentList;
 	}
 	public String getRecommendationSetId() {

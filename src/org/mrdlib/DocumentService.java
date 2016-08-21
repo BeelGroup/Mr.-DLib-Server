@@ -6,8 +6,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.mrdlib.database.Constants;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.database.NoEntryException;
+import org.mrdlib.display.DisplayDocument;
+import org.mrdlib.display.DocumentSet;
+import org.mrdlib.display.RootElement;
+import org.mrdlib.display.StatusMessage;
+import org.mrdlib.display.StatusReport;
+import org.mrdlib.display.StatusReportSet;
+import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 import org.mrdlib.solrHandler.solrConnection;
 
 //set Path and allow numbers, letters and -_.,  Save Path as document_id
@@ -16,9 +23,30 @@ public class DocumentService {
 
 	//set up the necessary connections and load the config
 	//DocumentExamples documentExample = new DocumentExamples();
-	private DBConnection con = new DBConnection();
-	private solrConnection scon = new solrConnection();
-	private Constants constants = new Constants();
+	
+	private DBConnection con = null;
+	private solrConnection scon = null;
+	private Constants constants = null;
+	private RootElement rootElement = null;
+	private StatusReportSet statusReportSet = null;
+	
+	public DocumentService() {
+		constants = new Constants();
+		rootElement = new RootElement();
+		statusReportSet = new StatusReportSet();
+		try {
+			con = new DBConnection();
+			scon = new solrConnection(con);
+		} catch (Exception e) {
+			if(constants.getDebugModeOn()) {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(new UnknownException("Message:" +e.getMessage() +"\n StackTrace: " +e.getStackTrace()).getStatusReport());
+			} else {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
+			}
+		}
+	}
 
 	@GET
 	//set end of Path
@@ -30,16 +58,44 @@ public class DocumentService {
 	 * @param documentIdOriginal - id from the cooperation partner
 	 * @return a document set of related documents
 	 */
-	public DocumentSet getDocumentSet(@PathParam("documentId") String documentIdOriginal) {
+	public RootElement getRelatedDocumentSet(@PathParam("documentId") String documentIdOriginal) {
 		DocumentSet documentset = null;
+		DisplayDocument document = null;
+		
 		try {
-			documentset = scon.getRelatedDocumentSetByDocument(con.getDocumentBy(constants.getIdOriginal(),documentIdOriginal));
+			document = con.getDocumentBy(constants.getIdOriginal(),documentIdOriginal);
+			documentset = scon.getRelatedDocumentSetByDocument(document);
+		} catch (NoEntryException e) {
+			statusReportSet.addStatusReport(e.getStatusReport());
+		} catch (NoRelatedDocumentsException e) {
+			statusReportSet.addStatusReport(e.getStatusReport());
 		} catch (Exception e){
-			e.printStackTrace();
+			if(constants.getDebugModeOn()) {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(new UnknownException("Message:" +e.getMessage() +"\n StackTrace: " +e.getStackTrace()).getStatusReport());
+			} else {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
+			}
 		}
-		//DocumentSet documentset = con.getDocumentSetByOriginalId(documentId);
-		//documentset.addDocument(con.getDocumentByOriginalId(documentId));
-		//return documentExample.getDocumentSet();
-		return documentset;
+		if(statusReportSet.getSize() == 0)
+			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
+	    
+		//return rootelement.setDocumentSet(documentExample.getDocumentSet());
+		rootElement.setStatusReportSet(statusReportSet);
+		rootElement.setDocumentSet(documentset);
+		try {
+			con.close();
+			scon.close();
+		} catch (Exception e) {
+			if(constants.getDebugModeOn()) {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(new UnknownException("Message:" +e.getMessage() +"\n StackTrace: " +e.getStackTrace()).getStatusReport());
+			} else {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
+			}
+		}
+		return rootElement;
 	}
 }

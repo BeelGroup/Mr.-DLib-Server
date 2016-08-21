@@ -1,7 +1,6 @@
-package org.mrdlib;
+package org.mrdlib.display;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 /**
  * 
@@ -22,21 +21,17 @@ public class Snippet {
 	
 	//put it in XML format
 	private String formatContent(String title, String authorNames, String publishedIn, int year) {
-		return "&lt;span class='mdl-title'&gt;" + title + "&lt;/span&gt;. &lt;span class='authors'&gt;"
-				+ authorNames + ";/span&gt;. &lt;span class='journal'&gt;" + publishedIn
-				+ "&lt;/span&gt;. &lt;span class='volume_and_number'&gt;6:66&lt;/span&gt;. &lt;span class='year'&gt;"
+		return "&lt;span class='mdl-title'&gt;" + title + "&lt;/span&gt;. &lt;span class='mdl-authors'&gt;"
+				+ authorNames + "&lt;/span&gt;. &lt;span class='mdl-journal'&gt;" + publishedIn
+				+ "&lt;/span&gt;. &lt;span class='mdl-volume_and_number'&gt;6:66&lt;/span&gt;. &lt;span class='mdl-year'&gt;"
 				+ year + "&lt;/span&gt;";
 	}
 
 	public String getContent() {
 		return content;
 	}
-	@XmlValue
-	public void setContent(String title, String authorNames, String publishedIn, int year) {
-		this.content = formatContent(title, authorNames, publishedIn, year);
-	}
 	
-	@XmlTransient
+	@XmlValue
 	public void setContent(String content) {
 		this.content = content;
 	}
