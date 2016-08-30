@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
  * 
  * @author Millah
  * 
- * This class handles the presentation of the documentSet.
+ * This class handles the representation of the documentSet.
  * The XML format is automatically generated through the class structure.
  *
  */

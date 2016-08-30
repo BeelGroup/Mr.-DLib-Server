@@ -1,6 +1,11 @@
 package org.mrdlib;
 
 import java.util.List;
+/**
+ * @author Millah
+ * 
+ * This is a helper class for processing the readership information. Might be need in future
+ */
 
 public class Readership {
 	private List<ReadershipTuple> country;

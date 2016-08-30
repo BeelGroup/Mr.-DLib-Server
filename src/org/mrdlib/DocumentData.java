@@ -1,5 +1,9 @@
 package org.mrdlib;
-
+/**
+ * @author Millah
+ * 
+ * This is a helper class which stores every information about a document, without the need to displaying it
+ */
 public class DocumentData {
 	
 	private String title = null;

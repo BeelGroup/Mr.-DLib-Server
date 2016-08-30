@@ -11,7 +11,7 @@ import java.util.Properties;
 
 public class Constants {
 
-	private String configPath = "config.properties";
+	private String tomcatConfigPath = "config.properties";
 
 	//db connection properties
 	private String dbClass;
@@ -26,6 +26,22 @@ public class Constants {
 	private String docPers;
 	private String collections;
 	private String abstracts;
+	private String bibDocuments;
+	private String externalIds;
+	
+	//db table external id
+	private String documentIdInExternalIds;
+	private String externalName;
+	private String externalId;
+	
+	//db table bibliometrics document
+	private String documentIdInBibliometricDoc;
+	private String metric;
+	private String metricValue;
+	private String dataType;
+	private String dataSubtype;
+	private String dataCategory;
+	private String dataSource;
 	
 	//db table abstract
 	private String abstractId;
@@ -75,7 +91,9 @@ public class Constants {
 	
 	//settings
 	private boolean debugModeOn = false;
-
+	
+	//mendeleyCrawler settings
+	private String mendeleyConfigPath;
 
 	// load the config file
 	public Constants() {
@@ -84,7 +102,7 @@ public class Constants {
 		InputStream input = null;
 
 		try {
-			input = getClass().getClassLoader().getResourceAsStream(configPath);
+			input = getClass().getClassLoader().getResourceAsStream(tomcatConfigPath);
 			prop.load(input);
 
 			// get the property value
@@ -99,6 +117,20 @@ public class Constants {
 			this.docPers = prop.getProperty("doc_pers");
 			this.collections = prop.getProperty("collections");
 			this.abstracts = prop.getProperty("abstracts");
+			this.bibDocuments = prop.getProperty("bibliometricDocuments");
+			this.externalIds = prop.getProperty("externalIds");
+			
+			this.documentIdInExternalIds = prop.getProperty("documentIdInExternalIds");
+			this.externalName = prop.getProperty("externalName");
+			this.externalId = prop.getProperty("externalId");
+			
+			this.documentIdInBibliometricDoc = prop.getProperty("documentIdInBibliometricDoc");
+			this.metric = prop.getProperty("metric");
+			this.metricValue = prop.getProperty("metricValue");
+			this.dataType = prop.getProperty("dataType");
+			this.dataSubtype = prop.getProperty("dataSubtype");
+			this.dataCategory = prop.getProperty("dataCategory");
+			this.dataSource = prop.getProperty("dataSource");
 
 			this.abstractId =prop.getProperty("abstractId");
 			this.abstractDocumentId = prop.getProperty("abstractDocumentId");
@@ -139,6 +171,8 @@ public class Constants {
 			this.gesisCollectionLink = prop.getProperty("gesisCollectionLink");
 			this.gesis = prop.getProperty("gesis");
 			
+			this.mendeleyConfigPath = prop.getProperty("mendeleyConfigPath");
+			
 			String debugModeOn = prop.getProperty("debugModeOn");
 			if(debugModeOn.equals("true"))
 				this.debugModeOn = true;
@@ -158,6 +192,58 @@ public class Constants {
 		}
 	}
 	
+	public String getMetricValue() {
+		return metricValue;
+	}
+
+	public String getBibDocuments() {
+		return bibDocuments;
+	}
+
+	public String getExternalIds() {
+		return externalIds;
+	}
+
+	public String getDocumentIdInExternalIds() {
+		return documentIdInExternalIds;
+	}
+
+	public String getExternalName() {
+		return externalName;
+	}
+
+	public String getExternalId() {
+		return externalId;
+	}
+
+	public String getDocumentIdInBibliometricDoc() {
+		return documentIdInBibliometricDoc;
+	}
+
+	public String getMetric() {
+		return metric;
+	}
+
+	public String getDataType() {
+		return dataType;
+	}
+
+	public String getDataSubtype() {
+		return dataSubtype;
+	}
+
+	public String getDataCategory() {
+		return dataCategory;
+	}
+
+	public String getDataSource() {
+		return dataSource;
+	}
+
+	public String getMendeleyConfigPath() {
+		return mendeleyConfigPath;
+	}
+
 	public boolean getDebugModeOn() {
 		return debugModeOn;
 	}

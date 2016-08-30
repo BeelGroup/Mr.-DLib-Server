@@ -1,12 +1,17 @@
 package org.mrdlib.oauth;
 
 import java.util.Properties;
-
+/**
+ * 
+ * the interface to get an accessToken for mendeley
+ * copied from IBM and slightly changed
+ */
 public class OAuth2Client {
 	
 	private String accessToken = "";
 
 	public String getAccessToken() {
+		String[] tokenArray = new String[3];
 		Properties config = OAuthUtils.getClientConfigProps(OAuthConstants.CONFIG_FILE_PATH);
 		String resourceServerUrl = config.getProperty(OAuthConstants.RESOURCE_SERVER_URL);
 		String username = config.getProperty(OAuthConstants.USERNAME);
@@ -27,6 +32,7 @@ public class OAuth2Client {
 			System.out.println("Retrieving Access Token");
 			OAuth2Details oauthDetails = OAuthUtils.createOAuthDetails(config);
 			accessToken = OAuthUtils.getAccessToken(oauthDetails);
+			
 			if(OAuthUtils.isValid(accessToken)){
 			System.out
 					.println("Successfully retrieved Access token for Password Grant: "

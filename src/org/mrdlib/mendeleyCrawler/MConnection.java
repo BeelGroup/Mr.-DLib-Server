@@ -1,48 +1,59 @@
-package org.mrdlib.MendeleyCrawler;
+package org.mrdlib.mendeleyCrawler;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.mrdlib.DocumentData;
-import org.mrdlib.Readership;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.oauth.OAuth2Client;
 
-public class MendeleyConnection {
+/**
+ * @author Millah
+ * 
+ *         This class handles the communication with Mendeley
+ */
+public class MConnection {
 
 	private String accessToken;
+	private Long expiresIn;
 	private DBConnection con;
 	OAuth2Client oclient = new OAuth2Client();
 	private int countAll = 0;
 	private int countSuc = 0;
+	private Config mconfig;
 
-	public MendeleyConnection() throws Exception {
-		con = new DBConnection();
+	/**
+	 * opens a database connection (without pool), initialize the mendeley
+	 * config and retrieve the first accessToken
+	 */
+	public MConnection() {
+		try {
+			// get database connection
+			con = new DBConnection("jar");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// get acessToken and expire time
 		accessToken = oclient.getAccessToken();
+		expiresIn = (System.currentTimeMillis() / 1000) + 3600;
+		//initialize the config
+		mconfig = new Config();
 	}
 
 	public void getReadership() throws SQLException {
@@ -61,40 +72,51 @@ public class MendeleyConnection {
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		String data = null;
 		URI uri = null;
-		/*
-		 * PoolingHttpClientConnectionManager cm = new
-		 * PoolingHttpClientConnectionManager(); cm.setMaxTotal(200); //
-		 * Increase default max connection per route to 20
-		 * cm.setDefaultMaxPerRoute(20); // Increase max connections for
-		 * localhost:80 to 50 HttpHost localhost = new HttpHost("locahost", 80);
-		 * cm.setMaxPerRoute(new HttpRoute(localhost), 50);
-		 */
-			
-		int numberOfDocuments = con.getBiggestIdFromDocuments();
-			
-			
-		for (int k = 0; k < numberOfDocuments; k = k + 1000000) {
-			documentDataList = con.getMillionDocumentData(k);
 
+		//get the number of documents for batch processing
+		int numberOfDocuments = con.getBiggestIdFromDocuments();
+
+		//if the process was finished, start new
+		if (mconfig.getLastSuccessfullId() >= con.getBiggestIdFromDocuments()) {
+			mconfig.writeMendeleyCrawlingProcessToConfigFile(0);
+		}
+
+		//iterate over every document in database in batch size steps
+		for (int k = mconfig.getLastSuccessfullId(); k < numberOfDocuments; k = k + mconfig.getBatchSize()) {
+			//get the DocumentDataList in batch size
+			documentDataList = con.getDocumentDataInBatches(k, mconfig.getBatchSize());
+
+			//iterate over each DocumentData Entry to reqeust it in mendeley
 			for (int i = 0; i < documentDataList.size(); i++) {
+				//if the accesToken expires, renew it
+				if (expiresIn - 60 <= (System.currentTimeMillis() / 1000)) {
+					accessToken = oclient.getAccessToken();
+					expiresIn = (System.currentTimeMillis() / 1000) + 3600;
+				}
+				//get current DocumentData
 				documentData = documentDataList.get(i);
 				String current = documentData.getTitle();
-				// String current = "Introducing Mr. DLib, a Machine-readable Digital Library";
 
+				//replace special characters to match mendeley needs
 				current = current.replaceAll("[^_a-zA-Z0-9 .]", "");
+				
+				//formulate the mendeley query 
 				String urlString = "https://api.mendeley.com/catalog?title=" + current;
 
 				try {
+					//request mendeley
 					url = new URL(urlString);
 					uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
 					httpget = new HttpGet(uri);
 					httpget.addHeader("Authorization", "Bearer " + accessToken);
 					HttpResponse response = httpclient.execute(httpget);
 					data = EntityUtils.toString(response.getEntity());
-
+					
+					//if mendeley has no hit, skip this document
 					if (data.isEmpty())
 						break;
 
+					//parse the json response and search for the title
 					jsonObject = (JSONObject) JSONValue.parse(data);
 					documents = (JSONArray) jsonObject.get("documents");
 
@@ -105,12 +127,20 @@ public class MendeleyConnection {
 							highlights = (JSONObject) document.get("highlights");
 							titleJson = (JSONArray) highlights.get("title");
 							title = (String) titleJson.get(0);
+							
+							//eliminate the <strong> text for comparison
 							if (title.contains("<strong>") || title.contains("<\\/strong>"))
 								title = title.replaceAll("<strong>|<\\/strong>", "");
+							
+							//eliminate special characters for better comparison and search for matching title
 							if (calculateTitleClean(current).equals(calculateTitleClean(title))) {
+								
+								//if it matches, get the mendeley id for second request
 								mendeleyId = (String) document.get("id");
 								countSuc++;
-								writeToFile(documentData, getReadershipData(mendeleyId));
+								
+								//request the statistics of the matching document
+								writeMendeleyStatsToFile(documentData, getStatisticData(mendeleyId));
 								break;
 							}
 						}
@@ -123,11 +153,22 @@ public class MendeleyConnection {
 					System.out.println(data);
 				}
 			}
+			//write progress to config file
+			mconfig.writeMendeleyCrawlingProcessToConfigFile(k + mconfig.getBatchSize());
 		}
 	}
 
-	private String getReadershipData(String mendeleyId) {
+	/**
+	 * get the statistic data from mendeley of an already found document
+	 * @param mendeleyId
+	 * @return JsonResponse from mendeley as String
+	 */
+	private String getStatisticData(String mendeleyId) {
+		
+		//formulate statistic query for mendeley request
 		String urlString = "https://api.mendeley.com/catalog/" + mendeleyId + "?view=stats";
+		
+		//send request
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		String data = null;
 		String nullFragment = null;
@@ -141,24 +182,35 @@ public class MendeleyConnection {
 			HttpResponse response = httpclient.execute(httpget);
 			data = EntityUtils.toString(response.getEntity());
 
-			// System.out.println("Title: " + title);
-			// System.out.println("MendeleyId: " + mendeleyId);
-			// System.out.println("Data: " + data);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return data;
 	}
 
-	private static void writeToFile(DocumentData documentData, String input) {
+	/**
+	 * writes the Mendeley Response with corresponding DocumentData and a timestamp to a file for later processing
+	 * @param documentData, the documentData associated with the mendeley answer, used for filename
+	 * @param input, the String which will be written to the file
+	 */
+	private void writeMendeleyStatsToFile(DocumentData documentData, String input) {
+		
+		//get the data as json object
 		JSONObject jsonObject = (JSONObject) JSONValue.parse(input);
+		
+		//get the current timestamp and add to the json Object
 		jsonObject.put("timestamp", new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new java.util.Date()));
+		
+		//convert json object back to string
 		input = jsonObject.toString();
 
-		String dirName = "MendeleyData" + File.separator + (int) (Math.floor(documentData.getId() / 10000)) + "";
+		//generate the path of the file to write to (path from the config file + folders for each 10.000 document)
+		String dirName = mconfig.getPathOfDownload() + File.separator + (int) (Math.floor(documentData.getId() / 10000))
+				+ "";
+		//generate the file name in the format "mrDlibId gesisId"
 		String path = dirName + File.separator + documentData.getId() + " " + documentData.getOriginalId() + ".txt";
 
+		//produce and write in the file
 		try {
 			new File(dirName).mkdirs();
 			FileWriter writer = new FileWriter(path, false);
@@ -168,7 +220,11 @@ public class MendeleyConnection {
 			e.printStackTrace();
 		}
 	}
-
+	/**
+	 * calculcates as clean title with only a-z letters and numbers
+	 * 
+	 * @return cleantitle with only a-z letters and numbers
+	 */
 	public String calculateTitleClean(String s) {
 		s = s.replaceAll("[^a-zA-Z0-9]", "");
 		s = s.toLowerCase();
@@ -176,7 +232,7 @@ public class MendeleyConnection {
 	}
 
 	public static void main(String[] args) throws Exception {
-		MendeleyConnection mcon = new MendeleyConnection();
+		MConnection mcon = new MConnection();
 		mcon.getReadership();
 		System.out.println(mcon.countSuc + "/" + mcon.countAll);
 		// writeToFile(new DocumentData("keks", 0, "keks"), "\nBlub");

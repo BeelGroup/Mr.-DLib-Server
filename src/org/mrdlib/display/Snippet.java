@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlValue;
  * 
  * @author Millah
  * 
- * This class handles the presentation of the snippet part of the Document.java and serves as a wrapper.
+ * This class handles the representation of the snippet part of the Document.java and serves as a wrapper.
  * The XML format is automatically generated through the class structure.
  *
  */
@@ -21,10 +21,10 @@ public class Snippet {
 	
 	//put it in XML format
 	private String formatContent(String title, String authorNames, String publishedIn, int year) {
-		return "&lt;span class='mdl-title'&gt;" + title + "&lt;/span&gt;. &lt;span class='mdl-authors'&gt;"
-				+ authorNames + "&lt;/span&gt;. &lt;span class='mdl-journal'&gt;" + publishedIn
-				+ "&lt;/span&gt;. &lt;span class='mdl-volume_and_number'&gt;6:66&lt;/span&gt;. &lt;span class='mdl-year'&gt;"
-				+ year + "&lt;/span&gt;";
+		return "<span class='mdl-title'>" + title + "</span>. <span class='mdl-authors'>"
+				+ authorNames + "</span>. <span class='mdl-journal'>" + publishedIn
+				+ "</span>. <span class='mdl-volume_and_number>6:66</span>. <span class='mdl-year'>"
+				+ year + "</span>";
 	}
 
 	public String getContent() {

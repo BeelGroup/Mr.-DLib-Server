@@ -2,7 +2,14 @@ package org.mrdlib.display;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
+/**
+ * 
+ * @author Millah
+ * 
+ * This class handles the representation of the whole webapp
+ * The XML format is automatically generated through the class structure.
+ *
+ */
 @XmlRootElement(name="mr-dlib")
 public class RootElement {
 

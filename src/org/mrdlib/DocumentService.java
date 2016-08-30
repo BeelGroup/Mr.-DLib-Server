@@ -17,6 +17,12 @@ import org.mrdlib.display.StatusReportSet;
 import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 import org.mrdlib.solrHandler.solrConnection;
 
+/**
+ * @author Millah
+ * 
+ * This class is called by Tomcat and the start of the webapp
+ */
+
 //set Path and allow numbers, letters and -_.,  Save Path as document_id
 @Path("{documentId : [a-zA-Z0-9-_.,]+}")
 public class DocumentService {
@@ -35,7 +41,7 @@ public class DocumentService {
 		rootElement = new RootElement();
 		statusReportSet = new StatusReportSet();
 		try {
-			con = new DBConnection();
+			con = new DBConnection("tomcat");
 			scon = new solrConnection(con);
 		} catch (Exception e) {
 			if(constants.getDebugModeOn()) {
@@ -51,7 +57,7 @@ public class DocumentService {
 	@GET
 	//set end of Path
 	@Path("/related_documents")
-	@Produces(MediaType.APPLICATION_XML)
+	@Produces(MediaType.APPLICATION_XML + ";charset=utf-8")
 	/**
 	 * Get the related documentSet of a given document
 	 * 
@@ -63,12 +69,20 @@ public class DocumentService {
 		DisplayDocument document = null;
 		
 		try {
+			//get the requested document from the databas
 			document = con.getDocumentBy(constants.getIdOriginal(),documentIdOriginal);
+			//get all related documents from solr
 			documentset = scon.getRelatedDocumentSetByDocument(document);
+			
+			//if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
+			
+			//if solr didn't found related articles
 		} catch (NoRelatedDocumentsException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
+			
+			//if there happened something else
 		} catch (Exception e){
 			if(constants.getDebugModeOn()) {
 				e.printStackTrace();
@@ -78,10 +92,11 @@ public class DocumentService {
 				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
 			}
 		}
+		//if everything went ok
 		if(statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
 	    
-		//return rootelement.setDocumentSet(documentExample.getDocumentSet());
+		//add both the status message and the related document to the xml
 		rootElement.setStatusReportSet(statusReportSet);
 		rootElement.setDocumentSet(documentset);
 		try {

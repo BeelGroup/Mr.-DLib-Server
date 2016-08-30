@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * 
  * @author Millah
  * 
- * This class handles the presentation of the document information of one document.
+ * This class handles the representation of the document information of one document.
  * The XML format is automatically generated through the class structure.
  *
  */

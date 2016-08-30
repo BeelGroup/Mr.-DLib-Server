@@ -4,7 +4,10 @@ import javax.ws.rs.WebApplicationException;
 
 import org.mrdlib.display.StatusMessage;
 import org.mrdlib.display.StatusReport;
-
+/**
+ * throws an custom exception if an unknown error occured
+ * @param the error message
+ */
 public class UnknownException extends WebApplicationException {
 	private static final long serialVersionUID = 1L;
 	private String message = "";

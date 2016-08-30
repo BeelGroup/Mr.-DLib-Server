@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
+/**
+ * 
+ * the util class to get the accessToken from Mendeley
+ * copied from IBM and slightly changed
+ */
 public class OAuthUtils {
 
 	public static OAuth2Details createOAuthDetails(Properties config) {

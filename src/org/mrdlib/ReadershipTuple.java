@@ -1,5 +1,9 @@
 package org.mrdlib;
-
+/**
+ * @author Millah
+ * 
+ * This is a helper class for processing the readership information. Might be need in future
+ */
 public class ReadershipTuple {
 	private String name;
 	private String count;

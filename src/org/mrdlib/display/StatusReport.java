@@ -4,7 +4,14 @@ import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-
+/**
+ * 
+ * @author Millah
+ * 
+ * This class handles the representation of the statusReport, which contains a http status code and the report set
+ * The XML format is automatically generated through the class structure.
+ *
+ */
 public class StatusReport implements Serializable {
 	
 	private static final long serialVersionUID = 1L;

@@ -43,15 +43,19 @@ public class DBConnection {
 	// stores the length of the database fields to check for truncation error
 	private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
 
-	public DBConnection() throws Exception {
+	public DBConnection(String type) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		ResultSet rs2 = null;
 		ResultSet rs3 = null;
 		// get all the lengths of the database fields and store it in a map
 		try {
-			createConnectionJar();
-			// createConnectionTomcat();
+			if (type.equals("jar"))
+				createConnectionJar();
+			else if (type.equals("tomcat"))
+				createConnectionTomcat();
+			else
+				createConnectionJar();
 			stmt = con.createStatement();
 			stmt.executeQuery("SET NAMES 'utf8'");
 			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
@@ -110,12 +114,11 @@ public class DBConnection {
 	}
 
 	/**
-	 * create connection from Connection Pool (configured in the tomcat config
+	 * creates connection from Connection Pool (configured in the tomcat config
 	 * files)
 	 * 
 	 * @throws Exception
 	 */
-
 	public void createConnectionTomcat() throws Exception {
 		try {
 			Context initContext = new InitialContext();
@@ -127,6 +130,11 @@ public class DBConnection {
 		}
 	}
 
+	/**
+	 * creates connection to database if no pool is needed
+	 * 
+	 * @throws Exception
+	 */
 	public void createConnectionJar() throws Exception {
 		try {
 			Class.forName(constants.getDbClass());
@@ -360,6 +368,7 @@ public class DBConnection {
 		ResultSet rs = null;
 		Long id = null;
 
+		// query to select the collectionName
 		String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
 				+ constants.getCollectionShortName() + " = '" + collectionName + "'";
 
@@ -367,7 +376,8 @@ public class DBConnection {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 
-			while (rs.next())
+			// get first collection id
+			if (rs.next())
 				id = rs.getLong(constants.getCollectionID());
 		} catch (Exception e) {
 			System.out.println(document.getDocumentPath() + ": " + document.getId());
@@ -743,9 +753,14 @@ public class DBConnection {
 				authorNames = joiner.toString();
 				// encode special characters like ae, oe, ue or others to html
 				// entitys
-				authorNames = StringEscapeUtils.escapeHtml4(authorNames);
-				title = StringEscapeUtils.escapeHtml4(rs.getString(constants.getTitle()));
-				publishedIn = StringEscapeUtils.escapeHtml4(rs.getString(constants.getPublishedId()));
+				// authorNames = StringEscapeUtils.escapeHtml4(authorNames);
+				// title =
+				// StringEscapeUtils.escapeHtml4(rs.getString(constants.getTitle()));
+				// publishedIn =
+				// StringEscapeUtils.escapeHtml4(rs.getString(constants.getPublishedId()));
+
+				title = rs.getString(constants.getTitle());
+				publishedIn = rs.getString(constants.getPublishedId());
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
@@ -776,6 +791,12 @@ public class DBConnection {
 		}
 	}
 
+	/**
+	 * Get the number of documents present in database (by searching for highest
+	 * ID
+	 * 
+	 * @return biggest document id present in database
+	 */
 	public int getBiggestIdFromDocuments() {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -783,6 +804,7 @@ public class DBConnection {
 
 		try {
 			stmt = con.createStatement();
+			// query for returnning biggest id
 			String query = "SELECT MAX(" + constants.getDocumentId() + ") FROM " + constants.getDocuments();
 			rs = stmt.executeQuery(query);
 
@@ -800,10 +822,20 @@ public class DBConnection {
 			}
 		}
 		return size;
-
 	}
 
-	public List<DocumentData> getMillionDocumentData(int start) {
+	/**
+	 * 
+	 * Get all documents in a specified range for batching
+	 * 
+	 * @param start,
+	 *            first id to start with
+	 * @param batchsize,
+	 *            number of documents to retrieve
+	 * @return a list of documentData with id's between start and
+	 *         start+batchsize
+	 */
+	public List<DocumentData> getDocumentDataInBatches(int start, int batchsize) {
 		List<DocumentData> documentDataList = new ArrayList<DocumentData>();
 
 		Statement stmt = null;
@@ -811,11 +843,14 @@ public class DBConnection {
 
 		try {
 			stmt = con.createStatement();
+			// query for getting Id, originalId and Title between ids start and
+			// start+batchsize
 			String query = "SELECT " + constants.getDocumentId() + ", " + constants.getIdOriginal() + ", "
 					+ constants.getTitle() + " FROM " + constants.getDocuments() + " WHERE " + constants.getDocumentId()
-					+ " >= " + start + " AND " + constants.getDocumentId() + " < " + (start + 1000000);
+					+ " >= " + start + " AND " + constants.getDocumentId() + " < " + (start + batchsize);
 			rs = stmt.executeQuery(query);
 
+			// add the retrieved documentData to the list
 			while (rs.next()) {
 				documentDataList.add(new DocumentData(rs.getString(constants.getTitle()),
 						rs.getInt(constants.getDocumentId()), rs.getString(constants.getIdOriginal())));
@@ -831,5 +866,83 @@ public class DBConnection {
 			}
 		}
 		return documentDataList;
+	}
+
+	/**
+	 * 
+	 * Insert a row to the external_identifiers database
+	 * 
+	 * @param id,
+	 *            id from the corresponding document
+	 * @param externalName,
+	 *            type of the externalId (eg ISBN)
+	 * @param externalId,
+	 *            value of the external id
+	 */
+	public void writeIdentifiersInDatabase(int id, String externalName, String externalId) {
+		Statement stmt = null;
+		try {
+			stmt = con.createStatement();
+
+			//query to insert the external id's
+			String query = "INSERT INTO " + constants.getExternalIds() + " (" + constants.getDocumentIdInExternalIds()
+					+ ", " + constants.getExternalName() + ", " + constants.getExternalId() + ") VALUES (" + id + ", "
+					+ externalName + ", " + externalId + ");";
+
+			stmt.executeUpdate(query);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	/**
+	 * 
+	 * Insert a row to the bibliometrices Table
+	 * 
+	 * @param id,
+	 *            id from the corresponding document
+	 * @param metric,
+	 *            the metric to insert (eg total_count)
+	 * @param dataType,
+	 *            the dataType of the metric (eg readers, citations)
+	 * @param category,
+	 *            the category of the metric (eg for mendeley: user_role, country, subdiscipline)
+	 * @param subtype,
+	 *            the subtype of the metric (eg for mendeley: physics, germany, professor)
+	 * @param value,
+	 *            the value of the metric (eg number of readers/citations, h-index of readers/citations etc)
+	 * @param value,
+	 *            the datasourcce of the metric (eg mendeley, google scholar, microsoft acamdemics)             
+	 */
+	public void writeBibliometricsInDatabase(int id, String metric, String dataType, String category, String subtype,
+			int value, String dataSource) {
+		Statement stmt = null;
+		try {
+			stmt = con.createStatement();
+
+			//the query to add all relevant data to the table
+			String query = "INSERT INTO " + constants.getBibDocuments() + " ("
+					+ constants.getDocumentIdInBibliometricDoc() + ", " + constants.getMetric() + ", "
+					+ constants.getDataType() + ", " + constants.getDataCategory() + ", " + constants.getDataSubtype()
+					+ ", " + constants.getMetricValue() + ", " + constants.getDataSource() + ") VALUES (" + id + ", "
+					+ metric + ", " + dataType + ", " + category + ", " + subtype + ", " + value + ", " + dataSource
+					+ ");";
+
+			stmt.executeUpdate(query);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

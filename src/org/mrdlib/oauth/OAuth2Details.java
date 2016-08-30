@@ -1,4 +1,8 @@
 package org.mrdlib.oauth;
+/**
+ * the class to store the relevant connection details
+ * copied from IBM
+ */
 public class OAuth2Details {
 
 	private String scope;
