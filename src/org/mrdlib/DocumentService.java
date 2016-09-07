@@ -5,6 +5,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Context;
 
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.database.NoEntryException;
@@ -22,9 +23,8 @@ import org.mrdlib.solrHandler.solrConnection;
  * 
  * This class is called by Tomcat and the start of the webapp
  */
-
+@Path("documents/{documentId : [a-zA-Z0-9-_.,]+}")
 //set Path and allow numbers, letters and -_.,  Save Path as document_id
-@Path("{documentId : [a-zA-Z0-9-_.,]+}")
 public class DocumentService {
 
 	//set up the necessary connections and load the config
@@ -56,7 +56,7 @@ public class DocumentService {
 
 	@GET
 	//set end of Path
-	@Path("/related_documents")
+	@Path("related_documents")
 	@Produces(MediaType.APPLICATION_XML + ";charset=utf-8")
 	/**
 	 * Get the related documentSet of a given document
@@ -114,4 +114,11 @@ public class DocumentService {
 		}
 		return rootElement;
 	}
+
+	@GET
+	@Produces("text/plain")
+    public String getOriginalDoc() {
+        return "Hello World ";
+    }
+
 }

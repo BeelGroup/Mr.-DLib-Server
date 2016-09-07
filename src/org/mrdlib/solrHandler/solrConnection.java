@@ -62,7 +62,7 @@ public class solrConnection {
 		DisplayDocument relDocument = new DisplayDocument();
 		query.setRequestHandler("/" + MoreLikeThisParams.MLT);
 		String url = "";
-		
+		String fallback_url = "";
 		//get only documents which are in the same collection
 		String filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
 
@@ -90,10 +90,12 @@ public class solrConnection {
 					relDocument.setSuggestedRank(i + 1);
 					//set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
-						url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+						url = "http://api.mr-dlib.org/trial/recommendations/" + relDocument.getRecommendationId() + 
+							"/original_url/&access_key=" +"hash" +"&format=direct_url_forward";
 
 					relDocument.setClickUrl(url);
-					relDocument.setFallbackUrl(url);
+					relDocument.setFallbackUrl	(fallback_url);
 					//add it to the collection
 					relatedDocuments.addDocument(relDocument);
 				}

@@ -1035,8 +1035,38 @@ public class DBConnection {
 			}
 		}
 	}
+
 	
 	public void logRecommendationDelivery(DocumentSet documentset){
 		
+	}
+
+	
+	public String getDocIdFromRecommendation(String recommendation_id) throws Exception{
+		String doc_id = "dummy";
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = con.createStatement();
+			String query = "SELECT * FROM recommendations WHERE id = '" + recommendation_id + "'";
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				doc_id = rs.getString("document_id");
+			}else{
+				throw new NoEntryException(recommendation_id);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (NoEntryException f){
+			throw f;
+		} finally{
+			try {
+				if(stmt != null) stmt.close();
+				if(rs != null) rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return doc_id;
 	}
 }
