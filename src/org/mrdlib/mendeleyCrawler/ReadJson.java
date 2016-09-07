@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.FilenameUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.mrdlib.database.DBConnection;
@@ -39,37 +40,24 @@ public class ReadJson {
 	 * @param jsonObj, the json object to process
 	 */
 	private void iterateJsonObject(int id, String category, JSONObject jsonObj) {
-		
-		//transform the categories to the enums in database
-		if (category.equals("reader_count_by_country"))
-			category = "country";
-		if (category.equals("reader_count_by_subdiscipline"))
-			category = "subdiscipline";
-		if (category.equals("reader_count_by_academic_status"))
-			category = "academic_status";
-		if (category.equals("reader_count_by_subject_area"))
-			category = "subject_area";
-		if (category.equals("reader_count_by_user_role"))
-			category = "user_role";
-
 		//for each key inside this json object
 		for (Object key : jsonObj.keySet()) {
 
 			//get both name and value
 			String keyStr = (String) key;
 			Object keyvalue = jsonObj.get(keyStr);
+			String keyvalueStr = keyvalue.toString();
 
 			//if they have further subgroups, do recursion
 			if (keyvalue instanceof JSONObject)
 				iterateJsonObject(id, category, (JSONObject) keyvalue);
 			//at the end of recursion get the final values
-			else {
-				System.out.println(category);
-				System.out.println("key: " + keyStr + " value: " + keyvalue);
-				
+			else {				
 				//write the identifiers in the database
 				if (category.equals("identifiers")) {
-					con.writeIdentifiersInDatabase(id, keyStr.toString(), keyvalue.toString());
+					if(keyvalueStr.startsWith("http://dx.doi.org/"))
+						keyvalueStr = keyvalueStr.substring(18);
+					con.writeIdentifiersInDatabase(id, keyStr.toString(), keyvalueStr);
 				//write the metric in the database
 				} else
 					con.writeBibliometricsInDatabase(id, "simple_count", "readers", category, keyStr.toString(),
@@ -89,8 +77,10 @@ public class ReadJson {
 	 *            the category of the jsonObject
 	 */
 	private void getReaderShipByCategory(int id, JSONObject jsonObject, String category) {
-		JSONObject jObject = (JSONObject) jsonObject.get(category);
-		iterateJsonObject(id, category, jObject);
+		if(jsonObject.containsKey(category)) {	
+			JSONObject jObject = (JSONObject) jsonObject.get(category);
+			iterateJsonObject(id, category, jObject);
+		}
 	}
 
 	/**
@@ -104,6 +94,7 @@ public class ReadJson {
 		JSONParser parser = new JSONParser();
 		String filename;
 		int id;
+		String mendeleyId;
 		int readerCount;
 
 		try {
@@ -116,19 +107,25 @@ public class ReadJson {
 			//get the mrdlib id from the filename
 			filename = path.getFileName().toString();
 			id = Integer.parseInt(filename.substring(0, filename.indexOf(' ')));
+			
+			//get the external mendeleyId and write it to the database
+			mendeleyId = jsonObject.get("id").toString();
+			con.writeIdentifiersInDatabase(id, "mendeley", mendeleyId);
+			
 			//get the absolute readercount and write it to database
 			readerCount = Integer.parseInt(jsonObject.get("reader_count").toString());
 			con.writeBibliometricsInDatabase(id, "simple_count", "readers", "all", null, readerCount, "mendeley");
 			
 			//get the readercount of the subcategories and write them to database
-			getReaderShipByCategory(id, jsonObject, "reader_count_by_country");
+			/*getReaderShipByCategory(id, jsonObject, "reader_count_by_country");
 			getReaderShipByCategory(id, jsonObject, "reader_count_by_subdiscipline");
 			getReaderShipByCategory(id, jsonObject, "reader_count_by_academic_status");
 			getReaderShipByCategory(id, jsonObject, "reader_count_by_subject_area");
-			getReaderShipByCategory(id, jsonObject, "reader_count_by_user_role");
+			getReaderShipByCategory(id, jsonObject, "reader_count_by_user_role");*/
 			getReaderShipByCategory(id, jsonObject, "identifiers");
 
 		} catch (Exception e) {
+			System.out.println(path.toString());
 			e.printStackTrace();
 		}
 	}
@@ -142,6 +139,7 @@ public class ReadJson {
 			Files.walk(Paths.get(mconfig.getPathOfDownload()))
 					.filter((p) -> !p.toFile().isDirectory() && p.toFile().getAbsolutePath().endsWith(".txt"))
 					.forEach(p -> this.processJson(p));
+			//this.processJson(Paths.get("/home/mrdlib/MendeleyData/0/1 mrdlib.txt"));
 
 		} catch (Exception e) {
 			e.printStackTrace();

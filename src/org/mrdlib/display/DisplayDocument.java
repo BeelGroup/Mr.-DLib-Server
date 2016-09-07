@@ -60,14 +60,14 @@ public class DisplayDocument implements Serializable {
 	public void setCollectionShortName(String collectionShortName) {
 		this.collectionShortName = collectionShortName;
 	}
-	/*
+	
 	public String getRecommendationId() {
 		return recommendationId;
 	}
 	@XmlAttribute(name = "recommendation_id")
 	public void setRecommendationId(String recommendationId) {
 		this.recommendationId = recommendationId;
-	}*/
+	}
 
 	public String getDocumentId() {
 		return documentId;

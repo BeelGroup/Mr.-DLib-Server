@@ -18,7 +18,6 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.mrdlib.Constants;
 import org.mrdlib.DocumentData;
 import org.mrdlib.display.DisplayDocument;
@@ -880,18 +879,20 @@ public class DBConnection {
 	 *            value of the external id
 	 */
 	public void writeIdentifiersInDatabase(int id, String externalName, String externalId) {
-		Statement stmt = null;
+		PreparedStatement stmt = null;
+		String query = "";
 		try {
-			stmt = con.createStatement();
 
-			//query to insert the external id's
-			String query = "INSERT INTO " + constants.getExternalIds() + " (" + constants.getDocumentIdInExternalIds()
-					+ ", " + constants.getExternalName() + ", " + constants.getExternalId() + ") VALUES (" + id + ", "
-					+ externalName + ", " + externalId + ");";
+			// query to insert the external id's
+			query = "INSERT IGNORE INTO " + constants.getExternalIds() + " (" + constants.getDocumentIdInExternalIds()
+					+ ", " + constants.getExternalName() + ", " + constants.getExternalId() + ") VALUES (" + id + ", '"
+					+ externalName + "', '" + externalId + "');";
 
-			stmt.executeUpdate(query);
+			stmt = con.prepareStatement(query);
+			stmt.executeUpdate();
 
 		} catch (Exception e) {
+			System.out.println(query);
 			e.printStackTrace();
 		} finally {
 			try {
@@ -901,6 +902,7 @@ public class DBConnection {
 			}
 		}
 	}
+
 	/**
 	 * 
 	 * Insert a row to the bibliometrices Table
@@ -912,29 +914,117 @@ public class DBConnection {
 	 * @param dataType,
 	 *            the dataType of the metric (eg readers, citations)
 	 * @param category,
-	 *            the category of the metric (eg for mendeley: user_role, country, subdiscipline)
+	 *            the category of the metric (eg for mendeley: user_role,
+	 *            country, subdiscipline)
 	 * @param subtype,
-	 *            the subtype of the metric (eg for mendeley: physics, germany, professor)
+	 *            the subtype of the metric (eg for mendeley: physics, germany,
+	 *            professor)
 	 * @param value,
-	 *            the value of the metric (eg number of readers/citations, h-index of readers/citations etc)
+	 *            the value of the metric (eg number of readers/citations,
+	 *            h-index of readers/citations etc)
 	 * @param value,
-	 *            the datasourcce of the metric (eg mendeley, google scholar, microsoft acamdemics)             
+	 *            the datasourcce of the metric (eg mendeley, google scholar,
+	 *            microsoft acamdemics)
 	 */
 	public void writeBibliometricsInDatabase(int id, String metric, String dataType, String category, String subtype,
 			int value, String dataSource) {
-		Statement stmt = null;
+		PreparedStatement stmt = null;
+		String query="";
+		
 		try {
-			stmt = con.createStatement();
+			query = "INSERT IGNORE INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
+			+ ", " + constants.getMetric() + ", " + constants.getDataType() + ", "
+			+ constants.getMetricValue() + ", " + constants.getDataSource() + ") VALUES (" + id + ", '"
+			+ metric + "', '" + dataType + "', " + value + ", '" + dataSource + "');";
 
-			//the query to add all relevant data to the table
-			String query = "INSERT INTO " + constants.getBibDocuments() + " ("
-					+ constants.getDocumentIdInBibliometricDoc() + ", " + constants.getMetric() + ", "
-					+ constants.getDataType() + ", " + constants.getDataCategory() + ", " + constants.getDataSubtype()
-					+ ", " + constants.getMetricValue() + ", " + constants.getDataSource() + ") VALUES (" + id + ", "
-					+ metric + ", " + dataType + ", " + category + ", " + subtype + ", " + value + ", " + dataSource
-					+ ");";
+			stmt = con.prepareStatement(query);
+			stmt.executeUpdate();
 
-			stmt.executeUpdate(query);
+		} catch (Exception e) {
+			System.out.println(query);
+			e.printStackTrace();
+		} finally {
+			try {
+				stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void writeSubBibliometricsInDatabase(int id, String category, String subtype, int value) {
+		PreparedStatement stmt = null;
+		try {
+			
+			String query = "INSERT INTO " + constants.getBibDocumentsSubCounts() + " ("
+					+ constants.getBibliometricDocIdInBibliometricDocSubCount() + ", " + constants.getCountry() + ", "
+					+ constants.getCountryCount() + ", " + constants.getSubdiscipline() + ", "
+					+ constants.getSubdisciplineCount() + ", " + constants.getAcademicStatus() + ", "
+					+ constants.getAcademicStatusCount() + ", " + constants.getSubjectArea() + ", "
+					+ constants.getSubjectAreaCount() + ", " + constants.getUserRole() + ", "
+					+ constants.getUserRoleCount() + ") VALUES (" + id + "? ? ? ? ? ? ? ? ? ?);";
+
+			stmt = con.prepareStatement(query);
+
+			if (category.equals("reader_count_by_country")) {
+				stmt.setString(1, subtype);
+				stmt.setInt(2, value);
+				stmt.setNull(3, java.sql.Types.VARCHAR);
+				stmt.setNull(4, java.sql.Types.INTEGER);
+				stmt.setNull(5, java.sql.Types.VARCHAR);
+				stmt.setNull(6, java.sql.Types.INTEGER);
+				stmt.setNull(7, java.sql.Types.VARCHAR);
+				stmt.setNull(8, java.sql.Types.INTEGER);
+				stmt.setNull(9, java.sql.Types.VARCHAR);
+				stmt.setNull(10, java.sql.Types.INTEGER);
+			} else if (category.equals("reader_count_by_subdiscipline")) {
+				stmt.setString(3, subtype);
+				stmt.setInt(4, value);
+				stmt.setNull(1, java.sql.Types.VARCHAR);
+				stmt.setNull(2, java.sql.Types.INTEGER);
+				stmt.setNull(5, java.sql.Types.VARCHAR);
+				stmt.setNull(6, java.sql.Types.INTEGER);
+				stmt.setNull(7, java.sql.Types.VARCHAR);
+				stmt.setNull(8, java.sql.Types.INTEGER);
+				stmt.setNull(9, java.sql.Types.VARCHAR);
+				stmt.setNull(10, java.sql.Types.INTEGER);
+			} else if (category.equals("reader_count_by_academic_status")) {
+				stmt.setString(5, subtype);
+				stmt.setInt(6, value);
+				stmt.setNull(1, java.sql.Types.VARCHAR);
+				stmt.setNull(2, java.sql.Types.INTEGER);
+				stmt.setNull(3, java.sql.Types.VARCHAR);
+				stmt.setNull(4, java.sql.Types.INTEGER);
+				stmt.setNull(7, java.sql.Types.VARCHAR);
+				stmt.setNull(8, java.sql.Types.INTEGER);
+				stmt.setNull(9, java.sql.Types.VARCHAR);
+				stmt.setNull(10, java.sql.Types.INTEGER);
+			} else if (category.equals("reader_count_by_subject_area")) {
+				stmt.setString(7, subtype);
+				stmt.setInt(8, value);
+				stmt.setNull(1, java.sql.Types.VARCHAR);
+				stmt.setNull(2, java.sql.Types.INTEGER);
+				stmt.setNull(3, java.sql.Types.VARCHAR);
+				stmt.setNull(4, java.sql.Types.INTEGER);
+				stmt.setNull(5, java.sql.Types.VARCHAR);
+				stmt.setNull(6, java.sql.Types.INTEGER);
+				stmt.setNull(9, java.sql.Types.VARCHAR);
+				stmt.setNull(10, java.sql.Types.INTEGER);
+			} else if (category.equals("reader_count_by_user_role")) {
+				stmt.setString(9, subtype);
+				stmt.setInt(10, value);
+				stmt.setNull(1, java.sql.Types.VARCHAR);
+				stmt.setNull(2, java.sql.Types.INTEGER);
+				stmt.setNull(3, java.sql.Types.VARCHAR);
+				stmt.setNull(4, java.sql.Types.INTEGER);
+				stmt.setNull(5, java.sql.Types.VARCHAR);
+				stmt.setNull(6, java.sql.Types.INTEGER);
+				stmt.setNull(7, java.sql.Types.VARCHAR);
+				stmt.setNull(8, java.sql.Types.INTEGER);
+			}
+
+			stmt.executeUpdate();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -944,5 +1034,9 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void logRecommendationDelivery(DocumentSet documentset){
+		
 	}
 }

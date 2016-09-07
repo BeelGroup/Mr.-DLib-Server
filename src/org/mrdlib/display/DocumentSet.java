@@ -48,7 +48,7 @@ public class DocumentSet {
 	public String getRecommendationSetId() {
 		return recommendationSetId;
 	}
-	@XmlAttribute(name = "recommendation_set_id")
+	@XmlAttribute(name = "set_id")
 	public void setRecommendationSetId(String recommendationSetId) {
 		this.recommendationSetId = recommendationSetId;
 	}

@@ -73,6 +73,7 @@ public class DocumentService {
 			document = con.getDocumentBy(constants.getIdOriginal(),documentIdOriginal);
 			//get all related documents from solr
 			documentset = scon.getRelatedDocumentSetByDocument(document);
+			con.logRecommendationDelivery(documentset);
 			
 			//if there is no such document in the database
 		} catch (NoEntryException e) {

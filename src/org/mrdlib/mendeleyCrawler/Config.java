@@ -65,6 +65,7 @@ public class Config {
 		try {
             prop.setProperty("batchSize", this.batchSize+"");
             prop.setProperty("lastSuccessfullId", lastSuccessfullId+"");
+            prop.setProperty("pathOfDownload", this.pathOfDownload);
             String timestamp = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss").format(new java.util.Date());
             prop.setProperty("timestampOfLastSuccessfulId", timestamp);
 

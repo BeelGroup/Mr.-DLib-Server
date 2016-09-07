@@ -17,5 +17,10 @@
    <servlet-mapping>
    <servlet-name>Jersey REST Service</servlet-name>
       <url-pattern>/documents/*</url-pattern>
-   </servlet-mapping>  
+   </servlet-mapping>
+   <resource-env-ref>
+  <description>Connection Pool</description>
+  <resource-env-ref-name>jdbc/mrdlib</resource-env-ref-name>
+  <resource-env-ref-type>javax.sql.DataSource</resource-env-ref-type>
+</resource-env-ref>
 </web-app>

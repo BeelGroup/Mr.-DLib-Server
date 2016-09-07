@@ -72,17 +72,19 @@ public class MConnection {
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		String data = null;
 		URI uri = null;
+		int lastSuccessId = mconfig.getLastSuccessfullId();
 
 		//get the number of documents for batch processing
 		int numberOfDocuments = con.getBiggestIdFromDocuments();
 
 		//if the process was finished, start new
-		if (mconfig.getLastSuccessfullId() >= con.getBiggestIdFromDocuments()) {
+		if (lastSuccessId >= con.getBiggestIdFromDocuments()) {
 			mconfig.writeMendeleyCrawlingProcessToConfigFile(0);
+			lastSuccessId = 0;
 		}
 
 		//iterate over every document in database in batch size steps
-		for (int k = mconfig.getLastSuccessfullId(); k < numberOfDocuments; k = k + mconfig.getBatchSize()) {
+		for (int k = lastSuccessId; k < numberOfDocuments; k = k + mconfig.getBatchSize()) {
 			//get the DocumentDataList in batch size
 			documentDataList = con.getDocumentDataInBatches(k, mconfig.getBatchSize());
 

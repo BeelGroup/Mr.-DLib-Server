@@ -27,6 +27,7 @@ public class Constants {
 	private String collections;
 	private String abstracts;
 	private String bibDocuments;
+	private String bibDocumentsSubCounts;
 	private String externalIds;
 	
 	//db table external id
@@ -35,13 +36,26 @@ public class Constants {
 	private String externalId;
 	
 	//db table bibliometrics document
+	private String bibliometricDocumentsId;
 	private String documentIdInBibliometricDoc;
 	private String metric;
 	private String metricValue;
 	private String dataType;
-	private String dataSubtype;
-	private String dataCategory;
 	private String dataSource;
+	
+	//db table bibliometrics document sub count
+	private String bilbiometricSubCountId;
+	private String BibliometricDocIdInBibliometricDocSubCount;
+	private String country;
+	private String countryCount;
+	private String subdiscipline;
+	private String subdisciplineCount;
+	private String academicStatus;
+	private String academicStatusCount;
+	private String subjectArea;
+	private String subjectAreaCount;
+	private String userRole;
+	private String userRoleCount;
 	
 	//db table abstract
 	private String abstractId;
@@ -124,13 +138,25 @@ public class Constants {
 			this.externalName = prop.getProperty("externalName");
 			this.externalId = prop.getProperty("externalId");
 			
+			this.bibliometricDocumentsId = prop.getProperty("bibliometricDocumentsId");
 			this.documentIdInBibliometricDoc = prop.getProperty("documentIdInBibliometricDoc");
 			this.metric = prop.getProperty("metric");
 			this.metricValue = prop.getProperty("metricValue");
 			this.dataType = prop.getProperty("dataType");
-			this.dataSubtype = prop.getProperty("dataSubtype");
-			this.dataCategory = prop.getProperty("dataCategory");
 			this.dataSource = prop.getProperty("dataSource");
+			
+			this.bilbiometricSubCountId = prop.getProperty("bilbiometricSubCountId");
+			this.BibliometricDocIdInBibliometricDocSubCount = prop.getProperty("BibliometricDocIdInBibliometricDocSubCount");
+			this.country = prop.getProperty("country");
+			this.countryCount = prop.getProperty("countryCount");
+			this.subdiscipline = prop.getProperty("subdiscipline");
+			this.subdisciplineCount = prop.getProperty("subdisciplineCount");
+			this.academicStatus = prop.getProperty("academicStatus");
+			this.academicStatusCount = prop.getProperty("academicStatusCount");
+			this.subjectArea = prop.getProperty("subjectArea");
+			this.subjectAreaCount = prop.getProperty("subjectAreaCount");
+			this.userRole = prop.getProperty("userRole");
+			this.userRoleCount = prop.getProperty("userRoleCount");
 
 			this.abstractId =prop.getProperty("abstractId");
 			this.abstractDocumentId = prop.getProperty("abstractDocumentId");
@@ -190,8 +216,66 @@ public class Constants {
 				}
 			}
 		}
+	}	
+	
+	public String getBibliometricDocumentsId() {
+		return bibliometricDocumentsId;
+	}
+
+
+
+	public String getBibDocumentsSubCounts() {
+		return bibDocumentsSubCounts;
 	}
 	
+	public String getBilbiometricSubCountId() {
+		return bilbiometricSubCountId;
+	}
+
+	public String getBibliometricDocIdInBibliometricDocSubCount() {
+		return BibliometricDocIdInBibliometricDocSubCount;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public String getCountryCount() {
+		return countryCount;
+	}
+
+	public String getSubdiscipline() {
+		return subdiscipline;
+	}
+
+	public String getSubdisciplineCount() {
+		return subdisciplineCount;
+	}
+
+	public String getAcademicStatus() {
+		return academicStatus;
+	}
+	
+	public String getAcademicStatusCount() {
+		return academicStatusCount;
+	}
+
+	public String getSubjectArea() {
+		return subjectArea;
+	}
+
+	public String getSubjectAreaCount() {
+		return subjectAreaCount;
+	}
+
+	public String getUserRole() {
+		return userRole;
+	}
+
+	public String getUserRoleCount() {
+		return userRoleCount;
+	}
+
 	public String getMetricValue() {
 		return metricValue;
 	}
@@ -226,14 +310,6 @@ public class Constants {
 
 	public String getDataType() {
 		return dataType;
-	}
-
-	public String getDataSubtype() {
-		return dataSubtype;
-	}
-
-	public String getDataCategory() {
-		return dataCategory;
 	}
 
 	public String getDataSource() {
