@@ -1075,7 +1075,7 @@ public class DBConnection {
 		return recommendationId;
 	}
 
-	public int logEvent(String documentId, Long requestTime, RootElement rootElement) {
+	public int logEvent(String documentId, Long requestTime, RootElement rootElement, Boolean clicked) {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
@@ -1097,9 +1097,13 @@ public class DBConnection {
 			String query = "INSERT INTO " + constants.getLoggings() + " (" + constants.getRequest() + ", "
 					+ constants.getDocumentIdInLogging() + ", " + constants.getRequestReceived() + ", "
 					+ constants.getResponseDelivered() + ", " + constants.getStatusCode() + ", "
-					+ constants.getDebugDetails() + ") VALUES (" + "'related_documents'" + ", " + documentId + ", '"
-					+ new Timestamp(requestTime) + "', '" + new Timestamp(System.currentTimeMillis()) + "', '"
-					+ statusCode + "', ?);";
+					+ constants.getDebugDetails() + ") VALUES (";
+			if (clicked)
+				query += "'url_for_recommended_document'";
+			else
+				query += "'related_documents'";
+			query += ", " + documentId + ", '" + new Timestamp(requestTime) + "', '"
+					+ new Timestamp(System.currentTimeMillis()) + "', '" + statusCode + "', ?);";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1144,7 +1148,7 @@ public class DBConnection {
 			e.printStackTrace();
 		}
 
-		loggingId = logEvent(documentId, requestTime, rootElement);
+		loggingId = logEvent(documentId, requestTime, rootElement, false);
 
 		try {
 			String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
@@ -1209,5 +1213,66 @@ public class DBConnection {
 			}
 		}
 		return docId;
+	}
+
+	public Boolean checkAccessKey(String recoId, String accessKey) throws SQLException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String accessKeyInDb = "";
+		try {
+			stmt = con.createStatement();
+			String query = "SELECT " + constants.getAccessKey() + " FROM " + constants.getRecommendationSets()
+					+ " WHERE " + constants.getRecommendationSetsId() + " IN (SELECT "
+					+ constants.getRecommendationSetIdInRecommendations() + " FROM " + constants.getRecommendations()
+					+ " WHERE " + constants.getRecommendationId() + " = " + recoId + ")";
+			System.out.println(query);
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				accessKeyInDb = rs.getString(constants.getAccessKey());
+			} else {
+				throw new NoEntryException(recoId);
+			}
+			return accessKeyInDb.contentEquals(accessKey);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (NoEntryException f) {
+			throw f;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+	}
+
+	public Boolean logRecommendationClick(String recommendationId, String documentId, Long requestTime, RootElement rootElement)
+			throws SQLException {
+		Statement stmt = null;
+		int loggingId = -1;
+		try {
+			stmt = con.createStatement();
+			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " = '"
+					+ new Timestamp(requestTime) + "' WHERE " + constants.getRecommendationId() + " = " + recommendationId;
+			System.out.println(query);
+			stmt.executeUpdate(query);
+			loggingId = logEvent(documentId, requestTime, rootElement, true);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+
+		return loggingId > 0;
 	}
 }

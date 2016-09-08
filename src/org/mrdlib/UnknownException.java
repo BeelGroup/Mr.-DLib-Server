@@ -27,9 +27,9 @@ public class UnknownException extends WebApplicationException {
 				stackTrace = stackTrace + "Line Number " + current.getLineNumber() + ": " + current.getMethodName()
 						+ " (" + current.getClassName() + ")";
 		}
-		this.message = stackTrace;
+		this.message = this.message + " ---------------" + stackTrace;
 	}
-
+	
 	public UnknownException() {
 	}
 

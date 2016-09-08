@@ -94,7 +94,7 @@ public class DocumentService {
 			documentset = con.logRecommendationDelivery(document.getDocumentId(), requestRecieved, rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
-				String url = "https://api.mr-dlib.org/trial/recommendations/" + doc.getRecommendationId()
+				String url = "https://api.mr-dlib.org/dev/recommendations/" + doc.getRecommendationId()
 						+ "/original_url/&access_key=" + doc.getAccessKeyHash() + "&format=direct_url_forward";
 				doc.setClickUrl(url);
 			}
