@@ -22,6 +22,7 @@ public class UnknownException extends WebApplicationException {
 	public UnknownException(Exception e, Boolean debugMode) {
 		String stackTrace = "";
 		if (debugMode) {
+			stackTrace = "Error: " + e.toString() + "  |  ";
 			for (StackTraceElement current : e.getStackTrace())
 				stackTrace = stackTrace + "Line Number " + current.getLineNumber() + ": " + current.getMethodName()
 						+ " (" + current.getClassName() + ")";
