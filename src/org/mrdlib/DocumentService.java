@@ -1,12 +1,10 @@
 package org.mrdlib;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Context;
 
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.database.NoEntryException;
@@ -47,15 +45,7 @@ public class DocumentService {
 			con = new DBConnection("tomcat");
 			scon = new solrConnection(con);
 		} catch (Exception e) {
-			if (constants.getDebugModeOn()) {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(
-						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
-								.getStatusReport());
-			} else {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
-			}
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
 	}
 
@@ -90,15 +80,7 @@ public class DocumentService {
 
 			// if there happened something else
 		} catch (Exception e) {
-			if (constants.getDebugModeOn()) {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(
-						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
-								.getStatusReport());
-			} else {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
-			}
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
@@ -110,36 +92,21 @@ public class DocumentService {
 
 		try {
 			documentset = con.logRecommendationDelivery(document.getDocumentId(), requestRecieved, rootElement);
-		} catch (Exception e) {
-			if (constants.getDebugModeOn()) {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(
-						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
-								.getStatusReport());
-			} else {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
-			}
-		}
-		
-		for(DisplayDocument doc: documentset.getDocumentList()){
-				String url = "https://api.mr-dlib.org/trial/recommendations/" + doc.getRecommendationId() + 
-					"/original_url/&access_key=" + doc.getAccessKeyHash() +"&format=direct_url_forward";
+
+			for (DisplayDocument doc : documentset.getDocumentList()) {
+				String url = "https://api.mr-dlib.org/trial/recommendations/" + doc.getRecommendationId()
+						+ "/original_url/&access_key=" + doc.getAccessKeyHash() + "&format=direct_url_forward";
 				doc.setClickUrl(url);
+			}
+		} catch (Exception e) {
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
+
 		try {
 			con.close();
 			scon.close();
 		} catch (Exception e) {
-			if (constants.getDebugModeOn()) {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(
-						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
-								.getStatusReport());
-			} else {
-				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
-			}
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
 		return rootElement;
 	}
