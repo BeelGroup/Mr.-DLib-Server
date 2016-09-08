@@ -36,22 +36,21 @@ public class RecommendationService {
 	
 	@GET
 	@Produces("text/plain")
-	@Path("{recommendationId: [a-zA-Z0-9-_.,]+}/original_url/")
+	@Path("{recommendationId}/original_url/")
     public String getOriginalDoc(@PathParam("recommendationId") String recoId, @PathParam("access_key") String hash,
     		@PathParam("request_format") String format) throws SQLException {
-		String recId = "1";
 		String docId = "dummy2";
-		try {
-			docId = con.getDocIdFromRecommendation(recId);
+		/*try {
+			docId = con.getDocIdFromRecommendation(recoId);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}*/
         return "Hello World " + recoId + "\n" + "Access key is "+ hash +"\nrequest format is:" + format
         		+"doc id is:" + docId;
     }
 
 	@GET
-	@Path("{recommendationId: [a-zA-Z0-9-_.,]+}/original_url/&access_key={access_key: [0-9]+}&format={request_format}")
+	@Path("{recommendationId:[a-zA-Z0-9-_.,]+}/original_url/&access_key={access_key: [0-9a-z]+}&format={request_format}")
     public Response getRedirectedPath(@PathParam("recommendationId") String recoId, 
     		@PathParam("request_format") String format) throws Exception {
         URI url;

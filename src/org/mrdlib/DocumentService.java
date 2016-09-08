@@ -121,7 +121,12 @@ public class DocumentService {
 				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
 			}
 		}
-
+		
+		for(DisplayDocument doc: documentset.getDocumentList()){
+				String url = "https://api.mr-dlib.org/trial/recommendations/" + doc.getRecommendationId() + 
+					"/original_url/&access_key=" + doc.getAccessKeyHash() +"&format=direct_url_forward";
+				doc.setClickUrl(url);
+		}
 		try {
 			con.close();
 			scon.close();

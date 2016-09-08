@@ -91,10 +91,10 @@ public class solrConnection {
 					//set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
 						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-						url = "http://api.mr-dlib.org/trial/recommendations/" + relDocument.getRecommendationId() + 
-							"/original_url/&access_key=" +"hash" +"&format=direct_url_forward";
+						//url = "http://api.mr-dlib.org/trial/recommendations/" + relDocument.getRecommendationId() + 
+						//	"/original_url/&access_key=" +"hash" +"&format=direct_url_forward";
 
-					relDocument.setClickUrl(url);
+					//relDocument.setClickUrl(url);
 					relDocument.setFallbackUrl	(fallback_url);
 					//add it to the collection
 					relatedDocuments.addDocument(relDocument);
