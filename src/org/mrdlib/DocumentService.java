@@ -1,5 +1,6 @@
 package org.mrdlib;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -21,22 +22,24 @@ import org.mrdlib.solrHandler.solrConnection;
 /**
  * @author Millah
  * 
- * This class is called by Tomcat and the start of the webapp
+ *         This class is called by Tomcat and the start of the webapp
  */
 @Path("documents/{documentId : [a-zA-Z0-9-_.,]+}")
-//set Path and allow numbers, letters and -_.,  Save Path as document_id
+// set Path and allow numbers, letters and -_., Save Path as document_id
 public class DocumentService {
 
-	//set up the necessary connections and load the config
-	//DocumentExamples documentExample = new DocumentExamples();
-	
+	// set up the necessary connections and load the config
+	// DocumentExamples documentExample = new DocumentExamples();
+
+	private Long requestRecieved;
 	private DBConnection con = null;
 	private solrConnection scon = null;
 	private Constants constants = null;
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
-	
+
 	public DocumentService() {
+		requestRecieved = System.currentTimeMillis();
 		constants = new Constants();
 		rootElement = new RootElement();
 		statusReportSet = new StatusReportSet();
@@ -44,9 +47,11 @@ public class DocumentService {
 			con = new DBConnection("tomcat");
 			scon = new solrConnection(con);
 		} catch (Exception e) {
-			if(constants.getDebugModeOn()) {
+			if (constants.getDebugModeOn()) {
 				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException("Message:" +e.getMessage() +"\n StackTrace: " +e.getStackTrace()).getStatusReport());
+				statusReportSet.addStatusReport(
+						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
+								.getStatusReport());
 			} else {
 				e.printStackTrace();
 				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
@@ -55,58 +60,77 @@ public class DocumentService {
 	}
 
 	@GET
-	//set end of Path
+	// set end of Path
 	@Path("related_documents")
 	@Produces(MediaType.APPLICATION_XML + ";charset=utf-8")
 	/**
 	 * Get the related documentSet of a given document
 	 * 
-	 * @param documentIdOriginal - id from the cooperation partner
+	 * @param documentIdOriginal
+	 *            - id from the cooperation partner
 	 * @return a document set of related documents
 	 */
 	public RootElement getRelatedDocumentSet(@PathParam("documentId") String documentIdOriginal) {
 		DocumentSet documentset = null;
 		DisplayDocument document = null;
-		
+
 		try {
-			//get the requested document from the databas
-			document = con.getDocumentBy(constants.getIdOriginal(),documentIdOriginal);
-			//get all related documents from solr
+			// get the requested document from the databas
+			document = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
+			// get all related documents from solr
 			documentset = scon.getRelatedDocumentSetByDocument(document);
-			con.logRecommendationDelivery(documentset);
-			
-			//if there is no such document in the database
+
+			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-			
-			//if solr didn't found related articles
+
+			// if solr didn't found related articles
 		} catch (NoRelatedDocumentsException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-			
-			//if there happened something else
-		} catch (Exception e){
-			if(constants.getDebugModeOn()) {
+
+			// if there happened something else
+		} catch (Exception e) {
+			if (constants.getDebugModeOn()) {
 				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException("Message:" +e.getMessage() +"\n StackTrace: " +e.getStackTrace()).getStatusReport());
+				statusReportSet.addStatusReport(
+						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
+								.getStatusReport());
 			} else {
 				e.printStackTrace();
 				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
 			}
 		}
-		//if everything went ok
-		if(statusReportSet.getSize() == 0)
+		// if everything went ok
+		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
-	    
-		//add both the status message and the related document to the xml
+
+		// add both the status message and the related document to the xml
 		rootElement.setStatusReportSet(statusReportSet);
 		rootElement.setDocumentSet(documentset);
+
+		try {
+			documentset = con.logRecommendationDelivery(document.getDocumentId(), requestRecieved, rootElement);
+		} catch (Exception e) {
+			if (constants.getDebugModeOn()) {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(
+						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
+								.getStatusReport());
+			} else {
+				e.printStackTrace();
+				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
+			}
+		}
+
 		try {
 			con.close();
 			scon.close();
 		} catch (Exception e) {
-			if(constants.getDebugModeOn()) {
+			if (constants.getDebugModeOn()) {
 				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException("Message:" +e.getMessage() +"\n StackTrace: " +e.getStackTrace()).getStatusReport());
+				statusReportSet.addStatusReport(
+						new UnknownException("Message:" + e.getMessage() + "\n StackTrace: " + e.getStackTrace())
+								.getStatusReport());
 			} else {
 				e.printStackTrace();
 				statusReportSet.addStatusReport(new UnknownException().getStatusReport());
@@ -117,8 +141,8 @@ public class DocumentService {
 
 	@GET
 	@Produces("text/plain")
-    public String getOriginalDoc() {
-        return "Hello World ";
-    }
+	public String getOriginalDoc() {
+		return "Hello World ";
+	}
 
 }

@@ -16,9 +16,11 @@ import org.mrdlib.display.DisplayDocument;
 
 @Path("recommendations")
 public class RecommendationService {
+	
 	private DBConnection con = null;
 	private Constants constants = null;
 	public RecommendationService() {
+		
 		constants = new Constants();
 		try {
 			con = new DBConnection("tomcat");
@@ -35,37 +37,37 @@ public class RecommendationService {
 	@GET
 	@Produces("text/plain")
 	@Path("{recommendationId: [a-zA-Z0-9-_.,]+}/original_url/")
-    public String getOriginalDoc(@PathParam("recommendationId") String reco_id, @PathParam("access_key") String hash,
+    public String getOriginalDoc(@PathParam("recommendationId") String recoId, @PathParam("access_key") String hash,
     		@PathParam("request_format") String format) throws SQLException {
-		String rec_id = "1";
-		String doc_id = "dummy2";
+		String recId = "1";
+		String docId = "dummy2";
 		try {
-			doc_id = con.getDocIdFromRecommendation(rec_id);
+			docId = con.getDocIdFromRecommendation(recId);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-        return "Hello World " + reco_id + "\n" + "Access key is "+ hash +"\nrequest format is:" + format
-        		+"doc id is:" + doc_id;
+        return "Hello World " + recoId + "\n" + "Access key is "+ hash +"\nrequest format is:" + format
+        		+"doc id is:" + docId;
     }
 
 	@GET
 	@Path("{recommendationId: [a-zA-Z0-9-_.,]+}/original_url/&access_key={access_key: [0-9]+}&format={request_format}")
-    public Response getRedirectedPath(@PathParam("recommendationId") String reco_id, 
+    public Response getRedirectedPath(@PathParam("recommendationId") String recoId, 
     		@PathParam("request_format") String format) throws Exception {
         URI url;
         DisplayDocument relDocument;
-        if (con==null){
+        if (con == null){
         	url = new URI("http://google.com");
         	return Response.seeOther(url).build();
         }
 		try {
-			String doc_id = con.getDocIdFromRecommendation(reco_id);
+			String docId = con.getDocIdFromRecommendation(recoId);
 			relDocument = con.getDocumentBy(constants.getDocumentId(),
-					doc_id);
-	        String url_string = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					docId);
+	        String urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 	        //System.out.println("\n" + url_string);
 	        //	url = new URI("http://sowiport.gesis.org/search/id/gesis-smarth-0000003281");
-	        url = new URI(url_string);	
+	        url = new URI(urlString);	
 		} catch (Exception e){
 			throw e;
 		}
