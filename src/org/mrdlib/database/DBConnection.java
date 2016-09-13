@@ -1250,14 +1250,15 @@ public class DBConnection {
 		}
 	}
 
-	public Boolean logRecommendationClick(String recommendationId, String documentId, Long requestTime, RootElement rootElement)
-			throws SQLException {
+	public Boolean logRecommendationClick(String recommendationId, String documentId, Long requestTime,
+			RootElement rootElement) throws SQLException {
 		Statement stmt = null;
 		int loggingId = -1;
 		try {
 			stmt = con.createStatement();
 			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " = '"
-					+ new Timestamp(requestTime) + "' WHERE " + constants.getRecommendationId() + " = " + recommendationId;
+					+ new Timestamp(requestTime) + "' WHERE " + constants.getRecommendationId() + " = "
+					+ recommendationId;
 			System.out.println(query);
 			stmt.executeUpdate(query);
 			loggingId = logEvent(documentId, requestTime, rootElement, true);

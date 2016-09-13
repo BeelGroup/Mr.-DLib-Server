@@ -52,10 +52,20 @@ public class RecommendationService {
 	public String getOriginalDoc(@PathParam("recommendationId") String recoId, @PathParam("access_key") String hash,
 			@PathParam("request_format") String format) throws SQLException {
 		String docId = "dummy2";
-		
-		 try { docId = con.getDocIdFromRecommendation(recoId); } catch
-		 (Exception e) { e.printStackTrace(); }
-		 
+
+		try {
+			docId = con.getDocIdFromRecommendation(recoId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			if (con != null) {
+				con.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return "Hello World " + recoId + "\n" + "Access key is " + hash + "\nrequest format is:" + format + "doc id is:"
 				+ docId;
 	}
@@ -80,7 +90,8 @@ public class RecommendationService {
 				} catch (NoEntryException e) {
 					statusReportSet.addStatusReport(e.getStatusReport());
 				} catch (Exception e) {
-					statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+					statusReportSet
+							.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 				}
 			} else {
 				statusReportSet.addStatusReport(new InvalidAccessKeyException().getStatusReport());
@@ -104,6 +115,13 @@ public class RecommendationService {
 
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+		} finally {
+			try {
+				if (con != null)
+					con.close();
+			} catch (Exception e) {
+				statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+			}
 		}
 
 		return Response.ok(rootElement, MediaType.APPLICATION_XML).build();
