@@ -9,6 +9,9 @@ public class DocumentData {
 	private String title = null;
 	private int id;
 	private String originalId = null;
+	private int rankingValue;
+	private int year;
+	private int bibId;
 	
 	public DocumentData(String title, int id, String originalId) {
 		this.title = title;
@@ -17,6 +20,30 @@ public class DocumentData {
 	}
 	
 	public DocumentData() {}
+	
+	public int getBibId() {
+		return bibId;
+	}
+
+	public void setBibId(int bibId) {
+		this.bibId = bibId;
+	}
+
+	public int getYear() {
+		return year;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	public int getRankingValue() {
+		return rankingValue;
+	}
+
+	public void setRankingValue(int rankingValue) {
+		this.rankingValue = rankingValue;
+	}
 
 	public String getTitle() {
 		return title;

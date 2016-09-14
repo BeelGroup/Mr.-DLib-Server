@@ -23,7 +23,6 @@ public class DisplayDocument implements Serializable {
 	private String originalDocumentId;
 	private String accessKeyHash;
 	
-
 	// elements
 	private Snippet snippet;
 	private String clickUrl;
@@ -31,6 +30,12 @@ public class DisplayDocument implements Serializable {
 	private int suggestedRank;
 	private String collectionShortName;
 	private Long collectionId;
+	
+	//metadata
+	private int realRank;
+	private double rankingValue;
+	private double solrScore;
+	private int bibId;
 
 
 	public DisplayDocument() {
@@ -47,6 +52,41 @@ public class DisplayDocument implements Serializable {
 		this.fallbackUrl = fallbackUrl;
 		this.collectionShortName = collectionShortName;
 	}
+	
+	public int getBibId() {
+		return bibId;
+	}
+	
+	@XmlTransient
+	public void setBibId(int bibId) {
+		this.bibId = bibId;
+	}
+
+	public double getSolrScore() {
+		return solrScore;
+	}
+
+	public void setSolrScore(double solrScore) {
+		this.solrScore = solrScore;
+	}
+
+	public double getRankingValue() {
+		return rankingValue;
+	}
+
+	public void setRankingValue(double rankingValue) {
+		this.rankingValue = rankingValue;
+	}
+
+	public int getRealRank() {
+		return realRank;
+	}
+
+	@XmlTransient
+	public void setRealRank(int realRank) {
+		this.realRank = realRank;
+	}
+
 	public Long getCollectionId() {
 		return collectionId;
 	}
