@@ -14,8 +14,8 @@ import org.mrdlib.display.RootElement;
 import org.mrdlib.display.StatusMessage;
 import org.mrdlib.display.StatusReport;
 import org.mrdlib.display.StatusReportSet;
+import org.mrdlib.ranking.ApplyRanking;
 import org.mrdlib.solrHandler.NoRelatedDocumentsException;
-import org.mrdlib.solrHandler.solrConnection;
 
 /**
  * @author Millah
@@ -31,10 +31,10 @@ public class DocumentService {
 
 	private Long requestRecieved;
 	private DBConnection con = null;
-	private solrConnection scon = null;
 	private Constants constants = null;
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
+	private ApplyRanking ar = null;
 
 	public DocumentService() {
 		requestRecieved = System.currentTimeMillis();
@@ -43,7 +43,7 @@ public class DocumentService {
 		statusReportSet = new StatusReportSet();
 		try {
 			con = new DBConnection("tomcat");
-			scon = new solrConnection(con);
+			ar = new ApplyRanking(con);
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
@@ -61,14 +61,14 @@ public class DocumentService {
 	 * @return a document set of related documents
 	 */
 	public RootElement getRelatedDocumentSet(@PathParam("documentId") String documentIdOriginal) {
+		DisplayDocument requestDocument = null;
 		DocumentSet documentset = null;
-		DisplayDocument document = null;
 
 		try {
 			// get the requested document from the databas
-			document = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
+			requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
 			// get all related documents from solr
-			documentset = scon.getRelatedDocumentSetByDocument(document);
+			documentset = ar.selectRandomRanking(requestDocument);
 
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
@@ -87,11 +87,11 @@ public class DocumentService {
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
 
 		// add both the status message and the related document to the xml
-		rootElement.setStatusReportSet(statusReportSet);
 		rootElement.setDocumentSet(documentset);
+		rootElement.setStatusReportSet(statusReportSet);
 
 		try {
-			documentset = con.logRecommendationDelivery(document.getDocumentId(), requestRecieved, rootElement);
+			documentset = con.logRecommendationDelivery(requestDocument.getDocumentId(), requestRecieved, rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
 				String url = "https://api.mr-dlib.org/dev/recommendations/" + doc.getRecommendationId()
@@ -104,7 +104,6 @@ public class DocumentService {
 
 		try {
 			con.close();
-			scon.close();
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}

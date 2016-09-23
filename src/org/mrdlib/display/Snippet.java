@@ -23,7 +23,7 @@ public class Snippet {
 	private String formatContent(String title, String authorNames, String publishedIn, int year) {
 		return "<span class='mdl-title'>" + title + "</span>. <span class='mdl-authors'>"
 				+ authorNames + "</span>. <span class='mdl-journal'>" + publishedIn
-				+ "</span>. <span class='mdl-volume_and_number>6:66</span>. <span class='mdl-year'>"
+				+ "</span>. <span class='mdl-year'>"
 				+ year + "</span>";
 	}
 

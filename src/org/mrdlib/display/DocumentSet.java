@@ -1,28 +1,36 @@
 package org.mrdlib.display;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * 
  * @author Millah
  * 
- * This class handles the representation of the documentSet.
- * The XML format is automatically generated through the class structure.
+ *         This class handles the representation of the documentSet. The XML
+ *         format is automatically generated through the class structure.
  *
  */
 
 public class DocumentSet {
-	
+
 	private List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
-	
+
 	private String recommendationSetId;
 	private String suggestedLabel;
 	
-	public DocumentSet() {}
+	private int numberOfSolrRows;
+	private String rankingMethod;
+	private double percentageRankingValue;
+
+	public DocumentSet() {
+	}
 
 	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel) {
 		this.documentList = documentList;
@@ -30,33 +38,199 @@ public class DocumentSet {
 		this.suggestedLabel = suggestedLabel;
 	}
 
+	public DocumentSet sortDescForRankingValue(boolean onlySolr) {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((b, a) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
+				.collect(Collectors.toList()));
+		if(onlySolr)
+			this.rankingMethod = "only_solr_desc";
+		else
+			this.rankingMethod = "sort_only_based_on_bibliometrics_desc";
+		return this;
+	}
+
+	public DocumentSet sortAscForRankingValue(boolean onlySolr) {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((a, b) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
+				.collect(Collectors.toList()));
+		if(onlySolr)
+			this.rankingMethod = "only_solr_asc";
+		else
+			this.rankingMethod = "sort_only_based_on_bibliometrics_asc";
+		return this;
+	}
+	
+	public DocumentSet sortDescForLogRankingValueTimesSolrScore() {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((b, a) -> Double.compare((a.getSolrScore()*Math.log(a.getRankingValue())), b.getSolrScore()*Math.log(b.getRankingValue())))
+				.collect(Collectors.toList()));
+		this.rankingMethod = "log_text_relevance_times_bibliometrics_desc";
+		return this;
+	}
+	
+	public DocumentSet sortAscForLogRankingValueTimesSolrScore() {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((a, b) -> Double.compare((a.getSolrScore()*Math.log(a.getRankingValue())), b.getSolrScore()*Math.log(b.getRankingValue())))
+				.collect(Collectors.toList()));
+		this.rankingMethod = "log_text_relevance_times_bibliometrics_asc";
+		return this;
+	}
+	
+	public DocumentSet sortDescForRootRankingValueTimesSolrScore() {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((b, a) -> Double.compare((a.getSolrScore()*Math.sqrt(a.getRankingValue())), b.getSolrScore()*Math.sqrt(b.getRankingValue())))
+				.collect(Collectors.toList()));
+		this.rankingMethod = "root_text_relevance_times_bibliometrics_desc";
+		return this;
+	}
+	
+	public DocumentSet sortAscForRootRankingValueTimesSolrScore() {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((a, b) -> Double.compare((a.getSolrScore()*Math.sqrt(a.getRankingValue())), b.getSolrScore()*Math.sqrt(b.getRankingValue())))
+				.collect(Collectors.toList()));
+		this.rankingMethod = "root_text_relevance_times_bibliometrics_asc";
+		return this;
+	}
+	
+	public DocumentSet sortDescForRankingValueTimesSolrScore() {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((b, a) -> Double.compare((a.getSolrScore()*a.getRankingValue()), b.getSolrScore()*b.getRankingValue()))
+				.collect(Collectors.toList()));
+		this.rankingMethod = "text_relevance_times_bibliometrics_desc";
+		return this;
+	}
+	
+	public DocumentSet sortAscForRankingValueTimesSolrScore() {
+		this.avoidZeroRankingValue();
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((a, b) -> Double.compare((a.getSolrScore()*a.getRankingValue()), b.getSolrScore()*b.getRankingValue()))
+				.collect(Collectors.toList()));
+		this.rankingMethod = "text_relevance_times_bibliometrics_asc";
+		return this;
+	}
+
+	public DocumentSet refreshRankReal() {
+		DisplayDocument current = null;
+
+		for (int i = 0; i < this.getSize(); i++) {
+			current = this.getDocumentList().get(i);
+			current.setRealRank(i+1);
+		}
+		return this;
+	}
+	
+	public DocumentSet refreshRankSuggested() {
+		DisplayDocument current = null;
+
+		for (int i = 0; i < this.getSize(); i++) {
+			current = this.getDocumentList().get(i);
+			current.setSuggestedRank(i+1);
+		}
+		return this;
+	}
+	
+	public DocumentSet refreshRankBoth() {
+		DisplayDocument current = null;
+
+		for (int i = 0; i < this.getSize(); i++) {
+			current = this.getDocumentList().get(i);
+			current.setRealRank(i+1);
+			current.setSuggestedRank(i+1);
+		}
+		return this;
+	}
+	
+	public DocumentSet shuffle() {
+		Collections.shuffle(this.getDocumentList());
+		this.refreshRankSuggested();
+		return this;
+		
+	}
+	
+	private void avoidZeroRankingValue() {
+		DisplayDocument current = null;
+		for(int i = 0; i<this.getSize(); i++) {
+			current = this.getDocumentList().get(i);
+			if(current.getRankingValue() == -1)
+				current.setRankingValue(0);
+			current.setRankingValue(current.getRankingValue()+2);
+		}
+	}
+	
+	public void setPercentageRankingValue(double percentageRankingValue) {
+		this.percentageRankingValue = percentageRankingValue;
+	}
+
+	public double getPercentageRankingValue() {
+		return percentageRankingValue;
+	}
+
+	public String getRankingMethod() {
+		return rankingMethod;
+	}
+
+	public void setRankingMethod(String rankingMethod) {
+		this.rankingMethod = rankingMethod;
+	}
+
+	public int getNumberOfSolrRows() {
+		return numberOfSolrRows;
+	}
+
+	@XmlTransient
+	public void setNumberOfSolrRows(int numberOfSolrRows) {
+		this.numberOfSolrRows = numberOfSolrRows;
+	}
+
 	public int getSize() {
 		return documentList.size();
 	}
-	
+
 	public void addDocument(DisplayDocument document) {
 		documentList.add(document);
 	}
-	
+
 	public List<DisplayDocument> getDocumentList() {
 		return documentList;
 	}
+
 	@XmlElement(name = "related_article")
 	public void setDocumentList(List<DisplayDocument> documentList) {
 		this.documentList = documentList;
 	}
+
 	public String getRecommendationSetId() {
 		return recommendationSetId;
 	}
+
 	@XmlAttribute(name = "set_id")
 	public void setRecommendationSetId(String recommendationSetId) {
 		this.recommendationSetId = recommendationSetId;
 	}
+
 	public String getSuggested_label() {
 		return suggestedLabel;
 	}
+
 	@XmlAttribute(name = "suggested_label")
 	public void setSuggested_label(String suggestedLabel) {
 		this.suggestedLabel = suggestedLabel;
+	}
+
+	public void calculatePercentageRankingValue() {
+		int rankingValueCount = 0;
+		for(int i=0; i<this.getSize(); i++) {
+			if(this.getDocumentList().get(i).getRankingValue() != -1) {
+				rankingValueCount++;
+			}
+		}
+		this.percentageRankingValue = (double)rankingValueCount / this.getSize();
 	}
 }

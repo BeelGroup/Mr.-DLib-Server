@@ -54,11 +54,10 @@ public class solrConnection {
 	 * @return the 10 most related documents in a document set
 	 * @throws Exception 
 	 */
-	public DocumentSet getRelatedDocumentSetByDocument(DisplayDocument document) throws Exception {
+	public DocumentSet getRelatedDocumentSetByDocument(DisplayDocument document, int delimitedRows) throws Exception {
 		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
-		int delimitedRows = 10;
 		DisplayDocument relDocument = new DisplayDocument();
 		query.setRequestHandler("/" + MoreLikeThisParams.MLT);
 		String url = "";
@@ -71,6 +70,7 @@ public class solrConnection {
 		query.setQuery(constants.getDocumentId() + ":" + document.getDocumentId());
 		//return only "delimitedRows" much
 		query.setRows(delimitedRows);
+		query.setParam("fl", "id, score");
 
 		try {
 			response = solr.query(query);
@@ -86,8 +86,13 @@ public class solrConnection {
 					//get the document
 					relDocument = con.getDocumentBy(constants.getDocumentId(),
 							docs.get(i).getFieldValue(constants.getDocumentId()).toString());
+					
 					//add the rank
 					relDocument.setSuggestedRank(i + 1);
+					
+					//add the solrScore
+					relDocument.setSolrScore(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+					
 					//set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
 						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
