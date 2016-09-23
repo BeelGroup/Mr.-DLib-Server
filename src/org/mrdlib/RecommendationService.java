@@ -19,6 +19,7 @@ import org.mrdlib.display.StatusReport;
 import org.mrdlib.display.StatusReportSet;
 
 @Path("recommendations")
+// Path for the root of this class
 public class RecommendationService {
 	private Long requestRecieved;
 	private DBConnection con = null;
@@ -26,6 +27,7 @@ public class RecommendationService {
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
 
+	// set up the necessary connections
 	public RecommendationService() {
 		requestRecieved = System.currentTimeMillis();
 		rootElement = new RootElement();
@@ -46,30 +48,16 @@ public class RecommendationService {
 		}
 	}
 
-	@GET
-	@Produces("text/plain")
-	@Path("{recommendationId}/original_url/")
-	public String getOriginalDoc(@PathParam("recommendationId") String recoId, @PathParam("access_key") String hash,
-			@PathParam("request_format") String format) throws SQLException {
-		String docId = "dummy2";
-
-		try {
-			docId = con.getDocIdFromRecommendation(recoId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		try {
-			if (con != null) {
-				con.close();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return "Hello World " + recoId + "\n" + "Access key is " + hash + "\nrequest format is:" + format + "doc id is:"
-				+ docId;
-	}
-
+	/**
+	 * This method accepts click(ed) url's and logs the click in our database.
+	 * It returns the actual link which was to be viewed
+	 * 
+	 * @param recoId The recommendation ID created during the initial recommendation process
+	 * @param accessKey The access key hash that was created as part of the creation of the recommendation set.
+	 * @param format Describes the type of response to be returned. Currently only supports direct_url_forward
+	 * @return a Response object that contains the url of the actual link to be clicked
+	 * @throws Exception
+	 */
 	@GET
 	@Path("{recommendationId:[0-9]+}/original_url/&access_key={access_key: [0-9a-z]+}&format={request_format}")
 	public Response getRedirectedPath(@PathParam("recommendationId") String recoId,

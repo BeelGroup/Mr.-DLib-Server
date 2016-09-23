@@ -1184,6 +1184,16 @@ public class DBConnection {
 		return documentset;
 	}
 
+	/**
+	 * Utility method to easily access the document_id given the
+	 * recommendation_id from the recommendations table
+	 * 
+	 * @param recommendationId
+	 *            the recommendation_id
+	 * @return
+	 * @throws Exception
+	 *             if SQL errors occur
+	 */
 	public String getDocIdFromRecommendation(String recommendationId) throws Exception {
 		String docId = "dummy";
 		Statement stmt = null;
@@ -1215,6 +1225,17 @@ public class DBConnection {
 		return docId;
 	}
 
+	/**
+	 * Utility method to verify the accesskey provided by the user against the
+	 * one present in our database for that recommendation_id
+	 * 
+	 * @param recoId
+	 *            the recommendation_id for which we need to check the accessKey
+	 * @param accessKey
+	 *            the access key hash provided by the user
+	 * @return True if access key matches, false if not
+	 * @throws SQLException
+	 */
 	public Boolean checkAccessKey(String recoId, String accessKey) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1250,6 +1271,23 @@ public class DBConnection {
 		}
 	}
 
+	/**
+	 * This method updates the clicked column in the recommendations table of
+	 * our database with the timestamp at which the click was recorded and also
+	 * creates a log entry in the logging table
+	 * 
+	 * @param recommendationId
+	 *            the recommendation_id for which the click needs to be recorded
+	 * @param documentId
+	 *            the document_id corresponding to the recommendation
+	 * @param requestTime
+	 *            the time at which the click was recorded
+	 * @param rootElement
+	 *            In order to check the status of the current request and verify
+	 *            that there were no errors upstream
+	 * @return true if logged successfully, exception in every other case
+	 * @throws SQLException
+	 */
 	public Boolean logRecommendationClick(String recommendationId, String documentId, Long requestTime,
 			RootElement rootElement) throws SQLException {
 		Statement stmt = null;
