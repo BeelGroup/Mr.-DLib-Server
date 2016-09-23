@@ -15,8 +15,9 @@ public interface RelatedDocumentGenerator {
 	 * 
 	 * @param requestDoc The DisplayDocument object that holds the details of the documents
 	 * @return A set of related Documents
+	 * @throws Exception 
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc);
+	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception;
 	
 	/**Method to get a chosen number of related documents similar to a given input document. Agnostic of the approach used
 	 * 
@@ -24,5 +25,5 @@ public interface RelatedDocumentGenerator {
 	 * @param numberOfRelatedDocs number of documents to be contained in the DocumentSet object
 	 * @return A set of numberOfRelatedDocs DisplayDocuments
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs);
+	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception;
 }

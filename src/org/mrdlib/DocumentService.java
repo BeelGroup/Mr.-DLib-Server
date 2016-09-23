@@ -15,6 +15,8 @@ import org.mrdlib.display.StatusMessage;
 import org.mrdlib.display.StatusReport;
 import org.mrdlib.display.StatusReportSet;
 import org.mrdlib.ranking.ApplyRanking;
+import org.mrdlib.recommendation.RecommenderFactory;
+import org.mrdlib.recommendation.RelatedDocumentGenerator;
 import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 
 /**
@@ -35,6 +37,7 @@ public class DocumentService {
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
 	private ApplyRanking ar = null;
+	private RelatedDocumentGenerator rdg = null;
 
 	public DocumentService() {
 		requestRecieved = System.currentTimeMillis();
@@ -44,6 +47,7 @@ public class DocumentService {
 		try {
 			con = new DBConnection("tomcat");
 			ar = new ApplyRanking(con);
+			rdg = RecommenderFactory.getRandomRDG();
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
@@ -68,17 +72,18 @@ public class DocumentService {
 			// get the requested document from the databas
 			requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
 			// get all related documents from solr
-			documentset = ar.selectRandomRanking(requestDocument);
+			documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
+			documentset = ar.selectRandomRanking(documentset);
 
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
 
-			// if solr didn't found related articles
+			// if solr didn't find related articles
 		} catch (NoRelatedDocumentsException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
 
-			// if there happened something else
+			// if something else happened there  
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}

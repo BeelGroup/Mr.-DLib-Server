@@ -17,27 +17,21 @@ public class ApplyRanking {
 	private solrConnection scon = null;
 	private Constants constants = null;
 	private StatusReportSet statusReportSet = null;
+	
+	private int rndSolrRows; 
+	private int rndWeight;
+	private int rndRank;
+	private int solrRows;
 
+	
 	public ApplyRanking(DBConnection con) {
 		constants = new Constants();
 		this.con = con;
-
-		try {
-			scon = new solrConnection(con);
-		} catch (Exception e) {
-			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
-		}
-	}
-
-	public DocumentSet selectRandomRanking(DisplayDocument requestDocument) throws Exception {
+	
 		Random random = new Random();
-		int rndSolrRows = random.nextInt(8)+1;
-		int solrRows;
-		int rndWeight = random.nextInt(8)+1;
-		int rndRank = random.nextInt(4)+1;
-		boolean onlySolr = false;
-		DocumentSet documentset = null;
-
+		rndSolrRows = random.nextInt(8)+1;
+		rndWeight = random.nextInt(8)+1;
+		rndRank = random.nextInt(4)+1;
 		switch (rndSolrRows) {
 		case 1:
 			solrRows = 10; break;
@@ -58,54 +52,65 @@ public class ApplyRanking {
 		default:
 			solrRows = 500;
 		}
-		documentset = scon.getRelatedDocumentSetByDocument(requestDocument, solrRows);
+		try {
+			scon = new solrConnection(con);
+		} catch (Exception e) {
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+		}
+	}
 
-		scon.close();
+	public DocumentSet selectRandomRanking(DocumentSet documentSet) throws Exception {
+		boolean onlySolr = false;
+		Random random = new Random();
+
 		
-		if (documentset.getSize() < solrRows)
-			solrRows = getNextTinierSolrRows(solrRows);
-		documentset.setNumberOfSolrRows(solrRows);
+		//documentset = scon.getRelatedDocumentSetByDocument(requestDocument, solrRows);
 
-		documentset.setDocumentList(documentset.getDocumentList().subList(0, solrRows - 1));
+		
+		if (documentSet.getSize() < solrRows)
+			solrRows = getNextTinierSolrRows(solrRows);
+		documentSet.setNumberOfSolrRows(solrRows);
+
+		documentSet.setDocumentList(documentSet.getDocumentList().subList(0, solrRows - 1));
 
 		switch (rndRank) {
 		case 1:
-			documentset = getReadershipCountMendeley(documentset); break;
+			documentSet = getReadershipCountMendeley(documentSet); break;
 		case 2:
-			documentset = getReadershipNormalizedByAgeMendeley(documentset); break;
+			documentSet = getReadershipNormalizedByAgeMendeley(documentSet); break;
 		case 3:
-			documentset = getReadershipNormalizedByNumberOfAuthors(documentset); break;
+			documentSet = getReadershipNormalizedByNumberOfAuthors(documentSet); break;
 		case 4:
-			documentset = getSolr(documentset); onlySolr=true; rndWeight = random.nextInt(2)+1; break;
+			documentSet = getSolr(documentSet); onlySolr=true; rndWeight = random.nextInt(2)+1; break;
 		default:
-			documentset = getSolr(documentset); onlySolr=true; rndWeight = random.nextInt(2)+1; break;
+			documentSet = getSolr(documentSet); onlySolr=true; rndWeight = random.nextInt(2)+1; break;
 		}
 		
-		documentset.calculatePercentageRankingValue();
+		documentSet.calculatePercentageRankingValue();
 		switch (rndWeight) {
 		case 1:
-			documentset.sortAscForRankingValue(onlySolr); break;
+			documentSet.sortAscForRankingValue(onlySolr); break;
 		case 2:
-			documentset.sortDescForRankingValue(onlySolr); break;
+			documentSet.sortDescForRankingValue(onlySolr); break;
 		case 3:
-			documentset.sortDescForLogRankingValueTimesSolrScore(); break;
+			documentSet.sortDescForLogRankingValueTimesSolrScore(); break;
 		case 4:
-			documentset.sortDescForRootRankingValueTimesSolrScore(); break;
+			documentSet.sortDescForRootRankingValueTimesSolrScore(); break;
 		case 5:
-			documentset.sortDescForRankingValueTimesSolrScore(); break;
+			documentSet.sortDescForRankingValueTimesSolrScore(); break;
 		case 6:
-			documentset.sortAscForRankingValueTimesSolrScore(); break;
+			documentSet.sortAscForRankingValueTimesSolrScore(); break;
 		case 7:
-			documentset.sortAscForLogRankingValueTimesSolrScore(); break;
+			documentSet.sortAscForLogRankingValueTimesSolrScore(); break;
 		case 8:
-			documentset.sortAscForRootRankingValueTimesSolrScore(); break;
+			documentSet.sortAscForRootRankingValueTimesSolrScore(); break;
 		default:
-			documentset.sortDescForRankingValue(onlySolr); break;
+			documentSet.sortDescForRankingValue(onlySolr); break;
 		}
-		if(documentset.getSize() > 10)
-			documentset.setDocumentList(documentset.getDocumentList().subList(0, 10));
+		if(documentSet.getSize() > 10)
+			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, 10));
 		
-		return documentset.refreshRankBoth();
+		return documentSet.refreshRankBoth();
 	}
 
 	private int getNextTinierSolrRows(int solrRows) {
@@ -178,4 +183,21 @@ public class ApplyRanking {
 		}
 		return documentset;
 	}
+	
+	public int getRndSolrRows() {
+		return rndSolrRows;
+	}
+
+	public int getRndWeight() {
+		return rndWeight;
+	}
+
+	public int getRndRank() {
+		return rndRank;
+	}
+	
+	public int getSolrRows() {
+		return solrRows;
+	}
+
 }

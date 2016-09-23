@@ -3,14 +3,15 @@ package org.mrdlib.recommendation;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
+import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 import org.mrdlib.solrHandler.solrConnection;
 
-public abstract class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
-	
+public class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
+	DBConnection con = null;
+	solrConnection scon = null;
 	
 	public RelatedDocumentsFromSolr( ) throws Exception{
-		DBConnection con = null;
-		solrConnection scon = null;
+		
 		
 		try {
 			con = new DBConnection("tomcat");
@@ -24,15 +25,21 @@ public abstract class RelatedDocumentsFromSolr implements RelatedDocumentGenerat
 	}
 	
 	@Override
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) {
-		// TODO Auto-generated method stub
-		return null;
+	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception{
+		return getRelatedDocumentSet(requestDoc,10);
 	}
 
 	@Override
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) {
-		// TODO Auto-generated method stub
-		return null;
+	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
+		try {
+			return scon.getRelatedDocumentSetByDocument(requestDoc,numberOfRelatedDocs);
+		} catch(NoRelatedDocumentsException f){
+			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
+			throw f;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 }
