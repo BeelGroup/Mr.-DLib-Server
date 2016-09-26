@@ -160,6 +160,8 @@ public class Constants {
 	// mendeleyCrawler settings
 	private String mendeleyConfigPath;
 
+	private String probabilitiesConfigPath;
+
 	// load the config file
 	public Constants() {
 
@@ -294,6 +296,7 @@ public class Constants {
 			this.gesis = prop.getProperty("gesis");
 
 			this.mendeleyConfigPath = prop.getProperty("mendeleyConfigPath");
+			this.probabilitiesConfigPath = prop.getProperty("probabilityConfigPath");
 
 			String debugModeOn = prop.getProperty("debugModeOn");
 			if (debugModeOn.equals("true"))
@@ -744,5 +747,10 @@ public class Constants {
 
 	public String getAbstracts() {
 		return abstracts;
+	}
+
+	public String getProbabilitiesPath() {
+		// TODO Auto-generated method stub
+		return probabilitiesConfigPath;
 	}
 }
