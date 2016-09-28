@@ -74,7 +74,7 @@ public class DocumentService {
 			// get all related documents from solr
 			documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
 			documentset = ar.selectRandomRanking(documentset);
-
+			documentset.setRecommendationApproach(rdg.getClass().getCanonicalName());
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());

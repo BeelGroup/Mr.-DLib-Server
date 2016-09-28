@@ -28,7 +28,9 @@ public class DocumentSet {
 	private int numberOfSolrRows;
 	private String rankingMethod;
 	private double percentageRankingValue;
+	private String recommendationApproach;
 
+	
 	public DocumentSet() {
 	}
 
@@ -222,6 +224,14 @@ public class DocumentSet {
 	@XmlAttribute(name = "suggested_label")
 	public void setSuggested_label(String suggestedLabel) {
 		this.suggestedLabel = suggestedLabel;
+	}
+
+	public String getRecommendationApproach() {
+		return recommendationApproach;
+	}
+
+	public void setRecommendationApproach(String recommendationApproach) {
+		this.recommendationApproach = recommendationApproach;
 	}
 
 	public void calculatePercentageRankingValue() {
