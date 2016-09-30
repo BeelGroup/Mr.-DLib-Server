@@ -1055,17 +1055,20 @@ public class DBConnection {
 		ResultSet rs = null;
 		int recommendationId = -1;
 		int bibliometricReRankingId = -1;
-
+		int recommendationAlgorithmId = -1;
 		if (document.getBibId() != -1)
 			bibliometricReRankingId = logReRankingBibliometrics(documentset, document.getBibId());
+
+		recommendationAlgorithmId = logRecommendationAlgorithm(documentset, document);
 
 		try {
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
 					+ constants.getDocumentIdInRecommendations() + ", "
 					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getBibliometricReRankId()
-					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() + ") VALUES ("
+					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() +", "
+					+ constants.getAlgorithmId() + ") VALUES ("
 					+ document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", ? , '"
-					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "');";
+					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1091,6 +1094,65 @@ public class DBConnection {
 			}
 		}
 		return recommendationId;
+	}
+
+	@SuppressWarnings("resource")
+	private int logRecommendationAlgorithm(DocumentSet documentset, DisplayDocument document) throws Exception {
+		// TODO Auto-generated method stub
+		Statement stmt = null;
+		ResultSet rs = null;
+		HashMap<String, String> recommenderDetails = documentset.getRDG().loggingInfo;
+		int recommendationAlgorithmId = -1;
+		try {
+			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
+					+ constants.getRecommendationAlgorithm() + " WHERE ";
+			for (String key : recommenderDetails.keySet()) {
+				if (key != "name") {
+					query += (key + "='" + recommenderDetails.get(key) + "' AND ");
+				}
+			}
+			query = query.replaceAll(" AND $", "");
+			System.out.println(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			if (rs.next()) {
+				recommendationAlgorithmId = rs.getInt(constants.getRecommendationAlgorithmId());
+			} else {
+				query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
+				String columns = "";
+				String values = "";
+				for (String key : recommenderDetails.keySet()) {
+					if (key != "name") {
+						columns += (key + ", ");
+						values += ("'" + recommenderDetails.get(key) + "', ");
+					}
+				}
+				columns = columns.replaceAll(", $", " ");
+				values = values.replaceAll(", $", " ");
+				query += (columns + ") VALUES(" + values + ")");
+				System.out.println(query);
+				stmt = con.createStatement();
+				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					recommendationAlgorithmId = rs.getInt(1);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return recommendationAlgorithmId;
 	}
 
 	private int logReRankingBibliometrics(DocumentSet documentset, int bibId) throws Exception {
@@ -1233,7 +1295,8 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -1687,27 +1750,82 @@ public class DBConnection {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String language = "";
-		try{
+		try {
 			stmt = con.createStatement();
-			String query = "SELECT " + constants.getLanguage() + " FROM " 
-					+ constants.getDocuments() + " WHERE " + constants.getDocumentId() 
-					+ "=" + documentId;
+			String query = "SELECT " + constants.getLanguage() + " FROM " + constants.getDocuments() + " WHERE "
+					+ constants.getDocumentId() + "=" + documentId;
 			rs = stmt.executeQuery(query);
-			
-			if(rs.next()) {
+
+			if (rs.next()) {
 				language = rs.getString(constants.getLanguage());
 			}
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			e.printStackTrace();
 			throw e;
 		} finally {
 			try {
 				stmt.close();
 				rs.close();
-			} catch (SQLException e){
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
 		return language;
+	}
+
+	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs)
+			throws Exception {
+		// TODO Auto-generated method stub
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "";
+
+		try {
+			stmt = con.createStatement();
+
+			query = "SELECT " + constants.getDocumentIdinStereotypeRecommendations() + " FROM "
+					+ constants.getStereotypeRecommendations() + " ORDER BY RAND() LIMIT "
+					+ Integer.toString(numberOfRelatedDocs);
+
+			rs = stmt.executeQuery(query);
+			DocumentSet documentSet = new DocumentSet();
+			documentSet.setSuggested_label("Related Articles");
+
+			while (rs.next()) {
+				DisplayDocument relDocument = getDocumentBy(constants.getDocumentId(),
+						rs.getString(constants.getDocumentIdinStereotypeRecommendations()));
+				relDocument.setSuggestedRank(rs.getRow());
+				String fallback_url = "";
+				// HARDCODED FOR COMPATABILITY
+				relDocument.setSolrScore(1.00);
+				if (relDocument.getCollectionShortName().equals(constants.getGesis()))
+					fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+
+				// url = "http://api.mr-dlib.org/trial/recommendations/" +
+				// relDocument.getRecommendationId() +
+				// "/original_url/&access_key=" +"hash"
+				// +"&format=direct_url_forward";
+
+				// relDocument.setClickUrl(url);
+				relDocument.setFallbackUrl(fallback_url);
+				// add it to the collection
+				documentSet.addDocument(relDocument);
+
+			}
+			return documentSet;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+
 	}
 }

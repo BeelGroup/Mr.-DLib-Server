@@ -137,7 +137,7 @@ public class solrConnection {
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
 		query.setParam("fl",
-				"unigrams_all, unigrams_title, bigrams_all, bigrams_title, trigrams_all, trigrams_title, score");
+				"unigrams_all, unigrams_title, bigrams_all, bigrams_title, trigrams_all, trigrams_title, score, id");
 		query.setParam("wl", "4");
 
 		try {
@@ -198,6 +198,7 @@ public class solrConnection {
 		if(restrictLanguage){
 			query.addFilterQuery(constants.getLanguage() + ":" + con.getLanguage(document.getDocumentId()));
 		}
+		query.setParam("fl,*, score");
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
 		query.setSort(SortClause.asc("random_" + seed));

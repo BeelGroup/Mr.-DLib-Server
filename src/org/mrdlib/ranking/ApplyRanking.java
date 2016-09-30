@@ -68,7 +68,9 @@ public class ApplyRanking {
 
 		
 		if (documentSet.getSize() < solrRows)
-			solrRows = getNextTinierSolrRows(solrRows);
+			solrRows = getNextTinierSolrRows(documentSet.getSize());  //CHANGED THIS HERE BECAUSE FOR STEREOTYPE RECOMMENDATIONS, WE 
+		//CAN ONLY GET AROUND 60 recommendations maximum
+		
 		documentSet.setNumberOfSolrRows(solrRows);
 
 		documentSet.setDocumentList(documentSet.getDocumentList().subList(0, solrRows - 1));

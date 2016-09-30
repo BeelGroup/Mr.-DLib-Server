@@ -36,6 +36,8 @@ public class Constants {
 	private String loggings;
 	private String reRankingBibliometrics;
 	private String bibPersons;
+	private String stereotypeRecommendations;
+	private String recommendationAlgorithm;
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
@@ -145,6 +147,13 @@ public class Constants {
 	private String personIDInDocPers;
 	private String rank;
 
+	// db table stereotype_recommendations
+	private String documentIdInStereotype;
+	private String collectionIdInStereotype;
+
+	// db table recommendation_algorithms
+	private String recommendationAlgorithmId;
+
 	// solr
 	private String solrWebService;
 	private String solrMrdlib;
@@ -191,6 +200,8 @@ public class Constants {
 			this.loggings = prop.getProperty("loggings");
 			this.reRankingBibliometrics = prop.getProperty("reRankingBibliometrics");
 			this.bibPersons = prop.getProperty("bibliometricPersons");
+			this.stereotypeRecommendations = prop.getProperty("stereotypeRecommendations");
+			this.recommendationAlgorithm = prop.getProperty("recommendationAlgorithm");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -287,6 +298,11 @@ public class Constants {
 			this.documentIDInDocPers = prop.getProperty("documentIdInDocPers");
 			this.personIDInDocPers = prop.getProperty("personIdInDocPers");
 			this.rank = prop.getProperty("authorRank");
+
+			this.documentIdInStereotype = prop.getProperty("documentIdInStereotype");
+			this.collectionIdInStereotype = prop.getProperty("collectionIdInStereotype");
+
+			this.recommendationAlgorithmId = prop.getProperty("recommendationAlgorithmId");
 
 			this.solrWebService = prop.getProperty("solrWebService");
 			this.solrMrdlib = prop.getProperty("solrMrdlib");
@@ -753,4 +769,28 @@ public class Constants {
 		// TODO Auto-generated method stub
 		return probabilitiesConfigPath;
 	}
+
+	public String getStereotypeRecommendations() {
+		return stereotypeRecommendations;
+	}
+
+	public String getDocumentIdinStereotypeRecommendations() {
+		// TODO Auto-generated method stub
+		return documentIdInStereotype;
+	}
+
+	public String getCollectionIDinStereotypeRecommendations() {
+		return collectionIdInStereotype;
+	}
+
+	public String getRecommendationAlgorithmId() {
+		// TODO Auto-generated method stub
+		return recommendationAlgorithmId;
+	}
+
+	public String getRecommendationAlgorithm() {
+		// TODO Auto-generated method stub
+		return recommendationAlgorithm;
+	}
+
 }
