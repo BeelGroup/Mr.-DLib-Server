@@ -15,6 +15,9 @@ public class Constants {
 
 	private String tomcatConfigPath = "config.properties";
 
+	//environment
+	private String environment;
+
 	// db connection properties
 	private String dbClass;
 	private String db;
@@ -182,6 +185,8 @@ public class Constants {
 			prop.load(input);
 
 			// get the property value
+			this.environment = prop.getProperty("environment");
+			
 			this.dbClass = prop.getProperty("dbClass");
 			this.db = prop.getProperty("db");
 			this.url = prop.getProperty("url");
@@ -333,6 +338,14 @@ public class Constants {
 		}
 	}
 
+	public String getEnvironment() {
+		return environment;
+	}
+
+	public void setEnvironment(String environment) {
+		this.environment = environment;
+	}
+	
 	public String getPercentageWithBibliometrics() {
 		return percentageWithBibliometrics;
 	}
