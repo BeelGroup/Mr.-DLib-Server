@@ -43,7 +43,7 @@ public class DocumentSet {
 		this.suggestedLabel = suggestedLabel;
 	}
 
-	public DocumentSet sortDescForRankingValue(boolean onlySolr) {
+	public DocumentSet sortDescForRankingValue(boolean onlySolr) { 
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((b, a) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
