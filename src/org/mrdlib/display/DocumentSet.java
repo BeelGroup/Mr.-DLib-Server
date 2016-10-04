@@ -27,7 +27,7 @@ public class DocumentSet {
 	private String recommendationSetId;
 	private String suggestedLabel;
 	
-	private int numberOfSolrRows;
+	private int numberOfSolrRows;// number of items extracted from the database
 	private String rankingMethod;
 	private double percentageRankingValue;
 	private RelatedDocumentGenerator rdg;
