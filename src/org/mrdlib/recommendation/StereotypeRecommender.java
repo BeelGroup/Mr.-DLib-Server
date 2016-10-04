@@ -31,7 +31,16 @@ public class StereotypeRecommender implements RelatedDocumentGenerator {
 	@Override
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
 		// TODO Auto-generated method stub
-		return con.getStereotypeRecommendations(requestDoc, numberOfRelatedDocs);
+		DocumentSet results = new DocumentSet();
+		try{
+			 results = con.getStereotypeRecommendations(requestDoc, numberOfRelatedDocs);
+		} catch(Exception e){
+			e.printStackTrace();
+		} finally{
+			if(con!=null) con.close();
+		}
+		return results;
+		
 
 	}
 

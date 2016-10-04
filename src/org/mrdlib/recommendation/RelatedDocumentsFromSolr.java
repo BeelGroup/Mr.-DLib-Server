@@ -43,9 +43,12 @@ public class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
 		} catch (NoRelatedDocumentsException f) {
 			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
 			throw f;
-		} catch (Exception e) {
+		} catch(Exception e){
 			e.printStackTrace();
 			throw e;
+		} finally{
+			if(scon!=null) scon.close();
+			if(con!=null) con.close();
 		}
 	}
 

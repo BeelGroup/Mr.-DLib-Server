@@ -72,10 +72,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
-				rs2.close();
-				rs3.close();
+				if(stmt!=null) stmt.close();
+				if(rs!=null) rs.close();
+				if(rs2!=null) rs2.close();
+				if(rs3!=null) rs3.close();
 			} catch (SQLException e) {
 				throw e;
 			}

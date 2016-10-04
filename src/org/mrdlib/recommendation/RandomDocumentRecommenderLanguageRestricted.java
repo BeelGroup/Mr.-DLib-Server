@@ -29,7 +29,15 @@ public class RandomDocumentRecommenderLanguageRestricted extends RandomDocumentR
 		random.setSeed(randomSeed);
 		String seed = Integer.toString(random.nextInt());
 
-		return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, true, seed);
+		try{
+			return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, true, seed);
+		} catch(Exception e){
+			e.printStackTrace();
+			throw e;
+		} finally{
+			if(scon!=null) scon.close();
+			if(con!=null) con.close();
+		}
 	}
 
 }
