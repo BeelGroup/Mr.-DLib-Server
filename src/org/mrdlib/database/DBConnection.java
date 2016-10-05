@@ -42,7 +42,8 @@ import org.mrdlib.tools.XMLDocument;
  *
  */
 public class DBConnection {
-
+	
+	public static int numberOfOpenConnections = 0;
 	private Connection con = null;
 	private Constants constants = new Constants();
 	Context ctx = null;
@@ -85,6 +86,7 @@ public class DBConnection {
 			} catch (SQLException e) {
 				throw e;
 			}
+			numberOfOpenConnections ++;
 		}
 	}
 
@@ -121,6 +123,7 @@ public class DBConnection {
 
 	public void close() throws SQLException {
 		con.close();
+		numberOfOpenConnections --;
 	}
 
 	/**

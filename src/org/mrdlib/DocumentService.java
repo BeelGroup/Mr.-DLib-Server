@@ -77,7 +77,7 @@ public class DocumentService {
 			int numberOfAttempts = 0;
 			while(!validAlgorithmFlag&&numberOfAttempts<constants.getNumberOfRetries()){
 				try{
-					rdg = RecommenderFactory.getRandomRDG();
+					rdg = RecommenderFactory.getRandomRDG(con);
 					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
 					validAlgorithmFlag = true;
 					//If no related documents are present, redo the algorithm 
@@ -127,6 +127,7 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
+		System.out.println("Number of open connections is " + Integer.toString(DBConnection.numberOfOpenConnections));
 		return rootElement;
 	}
 

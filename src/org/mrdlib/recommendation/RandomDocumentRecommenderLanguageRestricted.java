@@ -2,13 +2,14 @@ package org.mrdlib.recommendation;
 
 import java.util.Random;
 
+import org.mrdlib.database.DBConnection;
 import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
 
 public class RandomDocumentRecommenderLanguageRestricted extends RandomDocumentRecommender {
 
-	public RandomDocumentRecommenderLanguageRestricted() throws Exception {
-		super();
+	public RandomDocumentRecommenderLanguageRestricted(DBConnection con) throws Exception {
+		super(con);
 		loggingInfo.replace("name", "RandomDocumentRecommenderLanguageRestricted");
 		loggingInfo.replace("language_filter", "same_language_only");
 		// TODO Auto-generated constructor stub
@@ -29,14 +30,14 @@ public class RandomDocumentRecommenderLanguageRestricted extends RandomDocumentR
 		random.setSeed(randomSeed);
 		String seed = Integer.toString(random.nextInt());
 
-		try{
+		try {
 			return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, true, seed);
-		} catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
-		} finally{
-			if(scon!=null) scon.close();
-			if(con!=null) con.close();
+		} finally {
+			if (scon != null)
+				scon.close();
 		}
 	}
 

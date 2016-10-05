@@ -2,13 +2,14 @@ package org.mrdlib.recommendation;
 
 import java.util.Random;
 
+import org.mrdlib.database.DBConnection;
 import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
 
 public class RandomDocumentRecommender extends RelatedDocumentsFromSolr {
 
-	public RandomDocumentRecommender() throws Exception {
-		super();
+	public RandomDocumentRecommender(DBConnection con) throws Exception {
+		super(con);
 		loggingInfo.clear();
 		loggingInfo.put("name", "RandomDocumentRecommender");
 		loggingInfo.put("recommendation_framework", "lucene");
@@ -39,7 +40,6 @@ public class RandomDocumentRecommender extends RelatedDocumentsFromSolr {
 			throw e;
 		} finally{
 			if(scon!=null) scon.close();
-			if(con!=null) con.close();
 		}
 	}
 

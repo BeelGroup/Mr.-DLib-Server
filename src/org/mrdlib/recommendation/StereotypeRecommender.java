@@ -8,9 +8,9 @@ public class StereotypeRecommender implements RelatedDocumentGenerator {
 
 	private DBConnection con = null;
 
-	public StereotypeRecommender() throws Exception {
+	public StereotypeRecommender(DBConnection con) throws Exception {
 		try {
-			con = new DBConnection("tomcat");
+			this.con = con;
 			loggingInfo.clear();
 			loggingInfo.put("name", "StereotypeRecommender");
 			loggingInfo.put("recommendation_framework", "proprietary");
@@ -32,15 +32,12 @@ public class StereotypeRecommender implements RelatedDocumentGenerator {
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
 		// TODO Auto-generated method stub
 		DocumentSet results = new DocumentSet();
-		try{
-			 results = con.getStereotypeRecommendations(requestDoc, numberOfRelatedDocs);
-		} catch(Exception e){
+		try {
+			results = con.getStereotypeRecommendations(requestDoc, numberOfRelatedDocs);
+		} catch (Exception e) {
 			e.printStackTrace();
-		} finally{
-			if(con!=null) con.close();
 		}
 		return results;
-		
 
 	}
 

@@ -10,10 +10,11 @@ public class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
 	DBConnection con = null;
 	solrConnection scon = null;
 
-	public RelatedDocumentsFromSolr() throws Exception {
+	public RelatedDocumentsFromSolr(DBConnection con) throws Exception {
 
 		try {
-			con = new DBConnection("tomcat");
+			//con = new DBConnection("tomcat");
+			this.con = con;
 			scon = new solrConnection(con);
 			loggingInfo.put("name", "RelatedDocumentsFromSolr");
 			loggingInfo.put("recommendation_framework", "lucene");
@@ -47,7 +48,6 @@ public class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
 			throw e;
 		} finally{
 			if(scon!=null) scon.close();
-			if(con!=null) con.close();
 		}
 	}
 
