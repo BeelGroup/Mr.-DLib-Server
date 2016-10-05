@@ -114,7 +114,7 @@ public class DocumentService {
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
 				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/" + doc.getRecommendationId()
-						+ "/original_url/&access_key=" + doc.getAccessKeyHash() + "&format=direct_url_forward";
+						+ "/original_url?access_key=" + doc.getAccessKeyHash() + "&format=direct_url_forward";
 				doc.setClickUrl(url);
 			}
 		} catch (Exception e) {

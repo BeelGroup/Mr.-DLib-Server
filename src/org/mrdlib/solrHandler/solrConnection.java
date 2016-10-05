@@ -118,7 +118,7 @@ public class solrConnection {
 						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 					// url = "http://api.mr-dlib.org/trial/recommendations/" +
 					// relDocument.getRecommendationId() +
-					// "/original_url/&access_key=" +"hash"
+					// "/original_url?access_key=" +"hash"
 					// +"&format=direct_url_forward";
 
 					// relDocument.setClickUrl(url);

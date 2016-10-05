@@ -7,6 +7,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -48,6 +49,23 @@ public class RecommendationService {
 		}
 	}
 
+	/**
+	 * This method accepts click(ed) url's and logs the click in our database.
+	 * It returns the actual link which was to be viewed
+	 * 
+	 * @param recoId The recommendation ID created during the initial recommendation process
+	 * @param accessKey The access key hash that was created as part of the creation of the recommendation set.
+	 * @param format Describes the type of response to be returned. Currently only supports direct_url_forward
+	 * @return a Response object that contains the url of the actual link to be clicked
+	 * @throws Exception
+	 */
+	@GET
+	@Path("{recommendationId:[0-9]+}/original_url/")
+	public Response getRedirectedPathReversedParams(@PathParam("recommendationId") String recoId,
+			@QueryParam("access_key") String accessKey, @QueryParam("request_format") String format) throws Exception {
+		return getRedirectedPath(recoId,accessKey,format);
+	}
+	
 	/**
 	 * This method accepts click(ed) url's and logs the click in our database.
 	 * It returns the actual link which was to be viewed
