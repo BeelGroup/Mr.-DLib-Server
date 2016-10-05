@@ -41,6 +41,8 @@ public class Constants {
 	private String bibPersons;
 	private String stereotypeRecommendations;
 	private String recommendationAlgorithm;
+	private String keyphrases;
+
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
@@ -156,6 +158,11 @@ public class Constants {
 
 	// db table recommendation_algorithms
 	private String recommendationAlgorithmId;
+	
+	// db table keyphrases
+	private String sourceInKeyphrases;
+	private String gramity;
+	private String documentIdInKeyphrases;
 
 	// solr
 	private String solrWebService;
@@ -168,11 +175,13 @@ public class Constants {
 
 	// settings
 	private boolean debugModeOn = false;
+	private int numberOfRetries;
 
 	// mendeleyCrawler settings
 	private String mendeleyConfigPath;
 
 	private String probabilitiesConfigPath;
+
 
 	// load the config file
 	public Constants() {
@@ -207,6 +216,7 @@ public class Constants {
 			this.bibPersons = prop.getProperty("bibliometricPersons");
 			this.stereotypeRecommendations = prop.getProperty("stereotypeRecommendations");
 			this.recommendationAlgorithm = prop.getProperty("recommendationAlgorithm");
+			this.keyphrases = prop.getProperty("keyphrases");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -308,6 +318,10 @@ public class Constants {
 			this.collectionIdInStereotype = prop.getProperty("collectionIdInStereotype");
 
 			this.recommendationAlgorithmId = prop.getProperty("recommendationAlgorithmId");
+			
+			this.sourceInKeyphrases = prop.getProperty("sourceInKeyphrases");
+			this.gramity = prop.getProperty("gramity");
+			this.documentIdInKeyphrases = prop.getProperty("documentIdInKeyphrases");
 
 			this.solrWebService = prop.getProperty("solrWebService");
 			this.solrMrdlib = prop.getProperty("solrMrdlib");
@@ -318,7 +332,8 @@ public class Constants {
 
 			this.mendeleyConfigPath = prop.getProperty("mendeleyConfigPath");
 			this.probabilitiesConfigPath = prop.getProperty("probabilityConfigPath");
-
+			
+			this.numberOfRetries = Integer.parseInt(prop.getProperty("numberOfRetries"));
 			String debugModeOn = prop.getProperty("debugModeOn");
 			if (debugModeOn.equals("true"))
 				this.debugModeOn = true;
@@ -804,6 +819,31 @@ public class Constants {
 	public String getRecommendationAlgorithm() {
 		// TODO Auto-generated method stub
 		return recommendationAlgorithm;
+	}
+
+	public String getSourceInKeyphrases() {
+		// TODO Auto-generated method stub
+		return sourceInKeyphrases;
+	}
+
+	public String getGramity() {
+		// TODO Auto-generated method stub
+		return gramity;
+	}
+
+	public String getKeyphrases() {
+		// TODO Auto-generated method stub
+		return keyphrases;
+	}
+
+	public String getDocumentIdInKeyphrases() {
+		// TODO Auto-generated method stub
+		return documentIdInKeyphrases;
+	}
+
+	public int getNumberOfRetries() {
+		// TODO Auto-generated method stub
+		return numberOfRetries;
 	}
 
 }

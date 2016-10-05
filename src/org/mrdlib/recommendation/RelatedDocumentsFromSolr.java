@@ -20,7 +20,6 @@ public class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
 			loggingInfo.put("recommendation_class", "cbf");
 			loggingInfo.put("language_filter", "N");
 			loggingInfo.put("cbf_text_fields", "all");
-			loggingInfo.put("cbf_text_fields", "all");
 			loggingInfo.put("cbf_feature_type", "terms");
 			loggingInfo.put("cbf_feature_count", "0");
 
@@ -39,7 +38,7 @@ public class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
 	@Override
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
 		try {
-			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs);
+			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs,loggingInfo);
 		} catch (NoRelatedDocumentsException f) {
 			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
 			throw f;

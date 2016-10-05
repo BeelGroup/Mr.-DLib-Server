@@ -1,5 +1,7 @@
 package org.mrdlib;
 
+import java.util.HashMap;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -47,7 +49,6 @@ public class DocumentService {
 		try {
 			con = new DBConnection("tomcat");
 			ar = new ApplyRanking(con);
-			rdg = RecommenderFactory.getRandomRDG();
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
@@ -72,18 +73,31 @@ public class DocumentService {
 			// get the requested document from the databas
 			requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
 			// get all related documents from solr
-			documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
-			documentset.setRDG(rdg);
-			documentset = ar.selectRandomRanking(documentset);
+			Boolean validAlgorithmFlag = false;
+			int numberOfAttempts = 0;
+			while(!validAlgorithmFlag&&numberOfAttempts<constants.getNumberOfRetries()){
+				try{
+					rdg = RecommenderFactory.getRandomRDG();
+					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
+					validAlgorithmFlag = true;
+					//If no related documents are present, redo the algorithm 
+				} catch(NoRelatedDocumentsException e){
+					validAlgorithmFlag = false;
+				}
+			}
+			if(validAlgorithmFlag){
+				documentset.setRDG(rdg);
+				documentset = ar.selectRandomRanking(documentset);
+			}else{
+				throw new NoRelatedDocumentsException(requestDocument.getOriginalDocumentId(),requestDocument.getDocumentId());
+			}
 
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-
-			// if solr didn't find related articles
+			//if retry limit has been reached and no related documents still have been extracted
 		} catch (NoRelatedDocumentsException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-
 			// if something else happened there  
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());

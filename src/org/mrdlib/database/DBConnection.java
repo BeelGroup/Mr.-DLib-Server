@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -72,10 +74,14 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				if(stmt!=null) stmt.close();
-				if(rs!=null) rs.close();
-				if(rs2!=null) rs2.close();
-				if(rs3!=null) rs3.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				if (rs2 != null)
+					rs2.close();
+				if (rs3 != null)
+					rs3.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -778,6 +784,7 @@ public class DBConnection {
 
 				// get the collection id and then the shortName of the
 				// collection
+				document.setLanguage(rs.getString(constants.getLanguage()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
 				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
 				return document;
@@ -1065,10 +1072,10 @@ public class DBConnection {
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
 					+ constants.getDocumentIdInRecommendations() + ", "
 					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getBibliometricReRankId()
-					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() +", "
-					+ constants.getAlgorithmId() + ") VALUES ("
-					+ document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", ? , '"
-					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "');";
+					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() + ", "
+					+ constants.getAlgorithmId() + ") VALUES (" + document.getDocumentId() + ", "
+					+ documentset.getRecommendationSetId() + ", ? , '" + document.getSuggestedRank() + "', '"
+					+ document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1745,7 +1752,7 @@ public class DBConnection {
 		return size;
 	}
 
-	public String getLanguage(String documentId) throws Exception {
+	/*public String getLanguage(String documentId) throws Exception {
 		// TODO Auto-generated method stub
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1771,7 +1778,7 @@ public class DBConnection {
 			}
 		}
 		return language;
-	}
+	}*/
 
 	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs)
 			throws Exception {
@@ -1827,5 +1834,87 @@ public class DBConnection {
 			}
 		}
 
+	}
+
+	public int getMinimumNumberOfKeyphrases(String documentId, String gramity, String source) throws Exception {
+		// TODO Auto-generated method stub
+		Statement stmt = null;
+		ResultSet rs = null;
+		String template = "SELECT COUNT(*) AS count FROM " + constants.getKeyphrases() + " WHERE "
+				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getGramity() + "=?"
+				+ " AND " + constants.getSourceInKeyphrases() + "="
+				+ (source.equals("title") ? "'title'" : "'title_and_abstract'");
+		System.out.println(template);
+		try {
+			stmt = con.createStatement();
+			switch (gramity) {
+			case "allgrams": {
+				Integer[] values = { 0, 0, 0 };
+				for (int i = 1; i < 4; i++) {
+					String query = template.replace("?", Integer.toString(i));
+					rs = stmt.executeQuery(query);
+					if (rs.next())
+						values[i - 1] = rs.getInt("count");
+				}
+				System.out.println(values);
+				return Collections.min(Arrays.asList(values));
+			}
+			case "unibi": {
+				Integer[] values = { 0, 0 };
+				for (int i = 1; i < 3; i++) {
+					String query = template.replace("?", Integer.toString(i));
+					rs = stmt.executeQuery(query);
+					if (rs.next())
+						values[i - 1] = rs.getInt("count");
+				}
+				return Collections.min(Arrays.asList(values));
+			}
+			case "bitri": {
+				Integer[] values = { 0, 0 };
+				for (int i = 2; i < 4; i++) {
+					String query = template.replace("?", Integer.toString(i));
+					rs = stmt.executeQuery(query);
+					if (rs.next())
+						values[i - 2] = rs.getInt("count");
+				}
+				return Collections.min(Arrays.asList(values));
+			}
+			case "unitri": {
+				Integer[] values = { 0, 0 };
+				String query = template.replace("?", Integer.toString(1));
+				rs = stmt.executeQuery(query);
+				if (rs.next()) {
+					values[0] = rs.getInt("count");
+				}
+				query = template.replace("?", Integer.toString(3));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					values[1] = rs.getInt("count");
+				return Collections.min(Arrays.asList(values));
+			}
+			case "unigrams": {
+				String query = template.replace("?", Integer.toString(1));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					return rs.getInt("count");
+			}
+			case "bigrams": {
+				String query = template.replace("?", Integer.toString(2));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					return rs.getInt("count");
+			}
+			case "trigrams": {
+				String query = template.replace("?", Integer.toString(3));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					return rs.getInt("count");
+			}
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			throw e;
+		}
+		return -1;
 	}
 }
