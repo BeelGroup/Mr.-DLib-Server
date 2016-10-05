@@ -51,9 +51,9 @@ public class RelatedDocumentsFromSolrWithKeyphrases extends RelatedDocumentsFrom
 			if (maxNumber < 1)
 				throw new NoRelatedDocumentsException(requestDoc.getOriginalDocumentId(), requestDoc.getDocumentId());
 			Random random = new Random();
-			System.out.println(loggingInfo.get("typeOfGram"));
-			System.out.println(maxNumber);
-			int cbf_feature_count = random.nextInt(maxNumber - 1) + 1;
+			//System.out.println(loggingInfo.get("typeOfGram"));
+			//System.out.println(maxNumber);
+			int cbf_feature_count = maxNumber==1?1:random.nextInt(maxNumber - 1) + 1;
 			loggingInfo.replace("cbf_feature_count", Integer.toString(cbf_feature_count));
 			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, loggingInfo);
 		} catch (NoRelatedDocumentsException f) {

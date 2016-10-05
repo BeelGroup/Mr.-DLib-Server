@@ -1122,7 +1122,7 @@ public class DBConnection {
 				}
 			}
 			query = query.replaceAll(" AND $", "");
-			System.out.println(query);
+			//System.out.println(query);
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 
@@ -1141,7 +1141,7 @@ public class DBConnection {
 				columns = columns.replaceAll(", $", " ");
 				values = values.replaceAll(", $", " ");
 				query += (columns + ") VALUES(" + values + ")");
-				System.out.println(query);
+				//System.out.println(query);
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 				rs = stmt.getGeneratedKeys();
@@ -1755,34 +1755,6 @@ public class DBConnection {
 		return size;
 	}
 
-	/*public String getLanguage(String documentId) throws Exception {
-		// TODO Auto-generated method stub
-		Statement stmt = null;
-		ResultSet rs = null;
-		String language = "";
-		try {
-			stmt = con.createStatement();
-			String query = "SELECT " + constants.getLanguage() + " FROM " + constants.getDocuments() + " WHERE "
-					+ constants.getDocumentId() + "=" + documentId;
-			rs = stmt.executeQuery(query);
-
-			if (rs.next()) {
-				language = rs.getString(constants.getLanguage());
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw e;
-		} finally {
-			try {
-				stmt.close();
-				rs.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-		return language;
-	}*/
-
 	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs)
 			throws Exception {
 		// TODO Auto-generated method stub
@@ -1847,7 +1819,7 @@ public class DBConnection {
 				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getGramity() + "=?"
 				+ " AND " + constants.getSourceInKeyphrases() + "="
 				+ (source.equals("title") ? "'title'" : "'title_and_abstract'");
-		System.out.println(template);
+		//System.out.println(template);
 		try {
 			stmt = con.createStatement();
 			switch (gramity) {
@@ -1859,7 +1831,7 @@ public class DBConnection {
 					if (rs.next())
 						values[i - 1] = rs.getInt("count");
 				}
-				System.out.println(values);
+				//System.out.println(values);
 				return Collections.min(Arrays.asList(values));
 			}
 			case "unibi": {

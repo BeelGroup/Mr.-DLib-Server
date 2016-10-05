@@ -31,7 +31,7 @@ public class RecommenderFactory {
 			}
 		}
 		//ADD lines of code to log the random recommender we have picked in this instance
-		//return new RandomDocumentRecommenderLanguageRestricted();
+		//return new RandomDocumentRecommenderLanguageRestricted(con);
 		return rdg;
 	}
 }

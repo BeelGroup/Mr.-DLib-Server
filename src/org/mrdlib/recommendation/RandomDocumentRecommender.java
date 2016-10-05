@@ -36,7 +36,7 @@ public class RandomDocumentRecommender extends RelatedDocumentsFromSolr {
 		try{
 			return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, false, seed);
 		} catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 			throw e;
 		} finally{
 			if(scon!=null) scon.close();

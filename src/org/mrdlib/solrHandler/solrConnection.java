@@ -1,7 +1,6 @@
 package org.mrdlib.solrHandler;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.solr.client.solrj.SolrClient;
@@ -89,10 +88,9 @@ public class solrConnection {
 					logginginfo.get("cbf_feature_count"));
 			query.setParam("mlt.fl", similarityParams);
 		}
-
 		// set display params
 		query.setParam("fl", "score,id");
-		System.out.println(query);
+		//System.out.println(query);
 
 		try {
 			response = solr.query(query);
@@ -166,18 +164,19 @@ public class solrConnection {
 		QueryResponse response = null;
 		DisplayDocument relDocument = new DisplayDocument();
 		query.setRequestHandler("/select");
-		String url = "";
 		String fallback_url = "";
+		query.setQuery( "*:*");
 		// get only documents which are in the same collection
 		String filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
 		query.addFilterQuery(filterquery);
 		if (restrictLanguage) {
 			query.addFilterQuery(constants.getLanguage() + ":" + document.getLanguage());
 		}
-		query.setParam("fl,*, score");
+		query.setParam("fl", "id,score");
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
 		query.setSort(SortClause.asc("random_" + seed));
+		//System.out.println(query);
 		try {
 			response = solr.query(query);
 			SolrDocumentList docs = response.getResults();

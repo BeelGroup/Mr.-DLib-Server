@@ -1,7 +1,5 @@
 package org.mrdlib;
 
-import java.util.HashMap;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -83,6 +81,7 @@ public class DocumentService {
 					//If no related documents are present, redo the algorithm 
 				} catch(NoRelatedDocumentsException e){
 					validAlgorithmFlag = false;
+					numberOfAttempts++;
 				}
 			}
 			if(validAlgorithmFlag){
