@@ -34,4 +34,8 @@ public class RecommenderFactory {
 		//return new RandomDocumentRecommenderLanguageRestricted(con);
 		return rdg;
 	}
+	
+	public static RelatedDocumentGenerator getFallback(DBConnection con) throws Exception{
+		return new RelatedDocumentsFromSolr(con);
+	}
 }

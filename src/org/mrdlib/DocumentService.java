@@ -73,32 +73,37 @@ public class DocumentService {
 			// get all related documents from solr
 			Boolean validAlgorithmFlag = false;
 			int numberOfAttempts = 0;
-			while(!validAlgorithmFlag&&numberOfAttempts<constants.getNumberOfRetries()){
-				try{
+			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
+				try {
 					rdg = RecommenderFactory.getRandomRDG(con);
 					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
 					validAlgorithmFlag = true;
-					//If no related documents are present, redo the algorithm 
-				} catch(NoRelatedDocumentsException e){
+					// If no related documents are present, redo the algorithm
+				} catch (NoRelatedDocumentsException e) {
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
 				}
 			}
 
-			if(validAlgorithmFlag){
-				documentset.setRDG(rdg);
-				documentset = ar.selectRandomRanking(documentset);
-			}else{
-				throw new NoRelatedDocumentsException(requestDocument.getOriginalDocumentId(),requestDocument.getDocumentId());
+			if (validAlgorithmFlag) {
+				if (numberOfAttempts > 0)
+					System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
+							numberOfAttempts);
+			} else {
+				System.out.println("Using fallback recommender");
+				rdg = RecommenderFactory.getFallback(con);
+				documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
 			}
-
+			documentset.setRDG(rdg);
+			documentset = ar.selectRandomRanking(documentset);
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-			//if retry limit has been reached and no related documents still have been extracted
+			// if retry limit has been reached and no related documents still
+			// have been extracted
 		} catch (NoRelatedDocumentsException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-			// if something else happened there  
+			// if something else happened there
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
@@ -114,8 +119,9 @@ public class DocumentService {
 			documentset = con.logRecommendationDelivery(requestDocument.getDocumentId(), requestRecieved, rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
-				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/" + doc.getRecommendationId()
-						+ "/original_url?access_key=" + doc.getAccessKeyHash() + "&format=direct_url_forward";
+				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
+						+ doc.getRecommendationId() + "/original_url?access_key=" + doc.getAccessKeyHash()
+						+ "&format=direct_url_forward";
 				doc.setClickUrl(url);
 			}
 		} catch (Exception e) {
@@ -123,11 +129,16 @@ public class DocumentService {
 		}
 
 		try {
-			con.close();
+			if (con == null)
+				DBConnection.numberOfOpenConnections--;
+			else
+				con.close();
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
-		System.out.println("Number of open connections is " + Integer.toString(DBConnection.numberOfOpenConnections));
+		if (DBConnection.numberOfOpenConnections > 0)
+			System.out.println("Number of open connections is " + Integer.toString(DBConnection.numberOfOpenConnections)
+					+ " for " + rdg.loggingInfo.get("name") + "for document" + requestDocument.getDocumentId());
 		return rootElement;
 	}
 
