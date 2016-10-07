@@ -193,7 +193,8 @@ public class DocumentSet {
 	public String getRankingMethod() {
 		return rankingMethod;
 	}
-
+	
+	@XmlTransient
 	public void setRankingMethod(String rankingMethod) {
 		this.rankingMethod = rankingMethod;
 	}
