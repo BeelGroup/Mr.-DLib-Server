@@ -31,7 +31,7 @@ public class ApplyRanking {
 
 	public DocumentSet selectRandomRanking(DisplayDocument requestDocument) throws Exception {
 		Random random = new Random();
-		int rndSolrRows = random.nextInt(8)+1;
+		int rndSolrRows = random.nextInt(7)+1;
 		int solrRows;
 		int rndWeight = random.nextInt(8)+1;
 		int rndRank = random.nextInt(4)+1;
@@ -53,10 +53,8 @@ public class ApplyRanking {
 			solrRows = 75; break;
 		case 7:
 			solrRows = 100; break;
-		case 8:
-			solrRows = 200; break;
 		default:
-			solrRows = 500;
+			solrRows = 200;
 		}
 		documentset = scon.getRelatedDocumentSetByDocument(requestDocument, solrRows);
 
@@ -124,8 +122,6 @@ public class ApplyRanking {
 			solrRows = 75;
 		else if (solrRows < 200)
 			solrRows = 100;
-		else if (solrRows < 500)
-			solrRows = 200;
 
 		return solrRows;
 	}
