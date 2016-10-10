@@ -27,6 +27,9 @@ public class DisplayDocument implements Serializable {
 	private Snippet snippet;
 	private String clickUrl;
 	private String fallbackUrl;
+	private String language;
+	
+
 	private int suggestedRank;
 	private String collectionShortName;
 	private Long collectionId;
@@ -36,6 +39,7 @@ public class DisplayDocument implements Serializable {
 	private double rankingValue;
 	private double solrScore;
 	private int bibId;
+
 
 
 	public DisplayDocument() {
@@ -172,5 +176,14 @@ public class DisplayDocument implements Serializable {
 	@XmlTransient
 	public void setAccessKeyHash(String accessKeyHash) {
 		this.accessKeyHash = accessKeyHash;
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+	
+	@XmlTransient
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 }

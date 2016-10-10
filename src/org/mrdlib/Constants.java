@@ -15,6 +15,9 @@ public class Constants {
 
 	private String tomcatConfigPath = "config.properties";
 
+	//environment
+	private String environment;
+
 	// db connection properties
 	private String dbClass;
 	private String db;
@@ -36,6 +39,10 @@ public class Constants {
 	private String loggings;
 	private String reRankingBibliometrics;
 	private String bibPersons;
+	private String stereotypeRecommendations;
+	private String recommendationAlgorithm;
+	private String keyphrases;
+
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
@@ -145,6 +152,18 @@ public class Constants {
 	private String personIDInDocPers;
 	private String rank;
 
+	// db table stereotype_recommendations
+	private String documentIdInStereotype;
+	private String collectionIdInStereotype;
+
+	// db table recommendation_algorithms
+	private String recommendationAlgorithmId;
+	
+	// db table keyphrases
+	private String sourceInKeyphrases;
+	private String gramity;
+	private String documentIdInKeyphrases;
+
 	// solr
 	private String solrWebService;
 	private String solrMrdlib;
@@ -156,9 +175,13 @@ public class Constants {
 
 	// settings
 	private boolean debugModeOn = false;
+	private int numberOfRetries;
 
 	// mendeleyCrawler settings
 	private String mendeleyConfigPath;
+
+	private String probabilitiesConfigPath;
+
 
 	// load the config file
 	public Constants() {
@@ -171,6 +194,8 @@ public class Constants {
 			prop.load(input);
 
 			// get the property value
+			this.environment = prop.getProperty("environment");
+			
 			this.dbClass = prop.getProperty("dbClass");
 			this.db = prop.getProperty("db");
 			this.url = prop.getProperty("url");
@@ -189,6 +214,9 @@ public class Constants {
 			this.loggings = prop.getProperty("loggings");
 			this.reRankingBibliometrics = prop.getProperty("reRankingBibliometrics");
 			this.bibPersons = prop.getProperty("bibliometricPersons");
+			this.stereotypeRecommendations = prop.getProperty("stereotypeRecommendations");
+			this.recommendationAlgorithm = prop.getProperty("recommendationAlgorithm");
+			this.keyphrases = prop.getProperty("keyphrases");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -286,6 +314,15 @@ public class Constants {
 			this.personIDInDocPers = prop.getProperty("personIdInDocPers");
 			this.rank = prop.getProperty("authorRank");
 
+			this.documentIdInStereotype = prop.getProperty("documentIdInStereotype");
+			this.collectionIdInStereotype = prop.getProperty("collectionIdInStereotype");
+
+			this.recommendationAlgorithmId = prop.getProperty("recommendationAlgorithmId");
+			
+			this.sourceInKeyphrases = prop.getProperty("sourceInKeyphrases");
+			this.gramity = prop.getProperty("gramity");
+			this.documentIdInKeyphrases = prop.getProperty("documentIdInKeyphrases");
+
 			this.solrWebService = prop.getProperty("solrWebService");
 			this.solrMrdlib = prop.getProperty("solrMrdlib");
 			this.solrCollectionShortName = prop.getProperty("solrCollectionShortName");
@@ -294,7 +331,9 @@ public class Constants {
 			this.gesis = prop.getProperty("gesis");
 
 			this.mendeleyConfigPath = prop.getProperty("mendeleyConfigPath");
-
+			this.probabilitiesConfigPath = prop.getProperty("probabilityConfigPath");
+			
+			this.numberOfRetries = Integer.parseInt(prop.getProperty("numberOfRetries"));
 			String debugModeOn = prop.getProperty("debugModeOn");
 			if (debugModeOn.equals("true"))
 				this.debugModeOn = true;
@@ -314,6 +353,14 @@ public class Constants {
 		}
 	}
 
+	public String getEnvironment() {
+		return environment;
+	}
+
+	public void setEnvironment(String environment) {
+		this.environment = environment;
+	}
+	
 	public String getPercentageWithBibliometrics() {
 		return percentageWithBibliometrics;
 	}
@@ -745,4 +792,58 @@ public class Constants {
 	public String getAbstracts() {
 		return abstracts;
 	}
+
+	public String getProbabilitiesPath() {
+		// TODO Auto-generated method stub
+		return probabilitiesConfigPath;
+	}
+
+	public String getStereotypeRecommendations() {
+		return stereotypeRecommendations;
+	}
+
+	public String getDocumentIdinStereotypeRecommendations() {
+		// TODO Auto-generated method stub
+		return documentIdInStereotype;
+	}
+
+	public String getCollectionIDinStereotypeRecommendations() {
+		return collectionIdInStereotype;
+	}
+
+	public String getRecommendationAlgorithmId() {
+		// TODO Auto-generated method stub
+		return recommendationAlgorithmId;
+	}
+
+	public String getRecommendationAlgorithm() {
+		// TODO Auto-generated method stub
+		return recommendationAlgorithm;
+	}
+
+	public String getSourceInKeyphrases() {
+		// TODO Auto-generated method stub
+		return sourceInKeyphrases;
+	}
+
+	public String getGramity() {
+		// TODO Auto-generated method stub
+		return gramity;
+	}
+
+	public String getKeyphrases() {
+		// TODO Auto-generated method stub
+		return keyphrases;
+	}
+
+	public String getDocumentIdInKeyphrases() {
+		// TODO Auto-generated method stub
+		return documentIdInKeyphrases;
+	}
+
+	public int getNumberOfRetries() {
+		// TODO Auto-generated method stub
+		return numberOfRetries;
+	}
+
 }

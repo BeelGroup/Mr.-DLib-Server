@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -40,7 +42,8 @@ import org.mrdlib.tools.XMLDocument;
  *
  */
 public class DBConnection {
-
+	
+	public static int numberOfOpenConnections = 0;
 	private Connection con = null;
 	private Constants constants = new Constants();
 	Context ctx = null;
@@ -72,13 +75,18 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
-				rs2.close();
-				rs3.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				if (rs2 != null)
+					rs2.close();
+				if (rs3 != null)
+					rs3.close();
 			} catch (SQLException e) {
 				throw e;
 			}
+			numberOfOpenConnections ++;
 		}
 	}
 
@@ -115,6 +123,7 @@ public class DBConnection {
 
 	public void close() throws SQLException {
 		con.close();
+		numberOfOpenConnections --;
 	}
 
 	/**
@@ -130,6 +139,9 @@ public class DBConnection {
 			DataSource ds = (DataSource) envContext.lookup("jdbc/mrdlib");
 			con = ds.getConnection();
 		} catch (Exception e) {
+			if (con == null)
+				System.out.println("No connection");
+			e.printStackTrace();
 			throw e;
 		}
 	}
@@ -775,6 +787,7 @@ public class DBConnection {
 
 				// get the collection id and then the shortName of the
 				// collection
+				document.setLanguage(rs.getString(constants.getLanguage()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
 				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
 				return document;
@@ -1052,17 +1065,20 @@ public class DBConnection {
 		ResultSet rs = null;
 		int recommendationId = -1;
 		int bibliometricReRankingId = -1;
-
+		int recommendationAlgorithmId = -1;
 		if (document.getBibId() != -1)
 			bibliometricReRankingId = logReRankingBibliometrics(documentset, document.getBibId());
+
+		recommendationAlgorithmId = logRecommendationAlgorithm(documentset, document);
 
 		try {
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
 					+ constants.getDocumentIdInRecommendations() + ", "
 					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getBibliometricReRankId()
-					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() + ") VALUES ("
-					+ document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", ? , '"
-					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "');";
+					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() + ", "
+					+ constants.getAlgorithmId() + ") VALUES (" + document.getDocumentId() + ", "
+					+ documentset.getRecommendationSetId() + ", ? , '" + document.getSuggestedRank() + "', '"
+					+ document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1090,6 +1106,65 @@ public class DBConnection {
 		return recommendationId;
 	}
 
+	@SuppressWarnings("resource")
+	private int logRecommendationAlgorithm(DocumentSet documentset, DisplayDocument document) throws Exception {
+		// TODO Auto-generated method stub
+		Statement stmt = null;
+		ResultSet rs = null;
+		HashMap<String, String> recommenderDetails = documentset.getRDG().loggingInfo;
+		int recommendationAlgorithmId = -1;
+		try {
+			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
+					+ constants.getRecommendationAlgorithm() + " WHERE ";
+			for (String key : recommenderDetails.keySet()) {
+				if (key != "name") {
+					query += (key + "='" + recommenderDetails.get(key) + "' AND ");
+				}
+			}
+			query = query.replaceAll(" AND $", "");
+			//System.out.println(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			if (rs.next()) {
+				recommendationAlgorithmId = rs.getInt(constants.getRecommendationAlgorithmId());
+			} else {
+				query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
+				String columns = "";
+				String values = "";
+				for (String key : recommenderDetails.keySet()) {
+					if (key != "name") {
+						columns += (key + ", ");
+						values += ("'" + recommenderDetails.get(key) + "', ");
+					}
+				}
+				columns = columns.replaceAll(", $", " ");
+				values = values.replaceAll(", $", " ");
+				query += (columns + ") VALUES(" + values + ")");
+				//System.out.println(query);
+				stmt = con.createStatement();
+				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					recommendationAlgorithmId = rs.getInt(1);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return recommendationAlgorithmId;
+	}
+
 	private int logReRankingBibliometrics(DocumentSet documentset, int bibId) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -1100,14 +1175,13 @@ public class DBConnection {
 					+ ", " + constants.getReRankingMethod() + ", " + constants.getPercentageWithBibliometrics() + ", "
 					+ constants.getBibIdInReRank() + ") VALUES ('" + documentset.getNumberOfSolrRows() + "', '"
 					+ documentset.getRankingMethod() + "', '" + documentset.getPercentageRankingValue() + "', ?);";
-			
-		
+
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-			if(bibId > 0)
+			if (bibId > 0)
 				stmt.setInt(1, bibId);
 			else
 				stmt.setNull(1, java.sql.Types.INTEGER);
-				
+
 			stmt.executeUpdate();
 
 			// get the autogenerated key back
@@ -1128,7 +1202,8 @@ public class DBConnection {
 		return reRankingBibId;
 	}
 
-	public int logEvent(String documentId, Long requestTime, RootElement rootElement, Boolean clicked) throws Exception {
+	public int logEvent(String documentId, Long requestTime, RootElement rootElement, Boolean clicked)
+			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
@@ -1184,7 +1259,8 @@ public class DBConnection {
 		return loggingId;
 	}
 
-	public DocumentSet logRecommendationDelivery(String documentId, Long requestTime, RootElement rootElement) throws Exception {
+	public DocumentSet logRecommendationDelivery(String documentId, Long requestTime, RootElement rootElement)
+			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationSetId = -1;
@@ -1229,7 +1305,8 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -1237,6 +1314,16 @@ public class DBConnection {
 		return documentset;
 	}
 
+	/**
+	 * Utility method to easily access the document_id given the
+	 * recommendation_id from the recommendations table
+	 * 
+	 * @param recommendationId
+	 *            the recommendation_id
+	 * @return
+	 * @throws Exception
+	 *             if SQL errors occur
+	 */
 	public String getDocIdFromRecommendation(String recommendationId) throws Exception {
 		String docId = "dummy";
 		Statement stmt = null;
@@ -1268,6 +1355,17 @@ public class DBConnection {
 		return docId;
 	}
 
+	/**
+	 * Utility method to verify the accesskey provided by the user against the
+	 * one present in our database for that recommendation_id
+	 * 
+	 * @param recoId
+	 *            the recommendation_id for which we need to check the accessKey
+	 * @param accessKey
+	 *            the access key hash provided by the user
+	 * @return True if access key matches, false if not
+	 * @throws SQLException
+	 */
 	public Boolean checkAccessKey(String recoId, String accessKey) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1303,6 +1401,23 @@ public class DBConnection {
 		}
 	}
 
+	/**
+	 * This method updates the clicked column in the recommendations table of
+	 * our database with the timestamp at which the click was recorded and also
+	 * creates a log entry in the logging table
+	 * 
+	 * @param recommendationId
+	 *            the recommendation_id for which the click needs to be recorded
+	 * @param documentId
+	 *            the document_id corresponding to the recommendation
+	 * @param requestTime
+	 *            the time at which the click was recorded
+	 * @param rootElement
+	 *            In order to check the status of the current request and verify
+	 *            that there were no errors upstream
+	 * @return true if logged successfully, exception in every other case
+	 * @throws SQLException
+	 */
 	public Boolean logRecommendationClick(String recommendationId, String documentId, Long requestTime,
 			RootElement rootElement) throws Exception {
 		Statement stmt = null;
@@ -1312,7 +1427,7 @@ public class DBConnection {
 			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " = '"
 					+ new Timestamp(requestTime) + "' WHERE " + constants.getRecommendationId() + " = "
 					+ recommendationId;
-			
+
 			stmt.executeUpdate(query);
 			loggingId = logEvent(documentId, requestTime, rootElement, true);
 
@@ -1366,7 +1481,7 @@ public class DBConnection {
 		}
 		return document;
 	}
-	
+
 	public int getRankingValueAuthor(String authorId, String metric, String dataType, String dataSource) {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1375,8 +1490,8 @@ public class DBConnection {
 		String query = "SELECT " + constants.getPersonIdInBibliometricPers() + ", "
 				+ constants.getBibliometricPersonsId() + ", " + constants.getMetricValuePers() + " FROM "
 				+ constants.getBibPersons() + " WHERE " + constants.getMetricPers() + " = '" + metric + "' AND "
-				+ constants.getDataTypePers() + " = '" + dataType + "' AND " + constants.getDataSourcePers()
-				+ " = '" + dataSource + "' AND " + constants.getPersonID() + " = " + authorId + ";";
+				+ constants.getDataTypePers() + " = '" + dataType + "' AND " + constants.getDataSourcePers() + " = '"
+				+ dataSource + "' AND " + constants.getPersonID() + " = " + authorId + ";";
 
 		try {
 
@@ -1385,7 +1500,6 @@ public class DBConnection {
 
 			if (rs.next())
 				metricValue = rs.getInt(constants.getMetricValuePers());
-			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1639,5 +1753,143 @@ public class DBConnection {
 			}
 		}
 		return size;
+	}
+
+	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs)
+			throws Exception {
+		// TODO Auto-generated method stub
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "";
+
+		try {
+			stmt = con.createStatement();
+
+			query = "SELECT " + constants.getDocumentIdinStereotypeRecommendations() + " FROM "
+					+ constants.getStereotypeRecommendations() + " ORDER BY RAND() LIMIT "
+					+ Integer.toString(numberOfRelatedDocs);
+
+			rs = stmt.executeQuery(query);
+			DocumentSet documentSet = new DocumentSet();
+			documentSet.setSuggested_label("Related Articles");
+
+			while (rs.next()) {
+				DisplayDocument relDocument = getDocumentBy(constants.getDocumentId(),
+						rs.getString(constants.getDocumentIdinStereotypeRecommendations()));
+				relDocument.setSuggestedRank(rs.getRow());
+				String fallback_url = "";
+				// HARDCODED FOR COMPATABILITY
+				relDocument.setSolrScore(1.00);
+				if (relDocument.getCollectionShortName().equals(constants.getGesis()))
+					fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+
+				// url = "http://api.mr-dlib.org/trial/recommendations/" +
+				// relDocument.getRecommendationId() +
+				// "/original_url/&access_key=" +"hash"
+				// +"&format=direct_url_forward";
+
+				// relDocument.setClickUrl(url);
+				relDocument.setFallbackUrl(fallback_url);
+				// add it to the collection
+				documentSet.addDocument(relDocument);
+
+			}
+			return documentSet;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+
+	}
+
+	public int getMinimumNumberOfKeyphrases(String documentId, String gramity, String source) throws Exception {
+		// TODO Auto-generated method stub
+		Statement stmt = null;
+		ResultSet rs = null;
+		String template = "SELECT COUNT(*) AS count FROM " + constants.getKeyphrases() + " WHERE "
+				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getGramity() + "=?"
+				+ " AND " + constants.getSourceInKeyphrases() + "="
+				+ (source.equals("title") ? "'title'" : "'title_and_abstract'");
+		//System.out.println(template);
+		try {
+			stmt = con.createStatement();
+			switch (gramity) {
+			case "allgrams": {
+				Integer[] values = { 0, 0, 0 };
+				for (int i = 1; i < 4; i++) {
+					String query = template.replace("?", Integer.toString(i));
+					rs = stmt.executeQuery(query);
+					if (rs.next())
+						values[i - 1] = rs.getInt("count");
+				}
+				//System.out.println(values);
+				return Collections.min(Arrays.asList(values));
+			}
+			case "unibi": {
+				Integer[] values = { 0, 0 };
+				for (int i = 1; i < 3; i++) {
+					String query = template.replace("?", Integer.toString(i));
+					rs = stmt.executeQuery(query);
+					if (rs.next())
+						values[i - 1] = rs.getInt("count");
+				}
+				return Collections.min(Arrays.asList(values));
+			}
+			case "bitri": {
+				Integer[] values = { 0, 0 };
+				for (int i = 2; i < 4; i++) {
+					String query = template.replace("?", Integer.toString(i));
+					rs = stmt.executeQuery(query);
+					if (rs.next())
+						values[i - 2] = rs.getInt("count");
+				}
+				return Collections.min(Arrays.asList(values));
+			}
+			case "unitri": {
+				Integer[] values = { 0, 0 };
+				String query = template.replace("?", Integer.toString(1));
+				rs = stmt.executeQuery(query);
+				if (rs.next()) {
+					values[0] = rs.getInt("count");
+				}
+				query = template.replace("?", Integer.toString(3));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					values[1] = rs.getInt("count");
+				return Collections.min(Arrays.asList(values));
+			}
+			case "unigrams": {
+				String query = template.replace("?", Integer.toString(1));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					return rs.getInt("count");
+			}
+			case "bigrams": {
+				String query = template.replace("?", Integer.toString(2));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					return rs.getInt("count");
+			}
+			case "trigrams": {
+				String query = template.replace("?", Integer.toString(3));
+				rs = stmt.executeQuery(query);
+				if (rs.next())
+					return rs.getInt("count");
+			}
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			throw e;
+		}
+		return -1;
 	}
 }

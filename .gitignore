@@ -1,15 +1,13 @@
 /bin/
-
+/target
 *.classpath
 *.project
 .settings/.jsdtscope
 *.prefs
 *.MF
-.settings/org.eclipse.wst.common.component
-*.xml
-.settings/org.eclipse.wst.jsdt.ui.superType.container
+.settings/*
 *.name
 *.config
 resources/config.properties
-*.jar
 git status
+/build/

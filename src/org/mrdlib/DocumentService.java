@@ -15,6 +15,8 @@ import org.mrdlib.display.StatusMessage;
 import org.mrdlib.display.StatusReport;
 import org.mrdlib.display.StatusReportSet;
 import org.mrdlib.ranking.ApplyRanking;
+import org.mrdlib.recommendation.RecommenderFactory;
+import org.mrdlib.recommendation.RelatedDocumentGenerator;
 import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 
 /**
@@ -35,6 +37,7 @@ public class DocumentService {
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
 	private ApplyRanking ar = null;
+	private RelatedDocumentGenerator rdg = null;
 
 	public DocumentService() {
 		requestRecieved = System.currentTimeMillis();
@@ -68,17 +71,33 @@ public class DocumentService {
 			// get the requested document from the databas
 			requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
 			// get all related documents from solr
-			documentset = ar.selectRandomRanking(requestDocument);
+			Boolean validAlgorithmFlag = false;
+			int numberOfAttempts = 0;
+			while(!validAlgorithmFlag&&numberOfAttempts<constants.getNumberOfRetries()){
+				try{
+					rdg = RecommenderFactory.getRandomRDG(con);
+					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
+					validAlgorithmFlag = true;
+					//If no related documents are present, redo the algorithm 
+				} catch(NoRelatedDocumentsException e){
+					validAlgorithmFlag = false;
+					numberOfAttempts++;
+				}
+			}
+			if(validAlgorithmFlag){
+				documentset.setRDG(rdg);
+				documentset = ar.selectRandomRanking(documentset);
+			}else{
+				throw new NoRelatedDocumentsException(requestDocument.getOriginalDocumentId(),requestDocument.getDocumentId());
+			}
 
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-
-			// if solr didn't found related articles
+			//if retry limit has been reached and no related documents still have been extracted
 		} catch (NoRelatedDocumentsException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-
-			// if there happened something else
+			// if something else happened there  
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
@@ -94,8 +113,8 @@ public class DocumentService {
 			documentset = con.logRecommendationDelivery(requestDocument.getDocumentId(), requestRecieved, rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
-				String url = "https://api.mr-dlib.org/dev/recommendations/" + doc.getRecommendationId()
-						+ "/original_url/&access_key=" + doc.getAccessKeyHash() + "&format=direct_url_forward";
+				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/" + doc.getRecommendationId()
+						+ "/original_url?access_key=" + doc.getAccessKeyHash() + "&format=direct_url_forward";
 				doc.setClickUrl(url);
 			}
 		} catch (Exception e) {
@@ -107,6 +126,7 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
+		System.out.println("Number of open connections is " + Integer.toString(DBConnection.numberOfOpenConnections));
 		return rootElement;
 	}
 

@@ -9,6 +9,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.mrdlib.recommendation.RelatedDocumentGenerator;
+
 /**
  * 
  * @author Millah
@@ -25,10 +27,13 @@ public class DocumentSet {
 	private String recommendationSetId;
 	private String suggestedLabel;
 	
-	private int numberOfSolrRows;
+	private int numberOfSolrRows;// number of items extracted from the database
 	private String rankingMethod;
 	private double percentageRankingValue;
+	private RelatedDocumentGenerator rdg;
+	private String recommendationApproach;
 
+	
 	public DocumentSet() {
 	}
 
@@ -38,7 +43,7 @@ public class DocumentSet {
 		this.suggestedLabel = suggestedLabel;
 	}
 
-	public DocumentSet sortDescForRankingValue(boolean onlySolr) {
+	public DocumentSet sortDescForRankingValue(boolean onlySolr) { 
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((b, a) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
@@ -224,6 +229,23 @@ public class DocumentSet {
 		this.suggestedLabel = suggestedLabel;
 	}
 
+	public String getRecommendationApproach() {
+		return this.recommendationApproach;
+	}
+	
+	public void setRecommendationApproach(String recommendationApproach) {
+		this.recommendationApproach = recommendationApproach;
+	}
+
+	public RelatedDocumentGenerator getRDG() {
+		return this.rdg;
+	}
+	
+	@XmlTransient
+	public void setRDG(RelatedDocumentGenerator rdg) {
+		this.rdg = rdg;
+		this.recommendationApproach = rdg.loggingInfo.get("name");
+	}
 	public void calculatePercentageRankingValue() {
 		int rankingValueCount = 0;
 		for(int i=0; i<this.getSize(); i++) {
