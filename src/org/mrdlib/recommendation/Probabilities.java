@@ -34,7 +34,15 @@ public class Probabilities {
 			this.RelatedDocumentsFromSolrWithKeyphrases = Integer
 					.parseInt(prop.getProperty("RelatedDocumentsFromSolrWithKeyphrases"));
 			this.StereotypeRecommender = Integer.parseInt(prop.getProperty("StereotypeRecommender"));
-
+			if((this.RandomDocumentRecommender + this.RandomDocumentRecommenderLanguageRestricted + this.StereotypeRecommender
+					+ this.RelatedDocumentsFromSolr + this.RelatedDocumentsFromSolrWithKeyphrases) != 10000){
+				this.RandomDocumentRecommender = 0;
+				this.RandomDocumentRecommenderLanguageRestricted = 0;
+				this.RelatedDocumentsFromSolr = 10000;
+				this.RelatedDocumentsFromSolrWithKeyphrases = 0;
+				this.StereotypeRecommender = 0;
+				System.out.println("Probabilities do not sum up to 100%: Defaulting to Backup algorithm");
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {

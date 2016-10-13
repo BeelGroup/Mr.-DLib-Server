@@ -217,7 +217,7 @@ public class DocumentSet {
 		DisplayDocument current;
 		for (int i = 0; i < this.documentList.size() -1; i++) {
 			current = this.documentList.get(i);
-			System.out.println(current.getTitle());
+			//System.out.println(current.getTitle());
 
 			// if the document is the same, do not add as duplicate
 			if (equalDocuments(document, current)) {

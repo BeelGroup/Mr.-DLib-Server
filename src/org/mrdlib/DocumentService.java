@@ -68,18 +68,22 @@ public class DocumentService {
 		DocumentSet documentset = null;
 
 		try {
-			// get the requested document from the databas
+			// get the requested document from the database
 			requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
 			// get all related documents from solr
 			Boolean validAlgorithmFlag = false;
 			int numberOfAttempts = 0;
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
-					rdg = RecommenderFactory.getRandomRDG(con);
+					rdg = RecommenderFactory.getRandomRDG(con,requestDocument);
+					System.out.println(rdg.loggingInfo.get("name"));
 					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
+					for(String key: rdg.loggingInfo.keySet()){
+						System.out.println(key + ":" + rdg.loggingInfo.get(key));
+					}
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
 				}

@@ -1893,4 +1893,26 @@ public class DBConnection {
 		}
 		return -1;
 	}
+
+	public String getAbstractDetails(DisplayDocument requestDocument) throws Exception {
+		// TODO Auto-generated method stub
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts() +
+				" WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
+		
+		try{
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if(rs.next()){
+				return rs.getString("lang");
+			}else{
+				return "NONE";
+			}
+		} catch(Exception e){
+			e.printStackTrace();
+			throw e;
+		}
+	
+	}
 }
