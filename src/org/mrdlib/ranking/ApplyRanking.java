@@ -69,8 +69,9 @@ public class ApplyRanking {
 		//CAN ONLY GET AROUND 60 recommendations maximum
 		
 		documentSet.setNumberOfSolrRows(solrRows);
-
-		documentSet.setDocumentList(documentSet.getDocumentList().subList(0, solrRows - 1));
+		
+		if (documentSet.getSize() > solrRows-1)
+			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, solrRows - 1));
 
 		switch (rndRank) {
 		case 1:
