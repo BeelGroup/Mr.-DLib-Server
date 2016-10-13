@@ -226,9 +226,9 @@ public class DocumentSet {
 				}
 				newDocument = false;
 			}
-		}/*
+		}
 		if (equalDocuments(document, this.requestedDocument))
-			newDocument = false;*/
+			newDocument = false;
 
 		if (newDocument)
 			this.documentList.add(document);

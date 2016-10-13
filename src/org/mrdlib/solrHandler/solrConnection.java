@@ -101,6 +101,7 @@ public class solrConnection {
 				throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
 			else {
 				relatedDocuments.setSuggested_label("Related Articles");
+				relatedDocuments.setRequestedDocument(document);
 				// for each document add it to documentSet
 				for (int i = 0; i < docs.size(); i++) {
 					// get the document
@@ -125,7 +126,6 @@ public class solrConnection {
 					relDocument.setFallbackUrl(fallback_url);
 					// add it to the collection
 					relatedDocuments.addDocument(relDocument);
-					relatedDocuments.setRequestedDocument(document);
 				}
 			}
 		} catch (Exception e) {
@@ -186,6 +186,7 @@ public class solrConnection {
 				throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
 			else {
 				relatedDocuments.setSuggested_label("Related Articles");
+				relatedDocuments.setRequestedDocument(document);
 				// for each document add it to documentSet
 				for (int i = 0; i < docs.size(); i++) {
 					// get the document
@@ -210,7 +211,6 @@ public class solrConnection {
 					relDocument.setFallbackUrl(fallback_url);
 					// add it to the collection
 					relatedDocuments.addDocument(relDocument);
-					relatedDocuments.setRequestedDocument(document);
 				}
 			}
 		} catch (Exception e) {

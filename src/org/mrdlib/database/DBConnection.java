@@ -1772,6 +1772,7 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 			DocumentSet documentSet = new DocumentSet();
 			documentSet.setSuggested_label("Related Articles");
+			documentSet.setRequestedDocument(requestDoc);
 
 			while (rs.next()) {
 				DisplayDocument relDocument = getDocumentBy(constants.getDocumentId(),
