@@ -30,7 +30,7 @@ public class Snippet {
 	public String getContent() {
 		return content;
 	}
-	
+
 	@XmlValue
 	public void setContent(String content) {
 		this.content = content;

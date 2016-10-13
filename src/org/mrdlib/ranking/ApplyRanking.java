@@ -29,7 +29,7 @@ public class ApplyRanking {
 		this.con = con;
 	
 		Random random = new Random();
-		rndSolrRows = random.nextInt(8)+1;
+		rndSolrRows = random.nextInt(7)+1;
 		rndWeight = random.nextInt(8)+1;
 		rndRank = random.nextInt(4)+1;
 		switch (rndSolrRows) {
@@ -47,10 +47,8 @@ public class ApplyRanking {
 			solrRows = 75; break;
 		case 7:
 			solrRows = 100; break;
-		case 8:
-			solrRows = 200; break;
 		default:
-			solrRows = 500;
+			solrRows = 200;
 		}
 		try {
 			scon = new solrConnection(con);
@@ -66,7 +64,6 @@ public class ApplyRanking {
 		
 		//documentset = scon.getRelatedDocumentSetByDocument(requestDocument, solrRows);
 
-		
 		if (documentSet.getSize() < solrRows)
 			solrRows = getNextTinierSolrRows(documentSet.getSize());  //CHANGED THIS HERE BECAUSE FOR STEREOTYPE RECOMMENDATIONS, WE 
 		//CAN ONLY GET AROUND 60 recommendations maximum
@@ -109,8 +106,8 @@ public class ApplyRanking {
 		default:
 			documentSet.sortDescForRankingValue(onlySolr); break;
 		}
-		if(documentSet.getSize() > 10)
-			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, 10));
+		if(documentSet.getSize() > 6)
+			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, 6));
 		
 		return documentSet.refreshRankBoth();
 	}
@@ -130,8 +127,6 @@ public class ApplyRanking {
 		else if (solrRows < 100)
 			solrRows = 75;
 		else if (solrRows < 200)
-			solrRows = 100;
-		else if (solrRows < 500)
 			solrRows = 200;
 
 		return solrRows;

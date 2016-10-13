@@ -39,24 +39,46 @@ public class DisplayDocument implements Serializable {
 	private double rankingValue;
 	private double solrScore;
 	private int bibId;
-
-
-
+	private String title;
+	private String authorNames;
+	private String publishedIn;
+	private int year;
+	
 	public DisplayDocument() {
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
-			Snippet snippet, String clickUrl, String fallbackUrl, String collectionShortName) {
+			String title, String authorNames, String publishedIn, int year, String format, String clickUrl, String fallbackUrl, String collectionShortName) {
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
 		this.suggestedRank = suggestedRank;
-		this.snippet = snippet;
+		this.title = title;
+		this.authorNames = authorNames;
+		this.publishedIn = publishedIn;
+		this.year = year;
+		this.snippet = new Snippet(title, authorNames, publishedIn, year, format);
 		this.clickUrl = clickUrl;
 		this.fallbackUrl = fallbackUrl;
 		this.collectionShortName = collectionShortName;
 	}
 	
+	public String getTitle() {
+		return title;
+	}
+
+	public String getAuthorNames() {
+		return authorNames;
+	}
+
+	public String getPublishedIn() {
+		return publishedIn;
+	}
+
+	public int getYear() {
+		return year;
+	}
+
 	public int getBibId() {
 		return bibId;
 	}

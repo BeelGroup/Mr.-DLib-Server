@@ -84,6 +84,7 @@ public class DocumentService {
 					numberOfAttempts++;
 				}
 			}
+
 			if(validAlgorithmFlag){
 				documentset.setRDG(rdg);
 				documentset = ar.selectRandomRanking(documentset);

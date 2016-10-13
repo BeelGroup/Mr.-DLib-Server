@@ -782,7 +782,7 @@ public class DBConnection {
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666,
-						new Snippet(title, authorNames, publishedIn, rs.getInt(constants.getYear()), "html_and_css"),
+						title, authorNames, publishedIn, rs.getInt(constants.getYear()), "html_and_css",
 						"", "", "");
 
 				// get the collection id and then the shortName of the
@@ -1066,8 +1066,8 @@ public class DBConnection {
 		int recommendationId = -1;
 		int bibliometricReRankingId = -1;
 		int recommendationAlgorithmId = -1;
-		if (document.getBibId() != -1)
-			bibliometricReRankingId = logReRankingBibliometrics(documentset, document.getBibId());
+		
+		bibliometricReRankingId = logReRankingBibliometrics(documentset, document.getBibId());
 
 		recommendationAlgorithmId = logRecommendationAlgorithm(documentset, document);
 
@@ -1082,7 +1082,7 @@ public class DBConnection {
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
-			if (document.getBibId() != -1 && bibliometricReRankingId != -1) {
+			if (bibliometricReRankingId != -1) {
 				stmt.setInt(1, bibliometricReRankingId);
 			} else
 				stmt.setNull(1, java.sql.Types.INTEGER);

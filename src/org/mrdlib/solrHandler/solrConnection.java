@@ -125,6 +125,7 @@ public class solrConnection {
 					relDocument.setFallbackUrl(fallback_url);
 					// add it to the collection
 					relatedDocuments.addDocument(relDocument);
+					relatedDocuments.setRequestedDocument(document);
 				}
 			}
 		} catch (Exception e) {
@@ -154,7 +155,6 @@ public class solrConnection {
 			return String.format(template, type);
 
 		}
-
 	}
 
 	public DocumentSet getRandomDocumentSet(DisplayDocument document, int delimitedRows, Boolean restrictLanguage,
@@ -210,13 +210,13 @@ public class solrConnection {
 					relDocument.setFallbackUrl(fallback_url);
 					// add it to the collection
 					relatedDocuments.addDocument(relDocument);
+					relatedDocuments.setRequestedDocument(document);
 				}
 			}
 		} catch (Exception e) {
 			System.out.println("test: " + e.getStackTrace());
 			throw e;
 		}
-
 		return relatedDocuments;
 	}
 }

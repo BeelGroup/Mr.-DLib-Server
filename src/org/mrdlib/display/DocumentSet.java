@@ -26,14 +26,23 @@ public class DocumentSet {
 
 	private String recommendationSetId;
 	private String suggestedLabel;
-	
+
 	private int numberOfSolrRows;// number of items extracted from the database
 	private String rankingMethod;
 	private double percentageRankingValue;
 	private RelatedDocumentGenerator rdg;
 	private String recommendationApproach;
+	private DisplayDocument requestedDocument;
 
-	
+	public DisplayDocument getRequestedDocument() {
+		return requestedDocument;
+	}
+
+	@XmlTransient
+	public void setRequestedDocument(DisplayDocument requestedDocument) {
+		this.requestedDocument = requestedDocument;
+	}
+
 	public DocumentSet() {
 	}
 
@@ -43,12 +52,12 @@ public class DocumentSet {
 		this.suggestedLabel = suggestedLabel;
 	}
 
-	public DocumentSet sortDescForRankingValue(boolean onlySolr) { 
+	public DocumentSet sortDescForRankingValue(boolean onlySolr) {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((b, a) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
 				.collect(Collectors.toList()));
-		if(onlySolr)
+		if (onlySolr)
 			this.rankingMethod = "only_solr_desc";
 		else
 			this.rankingMethod = "sort_only_based_on_bibliometrics_desc";
@@ -60,62 +69,66 @@ public class DocumentSet {
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((a, b) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
 				.collect(Collectors.toList()));
-		if(onlySolr)
+		if (onlySolr)
 			this.rankingMethod = "only_solr_asc";
 		else
 			this.rankingMethod = "sort_only_based_on_bibliometrics_asc";
 		return this;
 	}
-	
+
 	public DocumentSet sortDescForLogRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getSolrScore()*Math.log(a.getRankingValue())), b.getSolrScore()*Math.log(b.getRankingValue())))
+				.sorted((b, a) -> Double.compare((a.getSolrScore() * Math.log(a.getRankingValue())),
+						b.getSolrScore() * Math.log(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "log_text_relevance_times_bibliometrics_desc";
 		return this;
 	}
-	
+
 	public DocumentSet sortAscForLogRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getSolrScore()*Math.log(a.getRankingValue())), b.getSolrScore()*Math.log(b.getRankingValue())))
+				.sorted((a, b) -> Double.compare((a.getSolrScore() * Math.log(a.getRankingValue())),
+						b.getSolrScore() * Math.log(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "log_text_relevance_times_bibliometrics_asc";
 		return this;
 	}
-	
+
 	public DocumentSet sortDescForRootRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getSolrScore()*Math.sqrt(a.getRankingValue())), b.getSolrScore()*Math.sqrt(b.getRankingValue())))
+				.sorted((b, a) -> Double.compare((a.getSolrScore() * Math.sqrt(a.getRankingValue())),
+						b.getSolrScore() * Math.sqrt(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "root_text_relevance_times_bibliometrics_desc";
 		return this;
 	}
-	
+
 	public DocumentSet sortAscForRootRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getSolrScore()*Math.sqrt(a.getRankingValue())), b.getSolrScore()*Math.sqrt(b.getRankingValue())))
+				.sorted((a, b) -> Double.compare((a.getSolrScore() * Math.sqrt(a.getRankingValue())),
+						b.getSolrScore() * Math.sqrt(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "root_text_relevance_times_bibliometrics_asc";
 		return this;
 	}
-	
+
 	public DocumentSet sortDescForRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getSolrScore()*a.getRankingValue()), b.getSolrScore()*b.getRankingValue()))
+		this.setDocumentList(this.getDocumentList().stream().sorted((b, a) -> Double
+				.compare((a.getSolrScore() * a.getRankingValue()), b.getSolrScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "text_relevance_times_bibliometrics_desc";
 		return this;
 	}
-	
+
 	public DocumentSet sortAscForRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getSolrScore()*a.getRankingValue()), b.getSolrScore()*b.getRankingValue()))
+		this.setDocumentList(this.getDocumentList().stream().sorted((a, b) -> Double
+				.compare((a.getSolrScore() * a.getRankingValue()), b.getSolrScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "text_relevance_times_bibliometrics_asc";
 		return this;
@@ -126,49 +139,49 @@ public class DocumentSet {
 
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			current.setRealRank(i+1);
+			current.setRealRank(i + 1);
 		}
 		return this;
 	}
-	
+
 	public DocumentSet refreshRankSuggested() {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			current.setSuggestedRank(i+1);
+			current.setSuggestedRank(i + 1);
 		}
 		return this;
 	}
-	
+
 	public DocumentSet refreshRankBoth() {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			current.setRealRank(i+1);
-			current.setSuggestedRank(i+1);
+			current.setRealRank(i + 1);
+			current.setSuggestedRank(i + 1);
 		}
 		return this;
 	}
-	
+
 	public DocumentSet shuffle() {
 		Collections.shuffle(this.getDocumentList());
 		this.refreshRankSuggested();
 		return this;
-		
+
 	}
-	
+
 	private void avoidZeroRankingValue() {
 		DisplayDocument current = null;
-		for(int i = 0; i<this.getSize(); i++) {
+		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			if(current.getRankingValue() == -1)
+			if (current.getRankingValue() == -1)
 				current.setRankingValue(0);
-			current.setRankingValue(current.getRankingValue()+2);
+			current.setRankingValue(current.getRankingValue() + 2);
 		}
 	}
-	
+
 	public void setPercentageRankingValue(double percentageRankingValue) {
 		this.percentageRankingValue = percentageRankingValue;
 	}
@@ -199,7 +212,33 @@ public class DocumentSet {
 	}
 
 	public void addDocument(DisplayDocument document) {
-		documentList.add(document);
+		boolean newDocument = true;
+		DisplayDocument current;
+		for (int i = 0; i < this.documentList.size() -1; i++) {
+			current = this.documentList.get(i);
+			System.out.println(current.getTitle());
+
+			// if the document is the same, do not add as duplicate
+			if (equalDocuments(document, current)) {
+				if (Integer.parseInt(current.getDocumentId()) < Integer.parseInt(document.getDocumentId())) {
+					this.documentList.remove(i);
+					this.documentList.add(document);
+				}
+				newDocument = false;
+			}
+		}/*
+		if (equalDocuments(document, this.requestedDocument))
+			newDocument = false;*/
+
+		if (newDocument)
+			this.documentList.add(document);
+	}
+
+	private boolean equalDocuments(DisplayDocument document1, DisplayDocument document2) {
+		if (calculateTitleClean(document1.getTitle()).equals(calculateTitleClean(document2.getTitle())))
+			return true;
+		else
+			return false;
 	}
 
 	public List<DisplayDocument> getDocumentList() {
@@ -232,7 +271,7 @@ public class DocumentSet {
 	public String getRecommendationApproach() {
 		return this.recommendationApproach;
 	}
-	
+
 	public void setRecommendationApproach(String recommendationApproach) {
 		this.recommendationApproach = recommendationApproach;
 	}
@@ -240,19 +279,26 @@ public class DocumentSet {
 	public RelatedDocumentGenerator getRDG() {
 		return this.rdg;
 	}
-	
+
 	@XmlTransient
 	public void setRDG(RelatedDocumentGenerator rdg) {
 		this.rdg = rdg;
 		this.recommendationApproach = rdg.loggingInfo.get("name");
 	}
+
 	public void calculatePercentageRankingValue() {
 		int rankingValueCount = 0;
-		for(int i=0; i<this.getSize(); i++) {
-			if(this.getDocumentList().get(i).getRankingValue() != -1) {
+		for (int i = 0; i < this.getSize(); i++) {
+			if (this.getDocumentList().get(i).getRankingValue() != -1) {
 				rankingValueCount++;
 			}
 		}
-		this.percentageRankingValue = (double)rankingValueCount / this.getSize();
+		this.percentageRankingValue = (double) rankingValueCount / this.getSize();
+	}
+
+	private String calculateTitleClean(String s) {
+		s = s.replaceAll("[^a-zA-Z0-9]", "");
+		s = s.toLowerCase();
+		return s;
 	}
 }
