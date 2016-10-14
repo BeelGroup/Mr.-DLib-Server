@@ -87,19 +87,24 @@ public class solrConnection {
 			String similarityParams = getMltFL(logginginfo.get("cbf_text_fields"), logginginfo.get("typeOfGram"),
 					logginginfo.get("cbf_feature_count"));
 			query.setParam("mlt.fl", similarityParams);
+			query.setParam("mlt.df","2");
 		}
 		// set display params
 		query.setParam("fl", "score,id");
 		//System.out.println(query);
-
+		//System.out.println(timeNow);
 		try {
 			response = solr.query(query);
+			
 			SolrDocumentList docs = response.getResults();
-
+			System.out.println("Query Time: " + Integer.toString(response.getQTime()));
 			// no related documents found
-			if (docs.isEmpty())
+			if (docs.isEmpty()){
+				//System.out.println("In here");
 				throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
+			}
 			else {
+				long timeNow = System.currentTimeMillis();
 				relatedDocuments.setSuggested_label("Related Articles");
 				relatedDocuments.setRequestedDocument(document);
 				// for each document add it to documentSet
@@ -127,6 +132,8 @@ public class solrConnection {
 					// add it to the collection
 					relatedDocuments.addDocument(relDocument);
 				}
+				System.out.printf("Time for adding docs to list\t");
+				System.out.println(System.currentTimeMillis()-timeNow);
 			}
 		} catch (Exception e) {
 			System.out.println("test: " + e.getStackTrace());
@@ -144,7 +151,7 @@ public class solrConnection {
 		String tri = String.format(template, "trigrams");
 		switch (type) {
 		case "allgrams":
-			return uni + "," + bi + "," + "," + tri;
+			return uni + "," + bi + ","  + tri;
 		case "unibi":
 			return uni + "," + bi;
 		case "unitri":

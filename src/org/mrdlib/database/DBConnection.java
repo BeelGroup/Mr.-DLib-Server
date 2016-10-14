@@ -782,7 +782,11 @@ public class DBConnection {
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666, title, authorNames, publishedIn,
+<<<<<<< HEAD
 						rs.getInt(constants.getYear()), "", "", "");
+=======
+						rs.getInt(constants.getYear()), "html_and_css", "", "", "");
+>>>>>>> Performance speedups (hopefully)
 
 				// get the collection id and then the shortName of the
 				// collection
@@ -1815,75 +1819,75 @@ public class DBConnection {
 		// TODO Auto-generated method stub
 		Statement stmt = null;
 		ResultSet rs = null;
-		String template = "SELECT COUNT(*) AS count FROM " + constants.getKeyphrases() + " WHERE "
-				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getGramity() + "=?"
-				+ " AND " + constants.getSourceInKeyphrases() + "="
-				+ (source.equals("title") ? "'title'" : "'title_and_abstract'");
+
+		String query = "SELECT " + constants.getGramity() + ", count FROM " + constants.getKeyphrases() + " WHERE "
+				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getSourceInKeyphrases()
+				+ "=" + (source.equals("title") ? "'title'" : "'title_and_abstract'");
 		// System.out.println(template);
 		try {
 			stmt = con.createStatement();
+			System.out.println(query);
+			rs = stmt.executeQuery(query);
 			switch (gramity) {
 			case "allgrams": {
 				Integer[] values = { 0, 0, 0 };
-				for (int i = 1; i < 4; i++) {
-					String query = template.replace("?", Integer.toString(i));
-					rs = stmt.executeQuery(query);
-					if (rs.next())
-						values[i - 1] = rs.getInt("count");
-				}
-				// System.out.println(values);
+
+				while (rs.next())
+					values[rs.getInt("gramity")-1] = rs.getInt("count");
 				return Collections.min(Arrays.asList(values));
 			}
 			case "unibi": {
 				Integer[] values = { 0, 0 };
-				for (int i = 1; i < 3; i++) {
-					String query = template.replace("?", Integer.toString(i));
-					rs = stmt.executeQuery(query);
-					if (rs.next())
-						values[i - 1] = rs.getInt("count");
+				while (rs.next()) {
+					int gramityNumber = rs.getInt("gramity");
+					if (gramityNumber < 3)
+						values[gramityNumber-1] = rs.getInt("count");
 				}
 				return Collections.min(Arrays.asList(values));
 			}
 			case "bitri": {
 				Integer[] values = { 0, 0 };
-				for (int i = 2; i < 4; i++) {
-					String query = template.replace("?", Integer.toString(i));
-					rs = stmt.executeQuery(query);
-					if (rs.next())
-						values[i - 2] = rs.getInt("count");
+				while (rs.next()) {
+					int gramityNumber = rs.getInt("gramity");
+					if (gramityNumber > 1)
+						values[gramityNumber-2] = rs.getInt("count");
 				}
 				return Collections.min(Arrays.asList(values));
 			}
 			case "unitri": {
 				Integer[] values = { 0, 0 };
-				String query = template.replace("?", Integer.toString(1));
-				rs = stmt.executeQuery(query);
-				if (rs.next()) {
-					values[0] = rs.getInt("count");
+				while (rs.next()) {
+					int gramityNumber = rs.getInt("gramity");
+					switch(gramityNumber){
+					case 1: values[0]=rs.getInt("count");
+					case 3: values[1]=rs.getInt("count");
+					}
 				}
-				query = template.replace("?", Integer.toString(3));
-				rs = stmt.executeQuery(query);
-				if (rs.next())
-					values[1] = rs.getInt("count");
 				return Collections.min(Arrays.asList(values));
 			}
 			case "unigrams": {
-				String query = template.replace("?", Integer.toString(1));
-				rs = stmt.executeQuery(query);
-				if (rs.next())
-					return rs.getInt("count");
+				while (rs.next()) {
+					if (rs.getInt("gramity") == 1)
+						return rs.getInt("count");
+					else
+						return 0;
+				}
 			}
 			case "bigrams": {
-				String query = template.replace("?", Integer.toString(2));
-				rs = stmt.executeQuery(query);
-				if (rs.next())
-					return rs.getInt("count");
+				while (rs.next()) {
+					if (rs.getInt("gramity") == 2)
+						return rs.getInt("count");
+					else
+						return 0;
+				}
 			}
 			case "trigrams": {
-				String query = template.replace("?", Integer.toString(3));
-				rs = stmt.executeQuery(query);
-				if (rs.next())
-					return rs.getInt("count");
+				while (rs.next()) {
+					if (rs.getInt("gramity") == 3)
+						return rs.getInt("count");
+					else
+						return 0;
+				}
 			}
 			}
 		} catch (Exception e) {
