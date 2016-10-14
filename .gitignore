@@ -11,3 +11,4 @@
 resources/config.properties
 git status
 /build/
+*/WEB-INF/*.jar

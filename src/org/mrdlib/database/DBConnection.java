@@ -782,11 +782,8 @@ public class DBConnection {
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666, title, authorNames, publishedIn,
-<<<<<<< HEAD
 						rs.getInt(constants.getYear()), "", "", "");
-=======
-						rs.getInt(constants.getYear()), "html_and_css", "", "", "");
->>>>>>> Performance speedups (hopefully)
+
 
 				// get the collection id and then the shortName of the
 				// collection
