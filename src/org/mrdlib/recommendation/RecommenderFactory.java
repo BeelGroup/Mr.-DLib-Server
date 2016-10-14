@@ -66,7 +66,7 @@ public class RecommenderFactory {
 							rdg = new RelatedDocumentsFromSolr(con);
 						else{
 							String language = requestDocument.getLanguage();		//Validity of keyphrase algo depends on language. So check language
-							if(!language.equals("en"))
+							if(language == null || !language.equals("en"))
 								rdg = getFallback(con);			//If not english, use fallback.
 							else{
 								//Check presence and language of abstract
