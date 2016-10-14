@@ -42,7 +42,7 @@ import org.mrdlib.tools.XMLDocument;
  *
  */
 public class DBConnection {
-	
+
 	public static int numberOfOpenConnections = 0;
 	private Connection con = null;
 	private Constants constants = new Constants();
@@ -86,7 +86,7 @@ public class DBConnection {
 			} catch (SQLException e) {
 				throw e;
 			}
-			numberOfOpenConnections ++;
+			numberOfOpenConnections++;
 		}
 	}
 
@@ -123,7 +123,7 @@ public class DBConnection {
 
 	public void close() throws SQLException {
 		con.close();
-		numberOfOpenConnections --;
+		numberOfOpenConnections--;
 	}
 
 	/**
@@ -781,9 +781,8 @@ public class DBConnection {
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
-						rs.getString(constants.getIdOriginal()), 666,
-						title, authorNames, publishedIn, rs.getInt(constants.getYear()), "html_and_css",
-						"", "", "");
+						rs.getString(constants.getIdOriginal()), 666, title, authorNames, publishedIn,
+						rs.getInt(constants.getYear()), "", "", "");
 
 				// get the collection id and then the shortName of the
 				// collection
@@ -1066,7 +1065,7 @@ public class DBConnection {
 		int recommendationId = -1;
 		int bibliometricReRankingId = -1;
 		int recommendationAlgorithmId = -1;
-		
+
 		bibliometricReRankingId = logReRankingBibliometrics(documentset, document.getBibId());
 
 		recommendationAlgorithmId = logRecommendationAlgorithm(documentset, document);
@@ -1122,7 +1121,7 @@ public class DBConnection {
 				}
 			}
 			query = query.replaceAll(" AND $", "");
-			//System.out.println(query);
+			// System.out.println(query);
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 
@@ -1141,7 +1140,7 @@ public class DBConnection {
 				columns = columns.replaceAll(", $", " ");
 				values = values.replaceAll(", $", " ");
 				query += (columns + ") VALUES(" + values + ")");
-				//System.out.println(query);
+				// System.out.println(query);
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 				rs = stmt.getGeneratedKeys();
@@ -1820,7 +1819,7 @@ public class DBConnection {
 				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getGramity() + "=?"
 				+ " AND " + constants.getSourceInKeyphrases() + "="
 				+ (source.equals("title") ? "'title'" : "'title_and_abstract'");
-		//System.out.println(template);
+		// System.out.println(template);
 		try {
 			stmt = con.createStatement();
 			switch (gramity) {
@@ -1832,7 +1831,7 @@ public class DBConnection {
 					if (rs.next())
 						values[i - 1] = rs.getInt("count");
 				}
-				//System.out.println(values);
+				// System.out.println(values);
 				return Collections.min(Arrays.asList(values));
 			}
 			case "unibi": {
@@ -1898,21 +1897,21 @@ public class DBConnection {
 		// TODO Auto-generated method stub
 		Statement stmt = null;
 		ResultSet rs = null;
-		String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts() +
-				" WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
-		
-		try{
+		String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts()
+				+ " WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
+
+		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
-			if(rs.next()){
+			if (rs.next()) {
 				return rs.getString("lang");
-			}else{
+			} else {
 				return "NONE";
 			}
-		} catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
-	
+
 	}
 }

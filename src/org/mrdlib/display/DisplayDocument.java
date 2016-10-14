@@ -1,6 +1,8 @@
 package org.mrdlib.display;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -24,7 +26,7 @@ public class DisplayDocument implements Serializable {
 	private String accessKeyHash;
 	
 	// elements
-	private Snippet snippet;
+	private List<Snippet> snippetList = new ArrayList<Snippet>();
 	private String clickUrl;
 	private String fallbackUrl;
 	private String language;
@@ -48,7 +50,7 @@ public class DisplayDocument implements Serializable {
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
-			String title, String authorNames, String publishedIn, int year, String format, String clickUrl, String fallbackUrl, String collectionShortName) {
+			String title, String authorNames, String publishedIn, int year, String clickUrl, String fallbackUrl, String collectionShortName) {
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
@@ -57,7 +59,9 @@ public class DisplayDocument implements Serializable {
 		this.authorNames = authorNames;
 		this.publishedIn = publishedIn;
 		this.year = year;
-		this.snippet = new Snippet(title, authorNames, publishedIn, year, format);
+		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_plain"));
+		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_fully_formatted"));
+		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_and_css"));
 		this.clickUrl = clickUrl;
 		this.fallbackUrl = fallbackUrl;
 		this.collectionShortName = collectionShortName;
@@ -164,13 +168,13 @@ public class DisplayDocument implements Serializable {
 		this.suggestedRank = suggestedRank;
 	}
 
-	public Snippet getSnippet() {
-		return snippet;
+	public List<Snippet> getSnippetList() {
+		return snippetList;
 	}
 
 	@XmlElement(name = "snippet")
-	public void setSnippet(Snippet snippet) {
-		this.snippet = snippet;
+	public void setSnippetList(List<Snippet> snippetList) {
+		this.snippetList = snippetList;
 	}
 
 	public String getClickUrl() {
@@ -180,6 +184,8 @@ public class DisplayDocument implements Serializable {
 	@XmlElement(name = "click_url")
 	public void setClickUrl(String clickUrl) {
 		this.clickUrl = clickUrl;
+		for(int i=0; i< snippetList.size(); i++)
+			this.snippetList.get(i).setClick_url(clickUrl);
 	}
 
 	public String getFallbackUrl() {
