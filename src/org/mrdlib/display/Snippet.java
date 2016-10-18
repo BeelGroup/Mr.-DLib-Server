@@ -39,24 +39,26 @@ public class Snippet implements Serializable {
 
 	// put it in XML format
 	private String formatContentHtmlCss(String title, String authorNames, String publishedIn, int year) {
-		return "<span class='mdl-title'>" + title + "</span>. <span class='mdl-authors'>" + authorNames
+		return "<![CDATA[<span class='mdl-title'>" + title + "</span>. <span class='mdl-authors'>" + authorNames
 				+ "</span>. <span class='mdl-journal'>" + publishedIn + "</span>. <span class='mdl-year'>" + year
-				+ "</span>";
+				+ "</span>]]>";
 	}
 
 	private String formatContentHtmlFully(String title, String authorNames, String publishedIn, int year) {
-		return "<a href=" + clickUrl + "><font color='#000000' size='3' face='Arial, Helvetica, sans-serif'>" + title
+		return "<![CDATA[<a href='" + clickUrl + "'><font color='#000000' size='3' face='Arial, Helvetica, sans-serif'>" + title
 				+ ".</font></a><font color='#000000' size='3' face='Arial, Helvetica, sans-serif'>" + authorNames
-				+ ". <i>" + publishedIn + "</i>. " + year + ".</font>";
+				+ ". <i>" + publishedIn + "</i>. " + year + ".</font>]]>";
 	}
 
 	private String formatContentHtmlPlain(String title, String authorNames, String publishedIn, int year) {
-		return "<a href=" + clickUrl + ">" + title + "</a>. " + authorNames + ". " + publishedIn + ".  " + year + ".";
+		return "<![CDATA[<a href='" + clickUrl + "'>" + title + "</a>. " + authorNames + ". " + publishedIn + ".  " + year + ".]]>";
 	}
 
 	@XmlTransient
-	public void setClick_url(String clickUrl) {
+	public void setClickUrl(String clickUrl) {
 		this.clickUrl = clickUrl;
+		if(content.contains("<a href="))
+			this.content = content.substring(0, content.lastIndexOf("<a href='")+9) + clickUrl + content.substring(content.lastIndexOf("<a href='")+9);
 	}
 
 	public String getContent() {

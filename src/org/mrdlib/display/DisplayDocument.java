@@ -185,7 +185,7 @@ public class DisplayDocument implements Serializable {
 	public void setClickUrl(String clickUrl) {
 		this.clickUrl = clickUrl;
 		for(int i=0; i< snippetList.size(); i++)
-			this.snippetList.get(i).setClick_url(clickUrl);
+			this.snippetList.get(i).setClickUrl(clickUrl);
 	}
 
 	public String getFallbackUrl() {
