@@ -1,15 +1,17 @@
 package org.mrdlib.recommendation;
 
+import java.util.HashMap;
+
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
 import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 import org.mrdlib.solrHandler.solrConnection;
 
-public class RelatedDocumentsFromSolr implements RelatedDocumentGenerator {
+public class RelatedDocumentsFromSolr extends RelatedDocumentGenerator {
 	DBConnection con = null;
 	solrConnection scon = null;
-
+	//public HashMap<String, String> loggingInfo = new HashMap<String, String>();
 	public RelatedDocumentsFromSolr(DBConnection con) throws Exception {
 
 		try {

@@ -1,13 +1,16 @@
 package org.mrdlib.recommendation;
 
+import java.util.HashMap;
+
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
 
-public class StereotypeRecommender implements RelatedDocumentGenerator {
+public class StereotypeRecommender extends RelatedDocumentGenerator {
 
 	private DBConnection con = null;
-
+	//public HashMap<String, String> loggingInfo = new HashMap<String, String>();
+	
 	public StereotypeRecommender(DBConnection con) throws Exception {
 		try {
 			this.con = con;

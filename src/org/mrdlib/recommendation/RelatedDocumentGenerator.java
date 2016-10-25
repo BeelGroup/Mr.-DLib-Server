@@ -12,9 +12,9 @@ import org.mrdlib.display.DocumentSet;
  * @author sid
  *
  */
-public interface RelatedDocumentGenerator {
+public abstract class RelatedDocumentGenerator {
 
-	public static HashMap<String, String> loggingInfo = new HashMap<String, String>();
+	public HashMap<String, String> loggingInfo = new HashMap<String, String>();
 
 	/**
 	 * Method to get related documents similar to a given input document.
@@ -26,7 +26,7 @@ public interface RelatedDocumentGenerator {
 	 * @return A set of related Documents
 	 * @throws Exception
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception;
+	public abstract DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception;
 
 	/**
 	 * Method to get a chosen number of related documents similar to a given
@@ -39,5 +39,5 @@ public interface RelatedDocumentGenerator {
 	 *            number of documents to be contained in the DocumentSet object
 	 * @return A set of numberOfRelatedDocs DisplayDocuments
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception;
+	public abstract DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception;
 }

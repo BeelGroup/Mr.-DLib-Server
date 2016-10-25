@@ -34,6 +34,7 @@ import org.mrdlib.tools.Abstract;
 import org.mrdlib.tools.Person;
 import org.mrdlib.tools.XMLDocument;
 
+
 /**
  * 
  * @author Millah
@@ -784,7 +785,6 @@ public class DBConnection {
 						rs.getString(constants.getIdOriginal()), 666, title, authorNames, publishedIn,
 						rs.getInt(constants.getYear()), "", "", "");
 
-
 				// get the collection id and then the shortName of the
 				// collection
 				document.setLanguage(rs.getString(constants.getLanguage()));
@@ -801,8 +801,8 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if(stmt!=null) stmt.close();
+				if(rs!=null) rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -1117,7 +1117,7 @@ public class DBConnection {
 			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
 			for (String key : recommenderDetails.keySet()) {
-				if (key != "name") {
+				if (key != "name" && key!="typeOfGram") {
 					query += (key + "='" + recommenderDetails.get(key) + "' AND ");
 				}
 			}
@@ -1866,28 +1866,26 @@ public class DBConnection {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 1)
 						return rs.getInt("count");
-					else
-						return 0;
 				}
+				return 0;
 			}
 			case "bigrams": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 2)
 						return rs.getInt("count");
-					else
-						return 0;
+
 				}
+				return 0;
 			}
 			case "trigrams": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 3)
 						return rs.getInt("count");
-					else
-						return 0;
 				}
+				return 0;
 			}
 			}
-		} catch (Exception e) {
+		}catch (Exception e) {
 			System.out.println(e);
 			throw e;
 		}
