@@ -22,6 +22,7 @@ public class ApplyRanking {
 	private int rndWeight;
 	private int rndRank;
 	private int solrRows;
+	private int rndDisplayNumber;
 
 	
 	public ApplyRanking(DBConnection con) {
@@ -60,6 +61,7 @@ public class ApplyRanking {
 	public DocumentSet selectRandomRanking(DocumentSet documentSet) throws Exception {
 		boolean onlySolr = false;
 		Random random = new Random();
+		rndDisplayNumber = random.nextInt(15)+1;
 
 		
 		//documentset = scon.getRelatedDocumentSetByDocument(requestDocument, solrRows);
@@ -108,7 +110,7 @@ public class ApplyRanking {
 			documentSet.sortDescForRankingValue(onlySolr); break;
 		}
 		if(documentSet.getSize() > 6)
-			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, 6));
+			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, rndDisplayNumber));
 		
 		return documentSet.refreshRankBoth();
 	}

@@ -215,7 +215,7 @@ public class DocumentSet {
 	public void addDocument(DisplayDocument document) {
 		boolean newDocument = true;
 		DisplayDocument current;
-		for (int i = 0; i < this.documentList.size() -1; i++) {
+		for (int i = 0; i < this.documentList.size(); i++) {
 			current = this.documentList.get(i);
 			//System.out.println(current.getTitle());
 
