@@ -28,12 +28,10 @@ import org.mrdlib.DocumentData;
 import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
 import org.mrdlib.display.RootElement;
-import org.mrdlib.display.Snippet;
 import org.mrdlib.display.StatusReport;
 import org.mrdlib.tools.Abstract;
 import org.mrdlib.tools.Person;
 import org.mrdlib.tools.XMLDocument;
-
 
 /**
  * 
@@ -194,8 +192,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -326,7 +326,8 @@ public class DBConnection {
 		} finally {
 			try {
 				stateAuthorExists.close();
-				rs.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -364,7 +365,8 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -402,8 +404,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -510,8 +514,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				System.out.println(document.getDocumentPath() + ": " + document.getId());
 				throw e;
@@ -625,7 +631,8 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -664,8 +671,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -700,8 +709,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -801,8 +812,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				if(stmt!=null) stmt.close();
-				if(rs!=null) rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -833,8 +846,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -883,8 +898,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -920,7 +937,8 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -969,7 +987,8 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1053,7 +1072,8 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1098,7 +1118,10 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -1108,7 +1131,6 @@ public class DBConnection {
 
 	@SuppressWarnings("resource")
 	private int logRecommendationAlgorithm(DocumentSet documentset, DisplayDocument document) throws Exception {
-		// TODO Auto-generated method stub
 		Statement stmt = null;
 		ResultSet rs = null;
 		HashMap<String, String> recommenderDetails = documentset.getRDG().loggingInfo;
@@ -1117,7 +1139,7 @@ public class DBConnection {
 			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
 			for (String key : recommenderDetails.keySet()) {
-				if (key != "name" && key!="typeOfGram") {
+				if (key != "name" && key != "typeOfGram") {
 					query += (key + "='" + recommenderDetails.get(key) + "' AND ");
 				}
 			}
@@ -1194,7 +1216,8 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -1251,7 +1274,8 @@ public class DBConnection {
 			throw e;
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				throw e;
 			}
@@ -1474,7 +1498,8 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1482,7 +1507,8 @@ public class DBConnection {
 		return document;
 	}
 
-	public int getRankingValueAuthor(String authorId, String metric, String dataType, String dataSource) {
+	public int getRankingValueAuthor(String authorId, String metric, String dataType, String dataSource)
+			throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int metricValue = -1;
@@ -1505,7 +1531,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1542,8 +1571,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1581,8 +1612,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1621,8 +1654,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1657,8 +1692,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1694,8 +1731,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1721,7 +1760,8 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
+				if (stmt != null)
+					stmt.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1746,8 +1786,10 @@ public class DBConnection {
 			e.printStackTrace();
 		} finally {
 			try {
-				stmt.close();
-				rs.close();
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -1757,7 +1799,6 @@ public class DBConnection {
 
 	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs)
 			throws Exception {
-		// TODO Auto-generated method stub
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "";
@@ -1813,7 +1854,6 @@ public class DBConnection {
 	}
 
 	public int getMinimumNumberOfKeyphrases(String documentId, String gramity, String source) throws Exception {
-		// TODO Auto-generated method stub
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -1830,7 +1870,7 @@ public class DBConnection {
 				Integer[] values = { 0, 0, 0 };
 
 				while (rs.next())
-					values[rs.getInt("gramity")-1] = rs.getInt("count");
+					values[rs.getInt("gramity") - 1] = rs.getInt("count");
 				return Collections.min(Arrays.asList(values));
 			}
 			case "unibi": {
@@ -1838,7 +1878,7 @@ public class DBConnection {
 				while (rs.next()) {
 					int gramityNumber = rs.getInt("gramity");
 					if (gramityNumber < 3)
-						values[gramityNumber-1] = rs.getInt("count");
+						values[gramityNumber - 1] = rs.getInt("count");
 				}
 				return Collections.min(Arrays.asList(values));
 			}
@@ -1847,7 +1887,7 @@ public class DBConnection {
 				while (rs.next()) {
 					int gramityNumber = rs.getInt("gramity");
 					if (gramityNumber > 1)
-						values[gramityNumber-2] = rs.getInt("count");
+						values[gramityNumber - 2] = rs.getInt("count");
 				}
 				return Collections.min(Arrays.asList(values));
 			}
@@ -1855,9 +1895,11 @@ public class DBConnection {
 				Integer[] values = { 0, 0 };
 				while (rs.next()) {
 					int gramityNumber = rs.getInt("gramity");
-					switch(gramityNumber){
-					case 1: values[0]=rs.getInt("count");
-					case 3: values[1]=rs.getInt("count");
+					switch (gramityNumber) {
+					case 1:
+						values[0] = rs.getInt("count");
+					case 3:
+						values[1] = rs.getInt("count");
 					}
 				}
 				return Collections.min(Arrays.asList(values));
@@ -1885,15 +1927,23 @@ public class DBConnection {
 				return 0;
 			}
 			}
-		}catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println(e);
 			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
 		return -1;
 	}
 
 	public String getAbstractDetails(DisplayDocument requestDocument) throws Exception {
-		// TODO Auto-generated method stub
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts()
@@ -1910,6 +1960,15 @@ public class DBConnection {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
 
 	}
