@@ -1129,7 +1129,6 @@ public class DBConnection {
 		return recommendationId;
 	}
 
-	@SuppressWarnings("resource")
 	private int logRecommendationAlgorithm(DocumentSet documentset, DisplayDocument document) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1151,6 +1150,8 @@ public class DBConnection {
 			if (rs.next()) {
 				recommendationAlgorithmId = rs.getInt(constants.getRecommendationAlgorithmId());
 			} else {
+				if(stmt!=null) stmt.close();
+				if(rs!=null) rs.close();
 				query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
 				String columns = "";
 				String values = "";
@@ -1820,19 +1821,13 @@ public class DBConnection {
 						rs.getString(constants.getDocumentIdinStereotypeRecommendations()));
 				relDocument.setSuggestedRank(rs.getRow());
 				String fallback_url = "";
+				
 				// HARDCODED FOR COMPATABILITY
 				relDocument.setSolrScore(1.00);
 				if (relDocument.getCollectionShortName().equals(constants.getGesis()))
 					fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 
-				// url = "http://api.mr-dlib.org/trial/recommendations/" +
-				// relDocument.getRecommendationId() +
-				// "/original_url/&access_key=" +"hash"
-				// +"&format=direct_url_forward";
-
-				// relDocument.setClickUrl(url);
 				relDocument.setFallbackUrl(fallback_url);
-				// add it to the collection
 				documentSet.addDocument(relDocument);
 
 			}

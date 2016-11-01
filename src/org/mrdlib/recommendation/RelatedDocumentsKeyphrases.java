@@ -7,8 +7,19 @@ import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
 import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 
-public class RelatedDocumentsFromSolrWithKeyphrases extends RelatedDocumentsFromSolr {
-	public RelatedDocumentsFromSolrWithKeyphrases(DBConnection con) throws Exception {
+public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
+	/**
+	 * Creates a new instance of RelatedDocumentsKeyphrases which exposes
+	 * methods to use find related articles using the similarity in keyphrases
+	 * Also chooses the type of keyphrase approach. Unigrams, bigrams, or
+	 * trigrams? Should it use the abstract?
+	 * 
+	 * @param con
+	 *            DBConnection instance, not null, to access database methods
+	 * @throws Exception
+	 *             if solrConnection cannot be instantiated.
+	 */
+	public RelatedDocumentsKeyphrases(DBConnection con) throws Exception {
 		super(con);
 		String name = "";
 		Random random = new Random();
@@ -44,6 +55,11 @@ public class RelatedDocumentsFromSolrWithKeyphrases extends RelatedDocumentsFrom
 	}
 
 	@Override
+	/**
+	 * Picks the number of keyphrases to use depending on how many there are for
+	 * the document, then queries Solr for the related documents
+	 * 
+	 */
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
 		try {
 			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(), loggingInfo.get("typeOfGram"),
@@ -51,9 +67,9 @@ public class RelatedDocumentsFromSolrWithKeyphrases extends RelatedDocumentsFrom
 			if (maxNumber < 1)
 				throw new NoRelatedDocumentsException(requestDoc.getOriginalDocumentId(), requestDoc.getDocumentId());
 			Random random = new Random();
-			//System.out.println(loggingInfo.get("typeOfGram"));
-			//System.out.println(maxNumber);
-			int cbf_feature_count = maxNumber==1?1:random.nextInt(maxNumber - 1) + 1;
+			// System.out.println(loggingInfo.get("typeOfGram"));
+			// System.out.println(maxNumber);
+			int cbf_feature_count = maxNumber == 1 ? 1 : random.nextInt(maxNumber - 1) + 1;
 			loggingInfo.replace("cbf_feature_count", Integer.toString(cbf_feature_count));
 			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, loggingInfo);
 		} catch (NoRelatedDocumentsException f) {

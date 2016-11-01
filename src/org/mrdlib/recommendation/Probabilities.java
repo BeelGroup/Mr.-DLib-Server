@@ -10,13 +10,15 @@ public class Probabilities {
 	private Constants constants = new Constants();
 	private String path = constants.getProbabilitiesPath();
 
-	// db connection properties
-	private int RandomDocumentRecommender;
-	private int RandomDocumentRecommenderLanguageRestricted;
-	private int RelatedDocumentsFromSolr;
-	private int RelatedDocumentsFromSolrWithKeyphrases;
-	private int StereotypeRecommender;
+	// probabilities for recommenders
+	private int randomDocumentRecommender;
+	private int randomDocumentRecommenderLanguageRestricted;
+	private int relatedDocumentsFromSolr;
+	private int relatedDocumentsFromSolrWithKeyphrases;
+	private int stereotypeRecommender;
 
+	// the constructor loads the probablities from the probabilities.properties
+	// file
 	public Probabilities() {
 
 		Properties prop = new Properties();
@@ -27,20 +29,21 @@ public class Probabilities {
 			prop.load(input);
 
 			// get the probability values
-			this.RandomDocumentRecommender = Integer.parseInt(prop.getProperty("RandomDocumentRecommender"));
-			this.RandomDocumentRecommenderLanguageRestricted = Integer
+			this.randomDocumentRecommender = Integer.parseInt(prop.getProperty("RandomDocumentRecommender"));
+			this.randomDocumentRecommenderLanguageRestricted = Integer
 					.parseInt(prop.getProperty("RandomDocumentRecommenderLanguageRestricted"));
-			this.RelatedDocumentsFromSolr = Integer.parseInt(prop.getProperty("RelatedDocumentsFromSolr"));
-			this.RelatedDocumentsFromSolrWithKeyphrases = Integer
+			this.relatedDocumentsFromSolr = Integer.parseInt(prop.getProperty("RelatedDocumentsFromSolr"));
+			this.relatedDocumentsFromSolrWithKeyphrases = Integer
 					.parseInt(prop.getProperty("RelatedDocumentsFromSolrWithKeyphrases"));
-			this.StereotypeRecommender = Integer.parseInt(prop.getProperty("StereotypeRecommender"));
-			if((this.RandomDocumentRecommender + this.RandomDocumentRecommenderLanguageRestricted + this.StereotypeRecommender
-					+ this.RelatedDocumentsFromSolr + this.RelatedDocumentsFromSolrWithKeyphrases) != 10000){
-				this.RandomDocumentRecommender = 0;
-				this.RandomDocumentRecommenderLanguageRestricted = 0;
-				this.RelatedDocumentsFromSolr = 10000;
-				this.RelatedDocumentsFromSolrWithKeyphrases = 0;
-				this.StereotypeRecommender = 0;
+			this.stereotypeRecommender = Integer.parseInt(prop.getProperty("StereotypeRecommender"));
+			if ((this.randomDocumentRecommender + this.randomDocumentRecommenderLanguageRestricted
+					+ this.stereotypeRecommender + this.relatedDocumentsFromSolr
+					+ this.relatedDocumentsFromSolrWithKeyphrases) != 10000) {
+				this.randomDocumentRecommender = 0;
+				this.randomDocumentRecommenderLanguageRestricted = 0;
+				this.relatedDocumentsFromSolr = 10000;
+				this.relatedDocumentsFromSolrWithKeyphrases = 0;
+				this.stereotypeRecommender = 0;
 				System.out.println("Probabilities do not sum up to 100%: Defaulting to Backup algorithm");
 			}
 		} catch (Exception ex) {
@@ -56,23 +59,38 @@ public class Probabilities {
 		}
 	}
 
+	/*
+	 * Getter for probability of Random Document Recommender
+	 */
 	public int getRandomDocumentRecommender() {
-		return RandomDocumentRecommender;
+		return randomDocumentRecommender;
 	}
 
+	/*
+	 * Getter for probability of Random Document Recommender Language Restricted
+	 */
 	public int getRandomDocumentRecommenderLanguageRestricted() {
-		return RandomDocumentRecommenderLanguageRestricted;
+		return randomDocumentRecommenderLanguageRestricted;
 	}
 
+	/*
+	 * Getter for probability of LuceneMLT
+	 */
 	public int getRelatedDocumentsFromSolr() {
-		return RelatedDocumentsFromSolr;
+		return relatedDocumentsFromSolr;
 	}
 
+	/*
+	 * Getter for probability of Keyphrase Approach
+	 */
 	public int getRelatedDocumentsFromSolrWithKeyphrases() {
-		return RelatedDocumentsFromSolrWithKeyphrases;
+		return relatedDocumentsFromSolrWithKeyphrases;
 	}
 
+	/*
+	 * Getter for probability of Stereotype Recommender
+	 */
 	public int getStereotypeRecommender() {
-		return StereotypeRecommender;
+		return stereotypeRecommender;
 	}
 }

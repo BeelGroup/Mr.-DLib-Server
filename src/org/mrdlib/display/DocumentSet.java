@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.mrdlib.recommendation.RelatedDocumentGenerator;
+import org.mrdlib.recommendation.RelatedDocuments;
 
 /**
  * 
@@ -30,7 +30,7 @@ public class DocumentSet {
 	private int numberOfSolrRows;// number of items extracted from the database
 	private String rankingMethod;
 	private double percentageRankingValue;
-	private RelatedDocumentGenerator rdg;
+	private RelatedDocuments rdg;
 	private String recommendationApproach;
 	private DisplayDocument requestedDocument;
 
@@ -277,12 +277,12 @@ public class DocumentSet {
 		this.recommendationApproach = recommendationApproach;
 	}
 
-	public RelatedDocumentGenerator getRDG() {
+	public RelatedDocuments getRDG() {
 		return this.rdg;
 	}
 
 	@XmlTransient
-	public void setRDG(RelatedDocumentGenerator rdg) {
+	public void setRDG(RelatedDocuments rdg) {
 		this.rdg = rdg;
 		this.recommendationApproach = rdg.loggingInfo.get("name");
 	}

@@ -7,9 +7,9 @@ import org.mrdlib.database.DBConnection;
 import org.mrdlib.display.DisplayDocument;
 
 public class RecommenderFactory {
-	static RelatedDocumentGenerator rdg;
+	static RelatedDocuments rdg;
 	
-	public static RelatedDocumentGenerator  getRandomRDG(DBConnection con) throws Exception{
+	public static RelatedDocuments  getRandomRDG(DBConnection con) throws Exception{
 		Random random = new Random();
 		Probabilities probs = new Probabilities();
 		int cumulative = probs.getRandomDocumentRecommender();
@@ -23,11 +23,11 @@ public class RecommenderFactory {
 			else{
 				cumulative += probs.getRelatedDocumentsFromSolr();
 				if (randomRecommendationApproach < cumulative)
-					rdg = new RelatedDocumentsFromSolr(con);
+					rdg = new RelatedDocumentsMLT(con);
 				else{
 					cumulative += probs.getRelatedDocumentsFromSolrWithKeyphrases();
 					if(randomRecommendationApproach < cumulative)
-						rdg = new RelatedDocumentsFromSolrWithKeyphrases(con);
+						rdg = new RelatedDocumentsKeyphrases(con);
 					else rdg = new StereotypeRecommender(con);
 				}
 			}
@@ -37,14 +37,14 @@ public class RecommenderFactory {
 		return rdg;
 	}
 	
-	public static RelatedDocumentGenerator getFallback(DBConnection con) throws Exception{
-		RelatedDocumentGenerator rdg = new RelatedDocumentsFromSolr(con);
+	public static RelatedDocuments getFallback(DBConnection con) throws Exception{
+		RelatedDocuments rdg = new RelatedDocumentsMLT(con);
 		rdg.loggingInfo.replace("recommendation_class", "fallback");
 		rdg.loggingInfo.replace("name", "fallback");
 		return rdg;
 	}
 
-	public static RelatedDocumentGenerator getRandomRDG(DBConnection con, DisplayDocument requestDocument) {
+	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument) {
 		Random random = new Random();
 		Probabilities probs = new Probabilities();
 		int cumulative = probs.getRandomDocumentRecommender();
@@ -63,14 +63,14 @@ public class RecommenderFactory {
 					else{
 						cumulative += probs.getRelatedDocumentsFromSolr();	//CASE: metadata based from SOLR
 						if(randomRecommendationApproach < cumulative)
-							rdg = new RelatedDocumentsFromSolr(con);
+							rdg = new RelatedDocumentsMLT(con);
 						else{
 							String language = requestDocument.getLanguage();		//Validity of keyphrase algo depends on language. So check language
 							if(language == null || !language.equals("en"))
 								rdg = getFallback(con);			//If not english, use fallback.
 							else{
 								//Check presence and language of abstract
-								rdg = new RelatedDocumentsFromSolrWithKeyphrases(con);
+								rdg = new RelatedDocumentsKeyphrases(con);
 								String abstLang = con.getAbstractDetails(requestDocument);
 								if(!abstLang.equals("en"))
 									//if not set loggingInfo.type to title only

@@ -16,7 +16,7 @@ import org.mrdlib.display.StatusReport;
 import org.mrdlib.display.StatusReportSet;
 import org.mrdlib.ranking.ApplyRanking;
 import org.mrdlib.recommendation.RecommenderFactory;
-import org.mrdlib.recommendation.RelatedDocumentGenerator;
+import org.mrdlib.recommendation.RelatedDocuments;
 import org.mrdlib.solrHandler.NoRelatedDocumentsException;
 
 /**
@@ -37,7 +37,7 @@ public class DocumentService {
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
 	private ApplyRanking ar = null;
-	private RelatedDocumentGenerator rdg = null;
+	private RelatedDocuments rdg = null;
 
 	public DocumentService() {
 		requestRecieved = System.currentTimeMillis();
