@@ -109,7 +109,7 @@ public class ApplyRanking {
 		default:
 			documentSet.sortDescForRankingValue(onlySolr); break;
 		}
-		if(documentSet.getSize() > 6)
+		if(documentSet.getSize() > rndDisplayNumber)
 			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, rndDisplayNumber));
 		
 		return documentSet.refreshRankBoth();

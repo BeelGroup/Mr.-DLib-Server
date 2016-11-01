@@ -18,16 +18,16 @@ public class StatusReport implements Serializable {
 	
     // elements
     private StatusMessage statusMessage;
-    private String debugDetails;
+    private String debugMessage;
     
     //attribute
     private int statusCode;
 
 	public StatusReport() {}
 	
-    public StatusReport(int statusCode, StatusMessage statusMessage, String debugDetails) {
+    public StatusReport(int statusCode, StatusMessage statusMessage, String debugMessage) {
         this.statusMessage = statusMessage;
-        this.debugDetails = "![CDATA["+debugDetails+"]]";
+        this.debugMessage = "![CDATA["+debugMessage+"]]";
         this.statusCode = statusCode;
     }
     
@@ -36,9 +36,9 @@ public class StatusReport implements Serializable {
         this.statusCode = statusCode;
     }
     
-    public StatusReport(int statusCode, String statusMessage, String debugDetails) {
+    public StatusReport(int statusCode, String statusMessage, String debugMessage) {
         this.statusMessage = new StatusMessage(statusMessage);
-        this.debugDetails = "![CDATA["+debugDetails+"]";
+        this.debugMessage = "![CDATA["+debugMessage+"]";
         this.statusCode = statusCode;
     }
     
@@ -57,13 +57,13 @@ public class StatusReport implements Serializable {
         this.statusMessage = statusMessage;
     }
 
-    public String getDebugDetails() {
-        return debugDetails;
+    public String getDebugMessage() {
+        return debugMessage;
     }
 
-    @XmlElement(name = "debug_details")
-    public void setDebugDetails(String debugDetails) {
-        this.debugDetails = "![CDATA["+debugDetails+"]]";
+    @XmlElement(name = "debug_message")
+    public void setDebugMessage(String debugMessage) {
+        this.debugMessage = "![CDATA["+debugMessage+"]]";
     }
 
     public int getStatusCode() {

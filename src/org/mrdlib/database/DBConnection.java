@@ -1237,12 +1237,12 @@ public class DBConnection {
 		if (rootElement.getStatusReportSet().getSize() > 1) {
 			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++)
 				debugDetails = debugDetails
-						+ rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugDetails();
+						+ rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugMessage();
 			statusCode = "207";
 		} else {
 			StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
 			statusCode = statusReport.getStatusCode() + "";
-			debugDetails = statusReport.getDebugDetails();
+			debugDetails = statusReport.getDebugMessage();
 		}
 
 		try {

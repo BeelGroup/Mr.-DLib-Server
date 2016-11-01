@@ -29,13 +29,21 @@ public class DocumentSet {
 
 	private int numberOfSolrRows;// number of items extracted from the database
 	private String rankingMethod;
-	private double percentageRankingValue;
 	private RelatedDocuments rdg;
-	private String recommendationApproach;
 	private DisplayDocument requestedDocument;
+	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
 
 	public DisplayDocument getRequestedDocument() {
 		return requestedDocument;
+	}
+	
+	public DebugDetailsPerSet getDebugDetailsPerSet() {
+		return debugDetailsPerSet;
+	}
+	
+	@XmlElement(name = "debug_details")
+	public void setDebugDetailsPerSet(DebugDetailsPerSet debugDetailsPerSet) {
+		this.debugDetailsPerSet = debugDetailsPerSet;
 	}
 
 	@XmlTransient
@@ -183,11 +191,11 @@ public class DocumentSet {
 	}
 
 	public void setPercentageRankingValue(double percentageRankingValue) {
-		this.percentageRankingValue = percentageRankingValue;
+		debugDetailsPerSet.setPercentageRankingValue(percentageRankingValue);
 	}
 
 	public double getPercentageRankingValue() {
-		return percentageRankingValue;
+		return debugDetailsPerSet.getPercentageRankingValue();
 	}
 
 	public String getRankingMethod() {
@@ -270,11 +278,11 @@ public class DocumentSet {
 	}
 
 	public String getRecommendationApproach() {
-		return this.recommendationApproach;
+		return debugDetailsPerSet.getRecommendationApproach();
 	}
 
 	public void setRecommendationApproach(String recommendationApproach) {
-		this.recommendationApproach = recommendationApproach;
+		debugDetailsPerSet.setRecommendationApproach(recommendationApproach);
 	}
 
 	public RelatedDocuments getRDG() {
@@ -284,7 +292,7 @@ public class DocumentSet {
 	@XmlTransient
 	public void setRDG(RelatedDocuments rdg) {
 		this.rdg = rdg;
-		this.recommendationApproach = rdg.loggingInfo.get("name");
+		debugDetailsPerSet.setRecommendationApproach(rdg.loggingInfo.get("name"));
 	}
 
 	public void calculatePercentageRankingValue() {
@@ -294,7 +302,7 @@ public class DocumentSet {
 				rankingValueCount++;
 			}
 		}
-		this.percentageRankingValue = (double) rankingValueCount / this.getSize();
+		debugDetailsPerSet.setPercentageRankingValue((double) rankingValueCount / this.getSize());
 	}
 
 	private String calculateTitleClean(String s) {

@@ -30,6 +30,7 @@ public class DisplayDocument implements Serializable {
 	private String clickUrl;
 	private String fallbackUrl;
 	private String language;
+	private DebugDetails debugDetails = new DebugDetails();
 	
 
 	private int suggestedRank;
@@ -37,10 +38,6 @@ public class DisplayDocument implements Serializable {
 	private Long collectionId;
 	
 	//metadata
-	private int realRank;
-	private double rankingValue;
-	private double solrScore;
-	private int bibId;
 	private String title;
 	private String authorNames;
 	private String publishedIn;
@@ -67,6 +64,64 @@ public class DisplayDocument implements Serializable {
 		this.collectionShortName = collectionShortName;
 	}
 	
+	
+	public int getBibId() {
+		return debugDetails.getBibId();
+	}
+	
+	public double getRankingValue() {
+		return debugDetails.getRankingValue();
+	}
+	
+	public double getSolrScore() {
+		return debugDetails.getSolrScore();
+	}
+	
+	@XmlTransient
+	public void setRealRank(int rank) {
+		debugDetails.setRealRank(rank);
+	}
+	
+	@XmlTransient
+	public void setSolrScore(double solrScore) {
+		debugDetails.setSolrScore(solrScore);
+	}
+	
+	@XmlTransient
+	public void setBibId(int bibId) {
+		debugDetails.setBibId(bibId);
+	}
+	
+	@XmlTransient
+	public void setRankingValue(double rankingValue) {
+		debugDetails.setRankingValue(rankingValue);
+	}
+	
+	public DebugDetails getDebugDetails() {
+		return debugDetails;
+	}
+
+	@XmlElement(name = "debug_details")
+	public void setDebugDetails(DebugDetails debugDetails) {
+		this.debugDetails = debugDetails;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setAuthorNames(String authorNames) {
+		this.authorNames = authorNames;
+	}
+
+	public void setPublishedIn(String publishedIn) {
+		this.publishedIn = publishedIn;
+	}
+
+	public void setYear(int year) {
+		this.year = year;
+	}
+
 	public String getTitle() {
 		return title;
 	}
@@ -81,40 +136,6 @@ public class DisplayDocument implements Serializable {
 
 	public int getYear() {
 		return year;
-	}
-
-	public int getBibId() {
-		return bibId;
-	}
-	
-	@XmlTransient
-	public void setBibId(int bibId) {
-		this.bibId = bibId;
-	}
-
-	public double getSolrScore() {
-		return solrScore;
-	}
-
-	public void setSolrScore(double solrScore) {
-		this.solrScore = solrScore;
-	}
-
-	public double getRankingValue() {
-		return rankingValue;
-	}
-
-	public void setRankingValue(double rankingValue) {
-		this.rankingValue = rankingValue;
-	}
-
-	public int getRealRank() {
-		return realRank;
-	}
-
-	@XmlTransient
-	public void setRealRank(int realRank) {
-		this.realRank = realRank;
 	}
 
 	public Long getCollectionId() {
