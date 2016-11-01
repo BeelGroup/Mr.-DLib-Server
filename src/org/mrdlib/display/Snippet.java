@@ -45,8 +45,8 @@ public class Snippet implements Serializable {
 	}
 
 	private String formatContentHtmlFully(String title, String authorNames, String publishedIn, int year) {
-		return "<![CDATA[<a href='" + clickUrl + "'><font color='#000000' size='3' face='Arial, Helvetica, sans-serif'>" + title
-				+ ".</font></a><font color='#000000' size='3' face='Arial, Helvetica, sans-serif'>" + authorNames
+		return "<![CDATA[<a href='" + clickUrl + "'><font color='#000000' size='5' face='Arial, Helvetica, sans-serif'>" + title
+				+ ".</font></a><font color='#000000' size='5' face='Arial, Helvetica, sans-serif'>" + authorNames
 				+ ". <i>" + publishedIn + "</i>. " + year + ".</font>]]>";
 	}
 

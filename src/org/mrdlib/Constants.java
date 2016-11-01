@@ -335,6 +335,8 @@ public class Constants {
 			
 			this.numberOfRetries = Integer.parseInt(prop.getProperty("numberOfRetries"));
 			String debugModeOn = prop.getProperty("debugModeOn");
+			
+			//map string true and false to boolean
 			if (debugModeOn.equals("true"))
 				this.debugModeOn = true;
 			else
@@ -794,7 +796,6 @@ public class Constants {
 	}
 
 	public String getProbabilitiesPath() {
-		// TODO Auto-generated method stub
 		return probabilitiesConfigPath;
 	}
 
@@ -803,7 +804,6 @@ public class Constants {
 	}
 
 	public String getDocumentIdinStereotypeRecommendations() {
-		// TODO Auto-generated method stub
 		return documentIdInStereotype;
 	}
 
@@ -812,37 +812,30 @@ public class Constants {
 	}
 
 	public String getRecommendationAlgorithmId() {
-		// TODO Auto-generated method stub
 		return recommendationAlgorithmId;
 	}
 
 	public String getRecommendationAlgorithm() {
-		// TODO Auto-generated method stub
 		return recommendationAlgorithm;
 	}
 
 	public String getSourceInKeyphrases() {
-		// TODO Auto-generated method stub
 		return sourceInKeyphrases;
 	}
 
 	public String getGramity() {
-		// TODO Auto-generated method stub
 		return gramity;
 	}
 
 	public String getKeyphrases() {
-		// TODO Auto-generated method stub
 		return keyphrases;
 	}
 
 	public String getDocumentIdInKeyphrases() {
-		// TODO Auto-generated method stub
 		return documentIdInKeyphrases;
 	}
 
 	public int getNumberOfRetries() {
-		// TODO Auto-generated method stub
 		return numberOfRetries;
 	}
 
