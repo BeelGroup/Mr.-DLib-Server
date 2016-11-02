@@ -87,8 +87,8 @@ public class DocumentSet {
 	public DocumentSet sortDescForLogRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getSolrScore() * Math.log(a.getRankingValue())),
-						b.getSolrScore() * Math.log(b.getRankingValue())))
+				.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
+						b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "log_text_relevance_times_bibliometrics_desc";
 		return this;
@@ -97,8 +97,8 @@ public class DocumentSet {
 	public DocumentSet sortAscForLogRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getSolrScore() * Math.log(a.getRankingValue())),
-						b.getSolrScore() * Math.log(b.getRankingValue())))
+				.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
+						b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "log_text_relevance_times_bibliometrics_asc";
 		return this;
@@ -107,8 +107,8 @@ public class DocumentSet {
 	public DocumentSet sortDescForRootRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getSolrScore() * Math.sqrt(a.getRankingValue())),
-						b.getSolrScore() * Math.sqrt(b.getRankingValue())))
+				.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
+						b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "root_text_relevance_times_bibliometrics_desc";
 		return this;
@@ -117,8 +117,8 @@ public class DocumentSet {
 	public DocumentSet sortAscForRootRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getSolrScore() * Math.sqrt(a.getRankingValue())),
-						b.getSolrScore() * Math.sqrt(b.getRankingValue())))
+				.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
+						b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "root_text_relevance_times_bibliometrics_asc";
 		return this;
@@ -127,7 +127,7 @@ public class DocumentSet {
 	public DocumentSet sortDescForRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream().sorted((b, a) -> Double
-				.compare((a.getSolrScore() * a.getRankingValue()), b.getSolrScore() * b.getRankingValue()))
+				.compare((a.getTextRelevancyScore() * a.getRankingValue()), b.getTextRelevancyScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "text_relevance_times_bibliometrics_desc";
 		return this;
@@ -136,7 +136,7 @@ public class DocumentSet {
 	public DocumentSet sortAscForRankingValueTimesSolrScore() {
 		this.avoidZeroRankingValue();
 		this.setDocumentList(this.getDocumentList().stream().sorted((a, b) -> Double
-				.compare((a.getSolrScore() * a.getRankingValue()), b.getSolrScore() * b.getRankingValue()))
+				.compare((a.getTextRelevancyScore() * a.getRankingValue()), b.getTextRelevancyScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "text_relevance_times_bibliometrics_asc";
 		return this;

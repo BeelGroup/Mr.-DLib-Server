@@ -79,6 +79,7 @@ public class Constants {
 	private String clicked;
 	private String rankReal;
 	private String rankCurrent;
+	private String textRelevanceScoreInRecommendations;
 
 	// db table recommendation sets
 	private String recommendationSetsId;
@@ -183,6 +184,7 @@ public class Constants {
 	private String probabilitiesConfigPath;
 
 
+
 	// load the config file
 	public Constants() {
 
@@ -242,7 +244,7 @@ public class Constants {
 			this.clicked = prop.getProperty("clicked");
 			this.rankReal = prop.getProperty("rankReal");
 			this.rankCurrent = prop.getProperty("rankCurrent");
-
+			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
 			this.loggingIdInRecommendationSets = prop.getProperty("loggingIdInRecommendationSets");
 			this.deliveredRecommendations = prop.getProperty("deliveredRecommendations");
@@ -837,6 +839,11 @@ public class Constants {
 
 	public int getNumberOfRetries() {
 		return numberOfRetries;
+	}
+
+	public String getTextRelevanceScoreInRecommendations() {
+		// TODO Auto-generated method stub
+		return textRelevanceScoreInRecommendations;
 	}
 
 }

@@ -42,7 +42,6 @@ import org.mrdlib.tools.XMLDocument;
  */
 public class DBConnection {
 
-	public static int numberOfOpenConnections = 0;
 	private Connection con = null;
 	private Constants constants = new Constants();
 	Context ctx = null;
@@ -85,7 +84,6 @@ public class DBConnection {
 			} catch (SQLException e) {
 				throw e;
 			}
-			numberOfOpenConnections++;
 		}
 	}
 
@@ -122,7 +120,6 @@ public class DBConnection {
 
 	public void close() throws SQLException {
 		con.close();
-		numberOfOpenConnections--;
 	}
 
 	/**
@@ -1096,9 +1093,9 @@ public class DBConnection {
 					+ constants.getDocumentIdInRecommendations() + ", "
 					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getBibliometricReRankId()
 					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() + ", "
-					+ constants.getAlgorithmId() + ") VALUES (" + document.getDocumentId() + ", "
+					+ constants.getAlgorithmId() + ", " + constants.getTextRelevanceScoreInRecommendations() + ") VALUES (" + document.getDocumentId() + ", "
 					+ documentset.getRecommendationSetId() + ", ? , '" + document.getSuggestedRank() + "', '"
-					+ document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "');";
+					+ document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "', '" + document.getTextRelevancyScore() + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1823,7 +1820,7 @@ public class DBConnection {
 				String fallback_url = "";
 				
 				// HARDCODED FOR COMPATABILITY
-				relDocument.setSolrScore(1.00);
+				relDocument.setTextRelevancyScore(1.00);
 				if (relDocument.getCollectionShortName().equals(constants.getGesis()))
 					fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 

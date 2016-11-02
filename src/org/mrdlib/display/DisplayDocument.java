@@ -38,6 +38,11 @@ public class DisplayDocument implements Serializable {
 	private Long collectionId;
 	
 	//metadata
+
+	private int realRank;
+	private double rankingValue;
+	private double textRelevancyScore;
+	private int bibId;
 	private String title;
 	private String authorNames;
 	private String publishedIn;
@@ -73,18 +78,10 @@ public class DisplayDocument implements Serializable {
 		return debugDetails.getRankingValue();
 	}
 	
-	public double getSolrScore() {
-		return debugDetails.getSolrScore();
-	}
 	
 	@XmlTransient
 	public void setRealRank(int rank) {
 		debugDetails.setRealRank(rank);
-	}
-	
-	@XmlTransient
-	public void setSolrScore(double solrScore) {
-		debugDetails.setSolrScore(solrScore);
 	}
 	
 	@XmlTransient
@@ -108,6 +105,28 @@ public class DisplayDocument implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+	/**
+	 * @deprecated Use {@link #getTextRelevancyScore()} instead
+	 */
+	public double getSolrScore() {
+		return getTextRelevancyScore();
+	}
+
+	public double getTextRelevancyScore() {
+		return textRelevancyScore;
+	}
+
+	/**
+	 * @deprecated Use {@link #setTextRelevancyScore(double)} instead
+	 */
+	@XmlTransient
+	public void setSolrScore(double solrScore) {
+		setTextRelevancyScore(solrScore);
+	}
+
+	public void setTextRelevancyScore(double solrScore) {
+		this.textRelevancyScore = solrScore;
 	}
 
 	public void setAuthorNames(String authorNames) {

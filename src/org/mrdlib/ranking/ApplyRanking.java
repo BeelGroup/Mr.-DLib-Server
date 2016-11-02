@@ -179,7 +179,7 @@ public class ApplyRanking {
 
 		for (int i = 0; i < documentset.getSize(); i++) {
 			current = documentset.getDocumentList().get(i);
-			current.setRankingValue(current.getSolrScore());
+			current.setRankingValue(current.getTextRelevancyScore());
 		}
 		return documentset;
 	}

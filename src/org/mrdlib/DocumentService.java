@@ -75,13 +75,13 @@ public class DocumentService {
 			int numberOfAttempts = 0;
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
-					rdg = RecommenderFactory.getRandomRDG(con,requestDocument);
+					rdg = RecommenderFactory.getRandomRDG(con, requestDocument);
 					System.out.println(rdg.loggingInfo.get("name"));
 					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
-					for(String key: rdg.loggingInfo.keySet()){
+					for (String key : rdg.loggingInfo.keySet()) {
 						System.out.println(key + ":" + rdg.loggingInfo.get(key));
 					}
 					validAlgorithmFlag = false;
@@ -120,6 +120,7 @@ public class DocumentService {
 		rootElement.setStatusReportSet(statusReportSet);
 
 		try {
+			
 			documentset = con.logRecommendationDelivery(requestDocument.getDocumentId(), requestRecieved, rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
@@ -133,16 +134,11 @@ public class DocumentService {
 		}
 
 		try {
-			if (con == null)
-				DBConnection.numberOfOpenConnections--;
-			else
+			if (con != null)
 				con.close();
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
-		if (DBConnection.numberOfOpenConnections > 0)
-			System.out.println("Number of open connections is " + Integer.toString(DBConnection.numberOfOpenConnections)
-					+ " for " + rdg.loggingInfo.get("name") + "for document" + requestDocument.getDocumentId());
 		return rootElement;
 	}
 
