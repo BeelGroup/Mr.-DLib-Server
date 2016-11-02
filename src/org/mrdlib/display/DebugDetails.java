@@ -3,7 +3,7 @@ package org.mrdlib.display;
 public class DebugDetails {
 	private int realRank;
 	private double rankingValue;
-	private double solrScore;
+	private double textRelevanceScore;
 	private int bibId;
 	
 	public DebugDetails() {
@@ -17,12 +17,12 @@ public class DebugDetails {
 		this.bibId = bibId;
 	}
 
-	public double getSolrScore() {
-		return solrScore;
+	public double getTextRelevanceScore() {
+		return textRelevanceScore;
 	}
 
-	public void setSolrScore(double solrScore) {
-		this.solrScore = solrScore;
+	public void setTextRelevanceScore(double textRelevanceScore) {
+		this.textRelevanceScore = textRelevanceScore;
 	}
 
 	public double getRankingValue() {

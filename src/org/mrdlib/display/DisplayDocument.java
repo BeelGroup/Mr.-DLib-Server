@@ -78,7 +78,6 @@ public class DisplayDocument implements Serializable {
 		return debugDetails.getRankingValue();
 	}
 	
-	
 	@XmlTransient
 	public void setRealRank(int rank) {
 		debugDetails.setRealRank(rank);
@@ -106,33 +105,22 @@ public class DisplayDocument implements Serializable {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	/**
-	 * @deprecated Use {@link #getTextRelevancyScore()} instead
-	 */
-	public double getSolrScore() {
-		return getTextRelevancyScore();
-	}
-
+	
 	public double getTextRelevancyScore() {
 		return textRelevancyScore;
 	}
 
-	/**
-	 * @deprecated Use {@link #setTextRelevancyScore(double)} instead
-	 */
 	@XmlTransient
-	public void setSolrScore(double solrScore) {
-		setTextRelevancyScore(solrScore);
-	}
-
 	public void setTextRelevancyScore(double solrScore) {
 		this.textRelevancyScore = solrScore;
 	}
 
+	@XmlElement(name = "author_names")
 	public void setAuthorNames(String authorNames) {
 		this.authorNames = authorNames;
 	}
 
+	@XmlElement(name = "published_in")
 	public void setPublishedIn(String publishedIn) {
 		this.publishedIn = publishedIn;
 	}

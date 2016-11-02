@@ -189,7 +189,8 @@ public class DocumentSet {
 			current.setRankingValue(current.getRankingValue() + 2);
 		}
 	}
-
+	
+	@XmlTransient
 	public void setPercentageRankingValue(double percentageRankingValue) {
 		debugDetailsPerSet.setPercentageRankingValue(percentageRankingValue);
 	}
@@ -280,7 +281,8 @@ public class DocumentSet {
 	public String getRecommendationApproach() {
 		return debugDetailsPerSet.getRecommendationApproach();
 	}
-
+	
+	@XmlTransient
 	public void setRecommendationApproach(String recommendationApproach) {
 		debugDetailsPerSet.setRecommendationApproach(recommendationApproach);
 	}
