@@ -66,10 +66,10 @@ public class solrConnection {
 	 */
 	public DocumentSet getRelatedDocumentSetByDocument(DisplayDocument document, int delimitedRows,
 			HashMap<String, String> logginginfo) throws Exception {
-		DocumentSet relatedDocuments = new DocumentSet();
+		DocumentSet relatedDocuments = new DocumentSet(constants);
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
-		DisplayDocument relDocument = new DisplayDocument();
+		DisplayDocument relDocument = new DisplayDocument(constants);
 		query.setRequestHandler("/" + MoreLikeThisParams.MLT);
 		String fallback_url = "";
 
@@ -166,10 +166,10 @@ public class solrConnection {
 
 	public DocumentSet getRandomDocumentSet(DisplayDocument document, int delimitedRows, Boolean restrictLanguage,
 			String seed) throws Exception {
-		DocumentSet relatedDocuments = new DocumentSet();
+		DocumentSet relatedDocuments = new DocumentSet(constants);
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
-		DisplayDocument relDocument = new DisplayDocument();
+		DisplayDocument relDocument = new DisplayDocument(constants);
 		query.setRequestHandler("/select");
 		String fallback_url = "";
 		query.setQuery( "*:*");

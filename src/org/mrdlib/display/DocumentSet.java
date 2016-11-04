@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.mrdlib.Constants;
 import org.mrdlib.recommendation.RelatedDocuments;
 
 /**
@@ -26,6 +27,8 @@ public class DocumentSet {
 
 	private String recommendationSetId;
 	private String suggestedLabel;
+	
+	private Constants constants;
 
 	private int numberOfSolrRows;// number of items extracted from the database
 	private String rankingMethod;
@@ -43,7 +46,8 @@ public class DocumentSet {
 	
 	@XmlElement(name = "debug_details")
 	public void setDebugDetailsPerSet(DebugDetailsPerSet debugDetailsPerSet) {
-		this.debugDetailsPerSet = debugDetailsPerSet;
+		if(constants.getDebugModeOn())
+			this.debugDetailsPerSet = debugDetailsPerSet;
 	}
 
 	@XmlTransient
@@ -51,13 +55,15 @@ public class DocumentSet {
 		this.requestedDocument = requestedDocument;
 	}
 
-	public DocumentSet() {
+	public DocumentSet(Constants constants) {
+		this.constants = constants;
 	}
 
-	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel) {
+	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel, Constants constants) {
 		this.documentList = documentList;
 		this.recommendationSetId = recommendationSetId;
 		this.suggestedLabel = suggestedLabel;
+		this.constants = constants;
 	}
 
 	public DocumentSet sortDescForRankingValue(boolean onlySolr) {

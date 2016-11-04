@@ -7,6 +7,8 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
+
+import org.mrdlib.Constants;
 /**
  * 
  * @author Millah
@@ -18,6 +20,8 @@ import javax.xml.bind.annotation.XmlTransient;
 public class DisplayDocument implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	private Constants constants;
 
 	// attributes
 	private String recommendationId;
@@ -48,11 +52,12 @@ public class DisplayDocument implements Serializable {
 	private String publishedIn;
 	private int year;
 	
-	public DisplayDocument() {
+	public DisplayDocument(Constants constants) {
+		this.constants = constants;
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
-			String title, String authorNames, String publishedIn, int year, String clickUrl, String fallbackUrl, String collectionShortName) {
+			String title, String authorNames, String publishedIn, int year, String clickUrl, String fallbackUrl, String collectionShortName, Constants constants) {
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
@@ -67,6 +72,7 @@ public class DisplayDocument implements Serializable {
 		this.clickUrl = clickUrl;
 		this.fallbackUrl = fallbackUrl;
 		this.collectionShortName = collectionShortName;
+		this.constants = constants;
 	}
 	
 	
@@ -99,7 +105,8 @@ public class DisplayDocument implements Serializable {
 
 	@XmlElement(name = "debug_details")
 	public void setDebugDetails(DebugDetails debugDetails) {
-		this.debugDetails = debugDetails;
+		if(constants.getDebugModeOn())
+			this.debugDetails = debugDetails;
 	}
 
 	public void setTitle(String title) {

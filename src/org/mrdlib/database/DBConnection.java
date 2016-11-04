@@ -726,7 +726,7 @@ public class DBConnection {
 	 * @throws Exception
 	 */
 	public DocumentSet getDocumentSetByOriginalId(String originalid) throws Exception {
-		DocumentSet documentSet = new DocumentSet();
+		DocumentSet documentSet = new DocumentSet(constants);
 		documentSet.setRecommendationSetId("DummyId");
 		documentSet.setSuggested_label("Dummy Articles");
 		try {
@@ -791,7 +791,7 @@ public class DBConnection {
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666, title, authorNames, publishedIn,
-						rs.getInt(constants.getYear()), "", "", "");
+						rs.getInt(constants.getYear()), "", "", "", constants);
 
 				// get the collection id and then the shortName of the
 				// collection
@@ -1809,7 +1809,7 @@ public class DBConnection {
 					+ Integer.toString(numberOfRelatedDocs);
 
 			rs = stmt.executeQuery(query);
-			DocumentSet documentSet = new DocumentSet();
+			DocumentSet documentSet = new DocumentSet(constants);
 			documentSet.setSuggested_label("Related Articles");
 			documentSet.setRequestedDocument(requestDoc);
 

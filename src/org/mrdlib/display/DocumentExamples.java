@@ -1,5 +1,7 @@
 package org.mrdlib.display;
 
+import org.mrdlib.Constants;
+
 /**
  * 
  * @author Millah
@@ -9,11 +11,11 @@ package org.mrdlib.display;
 
 public class DocumentExamples {
 	public DocumentSet getDocumentSet() {
-		DocumentSet documentSet = new DocumentSet();
+		DocumentSet documentSet = new DocumentSet(new Constants());
 		// Hardcode Example document
 		DisplayDocument document1 = new DisplayDocument("5524543354", "exmp-thepowerofscience-4423232", "thepowerofscience", 5, 
 				"The Power of Science","A. Einstein and J Doe","Journal of Science 4:42", 1960,
-				"https://api.mr-dlib.org/related_articles/5524543354/", "http://partner.com/library/documents/thepowerofscience/", "");
+				"https://api.mr-dlib.org/related_articles/5524543354/", "http://partner.com/library/documents/thepowerofscience/", "", new Constants());
 		documentSet.addDocument(document1);
 		documentSet.setRecommendationSetId("665445334");
 		documentSet.setSuggested_label("Related Articles");
