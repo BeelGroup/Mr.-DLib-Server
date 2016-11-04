@@ -1,5 +1,6 @@
 package org.mrdlib.recommendation;
 
+import org.mrdlib.Constants;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.display.DocumentSet;
@@ -7,6 +8,7 @@ import org.mrdlib.display.DocumentSet;
 public class StereotypeRecommender extends RelatedDocuments {
 
 	private DBConnection con = null;
+	private Constants constants = null;
 
 	/**
 	 * Creates a new instance of StereotypeRecommender which exposes methods to
@@ -18,6 +20,7 @@ public class StereotypeRecommender extends RelatedDocuments {
 	public StereotypeRecommender(DBConnection con) {
 
 		this.con = con;
+		constants = new Constants();
 		loggingInfo.clear();
 		loggingInfo.put("name", "StereotypeRecommender");
 		loggingInfo.put("recommendation_framework", "proprietary");
@@ -41,7 +44,7 @@ public class StereotypeRecommender extends RelatedDocuments {
 	 * returns stereotype documents from database
 	 */
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
-		DocumentSet results = new DocumentSet();
+		DocumentSet results = new DocumentSet(constants);
 		try {
 			results = con.getStereotypeRecommendations(requestDoc, numberOfRelatedDocs);
 		} catch (Exception e) {
