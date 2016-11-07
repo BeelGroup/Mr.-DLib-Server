@@ -75,6 +75,9 @@ public class DocumentService {
 			// get all related documents from solr
 			Boolean validAlgorithmFlag = false;
 			int numberOfAttempts = 0;
+			
+			// Retry while algorithm is not valid, and we still have retries
+			// left
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
 					rdg = RecommenderFactory.getRandomRDG(con, requestDocument);
