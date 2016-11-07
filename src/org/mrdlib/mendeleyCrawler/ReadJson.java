@@ -59,7 +59,7 @@ public class ReadJson {
 					con.writeIdentifiersInDatabase(id, keyStr.toString(), keyvalueStr);
 				//write the metric in the database
 				} else
-					con.writeBibliometricsInDatabase(id, "simple_count", "readers", category, keyStr.toString(),
+					con.writeBibliometricsInDatabase(id+"", "simple_count", "readers", category, keyStr.toString(),
 							Integer.parseInt(keyvalue.toString()), "mendeley");
 			}
 		}
@@ -113,7 +113,7 @@ public class ReadJson {
 			
 			//get the absolute readercount and write it to database
 			readerCount = Integer.parseInt(jsonObject.get("reader_count").toString());
-			con.writeBibliometricsInDatabase(id, "simple_count", "readers", "all", null, readerCount, "mendeley");
+			con.writeBibliometricsInDatabase(id+"", "simple_count", "readers", "all", null, readerCount, "mendeley");
 			
 			//get the readercount of the subcategories and write them to database
 			/*getReaderShipByCategory(id, jsonObject, "reader_count_by_country");

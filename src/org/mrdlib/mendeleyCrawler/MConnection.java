@@ -19,8 +19,8 @@ import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.mrdlib.DocumentData;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.display.DisplayDocument;
 import org.mrdlib.oauth.OAuth2Client;
 
 /**
@@ -57,8 +57,8 @@ public class MConnection {
 	}
 
 	public void getReadership() throws SQLException {
-		List<DocumentData> documentDataList = new ArrayList<DocumentData>();
-		DocumentData documentData = new DocumentData();
+		List<DisplayDocument> documentDataList = new ArrayList<DisplayDocument>();
+		DisplayDocument documentData = new DisplayDocument();
 		String mendeleyId = null;
 		HttpGet httpget = new HttpGet();
 		URL url = null;
@@ -195,7 +195,7 @@ public class MConnection {
 	 * @param documentData, the documentData associated with the mendeley answer, used for filename
 	 * @param input, the String which will be written to the file
 	 */
-	private void writeMendeleyStatsToFile(DocumentData documentData, String input) {
+	private void writeMendeleyStatsToFile(DisplayDocument displayDocument, String input) {
 		
 		//get the data as json object
 		JSONObject jsonObject = (JSONObject) JSONValue.parse(input);
@@ -207,10 +207,10 @@ public class MConnection {
 		input = jsonObject.toString();
 
 		//generate the path of the file to write to (path from the config file + folders for each 10.000 document)
-		String dirName = mconfig.getPathOfDownload() + File.separator + (int) (Math.floor(documentData.getId() / 10000))
+		String dirName = mconfig.getPathOfDownload() + File.separator + (int) (Math.floor(Integer.parseInt(displayDocument.getDocumentId()) / 10000))
 				+ "";
 		//generate the file name in the format "mrDlibId gesisId"
-		String path = dirName + File.separator + documentData.getId() + " " + documentData.getOriginalId() + ".txt";
+		String path = dirName + File.separator + displayDocument.getDocumentId() + " " + displayDocument.getOriginalDocumentId() + ".txt";
 
 		//produce and write in the file
 		try {

@@ -1,5 +1,12 @@
 package org.mrdlib.display;
 
+/**
+ * 
+ * @author Millah
+ * 
+ * This class handles the representation for the DebugDetails, the algorithms parameter per recommendation set.
+ * The XML format is automatically generated through the class structure.
+ */
 public class DebugDetailsPerSet {
 	private String recommendationApproach;
 	private double percentageRankingValue;

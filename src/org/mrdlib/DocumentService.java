@@ -40,6 +40,8 @@ public class DocumentService {
 	private RelatedDocuments rdg = null;
 
 	public DocumentService() {
+		//get the time the request came in for statistic
+		//initialize the xml structure
 		requestRecieved = System.currentTimeMillis();
 		constants = new Constants();
 		rootElement = new RootElement();
@@ -120,7 +122,7 @@ public class DocumentService {
 		rootElement.setStatusReportSet(statusReportSet);
 
 		try {
-			
+			//log all the statistic about this execution
 			documentset = con.logRecommendationDelivery(requestDocument.getDocumentId(), requestRecieved, rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {

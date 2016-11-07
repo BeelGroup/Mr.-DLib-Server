@@ -144,7 +144,6 @@ public class solrConnection {
 	}
 
 	private String getMltFL(String source, String type, String number) {
-		// TODO Auto-generated method stub
 		String template = source + "_%s_" + number;
 		String uni = String.format(template, "unigrams");
 		String bi = String.format(template, "bigrams");
@@ -183,7 +182,6 @@ public class solrConnection {
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
 		query.setSort(SortClause.asc("random_" + seed));
-		//System.out.println(query);
 		try {
 			response = solr.query(query);
 			SolrDocumentList docs = response.getResults();

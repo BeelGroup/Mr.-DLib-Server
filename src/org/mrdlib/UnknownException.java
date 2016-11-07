@@ -21,6 +21,7 @@ public class UnknownException extends WebApplicationException {
 
 	public UnknownException(Exception e, Boolean debugMode) {
 		String stackTrace = "";
+		//catch the information from the exception and adding them as message to the custom exception if the debug mode is on
 		if (debugMode) {
 			stackTrace = "Error: " + e.toString() + "  |  ";
 			for (StackTraceElement current : e.getStackTrace())

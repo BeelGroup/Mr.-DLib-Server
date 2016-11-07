@@ -27,9 +27,10 @@ public class DocumentSet {
 
 	private String recommendationSetId;
 	private String suggestedLabel;
-	
+
 	private Constants constants;
 
+	// metadata of the algorithm
 	private int numberOfSolrRows;// number of items extracted from the database
 	private String rankingMethod;
 	private RelatedDocuments rdg;
@@ -39,14 +40,15 @@ public class DocumentSet {
 	public DisplayDocument getRequestedDocument() {
 		return requestedDocument;
 	}
-	
+
 	public DebugDetailsPerSet getDebugDetailsPerSet() {
 		return debugDetailsPerSet;
 	}
-	
-	@XmlElement(name = "debug_details")
+
+	// @XmlElement(name = "debug_details")
+	@XmlTransient
 	public void setDebugDetailsPerSet(DebugDetailsPerSet debugDetailsPerSet) {
-		if(constants.getDebugModeOn())
+		if (constants.getDebugModeOn())
 			this.debugDetailsPerSet = debugDetailsPerSet;
 	}
 
@@ -59,95 +61,175 @@ public class DocumentSet {
 		this.constants = constants;
 	}
 
-	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel, Constants constants) {
+	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel,
+			Constants constants) {
 		this.documentList = documentList;
 		this.recommendationSetId = recommendationSetId;
 		this.suggestedLabel = suggestedLabel;
 		this.constants = constants;
 	}
 
-	public DocumentSet sortDescForRankingValue(boolean onlySolr) {
+	/**
+	 * 
+	 * sorts the documentset list desc for the ranking value
+	 * 
+	 * @param only
+	 *            text Releveance, boolean if the random approach choosed only
+	 *            Text relevance
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortDescForRankingValue(boolean onlyTextRelevance) {
 		this.avoidZeroRankingValue();
+		// lambda exspression for sorting
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((b, a) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
 				.collect(Collectors.toList()));
-		if (onlySolr)
+		if (onlyTextRelevance)
 			this.rankingMethod = "only_solr_desc";
 		else
 			this.rankingMethod = "sort_only_based_on_bibliometrics_desc";
 		return this;
 	}
 
-	public DocumentSet sortAscForRankingValue(boolean onlySolr) {
+	/**
+	 * 
+	 * sorts the documentset list asc for the ranking value
+	 * 
+	 * @param only
+	 *            text Releveance, boolean if the random approach choosed only
+	 *            Text relevance
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortAscForRankingValue(boolean onlyTextRelevance) {
 		this.avoidZeroRankingValue();
+		// lambda exspression for sorting
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((a, b) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
 				.collect(Collectors.toList()));
-		if (onlySolr)
+		if (onlyTextRelevance)
 			this.rankingMethod = "only_solr_asc";
 		else
 			this.rankingMethod = "sort_only_based_on_bibliometrics_asc";
 		return this;
 	}
 
-	public DocumentSet sortDescForLogRankingValueTimesSolrScore() {
+	/**
+	 * 
+	 * sorts the documentset list desc for the log (ranking value) * text
+	 * relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortDescForLogRankingValueTimesTextRelevance() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
-						b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
-				.collect(Collectors.toList()));
+		// lambda exspression for sorting
+		this.setDocumentList(
+				this.getDocumentList().stream()
+						.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
+								b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
+						.collect(Collectors.toList()));
 		this.rankingMethod = "log_text_relevance_times_bibliometrics_desc";
 		return this;
 	}
 
-	public DocumentSet sortAscForLogRankingValueTimesSolrScore() {
+	/**
+	 * 
+	 * sorts the documentset list asc for the log (ranking value) * text
+	 * relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortAscForLogRankingValueTimesTextRelevance() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
-						b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
-				.collect(Collectors.toList()));
+		// lambda exspression for sorting
+		this.setDocumentList(
+				this.getDocumentList().stream()
+						.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
+								b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
+						.collect(Collectors.toList()));
 		this.rankingMethod = "log_text_relevance_times_bibliometrics_asc";
 		return this;
 	}
 
-	public DocumentSet sortDescForRootRankingValueTimesSolrScore() {
+	/**
+	 * 
+	 * sorts the documentset list desc for the root (ranking value) * text
+	 * relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortDescForRootRankingValueTimesTextRelevance() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
-						b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
-				.collect(Collectors.toList()));
+		// lambda exspression for sorting
+		this.setDocumentList(
+				this.getDocumentList().stream()
+						.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
+								b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
+						.collect(Collectors.toList()));
 		this.rankingMethod = "root_text_relevance_times_bibliometrics_desc";
 		return this;
 	}
 
-	public DocumentSet sortAscForRootRankingValueTimesSolrScore() {
+	/**
+	 * 
+	 * sorts the documentset list asc for the root (ranking value) * text
+	 * relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortAscForRootRankingValueTimesTextRelevance() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
-						b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
-				.collect(Collectors.toList()));
+		// lambda exspression for sorting
+		this.setDocumentList(
+				this.getDocumentList().stream()
+						.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
+								b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
+						.collect(Collectors.toList()));
 		this.rankingMethod = "root_text_relevance_times_bibliometrics_asc";
 		return this;
 	}
 
-	public DocumentSet sortDescForRankingValueTimesSolrScore() {
+	/**
+	 * 
+	 * sorts the documentset list desc for the ranking value * text relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortDescForRankingValueTimesTextRelevance() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream().sorted((b, a) -> Double
-				.compare((a.getTextRelevancyScore() * a.getRankingValue()), b.getTextRelevancyScore() * b.getRankingValue()))
+		// lambda exspression for sorting
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * a.getRankingValue()),
+						b.getTextRelevancyScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "text_relevance_times_bibliometrics_desc";
 		return this;
 	}
 
-	public DocumentSet sortAscForRankingValueTimesSolrScore() {
+	/**
+	 * 
+	 * sorts the documentset list asc for the ranking value * text relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortAscForRankingValueTimesTextRelevance() {
 		this.avoidZeroRankingValue();
-		this.setDocumentList(this.getDocumentList().stream().sorted((a, b) -> Double
-				.compare((a.getTextRelevancyScore() * a.getRankingValue()), b.getTextRelevancyScore() * b.getRankingValue()))
+		// lambda exspression for sorting
+		this.setDocumentList(this.getDocumentList().stream()
+				.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * a.getRankingValue()),
+						b.getTextRelevancyScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
 		this.rankingMethod = "text_relevance_times_bibliometrics_asc";
 		return this;
 	}
 
+	/**
+	 * 
+	 * refreshes the real calculated rank, according to the new position in the
+	 * list (used after reranking)
+	 * 
+	 * @return refreshed documentset
+	 */
 	public DocumentSet refreshRankReal() {
 		DisplayDocument current = null;
 
@@ -158,6 +240,13 @@ public class DocumentSet {
 		return this;
 	}
 
+	/**
+	 * 
+	 * refreshes the suggested rank, according to the new position in the list
+	 * (used after shuffling)
+	 * 
+	 * @return resorted documentset
+	 */
 	public DocumentSet refreshRankSuggested() {
 		DisplayDocument current = null;
 
@@ -168,6 +257,13 @@ public class DocumentSet {
 		return this;
 	}
 
+	/**
+	 * 
+	 * refreshes the both the real and suggested rank, according to the new
+	 * position in the list
+	 * 
+	 * @return resorted documentset
+	 */
 	public DocumentSet refreshRankBoth() {
 		DisplayDocument current = null;
 
@@ -179,6 +275,12 @@ public class DocumentSet {
 		return this;
 	}
 
+	/**
+	 * 
+	 * shuffles the list and refreshed the suggested rank
+	 * 
+	 * @return shuffled documentset
+	 */
 	public DocumentSet shuffle() {
 		Collections.shuffle(this.getDocumentList());
 		this.refreshRankSuggested();
@@ -186,6 +288,12 @@ public class DocumentSet {
 
 	}
 
+	/**
+	 * 
+	 * creates valid ranking values, in case no ranking value is present in the
+	 * database, and shifts every other ranking to +2, so the consistency is
+	 * preserved
+	 */
 	private void avoidZeroRankingValue() {
 		DisplayDocument current = null;
 		for (int i = 0; i < this.getSize(); i++) {
@@ -195,7 +303,7 @@ public class DocumentSet {
 			current.setRankingValue(current.getRankingValue() + 2);
 		}
 	}
-	
+
 	@XmlTransient
 	public void setPercentageRankingValue(double percentageRankingValue) {
 		debugDetailsPerSet.setPercentageRankingValue(percentageRankingValue);
@@ -208,7 +316,7 @@ public class DocumentSet {
 	public String getRankingMethod() {
 		return rankingMethod;
 	}
-	
+
 	@XmlTransient
 	public void setRankingMethod(String rankingMethod) {
 		this.rankingMethod = rankingMethod;
@@ -227,12 +335,19 @@ public class DocumentSet {
 		return documentList.size();
 	}
 
+	/**
+	 * 
+	 * adds a new document to the documentset, but don't doubles (same
+	 * cleantitle) or same as document that requested
+	 * 
+	 * @param displaydocument
+	 */
 	public void addDocument(DisplayDocument document) {
 		boolean newDocument = true;
 		DisplayDocument current;
 		for (int i = 0; i < this.documentList.size(); i++) {
 			current = this.documentList.get(i);
-			//System.out.println(current.getTitle());
+			// System.out.println(current.getTitle());
 
 			// if the document is the same, do not add as duplicate
 			if (equalDocuments(document, current)) {
@@ -250,6 +365,13 @@ public class DocumentSet {
 			this.documentList.add(document);
 	}
 
+	/**
+	 * 
+	 * check if the documents are equal based on the cleantitle
+	 * @param displayDocument
+	 * @param displayDocument
+	 * @return boolean, true if equal
+	 */
 	private boolean equalDocuments(DisplayDocument document1, DisplayDocument document2) {
 		if (calculateTitleClean(document1.getTitle()).equals(calculateTitleClean(document2.getTitle())))
 			return true;
@@ -287,7 +409,7 @@ public class DocumentSet {
 	public String getRecommendationApproach() {
 		return debugDetailsPerSet.getRecommendationApproach();
 	}
-	
+
 	@XmlTransient
 	public void setRecommendationApproach(String recommendationApproach) {
 		debugDetailsPerSet.setRecommendationApproach(recommendationApproach);
@@ -313,6 +435,13 @@ public class DocumentSet {
 		debugDetailsPerSet.setPercentageRankingValue((double) rankingValueCount / this.getSize());
 	}
 
+	/**
+	 * 
+	 * calculate cleanTitle of a String, only numbers and letters are valid characters
+	 * 
+	 * @param String to clean
+	 * @return clean String
+	 */
 	private String calculateTitleClean(String s) {
 		s = s.replaceAll("[^a-zA-Z0-9]", "");
 		s = s.toLowerCase();

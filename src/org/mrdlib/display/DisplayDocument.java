@@ -42,7 +42,6 @@ public class DisplayDocument implements Serializable {
 	private Long collectionId;
 	
 	//metadata
-
 	private int realRank;
 	private double rankingValue;
 	private double textRelevancyScore;
@@ -54,6 +53,15 @@ public class DisplayDocument implements Serializable {
 	
 	public DisplayDocument(Constants constants) {
 		this.constants = constants;
+	}
+	
+	public DisplayDocument() {
+	}
+	
+	public DisplayDocument(String title, String documentId, String originalDocumentId) {
+		this.documentId = documentId;
+		this.originalDocumentId = originalDocumentId;
+		this.title = title;
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,

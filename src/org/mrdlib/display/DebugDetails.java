@@ -1,4 +1,11 @@
 package org.mrdlib.display;
+/**
+ * 
+ * @author Millah
+ * 
+ * This class handles the representation for the DebugDetails, the algorithms parameter per recommendation.
+ * The XML format is automatically generated through the class structure.
+ */
 
 public class DebugDetails {
 	private int realRank;
