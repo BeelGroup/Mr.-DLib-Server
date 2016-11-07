@@ -1016,7 +1016,7 @@ public class DBConnection {
 		bibliometricReRankingId = logReRankingBibliometrics(documentset, document.getBibId());
 
 		// logs the algorithm data and get back id
-		recommendationAlgorithmId = logRecommendationAlgorithm(documentset, document);
+		recommendationAlgorithmId = logRecommendationAlgorithm(documentset);
 
 		try {
 			// insertion query
@@ -1059,12 +1059,36 @@ public class DBConnection {
 		return recommendationId;
 	}
 
-	private int logRecommendationAlgorithm(DocumentSet documentset, DisplayDocument document) throws Exception {
+	/**
+	 * Helper function to log the recommendationAlgorithmId in the
+	 * recommendations table Searches using the fields in the loggingInfo
+	 * hashmap for an exact match for an algorithm in the
+	 * recommendationAlgorithms table in the database, and returns the id if
+	 * present.
+	 * 
+	 * If not, adds the entry into the table and returns the newly created row's
+	 * id
+	 * 
+	 * This method is for the case where all the documents in a document set all
+	 * have been chosen using the same recommendation algorithm
+	 * 
+	 * @param documentset
+	 *            DocumentSet which contains the recommendations that have to be
+	 *            logged
+	 * @return the recommendationAlgorithm id
+	 * @throws Exception
+	 */
+	private int logRecommendationAlgorithm(DocumentSet documentset) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
+
+		// get the hashmap which has the details of the recommendation algorithm
 		HashMap<String, String> recommenderDetails = documentset.getRDG().loggingInfo;
+
 		int recommendationAlgorithmId = -1;
 		try {
+
+			// search for an exact match of the algorithm in the table
 			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
 			for (String key : recommenderDetails.keySet()) {
@@ -1073,10 +1097,11 @@ public class DBConnection {
 				}
 			}
 			query = query.replaceAll(" AND $", "");
-			// System.out.println(query);
+
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 
+			// if found, get the id of the exact match
 			if (rs.next()) {
 				recommendationAlgorithmId = rs.getInt(constants.getRecommendationAlgorithmId());
 			} else {
@@ -1084,6 +1109,8 @@ public class DBConnection {
 					stmt.close();
 				if (rs != null)
 					rs.close();
+
+				// Insert the row into the table
 				query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
 				String columns = "";
 				String values = "";
@@ -1096,10 +1123,12 @@ public class DBConnection {
 				columns = columns.replaceAll(", $", " ");
 				values = values.replaceAll(", $", " ");
 				query += (columns + ") VALUES(" + values + ")");
-				// System.out.println(query);
+
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 				rs = stmt.getGeneratedKeys();
+
+				// Get back the generated keys
 				if (rs.next())
 					recommendationAlgorithmId = rs.getInt(1);
 			}
@@ -1117,6 +1146,8 @@ public class DBConnection {
 				throw e;
 			}
 		}
+
+		// return the algorithm Id
 		return recommendationAlgorithmId;
 	}
 
@@ -1340,6 +1371,7 @@ public class DBConnection {
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
+			// Select query for lookup in the database
 			stmt = con.createStatement();
 			String query = "SELECT * FROM " + constants.getRecommendations() + " WHERE "
 					+ constants.getRecommendationId() + " = '" + recommendationId + "'";
@@ -1370,30 +1402,36 @@ public class DBConnection {
 	 * Utility method to verify the accesskey provided by the user against the
 	 * one present in our database for that recommendation_id
 	 * 
-	 * @param recoId
+	 * @param recommendationId
 	 *            the recommendation_id for which we need to check the accessKey
 	 * @param accessKey
 	 *            the access key hash provided by the user
 	 * @return True if access key matches, false if not
 	 * @throws SQLException
 	 */
-	public Boolean checkAccessKey(String recoId, String accessKey) throws SQLException {
+	public Boolean checkAccessKey(String recommendationId, String accessKey) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String accessKeyInDb = "";
 		try {
 			stmt = con.createStatement();
+
+			// Select query to lookup accesskey for the recommendationId in the
+			// database
 			String query = "SELECT " + constants.getAccessKey() + " FROM " + constants.getRecommendationSets()
 					+ " WHERE " + constants.getRecommendationSetsId() + " IN (SELECT "
 					+ constants.getRecommendationSetIdInRecommendations() + " FROM " + constants.getRecommendations()
-					+ " WHERE " + constants.getRecommendationId() + " = " + recoId + ")";
+					+ " WHERE " + constants.getRecommendationId() + " = " + recommendationId + ")";
 
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				accessKeyInDb = rs.getString(constants.getAccessKey());
 			} else {
-				throw new NoEntryException(recoId);
+				throw new NoEntryException(recommendationId);
 			}
+
+			// Compare accessKey in our database against the one which was
+			// submitted in the clickURL
 			return accessKeyInDb.contentEquals(accessKey);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1435,6 +1473,9 @@ public class DBConnection {
 		int loggingId = -1;
 		try {
 			stmt = con.createStatement();
+
+			// Update query to set the time at which a recommendation was
+			// clicked
 			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " = '"
 					+ new Timestamp(requestTime) + "' WHERE " + constants.getRecommendationId() + " = "
 					+ recommendationId;
@@ -1838,19 +1879,25 @@ public class DBConnection {
 	 * 
 	 * write the author Bibliometric in the database
 	 * 
-	 * @param int, id of the author
-	 * @param String, metric (eg "simple_count")
-	 * @param String, data_type (eg "readership")
-	 * @param String, datasource (eg "mendeley")
-	 * @param double, value of the bibliometric
-	 * @throws Exception 
+	 * @param int,
+	 *            id of the author
+	 * @param String,
+	 *            metric (eg "simple_count")
+	 * @param String,
+	 *            data_type (eg "readership")
+	 * @param String,
+	 *            datasource (eg "mendeley")
+	 * @param double,
+	 *            value of the bibliometric
+	 * @throws Exception
 	 */
-	public void writeAuthorBibliometricsInDatabase(int id, String metric, String dataType, String dataSource, double value) {
+	public void writeAuthorBibliometricsInDatabase(int id, String metric, String dataType, String dataSource,
+			double value) {
 		PreparedStatement stmt = null;
 		String query = "";
 
 		try {
-			//insertion query
+			// insertion query
 			query = "INSERT IGNORE INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers()
 					+ ", " + constants.getMetricPers() + ", " + constants.getDataTypePers() + ", "
 					+ constants.getMetricValuePers() + ", " + constants.getDataSourcePers() + ") VALUES (" + id + ", '"
@@ -1871,7 +1918,6 @@ public class DBConnection {
 		}
 	}
 
-	
 	/**
 	 * 
 	 * get the biggest author id (to know how big the table is)
@@ -1889,7 +1935,7 @@ public class DBConnection {
 			String query = "SELECT MAX(" + constants.getPersonID() + ") FROM " + constants.getPersons();
 			rs = stmt.executeQuery(query);
 
-			//get the data from the result set
+			// get the data from the result set
 			while (rs.next()) {
 				size = rs.getInt("MAX(" + constants.getDocumentId() + ")");
 			}
@@ -1908,6 +1954,19 @@ public class DBConnection {
 		return size;
 	}
 
+	/**
+	 * This method returns a subset of the stereotype set of documents which are
+	 * stored in our database
+	 * 
+	 * @param requestDoc
+	 *            document for which stereotype recommendations have been
+	 *            requested
+	 * @param numberOfRelatedDocs
+	 *            how many to return in the document set
+	 * @return DocumentSet containing <code>numberOfRelatedDocs</code> number of
+	 *         randomly chosen stereotype documents
+	 * @throws Exception
+	 */
 	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs)
 			throws Exception {
 		Statement stmt = null;
@@ -1958,6 +2017,29 @@ public class DBConnection {
 
 	}
 
+	/**
+	 * Get the minimum basis for comparison using keyphrases. Example: doc A has
+	 * 10 unigrams, 3 bigrams, and 2 trigrams We want to compare over unigrams
+	 * and bigrams Then minimum basis is 3, because we have a maximum of 3
+	 * bigrams that we can use
+	 * 
+	 * Returns -1 if one of the fields to be used for comparison has no entries
+	 * for the particular document ex. Doc B has 3 unigrams, 1 bigram, and no
+	 * trigram. If we want to compare using bigrams and trigrams, this method
+	 * would return -1 as there are no trigram keyphrases associated with this
+	 * document
+	 * 
+	 * @param documentId
+	 *            documentId for which we need to calcualate minimum basis
+	 * @param gramity
+	 *            String which can take any of the following values: unigrams,
+	 *            bigrams, trigrams, unibi, unitri, bitri, allgrams
+	 * @param source
+	 *            keyphrase source: titles only, or titles and abstracts
+	 * @return int representing the minimum basis for comparison
+	 * @throws Exception
+	 *             if database connection fails
+	 */
 	public int getMinimumNumberOfKeyphrases(String documentId, String gramity, String source) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1965,12 +2047,14 @@ public class DBConnection {
 		String query = "SELECT " + constants.getGramity() + ", count FROM " + constants.getKeyphrases() + " WHERE "
 				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getSourceInKeyphrases()
 				+ "=" + (source.equals("title") ? "'title'" : "'title_and_abstract'");
-		// System.out.println(template);
+
 		try {
 			stmt = con.createStatement();
 			System.out.println(query);
 			rs = stmt.executeQuery(query);
 			switch (gramity) {
+
+			// if allgrams, return minimum of unigrams, bigrams and trigrams
 			case "allgrams": {
 				Integer[] values = { 0, 0, 0 };
 
@@ -1978,6 +2062,8 @@ public class DBConnection {
 					values[rs.getInt("gramity") - 1] = rs.getInt("count");
 				return Collections.min(Arrays.asList(values));
 			}
+
+			// return minimum between unigrams and bigrams
 			case "unibi": {
 				Integer[] values = { 0, 0 };
 				while (rs.next()) {
@@ -1987,6 +2073,8 @@ public class DBConnection {
 				}
 				return Collections.min(Arrays.asList(values));
 			}
+
+			// return minimum between bigrams and trigrams
 			case "bitri": {
 				Integer[] values = { 0, 0 };
 				while (rs.next()) {
@@ -1996,6 +2084,8 @@ public class DBConnection {
 				}
 				return Collections.min(Arrays.asList(values));
 			}
+
+			// return minimum between unigrams and trigrams
 			case "unitri": {
 				Integer[] values = { 0, 0 };
 				while (rs.next()) {
@@ -2009,6 +2099,8 @@ public class DBConnection {
 				}
 				return Collections.min(Arrays.asList(values));
 			}
+
+			// return unigram count
 			case "unigrams": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 1)
@@ -2016,6 +2108,8 @@ public class DBConnection {
 				}
 				return 0;
 			}
+
+			// return bigram count
 			case "bigrams": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 2)
@@ -2024,6 +2118,8 @@ public class DBConnection {
 				}
 				return 0;
 			}
+
+			// return trigram count
 			case "trigrams": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 3)
@@ -2048,9 +2144,21 @@ public class DBConnection {
 		return -1;
 	}
 
+	/**
+	 * Get the language of the abstract, if recorded in the database
+	 * 
+	 * @param requestDocument
+	 *            document for which we need the details about the abstract
+	 * @return two character language code if abstract exists in our database.
+	 *         ex.: 'en', 'de', else 'NONE'
+	 * @throws Exception
+	 */
 	public String getAbstractDetails(DisplayDocument requestDocument) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
+		
+		// Select query to lookup abstract language using the documentId from
+		// the document_abstracts table
 		String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts()
 				+ " WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
 

@@ -55,7 +55,7 @@ public class solrConnection {
 	 * get the first 10 related documents of a query document from solr
 	 * 
 	 * @param document,
-	 *            where similar documents are searched for
+	 *            to which similar documents are searched for
 	 * @param delimitedRows
 	 *            how many rows you want back
 	 * @param logginginfo
@@ -87,23 +87,22 @@ public class solrConnection {
 			String similarityParams = getMltFL(logginginfo.get("cbf_text_fields"), logginginfo.get("typeOfGram"),
 					logginginfo.get("cbf_feature_count"));
 			query.setParam("mlt.fl", similarityParams);
-			query.setParam("mlt.df","2");
+			query.setParam("mlt.df", "2");
 		}
 		// set display params
 		query.setParam("fl", "score,id");
-		//System.out.println(query);
-		//System.out.println(timeNow);
+		// System.out.println(query);
+		// System.out.println(timeNow);
 		try {
 			response = solr.query(query);
-			
+
 			SolrDocumentList docs = response.getResults();
 			System.out.println("Query Time: " + Integer.toString(response.getQTime()));
 			// no related documents found
-			if (docs.isEmpty()){
-				//System.out.println("In here");
+			if (docs.isEmpty()) {
+				// System.out.println("In here");
 				throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
-			}
-			else {
+			} else {
 				long timeNow = System.currentTimeMillis();
 				relatedDocuments.setSuggested_label("Related Articles");
 				relatedDocuments.setRequestedDocument(document);
@@ -117,7 +116,8 @@ public class solrConnection {
 					relDocument.setSuggestedRank(i + 1);
 
 					// add the solrScore
-					relDocument.setTextRelevancyScore(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+					relDocument
+							.setTextRelevancyScore(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
@@ -133,7 +133,7 @@ public class solrConnection {
 					relatedDocuments.addDocument(relDocument);
 				}
 				System.out.printf("Time for adding docs to list\t");
-				System.out.println(System.currentTimeMillis()-timeNow);
+				System.out.println(System.currentTimeMillis() - timeNow);
 			}
 		} catch (Exception e) {
 			System.out.println("test: " + e.getStackTrace());
@@ -143,6 +143,18 @@ public class solrConnection {
 		return relatedDocuments;
 	}
 
+	/**
+	 * Helper function to get disambiguate the MLT query from the features of
+	 * the recommendation approach
+	 * 
+	 * @param source
+	 *            title, or title_and_abstract
+	 * @param type
+	 *            unigrams, bigrams, trigrams, unibi, etc.
+	 * @param number
+	 *            how many features to include in the comparison
+	 * @return a string which refers to the Solr column name for comparison
+	 */
 	private String getMltFL(String source, String type, String number) {
 		String template = source + "_%s_" + number;
 		String uni = String.format(template, "unigrams");
@@ -150,7 +162,7 @@ public class solrConnection {
 		String tri = String.format(template, "trigrams");
 		switch (type) {
 		case "allgrams":
-			return uni + "," + bi + ","  + tri;
+			return uni + "," + bi + "," + tri;
 		case "unibi":
 			return uni + "," + bi;
 		case "unitri":
@@ -163,25 +175,54 @@ public class solrConnection {
 		}
 	}
 
+	/**
+	 * Solr accessor method to get random documents
+	 * 
+	 * @param document
+	 *            the document for which we are delivering recommendations
+	 * @param delimitedRows
+	 *            how many documents to recommend
+	 * @param restrictLanguage
+	 *            if true, random documents are selected which share the
+	 *            language as the <code>document</code>
+	 * @param seed
+	 *            seed for solr's random function
+	 * @return the delimited rows number of most related documents in a document
+	 *         set
+	 * @throws Exception
+	 *             if solr connection fails
+	 */
 	public DocumentSet getRandomDocumentSet(DisplayDocument document, int delimitedRows, Boolean restrictLanguage,
 			String seed) throws Exception {
+
 		DocumentSet relatedDocuments = new DocumentSet(constants);
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
 		DisplayDocument relDocument = new DisplayDocument(constants);
+
+		// Setting solr query to select mode
 		query.setRequestHandler("/select");
 		String fallback_url = "";
-		query.setQuery( "*:*");
+		query.setQuery("*:*");
+
 		// get only documents which are in the same collection
 		String filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
 		query.addFilterQuery(filterquery);
+
+		// add second filter query if language needs to be restricted
 		if (restrictLanguage) {
 			query.addFilterQuery(constants.getLanguage() + ":" + document.getLanguage());
 		}
+
+		// Get back id and score
 		query.setParam("fl", "id,score");
+
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
+
+		// Using solr's random sort field functionality
 		query.setSort(SortClause.asc("random_" + seed));
+
 		try {
 			response = solr.query(query);
 			SolrDocumentList docs = response.getResults();
@@ -202,7 +243,8 @@ public class solrConnection {
 					relDocument.setSuggestedRank(i + 1);
 
 					// add the solrScore
-					relDocument.setTextRelevancyScore(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+					relDocument
+							.setTextRelevancyScore(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))

@@ -51,27 +51,41 @@ public class RecommendationService {
 	 * This method accepts click(ed) url's and logs the click in our database.
 	 * It returns the actual link which was to be viewed
 	 * 
-	 * @param recoId The recommendation ID created during the initial recommendation process
-	 * @param accessKey The access key hash that was created as part of the creation of the recommendation set.
-	 * @param format Describes the type of response to be returned. Currently only supports direct_url_forward
-	 * @return a Response object that contains the url of the actual link to be clicked
+	 * @param recoId
+	 *            The recommendation ID created during the initial
+	 *            recommendation process
+	 * @param accessKey
+	 *            The access key hash that was created as part of the creation
+	 *            of the recommendation set.
+	 * @param format
+	 *            Describes the type of response to be returned. Currently only
+	 *            supports direct_url_forward
+	 * @return a Response object that contains the url of the actual link to be
+	 *         clicked
 	 * @throws Exception
 	 */
 	@GET
 	@Path("{recommendationId:[0-9]+}/original_url/")
 	public Response getRedirectedPathReversedParams(@PathParam("recommendationId") String recoId,
 			@QueryParam("access_key") String accessKey, @QueryParam("request_format") String format) throws Exception {
-		return getRedirectedPath(recoId,accessKey,format);
+		return getRedirectedPath(recoId, accessKey, format);
 	}
-	
+
 	/**
 	 * This method accepts click(ed) url's and logs the click in our database.
 	 * It returns the actual link which was to be viewed
 	 * 
-	 * @param recoId The recommendation ID created during the initial recommendation process
-	 * @param accessKey The access key hash that was created as part of the creation of the recommendation set.
-	 * @param format Describes the type of response to be returned. Currently only supports direct_url_forward
-	 * @return a Response object that contains the url of the actual link to be clicked
+	 * @param recoId
+	 *            The recommendation ID created during the initial
+	 *            recommendation process
+	 * @param accessKey
+	 *            The access key hash that was created as part of the creation
+	 *            of the recommendation set.
+	 * @param format
+	 *            Describes the type of response to be returned. Currently only
+	 *            supports direct_url_forward
+	 * @return a Response object that contains the url of the actual link to be
+	 *         clicked
 	 * @throws Exception
 	 */
 	@GET
@@ -84,11 +98,17 @@ public class RecommendationService {
 		String docId = "";
 		String urlString = "";
 		try {
+
+			// Check accessKey from clickURL against the one stored in our
+			// database
 			accessKeyCheck = con.checkAccessKey(recoId, accessKey);
 			if (accessKeyCheck) {
 				try {
+					// Get document related to recommendation
 					docId = con.getDocIdFromRecommendation(recoId);
 					relDocument = con.getDocumentBy(constants.getDocumentId(), docId);
+					
+					// Generate the redirection Path
 					urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 
 				} catch (NoEntryException e) {
@@ -111,8 +131,12 @@ public class RecommendationService {
 		rootElement.setStatusReportSet(statusReportSet);
 		try {
 			url = new URI(urlString);
+			
+			// Log recommendation Click
 			Boolean loggingDone = con.logRecommendationClick(recoId, docId, requestRecieved, rootElement);
 			if (loggingDone)
+				
+				// Return redirected response
 				return Response.seeOther(url).build();
 			else
 				throw new UnknownException("Logging could not be completed for this click");

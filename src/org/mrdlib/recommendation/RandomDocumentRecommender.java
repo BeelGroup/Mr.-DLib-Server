@@ -44,11 +44,14 @@ public class RandomDocumentRecommender extends RelatedDocumentsMLT {
 	@Override
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
 		Random random = new Random();
+
+		// get a random seed to use to generate a random number for sorting
 		long randomSeed = random.nextLong();
 		random.setSeed(randomSeed);
 		String seed = Integer.toString(random.nextInt());
 
 		try {
+			// get the random recommendations from solr
 			return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, false, seed);
 		} catch (Exception e) {
 			// e.printStackTrace();

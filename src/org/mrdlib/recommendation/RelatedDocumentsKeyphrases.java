@@ -22,10 +22,16 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 	public RelatedDocumentsKeyphrases(DBConnection con) throws Exception {
 		super(con);
 		String name = "";
+
+		// Randomly initialize properties of the keyphrase approach
 		Random random = new Random();
+
+		// Unigrams, bigrams, trigrams have an equal chance of being used
 		Boolean unigrams = random.nextBoolean();
 		Boolean bigrams = random.nextBoolean();
 		Boolean trigrams = random.nextBoolean();
+
+		// Flip a coin to decide to use abstracts or not
 		Boolean abstracts = random.nextBoolean();
 		int sum = ((unigrams ? 1 : 0) + (bigrams ? 1 : 0) + (trigrams ? 1 : 0));
 		while (sum == 0) {
@@ -34,6 +40,9 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 			trigrams = random.nextBoolean();
 			sum = ((unigrams ? 1 : 0) + (bigrams ? 1 : 0) + (trigrams ? 1 : 0));
 		}
+
+		// generate a string which represents the combination of keyphrases to
+		// use
 		if (sum == 3) {
 			name = "allgrams";
 		} else if (sum == 2) {
@@ -48,6 +57,8 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 				name = bigrams ? "bigrams" : "trigrams";
 		}
 
+		// Set the randomly generated properties in the loggingInfo hashmap for
+		// future use
 		loggingInfo.replace("cbf_text_fields", "title" + (abstracts ? "_abstract" : ""));
 		loggingInfo.replace("name", "RelatedDocumentsFromSolrWithKeyphrases");
 		loggingInfo.replace("cbf_feature_type", "keyphrase_(" + name + ")");
@@ -62,15 +73,25 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 	 */
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
 		try {
+
+			// Get the minimum basis for the keyphrase comparison based on the
+			// fields that we compare on
 			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(), loggingInfo.get("typeOfGram"),
 					loggingInfo.get("cbf_text_fields"));
+
+			// If no comparison is possible because, say, there are no trigrams,
+			// which are needed for a bitri comparison, throw Exception
 			if (maxNumber < 1)
 				throw new NoRelatedDocumentsException(requestDoc.getOriginalDocumentId(), requestDoc.getDocumentId());
+
+			// Else pick random number of features <= minimum basis
 			Random random = new Random();
-			// System.out.println(loggingInfo.get("typeOfGram"));
-			// System.out.println(maxNumber);
 			int cbf_feature_count = maxNumber == 1 ? 1 : random.nextInt(maxNumber - 1) + 1;
+
+			// Set loggingInfo with the feature count that is used
 			loggingInfo.replace("cbf_feature_count", Integer.toString(cbf_feature_count));
+
+			// Query solr for the related documents
 			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, loggingInfo);
 		} catch (NoRelatedDocumentsException f) {
 			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
