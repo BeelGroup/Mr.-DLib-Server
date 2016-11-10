@@ -52,9 +52,9 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 				name = bigrams ? "unibi" : "unitri";
 		} else {
 			if (unigrams) {
-				name = "unigrams";
+				name = "unigram";
 			} else
-				name = bigrams ? "bigrams" : "trigrams";
+				name = bigrams ? "bigram" : "trigram";
 		}
 
 		// Set the randomly generated properties in the loggingInfo hashmap for

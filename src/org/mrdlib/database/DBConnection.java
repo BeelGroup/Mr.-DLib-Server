@@ -1022,7 +1022,11 @@ public class DBConnection {
 			// insertion query
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
 					+ constants.getDocumentIdInRecommendations() + ", "
-					+ constants.getRecommendationSetIdInRecommendations() //+ ", " + constants.getBibliometricReRankId()
+					+ constants.getRecommendationSetIdInRecommendations() // +
+																			// ",
+																			// "
+																			// +
+																			// constants.getBibliometricReRankId()
 					+ ", " + constants.getRankReal() + ", " + constants.getRankCurrent() + ", "
 					+ constants.getAlgorithmId() + ", " + constants.getTextRelevanceScoreInRecommendations()
 					+ ") VALUES (" + document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", ? , '"
@@ -2110,7 +2114,7 @@ public class DBConnection {
 			}
 
 			// return unigram count
-			case "unigrams": {
+			case "unigram": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 1)
 						return rs.getInt("count");
@@ -2119,7 +2123,7 @@ public class DBConnection {
 			}
 
 			// return bigram count
-			case "bigrams": {
+			case "bigram": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 2)
 						return rs.getInt("count");
@@ -2129,7 +2133,7 @@ public class DBConnection {
 			}
 
 			// return trigram count
-			case "trigrams": {
+			case "trigram": {
 				while (rs.next()) {
 					if (rs.getInt("gramity") == 3)
 						return rs.getInt("count");
@@ -2219,16 +2223,12 @@ public class DBConnection {
 		try {
 			// insertion query
 			String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
-					+ constants.getLoggingIdInRecommendationSets() + ", " 
-					+ "recommendation_algorithm_id" + ", "
-					+ "fallback" + ", "
-					+ constants.getNumberOfReturnedResults() +", "
-					+ constants.getDeliveredRecommendations() + ", "
-					+ constants.getTrigger() + ", "
+					+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
+					+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
+					+ constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
 					+ constants.getAccessKey() + ") VALUES (" + loggingId + ", "
-					+ documentset.getRecommendationAlgorithmId() + ", "
-					+ (documentset.isFallback()?"'Y'":"'N'") + ", "
-					+ documentset.getNumberOfReturnedResults() + ", " + documentset.getSize() + ", 'system', '"
+					+ documentset.getRecommendationAlgorithmId() + ", " + (documentset.isFallback() ? "'Y'" : "'N'")
+					+ ", " + documentset.getNumberOfReturnedResults() + ", " + documentset.getSize() + ", 'system', '"
 					+ accessKeyHash + "');";
 
 			System.out.println(query);
@@ -2293,25 +2293,29 @@ public class DBConnection {
 
 		String recommendationClass = recommenderDetails.get("recommendation_class");
 		Boolean fallback = false;
-		if(recommendationClass.equals("fallback")){
+		if (recommendationClass.equals("fallback")) {
 			recommenderDetails.replace("recommendation_class", "cbf");
 			fallback = true;
 		}
 		int recommendationClassId = -1;
 
-		switch (recommendationClass) {
-		case "cbf":
-			recommendationClassId = getCbfId(recommenderDetails);
-		case "stereotypes":
-			recommendationClassId = getStereotypesId(recommenderDetails);
-		case "most_popular":
-			recommendationClassId = getMostPopularId(recommenderDetails);
-		}
-
-		int rerankingBibId = logBibReranking(documentset);
-
 		try {
-
+			switch (recommendationClass) {
+			case "cbf": {
+				recommendationClassId = getCbfId(recommenderDetails);
+				break;
+			}
+			case "stereotypes": {
+				recommendationClassId = getStereotypesId(recommenderDetails);
+				break;
+			}
+			case "most_popular": {
+				recommendationClassId = getMostPopularId(recommenderDetails);
+				break;
+			}
+			}
+			System.out.printf("Recommendation class id is %d\n", recommendationClassId);
+			int rerankingBibId = logBibReranking(documentset);
 			// search for an exact match of the algorithm in the table
 			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
@@ -2328,16 +2332,21 @@ public class DBConnection {
 						+ Integer.toString(rerankingBibId);
 			}
 			switch (recommendationClass) {
-			case "cbf":
+			case "cbf": {
 				query += " AND " + "recommendation_class_details_cbf" + "=" + Integer.toString(recommendationClassId);
-
-			case "stereotypes":
+				break;
+			}
+			case "stereotypes": {
 				query += " AND " + "recommendation_class_details_stereotypes" + "="
 						+ Integer.toString(recommendationClassId);
+				break;
+			}
 
-			case "most_popular":
+			case "most_popular": {
 				query += " AND " + "recommendation_class_details_most_popular" + "="
 						+ Integer.toString(recommendationClassId);
+				break;
+			}
 
 			}
 			stmt = con.createStatement();
@@ -2362,12 +2371,14 @@ public class DBConnection {
 						values += ("'" + recommenderDetails.get(key) + "', ");
 					}
 				}
-				columns += "reranking_apply_bibliometric_reranking" 
-						+ ((rerankingBibId > 0)?"reranking_bibliometric_reranking_details, ":"")
-						+ (recommendationClass.contains("random")?"":("recommendation_class_details_" + recommendationClass));
-				values += ((rerankingBibId > 0) ? "'Y'" : "'N'") 
-						+ ((rerankingBibId > 0)?(", " + Integer.toString(rerankingBibId)):"")
-						+ (recommendationClass.contains("random")?"":(", " + Integer.toString(recommendationClassId)));
+				columns += "reranking_apply_bibliometric_reranking"
+						+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
+						+ (recommendationClass.contains("random") ? ""
+								: (", " + "recommendation_class_details_" + recommendationClass));
+				values += ((rerankingBibId > 0) ? "'Y'" : "'N'")
+						+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
+						+ (recommendationClass.contains("random") ? ""
+								: (", " + Integer.toString(recommendationClassId)));
 				query += (columns + ") VALUES(" + values + ")");
 
 				System.out.println(query);
@@ -2421,13 +2432,11 @@ public class DBConnection {
 			// insertion query
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
 					+ constants.getDocumentIdInRecommendations() + ", "
-					+ constants.getRecommendationSetIdInRecommendations() + ", " 
-					+ constants.getRankReal() + ", " + constants.getRankCurrent() + ", "
-					+ constants.getTextRelevanceScoreInRecommendations()
-					+ ") VALUES (" + document.getDocumentId() + ", "
-					+ documentset.getRecommendationSetId() + ", '"
+					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getRankReal() + ", "
+					+ constants.getRankCurrent() + ", " + constants.getTextRelevanceScoreInRecommendations()
+					+ ") VALUES (" + document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", '"
 					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "', '"
-				    + document.getTextRelevancyScore() + "');";
+					+ document.getTextRelevancyScore() + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			System.out.println(query);
@@ -2452,6 +2461,7 @@ public class DBConnection {
 		}
 		return recommendationId;
 	}
+
 	private int getMostPopularId(HashMap<String, String> recommenderDetails) {
 		// TODO Auto-generated method stub
 		return 0;
@@ -2462,9 +2472,61 @@ public class DBConnection {
 		return 0;
 	}
 
-	private int getCbfId(HashMap<String, String> recommenderDetails) {
-		// TODO Auto-generated method stub
-		return 0;
+	private int getCbfId(HashMap<String, String> recommenderDetails) throws SQLException {
+		int cbfId = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+		boolean keyphrases = !recommenderDetails.get("cbf_feature_type").equals("terms");
+		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE "
+				+ constants.getCbfFeatureType() + " = '" + (keyphrases ? "terms" : "keyphrases") + "'";
+		if (keyphrases) {
+			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.get("cbf_feature_type")
+					+ "' AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.get("cbf_feature_count")
+					+ "' AND " + constants.getCbfFields() + "= '" + recommenderDetails.get("cbf_text_fields") + "'";
+		}
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				cbfId = rs.getInt(constants.getCbfId());
+				System.out.printf("cbfId:%d\n", cbfId);
+			} else {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				String columns = constants.getCbfFeatureType();
+				String values = "'" + (keyphrases ? "terms" : "keyphrases") + "'";
+				if (keyphrases) {
+					columns += ", " + constants.getCbfNgramType() + ", " + constants.getCbfFeatureCount() + ", "
+							+ constants.getCbfFields();
+					values += ", '" + recommenderDetails.get("cbf_feature_type") + "', '"
+							+ recommenderDetails.get("cbf_feature_count") + "', '"
+							+ recommenderDetails.get("cbf_text_fields") + "'";
+				}
+				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
+
+				stmt = con.createStatement();
+				System.out.println(query);
+				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					cbfId = rs.getInt(1);
+				System.out.println(cbfId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
+		}
+		return cbfId;
 	}
 
 	private int logBibReranking(DocumentSet documentset) {

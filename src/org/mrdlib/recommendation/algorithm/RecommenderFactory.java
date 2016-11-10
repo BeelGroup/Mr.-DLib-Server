@@ -158,7 +158,7 @@ public class RecommenderFactory {
 				System.out.println(rdg.getClass().getName() + " has failed to initialize");
 			throw new UnknownException(e, true);
 		}
-		return new RandomDocumentRecommender(con);
+		return new RelatedDocumentsKeyphrases(con);
 		//return rdg;
 	}
 }

@@ -84,7 +84,7 @@ public class solrConnection {
 		query.setRows(delimitedRows);
 		// if rec_approach is Keyphrases: override default mlt.fl
 		if (logginginfo.get("name").equals("RelatedDocumentsFromSolrWithKeyphrases")) {
-			String similarityParams = getMltFL(logginginfo.get("cbf_text_fields"), logginginfo.get("typeOfGram"),
+			String similarityParams = getMltFL(logginginfo.get("cbf_text_fields"), logginginfo.get("cbf_feature_type"),
 					logginginfo.get("cbf_feature_count"));
 			query.setParam("mlt.fl", similarityParams);
 			query.setParam("mlt.df", "2");
@@ -162,7 +162,7 @@ public class solrConnection {
 		String bi = String.format(template, "bigrams");
 		String tri = String.format(template, "trigrams");
 		switch (type) {
-		case "allgrams":
+		case "unibitri":
 			return uni + "," + bi + "," + tri;
 		case "unibi":
 			return uni + "," + bi;
@@ -171,7 +171,7 @@ public class solrConnection {
 		case "bitri":
 			return bi + "," + tri;
 		default:
-			return String.format(template, type);
+			return String.format(template, type+"s");
 
 		}
 	}

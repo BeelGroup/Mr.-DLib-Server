@@ -15,7 +15,7 @@ public class Constants {
 
 	private String tomcatConfigPath = "config.properties";
 
-	//environment
+	// environment
 	private String environment;
 
 	// db connection properties
@@ -42,7 +42,7 @@ public class Constants {
 	private String stereotypeRecommendations;
 	private String recommendationAlgorithm;
 	private String keyphrases;
-
+	private String cbfDetails;
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
@@ -159,7 +159,14 @@ public class Constants {
 
 	// db table recommendation_algorithms
 	private String recommendationAlgorithmId;
-	
+
+	// db table z_recommendation_algorithms__details_cbf
+	private String cbfId;
+	private String cbfFeatureType;
+	private String cbfFeatureCount;
+	private String cbfFields;
+	private String cbfNgramType;
+
 	// db table keyphrases
 	private String sourceInKeyphrases;
 	private String gramity;
@@ -183,8 +190,6 @@ public class Constants {
 
 	private String probabilitiesConfigPath;
 
-
-
 	// load the config file
 	public Constants() {
 
@@ -197,7 +202,7 @@ public class Constants {
 
 			// get the property value
 			this.environment = prop.getProperty("environment");
-			
+
 			this.dbClass = prop.getProperty("dbClass");
 			this.db = prop.getProperty("db");
 			this.url = prop.getProperty("url");
@@ -219,6 +224,7 @@ public class Constants {
 			this.stereotypeRecommendations = prop.getProperty("stereotypeRecommendations");
 			this.recommendationAlgorithm = prop.getProperty("recommendationAlgorithm");
 			this.keyphrases = prop.getProperty("keyphrases");
+			this.cbfDetails = prop.getProperty("cbfDetails");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -320,7 +326,13 @@ public class Constants {
 			this.collectionIdInStereotype = prop.getProperty("collectionIdInStereotype");
 
 			this.recommendationAlgorithmId = prop.getProperty("recommendationAlgorithmId");
-			
+
+			this.cbfId = prop.getProperty("cbfId");
+			this.cbfFeatureType = prop.getProperty("cbfFeatureType");
+			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
+			this.cbfFields = prop.getProperty("cbfFields");
+			this.cbfNgramType = prop.getProperty("cbfNgramType");
+
 			this.sourceInKeyphrases = prop.getProperty("sourceInKeyphrases");
 			this.gramity = prop.getProperty("gramity");
 			this.documentIdInKeyphrases = prop.getProperty("documentIdInKeyphrases");
@@ -334,11 +346,11 @@ public class Constants {
 
 			this.mendeleyConfigPath = prop.getProperty("mendeleyConfigPath");
 			this.probabilitiesConfigPath = prop.getProperty("probabilityConfigPath");
-			
+
 			this.numberOfRetries = Integer.parseInt(prop.getProperty("numberOfRetries"));
 			String debugModeOn = prop.getProperty("debugModeOn");
-			
-			//map string true and false to boolean
+
+			// map string true and false to boolean
 			if (debugModeOn.equals("true"))
 				this.debugModeOn = true;
 			else
@@ -364,7 +376,7 @@ public class Constants {
 	public void setEnvironment(String environment) {
 		this.environment = environment;
 	}
-	
+
 	public String getPercentageWithBibliometrics() {
 		return percentageWithBibliometrics;
 	}
@@ -846,6 +858,30 @@ public class Constants {
 	 */
 	public String getNumberOfReturnedResults() {
 		return numberOfReturnedResults;
+	}
+
+	public String getCbfId() {
+		return cbfId;
+	}
+
+	public String getCbfDetails() {
+		return cbfDetails;
+	}
+
+	public String getCbfFeatureType() {
+		return cbfFeatureType;
+	}
+
+	public String getCbfFeatureCount() {
+		return cbfFeatureCount;
+	}
+
+	public String getCbfFields() {
+		return cbfFields;
+	}
+
+	public String getCbfNgramType() {
+		return cbfNgramType;
 	}
 
 }
