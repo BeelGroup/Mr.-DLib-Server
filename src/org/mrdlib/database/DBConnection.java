@@ -1321,10 +1321,13 @@ public class DBConnection {
 		try {
 			// insertion query
 			String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
-					+ constants.getLoggingIdInRecommendationSets() + ", " + constants.getDeliveredRecommendations()
-					+ ", " + constants.getTrigger() + ", " + constants.getAccessKey() + ") VALUES (" + loggingId + ", "
-					+ documentset.getSize() + ", 'system', '" + accessKeyHash + "');";
-
+					+ constants.getLoggingIdInRecommendationSets() + ", " + constants.getNumberOfReturnedResults()
+					+ ", " + constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
+					+ constants.getAccessKey() + ") VALUES (" + loggingId + ", "
+					+ documentset.getNumberOfReturnedResults() + ", "+ documentset.getSize() + ", 'system', '" + accessKeyHash
+					+ "');";
+			
+			System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			stmt.executeUpdate();
 
@@ -1350,6 +1353,7 @@ public class DBConnection {
 				if (stmt != null)
 					stmt.close();
 			} catch (SQLException e) {
+				e.printStackTrace();
 				throw e;
 			}
 		}
@@ -1974,18 +1978,23 @@ public class DBConnection {
 		String query = "";
 
 		try {
-			stmt = con.createStatement();
+			stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
 			query = "SELECT " + constants.getDocumentIdinStereotypeRecommendations() + " FROM "
-					+ constants.getStereotypeRecommendations() + " ORDER BY RAND() LIMIT "
-					+ Integer.toString(numberOfRelatedDocs);
+					+ constants.getStereotypeRecommendations() + " ORDER BY RAND()";
 
 			rs = stmt.executeQuery(query);
 			DocumentSet documentSet = new DocumentSet(constants);
 			documentSet.setSuggested_label("Related Articles");
 			documentSet.setRequestedDocument(requestDoc);
 
-			while (rs.next()) {
+			if (rs.last()) {
+				int rows = rs.getRow();
+				documentSet.setNumberOfReturnedResults(rows);
+				rs.beforeFirst();
+			}
+			int i = 0;
+			while (rs.next() && i < numberOfRelatedDocs) {
 				DisplayDocument relDocument = getDocumentBy(constants.getDocumentId(),
 						rs.getString(constants.getDocumentIdinStereotypeRecommendations()));
 				relDocument.setSuggestedRank(rs.getRow());
@@ -1998,7 +2007,7 @@ public class DBConnection {
 
 				relDocument.setFallbackUrl(fallback_url);
 				documentSet.addDocument(relDocument);
-
+				i++;
 			}
 			return documentSet;
 		} catch (Exception e) {
@@ -2156,7 +2165,7 @@ public class DBConnection {
 	public String getAbstractDetails(DisplayDocument requestDocument) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
-		
+
 		// Select query to lookup abstract language using the documentId from
 		// the document_abstracts table
 		String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts()

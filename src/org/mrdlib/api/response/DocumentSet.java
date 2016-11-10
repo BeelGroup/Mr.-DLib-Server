@@ -34,6 +34,8 @@ public class DocumentSet {
 	private String rankingMethod;
 	private RelatedDocuments rdg;
 	private DisplayDocument requestedDocument;
+	private long numberOfReturnedResults;
+
 	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
 
 	public DisplayDocument getRequestedDocument() {
@@ -423,6 +425,15 @@ public class DocumentSet {
 		debugDetailsPerSet.setRecommendationApproach(rdg.loggingInfo.get("name"));
 	}
 
+	public long getNumberOfReturnedResults() {
+		return numberOfReturnedResults;
+	}
+
+	@XmlTransient
+	public void setNumberOfReturnedResults(long numberOfReturnedResults) {
+		this.numberOfReturnedResults = numberOfReturnedResults;
+	}
+	
 	public void calculatePercentageRankingValue() {
 		int rankingValueCount = 0;
 		for (int i = 0; i < this.getSize(); i++) {

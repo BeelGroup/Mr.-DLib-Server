@@ -106,6 +106,7 @@ public class solrConnection {
 				long timeNow = System.currentTimeMillis();
 				relatedDocuments.setSuggested_label("Related Articles");
 				relatedDocuments.setRequestedDocument(document);
+				relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
 				// for each document add it to documentSet
 				for (int i = 0; i < docs.size(); i++) {
 					// get the document
@@ -233,6 +234,8 @@ public class solrConnection {
 			else {
 				relatedDocuments.setSuggested_label("Related Articles");
 				relatedDocuments.setRequestedDocument(document);
+				relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
+
 				// for each document add it to documentSet
 				for (int i = 0; i < docs.size(); i++) {
 					// get the document

@@ -84,6 +84,7 @@ public class Constants {
 	// db table recommendation sets
 	private String recommendationSetsId;
 	private String loggingIdInRecommendationSets;
+	private String numberOfReturnedResults;
 	private String deliveredRecommendations;
 	private String trigger;
 	private String maximumOriginalRank;
@@ -247,6 +248,7 @@ public class Constants {
 			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
 			this.loggingIdInRecommendationSets = prop.getProperty("loggingIdInRecommendationSets");
+			this.numberOfReturnedResults = prop.getProperty("numberOfReturnedResults");
 			this.deliveredRecommendations = prop.getProperty("deliveredRecommendations");
 			this.trigger = prop.getProperty("trigger");
 			this.maximumOriginalRank = prop.getProperty("maximumOriginalRank");
@@ -843,6 +845,13 @@ public class Constants {
 
 	public String getTextRelevanceScoreInRecommendations() {
 		return textRelevanceScoreInRecommendations;
+	}
+
+	/**
+	 * @return the numberOfReturnedResults
+	 */
+	public String getNumberOfReturnedResults() {
+		return numberOfReturnedResults;
 	}
 
 }
