@@ -20,7 +20,7 @@ public class RandomDocumentRecommenderLanguageRestricted extends RandomDocumentR
 	public RandomDocumentRecommenderLanguageRestricted(DBConnection con) throws Exception {
 		super(con);
 		loggingInfo.replace("name", "RandomDocumentRecommenderLanguageRestricted");
-		loggingInfo.replace("language_filter", "same_language_only");
+		loggingInfo.replace("restriction_only_documents_from_this_language", "same_language_only");
 	}
 
 	@Override

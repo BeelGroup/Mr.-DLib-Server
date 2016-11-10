@@ -28,9 +28,9 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 			// Store the details of the recommender approach for future use in
 			// the loggingInfo hashmap
 			loggingInfo.put("name", "RelatedDocumentsFromSolr");
-			loggingInfo.put("recommendation_framework", "lucene");
+			//loggingInfo.put("recommendation_framework", "lucene");
 			loggingInfo.put("recommendation_class", "cbf");
-			loggingInfo.put("language_filter", "N");
+			loggingInfo.put("restriction_only_documents_from_this_language", "N");
 			loggingInfo.put("cbf_text_fields", "all");
 			loggingInfo.put("cbf_feature_type", "terms");
 			loggingInfo.put("cbf_feature_count", "0");

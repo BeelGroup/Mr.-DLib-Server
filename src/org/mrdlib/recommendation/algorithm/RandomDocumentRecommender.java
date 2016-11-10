@@ -20,9 +20,9 @@ public class RandomDocumentRecommender extends RelatedDocumentsMLT {
 		super(con);
 		loggingInfo.clear();
 		loggingInfo.put("name", "RandomDocumentRecommender");
-		loggingInfo.put("recommendation_framework", "lucene");
+		//loggingInfo.put("recommendation_framework", "lucene");
 		loggingInfo.put("recommendation_class", "random");
-		loggingInfo.put("language_filter", "N");
+		loggingInfo.put("restriction_only_documents_from_this_language", "N");
 	}
 
 	@Override

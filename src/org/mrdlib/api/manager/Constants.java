@@ -74,8 +74,6 @@ public class Constants {
 	private String recommendationId;
 	private String documentIdInRecommendations;
 	private String recommendationSetIdInRecommendations;
-	private String algorithmId;
-	private String bibliometricReRankId;
 	private String clicked;
 	private String rankReal;
 	private String rankCurrent;
@@ -86,6 +84,7 @@ public class Constants {
 	private String loggingIdInRecommendationSets;
 	private String numberOfReturnedResults;
 	private String deliveredRecommendations;
+	private String algorithmId;
 	private String trigger;
 	private String maximumOriginalRank;
 	private String accessKey;
@@ -241,7 +240,6 @@ public class Constants {
 			this.documentIdInRecommendations = prop.getProperty("documentIdInRecommendations");
 			this.recommendationSetIdInRecommendations = prop.getProperty("recommendationSetIdInRecommendations");
 			this.algorithmId = prop.getProperty("algorithmId");
-			this.bibliometricReRankId = prop.getProperty("bibliometricReRankId");
 			this.clicked = prop.getProperty("clicked");
 			this.rankReal = prop.getProperty("rankReal");
 			this.rankCurrent = prop.getProperty("rankCurrent");
@@ -421,10 +419,6 @@ public class Constants {
 
 	public String getAlgorithmId() {
 		return algorithmId;
-	}
-
-	public String getBibliometricReRankId() {
-		return bibliometricReRankId;
 	}
 
 	public String getRecommendationSetIdInRecommendations() {

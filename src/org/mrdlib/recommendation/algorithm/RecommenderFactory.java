@@ -85,8 +85,9 @@ public class RecommenderFactory {
 	 * @param requestDocument
 	 *            Document for which recommendations need to be generated
 	 * @return A <code>RelatedDocuments</code> recommender object
+	 * @throws Exception 
 	 */
-	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument) {
+	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument) throws Exception {
 
 		// Load probabilities from the config file
 		Random random = new Random();
@@ -157,6 +158,7 @@ public class RecommenderFactory {
 				System.out.println(rdg.getClass().getName() + " has failed to initialize");
 			throw new UnknownException(e, true);
 		}
-		return rdg;
+		return new RandomDocumentRecommender(con);
+		//return rdg;
 	}
 }

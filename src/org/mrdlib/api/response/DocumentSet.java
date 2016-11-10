@@ -35,8 +35,12 @@ public class DocumentSet {
 	private RelatedDocuments rdg;
 	private DisplayDocument requestedDocument;
 	private long numberOfReturnedResults;
+	private boolean fallback;
+	private int recommendationAlgorithmId;
 
 	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
+
+
 
 	public DisplayDocument getRequestedDocument() {
 		return requestedDocument;
@@ -455,5 +459,33 @@ public class DocumentSet {
 		s = s.replaceAll("[^a-zA-Z0-9]", "");
 		s = s.toLowerCase();
 		return s;
+	}
+
+	/**
+	 * @return the recommendationAlgorithmId
+	 */
+	public String getRecommendationAlgorithmId() {
+		return Integer.toString(recommendationAlgorithmId);
+	}
+
+	/**
+	 * @param recommendationAlgorithmId the recommendationAlgorithmId to set
+	 */
+	public void setRecommendationAlgorithmId(int recommendationAlgorithmId) {
+		this.recommendationAlgorithmId = recommendationAlgorithmId;
+	}
+
+	/**
+	 * @return the fallback
+	 */
+	public boolean isFallback() {
+		return fallback;
+	}
+
+	/**
+	 * @param fallback the fallback to set
+	 */
+	public void setFallback(boolean fallback) {
+		this.fallback = fallback;
 	}
 }

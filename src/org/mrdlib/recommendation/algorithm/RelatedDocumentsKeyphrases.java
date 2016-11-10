@@ -44,7 +44,7 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 		// generate a string which represents the combination of keyphrases to
 		// use
 		if (sum == 3) {
-			name = "allgrams";
+			name = "unibitri";
 		} else if (sum == 2) {
 			if (!unigrams) {
 				name = "bitri";
@@ -61,8 +61,7 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 		// future use
 		loggingInfo.replace("cbf_text_fields", "title" + (abstracts ? "_abstract" : ""));
 		loggingInfo.replace("name", "RelatedDocumentsFromSolrWithKeyphrases");
-		loggingInfo.replace("cbf_feature_type", "keyphrase_(" + name + ")");
-		loggingInfo.put("typeOfGram", name);
+		loggingInfo.replace("cbf_feature_type", name);
 	}
 
 	@Override
@@ -76,7 +75,7 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 
 			// Get the minimum basis for the keyphrase comparison based on the
 			// fields that we compare on
-			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(), loggingInfo.get("typeOfGram"),
+			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(), loggingInfo.get("cbf_feature_type"),
 					loggingInfo.get("cbf_text_fields"));
 
 			// If no comparison is possible because, say, there are no trigrams,
@@ -100,7 +99,6 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 			e.printStackTrace();
 			throw e;
 		} finally {
-			loggingInfo.remove("typeOfGram");
 			if (scon != null)
 				scon.close();
 		}

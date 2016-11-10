@@ -126,7 +126,7 @@ public class DocumentService {
 
 		try {
 			//log all the statistic about this execution
-			documentset = con.logRecommendationDelivery(requestDocument.getDocumentId(), requestRecieved, rootElement);
+			documentset = con.logRecommendationDeliveryNew(requestDocument.getDocumentId(), requestRecieved, rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
 				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
@@ -135,6 +135,7 @@ public class DocumentService {
 				doc.setClickUrl(url);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
 

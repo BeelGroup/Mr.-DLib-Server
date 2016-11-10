@@ -25,7 +25,7 @@ public class StereotypeRecommender extends RelatedDocuments {
 		loggingInfo.put("name", "StereotypeRecommender");
 		loggingInfo.put("recommendation_framework", "proprietary");
 		loggingInfo.put("recommendation_class", "stereotype");
-		loggingInfo.put("language_filter", "N");
+		loggingInfo.put("restriction_only_documents_from_this_language", "N");
 
 	}
 
