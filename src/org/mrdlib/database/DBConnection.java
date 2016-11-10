@@ -23,14 +23,14 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import org.mrdlib.Constants;
-import org.mrdlib.display.DisplayDocument;
-import org.mrdlib.display.DocumentSet;
-import org.mrdlib.display.RootElement;
-import org.mrdlib.display.StatusReport;
-import org.mrdlib.tools.Abstract;
-import org.mrdlib.tools.Person;
-import org.mrdlib.tools.XMLDocument;
+import org.mrdlib.api.manager.Constants;
+import org.mrdlib.api.response.DisplayDocument;
+import org.mrdlib.api.response.DocumentSet;
+import org.mrdlib.api.response.RootElement;
+import org.mrdlib.api.response.StatusReport;
+import org.mrdlib.partnerContentManager.gesis.Abstract;
+import org.mrdlib.partnerContentManager.gesis.Person;
+import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 
 /**
  * 

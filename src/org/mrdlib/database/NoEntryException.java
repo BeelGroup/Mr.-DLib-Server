@@ -2,8 +2,8 @@ package org.mrdlib.database;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.mrdlib.display.StatusMessage;
-import org.mrdlib.display.StatusReport;
+import org.mrdlib.api.response.StatusMessage;
+import org.mrdlib.api.response.StatusReport;
 
 public class NoEntryException extends WebApplicationException {
 	private static final long serialVersionUID = 1L;
