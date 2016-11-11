@@ -23,8 +23,8 @@ public class ApplyRanking {
 	private solrConnection scon = null;
 	private Constants constants = null;
 	private StatusReportSet statusReportSet = null;
-	
-	private int rndNumberOfCandidatesToReRank; 
+
+	private int rndNumberOfCandidatesToReRank;
 	private int rndWeight;
 	private int rndRank;
 	private int numberOfCandidatesToReRank;
@@ -34,36 +34,45 @@ public class ApplyRanking {
 	 * 
 	 * initialize random numbers and initialize solr connection
 	 * 
-	 * @param database connection
+	 * @param database
+	 *            connection
 	 */
 	public ApplyRanking(DBConnection con) {
 		constants = new Constants();
 		this.con = con;
-	
+
 		Random random = new Random();
-		//random number for the number of considered results from the algorithm
-		rndNumberOfCandidatesToReRank = random.nextInt(7)+1;
-		//random number for the proportion of text relevance score and alt/bibliometric
-		rndWeight = random.nextInt(8)+1;
-		//random number for the chosen metric
-		rndRank = random.nextInt(4)+1;
-		
-		//choose a number of considered results from the algorithm
+		// random number for the number of considered results from the algorithm
+		rndNumberOfCandidatesToReRank = random.nextInt(7) + 1;
+		// random number for the proportion of text relevance score and
+		// alt/bibliometric
+		rndWeight = random.nextInt(8) + 1;
+		// random number for the chosen metric
+		rndRank = random.nextInt(4) + 1;
+
+		// choose a number of considered results from the algorithm
 		switch (rndNumberOfCandidatesToReRank) {
 		case 1:
-			numberOfCandidatesToReRank = 10; break;
+			numberOfCandidatesToReRank = 10;
+			break;
 		case 2:
-			numberOfCandidatesToReRank = 20; break;
+			numberOfCandidatesToReRank = 20;
+			break;
 		case 3:
-			numberOfCandidatesToReRank = 30; break;
+			numberOfCandidatesToReRank = 30;
+			break;
 		case 4:
-			numberOfCandidatesToReRank = 40; break;
+			numberOfCandidatesToReRank = 40;
+			break;
 		case 5:
-			numberOfCandidatesToReRank = 50; break;
+			numberOfCandidatesToReRank = 50;
+			break;
 		case 6:
-			numberOfCandidatesToReRank = 75; break;
+			numberOfCandidatesToReRank = 75;
+			break;
 		case 7:
-			numberOfCandidatesToReRank = 100; break;
+			numberOfCandidatesToReRank = 100;
+			break;
 		default:
 			numberOfCandidatesToReRank = 200;
 		}
@@ -78,86 +87,117 @@ public class ApplyRanking {
 	 * 
 	 * reranks the documentset from the algorithm with random parameters
 	 * 
-	 * @param documentSet by algorithm
+	 * @param documentSet
+	 *            by algorithm
 	 * @return reranked documentSet
 	 * @throws Exception
 	 */
 	public DocumentSet selectRandomRanking(DocumentSet documentSet) throws Exception {
-		boolean onlySolr = false;
 		Random random = new Random();
-		
-		//random number for the number of displayed recommendations
-		rndDisplayNumber = random.nextInt(15)+1;
 
-		
-		//documentset = scon.getRelatedDocumentSetByDocument(requestDocument, solrRows);
+		// random number for the number of displayed recommendations
+		rndDisplayNumber = random.nextInt(15) + 1;
 
-		//if the algorithm does not provide enough result, fall back on the biggest fitting enum from database
+		// documentset = scon.getRelatedDocumentSetByDocument(requestDocument,
+		// solrRows);
+
+		// if the algorithm does not provide enough result, fall back on the
+		// biggest fitting enum from database
 		if (documentSet.getSize() < numberOfCandidatesToReRank)
-			numberOfCandidatesToReRank = getNextTinierAlgorithmRows(documentSet.getSize());  //CHANGED THIS HERE BECAUSE FOR STEREOTYPE RECOMMENDATIONS, WE 
-		//CAN ONLY GET AROUND 60 recommendations maximum
-		
-		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
-		
-		//if there are more results than wanted, cut the list
-		if (documentSet.getSize() > numberOfCandidatesToReRank-1)
-			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, numberOfCandidatesToReRank - 1));
-		
+			numberOfCandidatesToReRank = getNextTinierAlgorithmRows(documentSet.getSize()); // CHANGED
+																							// THIS
+																							// HERE
+																							// BECAUSE
+																							// FOR
+																							// STEREOTYPE
+																							// RECOMMENDATIONS,
+																							// WE
+		// CAN ONLY GET AROUND 60 recommendations maximum
+
 		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 
-		//choose a ranking metric
-		switch (rndRank) {
-		case 1:
-			documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley"); break;
-		case 2:
-			documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "readers", "mendeley"); break;
-		case 3:
-			documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "readers", "mendeley"); break;
-		case 4:
-			documentSet = getSolr(documentSet); onlySolr=true; rndWeight = random.nextInt(2)+1; break;
-		default:
-			documentSet = getSolr(documentSet); onlySolr=true; rndWeight = random.nextInt(2)+1; break;
+		// if there are more results than wanted, cut the list
+		if (documentSet.getSize() > numberOfCandidatesToReRank - 1)
+			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, numberOfCandidatesToReRank - 1));
+
+		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
+		documentSet.setRankAfterAlgorithm();
+
+		if (rndWeight <= 8) {
+			// choose a ranking metric
+			switch (rndRank) {
+			case 1:
+				documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
+				break;
+			case 2:
+				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "readers",
+						"mendeley");
+				break;
+			case 3:
+				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "readers",
+						"mendeley");
+				break;
+			default:
+				documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
+				break;
+			}
 		}
-		
-		//find out how much of the documents have a alt/bibliometric
-		documentSet.calculatePercentageRankingValue();
-		
-		//choose a proportion of text relevance score and alt/bibliometric
+
+		// choose a proportion of text relevance score and alt/bibliometric
 		switch (rndWeight) {
 		case 1:
-			documentSet.sortAscForRankingValue(onlySolr); break;
+			documentSet.sortDescForLogRankingValueTimesTextRelevance();
+			break;
 		case 2:
-			documentSet.sortDescForRankingValue(onlySolr); break;
+			documentSet.sortDescForRootRankingValueTimesTextRelevance();
+			break;
 		case 3:
-			documentSet.sortDescForLogRankingValueTimesTextRelevance(); break;
+			documentSet.sortDescForRankingValueTimesTextRelevance();
+			break;
 		case 4:
-			documentSet.sortDescForRootRankingValueTimesTextRelevance(); break;
+			documentSet.sortAscForRankingValueTimesTextRelevance();
+			break;
 		case 5:
-			documentSet.sortDescForRankingValueTimesTextRelevance(); break;
+			documentSet.sortAscForLogRankingValueTimesTextRelevance();
+			break;
 		case 6:
-			documentSet.sortAscForRankingValueTimesTextRelevance(); break;
+			documentSet.sortAscForRootRankingValueTimesTextRelevance();
+			break;
 		case 7:
-			documentSet.sortAscForLogRankingValueTimesTextRelevance(); break;
+			documentSet.sortAscForRankingValue();
+			break;
 		case 8:
-			documentSet.sortAscForRootRankingValueTimesTextRelevance(); break;
+			documentSet.sortDescForRankingValue();
+			break;
+		case 9:
+			documentSet.sortAscForTextRelevance();
+			break;
+		case 10:
+			documentSet.sortDescForTextRelevance();
+			break;
 		default:
-			documentSet.sortDescForRankingValue(onlySolr); break;
+			documentSet.sortDescForRankingValue();
+			break;
 		}
-		
-		//cut the list to the number we want to display
-		if(documentSet.getSize() > rndDisplayNumber)
+
+		// find out how much of the documents have a alt/bibliometric
+		documentSet.calculatePercentageRankingValue();
+
+		// cut the list to the number we want to display
+		if (documentSet.getSize() > rndDisplayNumber)
 			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, rndDisplayNumber));
-		
-		return documentSet.refreshRankBoth();
+
+		return documentSet.setRankAfterReRanking();
 	}
-	
 
 	/**
 	 * 
-	 * if the algorithm provides not enough results, find biggest enum from database which fits
+	 * if the algorithm provides not enough results, find biggest enum from
+	 * database which fits
 	 * 
-	 * @param expected algorithmRow
-	 * @return new tinier algorithmRow 
+	 * @param expected
+	 *            algorithmRow
+	 * @return new tinier algorithmRow
 	 */
 	private int getNextTinierAlgorithmRows(int algorithmRows) {
 
@@ -184,13 +224,17 @@ public class ApplyRanking {
 	 * get the specified altmetrics for all documents in a document set
 	 * 
 	 * @param documentSet
-	 * @param metric, eg simple_count
-	 * @param type, eg readership
-	 * @param source, eg mendeley
+	 * @param metric,
+	 *            eg simple_count
+	 * @param type,
+	 *            eg readership
+	 * @param source,
+	 *            eg mendeley
 	 * @return DocumentSet with attached rankingValues, -1 if no rankingValue
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	public DocumentSet getAltmetric(DocumentSet documentset, String metric, String type, String source) throws Exception {
+	public DocumentSet getAltmetric(DocumentSet documentset, String metric, String type, String source)
+			throws Exception {
 		DisplayDocument current = null;
 		DisplayDocument temp = new DisplayDocument(constants);
 		documentset.setBibliometricId(con.getBibId(metric, type, source));
@@ -198,30 +242,12 @@ public class ApplyRanking {
 		for (int i = 0; i < documentset.getSize(); i++) {
 			current = documentset.getDocumentList().get(i);
 			temp = con.getRankingValue(current.getDocumentId(), documentset.getBibliometricId());
-			current.setRankingValue(temp.getRankingValue());
-			current.setBibId(documentset.getBibliometricId());
+			current.setBibScore(temp.getBibScore());
 			current.setBibDocId(temp.getBibDocId());
 		}
 		return documentset;
 	}
-	
-	/**
-	 * 
-	 * wrapper method to set ranking value to textrelevance score
-	 * 
-	 * @param documentSet
-	 * @return DocumentSet with attached rankingValues
-	 */
-	public DocumentSet getSolr(DocumentSet documentset) {
-		DisplayDocument current = null;
 
-		for (int i = 0; i < documentset.getSize(); i++) {
-			current = documentset.getDocumentList().get(i);
-			current.setRankingValue(current.getTextRelevancyScore());
-		}
-		return documentset;
-	}
-	
 	public int getNumberOfCandidatesToReRank() {
 		return numberOfCandidatesToReRank;
 	}

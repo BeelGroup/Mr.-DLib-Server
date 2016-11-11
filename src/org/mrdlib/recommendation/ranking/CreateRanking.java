@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
+import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.partnerContentManager.gesis.Person;
 
@@ -39,19 +40,19 @@ public class CreateRanking {
 	 * the paper in years and stores it in the database
 	 */
 	public void createReadershipNormalizedByAge() {
-		List<DisplayDocument> documentDataList = new ArrayList<DisplayDocument>();
+		DocumentSet documentSet = new DocumentSet(constants);
 		DisplayDocument current = null;
 		double value;
 
 		//get every document which has readership data
-		documentDataList = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
-		System.out.println(documentDataList.size());
-		for (int i = 0; i < documentDataList.size(); i++) {
-			current = documentDataList.get(i);
+		documentSet = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
+		System.out.println(documentSet.getSize());
+		for (int i = 0; i < documentSet.getSize(); i++) {
+			current = documentSet.getDocumentList().get(i);
 			
 			//print the current progress in 10.000 steps
 			if (i % 10000 == 0)
-				System.out.println(i + "/" + documentDataList.size());
+				System.out.println(i + "/" + documentSet.getSize());
 
 			try {
 				//get the published year of the paper
@@ -62,10 +63,10 @@ public class CreateRanking {
 				if (current.getYear() != -1) {
 					//if the difference is 0, handle extra due to math error
 					if (current.getYear() == Year.now().getValue())
-						value = (double) current.getRankingValue();
+						value = (double) current.getBibScore();
 					else
 						//divide through difference +1 to avoid math error
-						value = (double) current.getRankingValue() / (Year.now().getValue() - current.getYear() + 1);
+						value = (double) current.getBibScore() / (Year.now().getValue() - current.getYear() + 1);
 
 					//write to database
 					con.writeBibliometricsInDatabase(current.getDocumentId(), "normalizedByAge", "readers", "", "",
@@ -83,21 +84,21 @@ public class CreateRanking {
 	 * authors, who contributed to it and stores it in the database
 	 */
 	public void createReadershipNormalizedByNumberOfAuthors() {
-		List<DisplayDocument> documentDataList = new ArrayList<DisplayDocument>();
+		DocumentSet documentSet = new DocumentSet(constants);
 		DisplayDocument current = null;
 		double value;
 		int numberOfAuthors;
 
 		//get every document which has readership data
-		documentDataList = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
-		System.out.println(documentDataList.size());
+		documentSet = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
+		System.out.println(documentSet.getSize());
 
-		for (int i = 0; i < documentDataList.size(); i++) {
-			current = documentDataList.get(i);
+		for (int i = 0; i < documentSet.getSize(); i++) {
+			current = documentSet.getDocumentList().get(i);
 			
 			//print the current progress in 10.000 steps
 			if (i % 10000 == 0)
-				System.out.println(i + "/" + documentDataList.size());
+				System.out.println(i + "/" + documentSet.getSize());
 
 			try {
 				//get the number of authors per document
@@ -105,7 +106,7 @@ public class CreateRanking {
 
 				//only divide through non-zero values
 				if (numberOfAuthors != 0) {
-					value = (double) current.getRankingValue() / numberOfAuthors;
+					value = (double) current.getBibScore() / numberOfAuthors;
 					
 					//write to database
 					con.writeBibliometricsInDatabase(current.getDocumentId(), "normalizedByNumberOfAuthors", "readers",
@@ -124,7 +125,7 @@ public class CreateRanking {
 	 */
 	public void createReadershipByAuthor() {
 		List<Person> personList = new ArrayList<Person>();
-		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
+		DocumentSet documentSet = new DocumentSet(constants);
 		Person currentAuthor = null;
 		double authorReadership;
 		DisplayDocument currentDocument = null;
@@ -142,13 +143,14 @@ public class CreateRanking {
 				authorReadership = 0;
 
 				try {
-					documentList = con.getDocumentsByPersonId(currentAuthor.getId());
+					documentSet = con.getDocumentsByPersonId(currentAuthor.getId());
 
-					for (int j = 0; j < documentList.size(); j++) {
-						currentDocument = documentList.get(j);
+					for (int j = 0; j < documentSet.getSize(); j++) {
+						currentDocument = documentSet.getDocumentList().get(j);
+						documentSet.setBibliometricId(con.getBibId("simple_count", "readers", "mendeley"));
 						documentReadership = con
-								.getRankingValue(currentDocument.getDocumentId(), "simple_count", "readers", "mendeley")
-								.getRankingValue();
+								.getRankingValue(currentDocument.getDocumentId(), documentSet.getBibliometricId())
+								.getBibScore();
 						if (documentReadership != -1) {
 							authorReadership = authorReadership + documentReadership;
 						}
@@ -223,7 +225,7 @@ public class CreateRanking {
 			for (int i = 0; i < personList.size(); i++) {
 				currentAuthor = personList.get(i);
 
-				documentNumber = con.getDocumentsByPersonId(currentAuthor.getId()).size();
+				documentNumber = con.getDocumentsByPersonId(currentAuthor.getId()).getSize();
 				hIndex = Math.min((int) currentAuthor.getRankingValue(), documentNumber);
 
 				con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), "h-index", "readers",

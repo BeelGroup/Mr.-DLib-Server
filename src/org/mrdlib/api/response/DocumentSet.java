@@ -24,23 +24,45 @@ public class DocumentSet {
 
 	private List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 
-	private String recommendationSetId;
-	private String suggestedLabel;
+	private String recommendationSetId; // ok
+	private String suggestedLabel; // ok
+
+	private DisplayDocument requestedDocument;
 
 	private Constants constants;
 
-	// metadata of the algorithm
+	// metadata of the algorithm MOVE TO DEBUGDETAILS
 	private int numberOfCandidatesToReRank;// number of items choosed to rerank
-	private String reRankingCombination;
-	private String rankingOrder;
-	private RelatedDocuments rdg;
-	private DisplayDocument requestedDocument;
-	private long numberOfReturnedResults;
-	private boolean fallback;
-	private int recommendationAlgorithmId;
-	private int bibliometricId;
+											// //ok
+	private String reRankingCombination; // ok
+	private String rankingOrder; // ok
+	private RelatedDocuments rdg; // sid changes
+	private long numberOfReturnedResults; // currently: numberFromAlgReturns
+											// //NEED: numberFromAlgReturns;
+											// desiredNumberFromAlg;
+											// numberOfRecWeDisplay
+	private boolean fallback; // Sid
+	private int recommendationAlgorithmId; // ok
+	private int bibliometricId; // ok
+	private boolean bibliometricReRanking = true;
+	// NEED boolean shuffled
+	// NEED boolearn removeDuplicates
+	// NEED accesskey
+	// NEED timestamps: start; afterChooseOfAlg; afterUserModel; afterAlg;
+	// afterReRank; end?
+	// NEED metric
+	// NEED type
+	// NEED source
 
 	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
+
+	public boolean isBibliometricReRanking() {
+		return bibliometricReRanking;
+	}
+
+	public void setBibliometricReRanking(boolean bibliometricReRanking) {
+		this.bibliometricReRanking = bibliometricReRanking;
+	}
 
 	public int getBibliometricId() {
 		return bibliometricId;
@@ -93,25 +115,15 @@ public class DocumentSet {
 	 * 
 	 * sorts the documentset list desc for the ranking value
 	 * 
-	 * @param only
-	 *            text Releveance, boolean if the random approach choosed only
-	 *            Text relevance
 	 * @return resorted documentset
 	 */
-	public DocumentSet sortDescForRankingValue(boolean onlyTextRelevance) {
+	public DocumentSet sortDescForRankingValue() {
 		this.avoidZeroRankingValue();
 		// lambda exspression for sorting
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
-				.collect(Collectors.toList()));
-		if (onlyTextRelevance) {
-			this.reRankingCombination = "standard_only";
-			this.rankingOrder = "desc";
-		}
-		else {
-			this.reRankingCombination = "bibliometrics_only";
-			this.rankingOrder = "desc";
-		}
+				.sorted((b, a) -> Double.compare(a.getBibScore(), b.getBibScore())).collect(Collectors.toList()));
+		this.reRankingCombination = "bibliometrics_only";
+		this.rankingOrder = "desc";
 		return this;
 	}
 
@@ -119,25 +131,53 @@ public class DocumentSet {
 	 * 
 	 * sorts the documentset list asc for the ranking value
 	 * 
-	 * @param only
-	 *            text Releveance, boolean if the random approach choosed only
-	 *            Text relevance
 	 * @return resorted documentset
 	 */
-	public DocumentSet sortAscForRankingValue(boolean onlyTextRelevance) {
+	public DocumentSet sortAscForRankingValue() {
 		this.avoidZeroRankingValue();
 		// lambda exspression for sorting
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
+				.sorted((a, b) -> Double.compare(a.getBibScore(), b.getBibScore())).collect(Collectors.toList()));
+		this.reRankingCombination = "bibliometrics_only";
+		this.rankingOrder = "asc";
+		return this;
+	}
+
+	/**
+	 * 
+	 * sorts the documentset list asc for the algorithm relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortAscForTextRelevance() {
+		this.avoidZeroRankingValue();
+		// lambda exspression for sorting
+		this.setDocumentList(this.getDocumentList().stream().sorted(
+				(a, b) -> Double.compare(a.getRelevanceScoreFromAlgorithm(), b.getRelevanceScoreFromAlgorithm()))
 				.collect(Collectors.toList()));
-		if (onlyTextRelevance) {
-			this.reRankingCombination = "standard_only";
-			this.rankingOrder = "asc";
-		}
-		else {
-			this.reRankingCombination = "bibliometrics_only";
-			this.rankingOrder = "asc";
-		}
+		this.reRankingCombination = "standard_only";
+		this.rankingOrder = "asc";
+		this.bibliometricReRanking = false;
+
+		return this;
+	}
+	
+	/**
+	 * 
+	 * sorts the documentset list desc for the algorithm relevance
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet sortDescForTextRelevance() {
+		this.avoidZeroRankingValue();
+		// lambda exspression for sorting
+		this.setDocumentList(this.getDocumentList().stream().sorted(
+				(a, b) -> Double.compare(b.getRelevanceScoreFromAlgorithm(), a.getRelevanceScoreFromAlgorithm()))
+				.collect(Collectors.toList()));
+		this.reRankingCombination = "standard_only";
+		this.rankingOrder = "desc";
+		this.bibliometricReRanking = false;
+
 		return this;
 	}
 
@@ -153,14 +193,15 @@ public class DocumentSet {
 		// lambda exspression for sorting
 		this.setDocumentList(
 				this.getDocumentList().stream()
-						.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
-								b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
+						.sorted((b, a) -> Double.compare(
+								(a.getRelevanceScoreFromAlgorithm() * Math.log(a.getBibScore())),
+								b.getRelevanceScoreFromAlgorithm() * Math.log(b.getBibScore())))
 						.collect(Collectors.toList()));
 		this.reRankingCombination = "standard_*_log_bibliometrics_score";
 		this.rankingOrder = "desc";
 		return this;
 	}
-	
+
 	/**
 	 * 
 	 * sorts the documentset list asc for the log (ranking value) * text
@@ -173,8 +214,9 @@ public class DocumentSet {
 		// lambda exspression for sorting
 		this.setDocumentList(
 				this.getDocumentList().stream()
-						.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
-								b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
+						.sorted((a, b) -> Double.compare(
+								(a.getRelevanceScoreFromAlgorithm() * Math.log(a.getBibScore())),
+								b.getRelevanceScoreFromAlgorithm() * Math.log(b.getBibScore())))
 						.collect(Collectors.toList()));
 		this.reRankingCombination = "standard_*_log_bibliometrics_score";
 		this.rankingOrder = "asc";
@@ -193,14 +235,15 @@ public class DocumentSet {
 		// lambda exspression for sorting
 		this.setDocumentList(
 				this.getDocumentList().stream()
-						.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
-								b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
+						.sorted((b, a) -> Double.compare(
+								(a.getRelevanceScoreFromAlgorithm() * Math.sqrt(a.getBibScore())),
+								b.getRelevanceScoreFromAlgorithm() * Math.sqrt(b.getBibScore())))
 						.collect(Collectors.toList()));
 		this.reRankingCombination = "standard_*_root_bibliometrics_score";
 		this.rankingOrder = "desc";
 		return this;
 	}
-	
+
 	/**
 	 * 
 	 * sorts the documentset list asc for the root (ranking value) * text
@@ -213,8 +256,9 @@ public class DocumentSet {
 		// lambda exspression for sorting
 		this.setDocumentList(
 				this.getDocumentList().stream()
-						.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
-								b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
+						.sorted((a, b) -> Double.compare(
+								(a.getRelevanceScoreFromAlgorithm() * Math.sqrt(a.getBibScore())),
+								b.getRelevanceScoreFromAlgorithm() * Math.sqrt(b.getBibScore())))
 						.collect(Collectors.toList()));
 		this.reRankingCombination = "standard_*_root_bibliometrics_score";
 		this.rankingOrder = "asc";
@@ -231,14 +275,14 @@ public class DocumentSet {
 		this.avoidZeroRankingValue();
 		// lambda exspression for sorting
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * a.getRankingValue()),
-						b.getTextRelevancyScore() * b.getRankingValue()))
+				.sorted((b, a) -> Double.compare((a.getRelevanceScoreFromAlgorithm() * a.getBibScore()),
+						b.getRelevanceScoreFromAlgorithm() * b.getBibScore()))
 				.collect(Collectors.toList()));
 		this.reRankingCombination = "standard_*_bibliometrics_score";
 		this.rankingOrder = "desc";
 		return this;
 	}
-	
+
 	/**
 	 * 
 	 * sorts the documentset list asc for the ranking value * text relevance
@@ -249,8 +293,8 @@ public class DocumentSet {
 		this.avoidZeroRankingValue();
 		// lambda exspression for sorting
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * a.getRankingValue()),
-						b.getTextRelevancyScore() * b.getRankingValue()))
+				.sorted((a, b) -> Double.compare((a.getRelevanceScoreFromAlgorithm() * a.getBibScore()),
+						b.getRelevanceScoreFromAlgorithm() * b.getBibScore()))
 				.collect(Collectors.toList()));
 		this.reRankingCombination = "standard_*_bibliometrics_score";
 		this.rankingOrder = "asc";
@@ -259,65 +303,77 @@ public class DocumentSet {
 
 	/**
 	 * 
-	 * refreshes the real calculated rank, according to the new position in the
-	 * list (used after reranking)
+	 * sets the rankAfterAlgorithm property
 	 * 
 	 * @return refreshed documentset
 	 */
-	public DocumentSet refreshRankReal() {
+	public DocumentSet setRankAfterAlgorithm() {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			current.setRealRank(i + 1);
+			current.setRankAfterAlgorithm(i + 1);
 		}
 		return this;
 	}
 
 	/**
 	 * 
-	 * refreshes the suggested rank, according to the new position in the list
-	 * (used after shuffling)
+	 * sets the rankAfterReRanking property (used after shuffling)
 	 * 
 	 * @return resorted documentset
 	 */
-	public DocumentSet refreshRankSuggested() {
+	public DocumentSet setRankAfterReRanking() {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			current.setSuggestedRank(i + 1);
+			current.setRankAfterReRanking(i + 1);
 		}
 		return this;
 	}
 
 	/**
 	 * 
-	 * refreshes the both the real and suggested rank, according to the new
-	 * position in the list
+	 * sets the rankAfterShuffling property
 	 * 
 	 * @return resorted documentset
 	 */
-	public DocumentSet refreshRankBoth() {
+	public DocumentSet setRankAfterShuffling() {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			current.setRealRank(i + 1);
-			current.setSuggestedRank(i + 1);
+			current.setRankAfterShuffling(i + 1);
 		}
 		return this;
 	}
 
 	/**
 	 * 
-	 * shuffles the list and refreshed the suggested rank
+	 * sets the RankDelivered property
+	 * 
+	 * @return resorted documentset
+	 */
+	public DocumentSet setRankDelivered() {
+		DisplayDocument current = null;
+
+		for (int i = 0; i < this.getSize(); i++) {
+			current = this.getDocumentList().get(i);
+			current.setRankDelivered(i + 1);
+		}
+		return this;
+	}
+
+	/**
+	 * 
+	 * shuffles the list and refreshed the rank delivered
 	 * 
 	 * @return shuffled documentset
 	 */
 	public DocumentSet shuffle() {
 		Collections.shuffle(this.getDocumentList());
-		this.refreshRankSuggested();
+		this.setRankDelivered();
 		return this;
 
 	}
@@ -332,9 +388,9 @@ public class DocumentSet {
 		DisplayDocument current = null;
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
-			if (current.getRankingValue() == -1)
-				current.setRankingValue(0);
-			current.setRankingValue(current.getRankingValue() + 2);
+			if (current.getBibScore() == -1)
+				current.setBibScore(0);
+			current.setBibScore(current.getBibScore() + 2);
 		}
 	}
 
@@ -402,6 +458,7 @@ public class DocumentSet {
 	/**
 	 * 
 	 * check if the documents are equal based on the cleantitle
+	 * 
 	 * @param displayDocument
 	 * @param displayDocument
 	 * @return boolean, true if equal
@@ -467,11 +524,11 @@ public class DocumentSet {
 	public void setNumberOfReturnedResults(long numberOfReturnedResults) {
 		this.numberOfReturnedResults = numberOfReturnedResults;
 	}
-	
+
 	public void calculatePercentageRankingValue() {
 		int rankingValueCount = 0;
 		for (int i = 0; i < this.getSize(); i++) {
-			if (this.getDocumentList().get(i).getRankingValue() != -1) {
+			if (this.getDocumentList().get(i).getBibScore() != -1) {
 				rankingValueCount++;
 			}
 		}
@@ -480,9 +537,11 @@ public class DocumentSet {
 
 	/**
 	 * 
-	 * calculate cleanTitle of a String, only numbers and letters are valid characters
+	 * calculate cleanTitle of a String, only numbers and letters are valid
+	 * characters
 	 * 
-	 * @param String to clean
+	 * @param String
+	 *            to clean
 	 * @return clean String
 	 */
 	private String calculateTitleClean(String s) {
@@ -499,7 +558,8 @@ public class DocumentSet {
 	}
 
 	/**
-	 * @param recommendationAlgorithmId the recommendationAlgorithmId to set
+	 * @param recommendationAlgorithmId
+	 *            the recommendationAlgorithmId to set
 	 */
 	public void setRecommendationAlgorithmId(int recommendationAlgorithmId) {
 		this.recommendationAlgorithmId = recommendationAlgorithmId;
@@ -513,7 +573,8 @@ public class DocumentSet {
 	}
 
 	/**
-	 * @param fallback the fallback to set
+	 * @param fallback
+	 *            the fallback to set
 	 */
 	public void setFallback(boolean fallback) {
 		this.fallback = fallback;

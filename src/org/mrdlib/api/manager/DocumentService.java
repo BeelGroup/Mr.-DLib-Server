@@ -105,6 +105,7 @@ public class DocumentService {
 			}
 			documentset.setRDG(rdg);
 			documentset = ar.selectRandomRanking(documentset);
+			documentset.setRankDelivered();
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());

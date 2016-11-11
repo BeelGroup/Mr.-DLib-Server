@@ -1013,7 +1013,7 @@ public class DBConnection {
 		int recommendationAlgorithmId = -1;
 
 		// logs the reranking data and get back id
-		bibliometricReRankingId = logReRankingBibliometrics(documentset, document.getBibId());
+		bibliometricReRankingId = logReRankingBibliometrics(documentset, documentset.getBibliometricId());
 
 		// logs the algorithm data and get back id
 		recommendationAlgorithmId = logRecommendationAlgorithm(documentset);
@@ -1031,7 +1031,7 @@ public class DBConnection {
 					+ constants.getAlgorithmId() + ", " + constants.getTextRelevanceScoreInRecommendations()
 					+ ") VALUES (" + document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", ? , '"
 					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "', '"
-					+ recommendationAlgorithmId + "', '" + document.getTextRelevancyScore() + "');";
+					+ recommendationAlgorithmId + "', '" + document.getRelevanceScoreFromAlgorithm() + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1505,7 +1505,7 @@ public class DBConnection {
 
 		return loggingId > 0;
 	}
-
+/*
 	/**
 	 * 
 	 * get the ranking value (altmetric) from the database for a document
@@ -1521,7 +1521,7 @@ public class DBConnection {
 	 * @return DisplayDocument, the document belonging to the id, with the
 	 *         attached ranking Value
 	 * @throws Exception
-	 */
+	 *
 	public DisplayDocument getRankingValue(String documentId, String metric, String dataType, String dataSource) {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1561,7 +1561,7 @@ public class DBConnection {
 			}
 		}
 		return document;
-	}
+	}*/
 
 	/**
 	 * 
@@ -1630,8 +1630,8 @@ public class DBConnection {
 	 *         rankingValue, with its associated data
 	 * @throws Exception
 	 */
-	public List<DisplayDocument> getRankingValueDocuments(String metric, String dataType, String dataSource) {
-		List<DisplayDocument> documentDataList = new ArrayList<DisplayDocument>();
+	public DocumentSet getRankingValueDocuments(String metric, String dataType, String dataSource) {
+		DocumentSet documentSet = new DocumentSet(constants);
 		DisplayDocument newDocument = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1651,11 +1651,12 @@ public class DBConnection {
 			// add the retrieved documentData to the list and add all the data
 			while (rs.next()) {
 				newDocument = new DisplayDocument(constants);
-				newDocument.setBibId(rs.getInt(constants.getBibliometricDocumentsId()));
-				newDocument.setRankingValue(rs.getInt(constants.getMetricValue()));
+				newDocument.setBibScore(rs.getInt(constants.getMetricValue()));
 				newDocument.setDocumentId(rs.getString(constants.getDocumentIdInBibliometricDoc()));
-				documentDataList.add(newDocument);
+				documentSet.setBibliometricId(rs.getInt(constants.getBibliometricDocumentsId()));
+				documentSet.addDocument(newDocument);
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -1668,7 +1669,7 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		return documentDataList;
+		return documentSet;
 	}
 
 	/**
@@ -1847,10 +1848,10 @@ public class DBConnection {
 	 *         author
 	 * @throws Exception
 	 */
-	public List<DisplayDocument> getDocumentsByPersonId(int id) {
+	public DocumentSet getDocumentsByPersonId(int id) {
 		Statement stmt = null;
 		ResultSet rs = null;
-		List<DisplayDocument> documents = new ArrayList<DisplayDocument>();
+		DocumentSet documents = new DocumentSet(constants);
 
 		// query to select all documents of a given author
 		String query = "SELECT " + constants.getDocumentIDInDocPers() + " FROM " + constants.getDocPers() + " WHERE "
@@ -1865,7 +1866,7 @@ public class DBConnection {
 			while (rs.next()) {
 				// for each id obtained, get the complete document and store it
 				// in the list
-				documents.add(
+				documents.addDocument(
 						getDocumentDataBy(constants.getDocumentId(), rs.getString(constants.getDocumentIDInDocPers())));
 			}
 
@@ -2006,7 +2007,7 @@ public class DBConnection {
 				String fallback_url = "";
 
 				// HARDCODED FOR COMPATABILITY
-				relDocument.setTextRelevancyScore(1.00);
+				relDocument.setRelevanceScoreFromAlgorithm(1.00);
 				if (relDocument.getCollectionShortName().equals(constants.getGesis()))
 					fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 
@@ -2437,7 +2438,7 @@ public class DBConnection {
 					+ constants.getRankCurrent() + ", " + constants.getTextRelevanceScoreInRecommendations()
 					+ ") VALUES (" + document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", '"
 					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "', '"
-					+ document.getTextRelevancyScore() + "');";
+					+ document.getRelevanceScoreFromAlgorithm() + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			System.out.println(query);
@@ -2582,7 +2583,7 @@ public class DBConnection {
 			// get the autogenerated key back
 			rs = stmt.getGeneratedKeys();
 			if (rs.next())
-				rerankingBibliometricId = rs.getInt("recommendation_algorithm_reranking_bibliometric_id");
+				rerankingBibliometricId = rs.getInt(1);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2618,14 +2619,11 @@ public class DBConnection {
 			if (rs.next()) {
 				metricValue = rs.getInt("value");
 				bibDocId = rs.getInt("bibliometric_document_id");
-			} else {
-				throw new NoEntryException("getRankingValue failed");
 			}
 
 			// add the data to the document
-			document.setBibId(bibliometricId);
 			document.setBibDocId(bibDocId);
-			document.setRankingValue(metricValue);
+			document.setBibScore(metricValue);
 
 		} catch (Exception e) {
 			e.printStackTrace();

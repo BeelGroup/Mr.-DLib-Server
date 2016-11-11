@@ -28,7 +28,7 @@ public class DisplayDocument implements Serializable {
 	private String recommendationId;
 	private String documentId;
 	private String originalDocumentId;
-	private String accessKeyHash;
+	private String accessKeyHash; //DELETE!!!
 	
 	// elements
 	private List<Snippet> snippetList = new ArrayList<Snippet>();
@@ -37,22 +37,15 @@ public class DisplayDocument implements Serializable {
 	private String language;
 	private DebugDetails debugDetails = new DebugDetails();
 	
-
-	private int suggestedRank;
-	private String collectionShortName;
-	private Long collectionId;
-	
-	//metadata
-	private int realRank;
-	private double rankingValue;
-	private double textRelevancyScore;
-	private int bibId;
-	private int bibDocId;
 	private String title;
 	private String authorNames;
 	private String publishedIn;
 	private int year;
-	
+
+	private int suggestedRank;
+	private String collectionShortName;
+	private Long collectionId;
+
 	public DisplayDocument(Constants constants) {
 		this.constants = constants;
 	}
@@ -87,37 +80,12 @@ public class DisplayDocument implements Serializable {
 	
 	
 	public int getBibDocId() {
-		return bibDocId;
+		return this.debugDetails.getBibDocId();
 	}
 
+	@XmlTransient
 	public void setBibDocId(int bibDocId) {
-		this.bibDocId = bibDocId;
-	}
-
-	public int getBibId() {
-		return this.bibId;
-	}
-	
-	public double getRankingValue() {
-		return this.rankingValue;
-	}
-	
-	@XmlTransient
-	public void setRealRank(int rank) {
-		this.realRank = rank;
-		debugDetails.setRealRank(rank);
-	}
-	
-	@XmlTransient
-	public void setBibId(int bibId) {
-		this.bibId = bibId;
-		debugDetails.setBibId(bibId);
-	}
-	
-	@XmlTransient
-	public void setRankingValue(double rankingValue) {
-		this.rankingValue = rankingValue;
-		debugDetails.setRankingValue(rankingValue);
+		this.debugDetails.setBibDocId(bibDocId);
 	}
 	
 	public DebugDetails getDebugDetails() {
@@ -132,16 +100,6 @@ public class DisplayDocument implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
-	}
-	
-	public double getTextRelevancyScore() {
-		return this.textRelevancyScore;
-	}
-
-	@XmlTransient
-	public void setTextRelevancyScore(double textRelevancyScore) {
-		this.textRelevancyScore = textRelevancyScore;
-		this.debugDetails.setTextRelevanceScore(textRelevancyScore);
 	}
 
 	@XmlElement(name = "authors")
@@ -270,5 +228,68 @@ public class DisplayDocument implements Serializable {
 	@XmlTransient
 	public void setLanguage(String language) {
 		this.language = language;
+	}
+	
+	public int getRankAfterAlgorithm() {
+		return this.debugDetails.getRankAfterAlgorithm();
+	}
+
+	@XmlTransient
+	public void setRankAfterAlgorithm(int rankAfterAlgorithm) {
+		this.debugDetails.setRankAfterAlgorithm(rankAfterAlgorithm);
+	}
+
+	public int getRankAfterReRanking() {
+		return this.debugDetails.getRankAfterReRanking();
+	}
+
+	@XmlTransient
+	public void setRankAfterReRanking(int rankAfterReRanking) {
+		this.debugDetails.setRankAfterReRanking(rankAfterReRanking);
+	}
+
+	public int getRankAfterShuffling() {
+		return this.debugDetails.getRankAfterShuffling();
+	}
+
+	@XmlTransient
+	public void setRankAfterShuffling(int rankAfterShuffling) {
+		this.debugDetails.setRankAfterShuffling(rankAfterShuffling);
+	}
+
+	public int getRankDelivered() {
+		return this.debugDetails.getRankDelivered();
+	}
+
+	@XmlTransient
+	public void setRankDelivered(int rankDelivered) {
+		this.debugDetails.setRankDelivered(rankDelivered);
+	}
+
+	public double getRelevanceScoreFromAlgorithm() {
+		return this.debugDetails.getRelevanceScoreFromAlgorithm();
+	}
+
+	@XmlTransient
+	public void setRelevanceScoreFromAlgorithm(double relevanceScoreFromAlgorithm) {
+		this.debugDetails.setRelevanceScoreFromAlgorithm(relevanceScoreFromAlgorithm);
+	}
+
+	public double getBibScore() {
+		return this.debugDetails.getBibScore();
+	}
+
+	@XmlTransient
+	public void setBibScore(double bibScore) {
+		this.debugDetails.setBibScore(bibScore);
+	}
+
+	public double getFinalScore() {
+		return this.debugDetails.getFinalScore();
+	}
+
+	@XmlTransient
+	public void setFinalScore(double finalScore) {
+		this.debugDetails.setFinalScore(finalScore);
 	}
 }

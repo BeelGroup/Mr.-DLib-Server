@@ -8,43 +8,86 @@ package org.mrdlib.api.response;
  */
 
 public class DebugDetails {
-	private int realRank;
-	private double rankingValue;
-	private double textRelevanceScore;
-	private int bibId;
+	//rankings
+	private int rankAfterAlgorithm = -1;
+	private int rankAfterReRanking = -1;
+	private int rankAfterShuffling = -1;
+	private int rankDelivered = -1;
+	
+	private double relevanceScoreFromAlgorithm;
+	private double bibScore;
+	private double finalScore;
+	
+	//private int realRank;  //currently: afterReRank  |||  NEED: rankAfterAlg; rankAfterReRank; rankAfterShuffling; rankAfterDelivered
+	//private double rankingValue; //currently: bibScore  ||| NEED: relevanceScoreFromAlg; metricValue; rankingValueFinal
+	//private double textRelevanceScore; //currently: relevanceScoreFromAlg
+	private int bibDocId; // ok
 	
 	public DebugDetails() {
 	}
-	
-	public int getBibId() {
-		return bibId;
-	}
-	
-	public void setBibId(int bibId) {
-		this.bibId = bibId;
-	}
 
-	public double getTextRelevanceScore() {
-		return textRelevanceScore;
-	}
-
-	public void setTextRelevanceScore(double textRelevanceScore) {
-		this.textRelevanceScore = textRelevanceScore;
-	}
-
-	public double getRankingValue() {
-		return rankingValue;
-	}
-
-	public void setRankingValue(double rankingValue) {
-		this.rankingValue = rankingValue;
-	}
-
-	public int getRealRank() {
-		return realRank;
+	public int getBibDocId() {
+		return bibDocId;
 	}
 	
-	public void setRealRank(int realRank) {
-		this.realRank = realRank;
+	public void setBibDocId(int bibDocId) {
+		this.bibDocId = bibDocId;
 	}
+
+	public int getRankAfterAlgorithm() {
+		return rankAfterAlgorithm;
+	}
+
+	public void setRankAfterAlgorithm(int rankAfterAlgorithm) {
+		this.rankAfterAlgorithm = rankAfterAlgorithm;
+	}
+
+	public int getRankAfterReRanking() {
+		return rankAfterReRanking;
+	}
+
+	public void setRankAfterReRanking(int rankAfterReRanking) {
+		this.rankAfterReRanking = rankAfterReRanking;
+	}
+
+	public int getRankAfterShuffling() {
+		return rankAfterShuffling;
+	}
+
+	public void setRankAfterShuffling(int rankAfterShuffling) {
+		this.rankAfterShuffling = rankAfterShuffling;
+	}
+
+	public int getRankDelivered() {
+		return rankDelivered;
+	}
+
+	public void setRankDelivered(int rankDelivered) {
+		this.rankDelivered = rankDelivered;
+	}
+
+	public double getRelevanceScoreFromAlgorithm() {
+		return relevanceScoreFromAlgorithm;
+	}
+
+	public void setRelevanceScoreFromAlgorithm(double relevanceScoreFromAlgorithm) {
+		this.relevanceScoreFromAlgorithm = relevanceScoreFromAlgorithm;
+	}
+
+	public double getBibScore() {
+		return bibScore;
+	}
+
+	public void setBibScore(double bibScore) {
+		this.bibScore = bibScore;
+	}
+
+	public double getFinalScore() {
+		return finalScore;
+	}
+
+	public void setFinalScore(double finalScore) {
+		this.finalScore = finalScore;
+	}
+
 }

@@ -118,7 +118,7 @@ public class solrConnection {
 
 					// add the solrScore
 					relDocument
-							.setTextRelevancyScore(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+							.setRelevanceScoreFromAlgorithm(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
@@ -247,7 +247,7 @@ public class solrConnection {
 
 					// add the solrScore
 					relDocument
-							.setTextRelevancyScore(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+							.setRelevanceScoreFromAlgorithm(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
