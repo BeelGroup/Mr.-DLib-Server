@@ -47,6 +47,7 @@ public class DisplayDocument implements Serializable {
 	private double rankingValue;
 	private double textRelevancyScore;
 	private int bibId;
+	private int bibDocId;
 	private String title;
 	private String authorNames;
 	private String publishedIn;
@@ -85,6 +86,14 @@ public class DisplayDocument implements Serializable {
 	}
 	
 	
+	public int getBibDocId() {
+		return bibDocId;
+	}
+
+	public void setBibDocId(int bibDocId) {
+		this.bibDocId = bibDocId;
+	}
+
 	public int getBibId() {
 		return this.bibId;
 	}

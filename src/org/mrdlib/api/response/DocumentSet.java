@@ -30,17 +30,33 @@ public class DocumentSet {
 	private Constants constants;
 
 	// metadata of the algorithm
-	private int numberOfSolrRows;// number of items extracted from the database
-	private String rankingMethod;
+	private int numberOfCandidatesToReRank;// number of items choosed to rerank
+	private String reRankingCombination;
+	private String rankingOrder;
 	private RelatedDocuments rdg;
 	private DisplayDocument requestedDocument;
 	private long numberOfReturnedResults;
 	private boolean fallback;
 	private int recommendationAlgorithmId;
+	private int bibliometricId;
 
 	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
 
+	public int getBibliometricId() {
+		return bibliometricId;
+	}
 
+	public void setBibliometricId(int bibliometricId) {
+		this.bibliometricId = bibliometricId;
+	}
+
+	public String getRankingOrder() {
+		return rankingOrder;
+	}
+
+	public void setRankingOrder(String rankingOrder) {
+		this.rankingOrder = rankingOrder;
+	}
 
 	public DisplayDocument getRequestedDocument() {
 		return requestedDocument;
@@ -88,10 +104,14 @@ public class DocumentSet {
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((b, a) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
 				.collect(Collectors.toList()));
-		if (onlyTextRelevance)
-			this.rankingMethod = "only_solr_desc";
-		else
-			this.rankingMethod = "sort_only_based_on_bibliometrics_desc";
+		if (onlyTextRelevance) {
+			this.reRankingCombination = "standard_only";
+			this.rankingOrder = "desc";
+		}
+		else {
+			this.reRankingCombination = "bibliometrics_only";
+			this.rankingOrder = "desc";
+		}
 		return this;
 	}
 
@@ -110,10 +130,14 @@ public class DocumentSet {
 		this.setDocumentList(this.getDocumentList().stream()
 				.sorted((a, b) -> Double.compare(a.getRankingValue(), b.getRankingValue()))
 				.collect(Collectors.toList()));
-		if (onlyTextRelevance)
-			this.rankingMethod = "only_solr_asc";
-		else
-			this.rankingMethod = "sort_only_based_on_bibliometrics_asc";
+		if (onlyTextRelevance) {
+			this.reRankingCombination = "standard_only";
+			this.rankingOrder = "asc";
+		}
+		else {
+			this.reRankingCombination = "bibliometrics_only";
+			this.rankingOrder = "asc";
+		}
 		return this;
 	}
 
@@ -132,10 +156,11 @@ public class DocumentSet {
 						.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
 								b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
 						.collect(Collectors.toList()));
-		this.rankingMethod = "log_text_relevance_times_bibliometrics_desc";
+		this.reRankingCombination = "standard_*_log_bibliometrics_score";
+		this.rankingOrder = "desc";
 		return this;
 	}
-
+	
 	/**
 	 * 
 	 * sorts the documentset list asc for the log (ranking value) * text
@@ -151,7 +176,8 @@ public class DocumentSet {
 						.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.log(a.getRankingValue())),
 								b.getTextRelevancyScore() * Math.log(b.getRankingValue())))
 						.collect(Collectors.toList()));
-		this.rankingMethod = "log_text_relevance_times_bibliometrics_asc";
+		this.reRankingCombination = "standard_*_log_bibliometrics_score";
+		this.rankingOrder = "asc";
 		return this;
 	}
 
@@ -170,10 +196,11 @@ public class DocumentSet {
 						.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
 								b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
 						.collect(Collectors.toList()));
-		this.rankingMethod = "root_text_relevance_times_bibliometrics_desc";
+		this.reRankingCombination = "standard_*_root_bibliometrics_score";
+		this.rankingOrder = "desc";
 		return this;
 	}
-
+	
 	/**
 	 * 
 	 * sorts the documentset list asc for the root (ranking value) * text
@@ -189,7 +216,8 @@ public class DocumentSet {
 						.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * Math.sqrt(a.getRankingValue())),
 								b.getTextRelevancyScore() * Math.sqrt(b.getRankingValue())))
 						.collect(Collectors.toList()));
-		this.rankingMethod = "root_text_relevance_times_bibliometrics_asc";
+		this.reRankingCombination = "standard_*_root_bibliometrics_score";
+		this.rankingOrder = "asc";
 		return this;
 	}
 
@@ -206,10 +234,11 @@ public class DocumentSet {
 				.sorted((b, a) -> Double.compare((a.getTextRelevancyScore() * a.getRankingValue()),
 						b.getTextRelevancyScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
-		this.rankingMethod = "text_relevance_times_bibliometrics_desc";
+		this.reRankingCombination = "standard_*_bibliometrics_score";
+		this.rankingOrder = "desc";
 		return this;
 	}
-
+	
 	/**
 	 * 
 	 * sorts the documentset list asc for the ranking value * text relevance
@@ -223,7 +252,8 @@ public class DocumentSet {
 				.sorted((a, b) -> Double.compare((a.getTextRelevancyScore() * a.getRankingValue()),
 						b.getTextRelevancyScore() * b.getRankingValue()))
 				.collect(Collectors.toList()));
-		this.rankingMethod = "text_relevance_times_bibliometrics_asc";
+		this.reRankingCombination = "standard_*_bibliometrics_score";
+		this.rankingOrder = "asc";
 		return this;
 	}
 
@@ -317,22 +347,22 @@ public class DocumentSet {
 		return debugDetailsPerSet.getPercentageRankingValue();
 	}
 
-	public String getRankingMethod() {
-		return rankingMethod;
+	public String getReRankingCombination() {
+		return reRankingCombination;
 	}
 
 	@XmlTransient
-	public void setRankingMethod(String rankingMethod) {
-		this.rankingMethod = rankingMethod;
+	public void setReRankingCombination(String reRankingCombination) {
+		this.reRankingCombination = reRankingCombination;
 	}
 
-	public int getNumberOfSolrRows() {
-		return numberOfSolrRows;
+	public int getNumberOfCandidatesToReRank() {
+		return numberOfCandidatesToReRank;
 	}
 
 	@XmlTransient
-	public void setNumberOfSolrRows(int numberOfSolrRows) {
-		this.numberOfSolrRows = numberOfSolrRows;
+	public void setNumberOfCandidatesToReRank(int numberOfCandidatesToReRank) {
+		this.numberOfCandidatesToReRank = numberOfCandidatesToReRank;
 	}
 
 	public int getSize() {

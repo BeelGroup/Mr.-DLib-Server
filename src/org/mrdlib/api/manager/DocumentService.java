@@ -82,7 +82,7 @@ public class DocumentService {
 				try {
 					rdg = RecommenderFactory.getRandomRDG(con, requestDocument);
 					System.out.println(rdg.loggingInfo.get("name"));
-					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
+					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getNumberOfCandidatesToReRank());
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
@@ -101,7 +101,7 @@ public class DocumentService {
 			} else {
 				System.out.println("Using fallback recommender");
 				rdg = RecommenderFactory.getFallback(con);
-				documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getSolrRows());
+				documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getNumberOfCandidatesToReRank());
 			}
 			documentset.setRDG(rdg);
 			documentset = ar.selectRandomRanking(documentset);

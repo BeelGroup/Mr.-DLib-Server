@@ -97,20 +97,22 @@ public class ApplyRanking {
 			numberOfCandidatesToReRank = getNextTinierAlgorithmRows(documentSet.getSize());  //CHANGED THIS HERE BECAUSE FOR STEREOTYPE RECOMMENDATIONS, WE 
 		//CAN ONLY GET AROUND 60 recommendations maximum
 		
-		documentSet.setNumberOfSolrRows(numberOfCandidatesToReRank);
+		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 		
 		//if there are more results than wanted, cut the list
 		if (documentSet.getSize() > numberOfCandidatesToReRank-1)
 			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, numberOfCandidatesToReRank - 1));
+		
+		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 
 		//choose a ranking metric
 		switch (rndRank) {
 		case 1:
 			documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley"); break;
 		case 2:
-			documentSet = getAltmetric(documentSet, "normalizedByAge", "readers", "mendeley"); break;
+			documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "readers", "mendeley"); break;
 		case 3:
-			documentSet = getAltmetric(documentSet, "normalizedByNumberOfAuthors", "readers", "mendeley"); break;
+			documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "readers", "mendeley"); break;
 		case 4:
 			documentSet = getSolr(documentSet); onlySolr=true; rndWeight = random.nextInt(2)+1; break;
 		default:
@@ -186,16 +188,19 @@ public class ApplyRanking {
 	 * @param type, eg readership
 	 * @param source, eg mendeley
 	 * @return DocumentSet with attached rankingValues, -1 if no rankingValue
+	 * @throws Exception 
 	 */
-	public DocumentSet getAltmetric(DocumentSet documentset, String metric, String type, String source) {
+	public DocumentSet getAltmetric(DocumentSet documentset, String metric, String type, String source) throws Exception {
 		DisplayDocument current = null;
 		DisplayDocument temp = new DisplayDocument(constants);
+		documentset.setBibliometricId(con.getBibId(metric, type, source));
 
 		for (int i = 0; i < documentset.getSize(); i++) {
 			current = documentset.getDocumentList().get(i);
-			temp = con.getRankingValue(current.getDocumentId(), metric, type, source);
+			temp = con.getRankingValue(current.getDocumentId(), documentset.getBibliometricId());
 			current.setRankingValue(temp.getRankingValue());
-			current.setBibId(temp.getBibId());
+			current.setBibId(documentset.getBibliometricId());
+			current.setBibDocId(temp.getBibDocId());
 		}
 		return documentset;
 	}
@@ -217,19 +222,7 @@ public class ApplyRanking {
 		return documentset;
 	}
 	
-	public int getRndSolrRows() {
-		return rndNumberOfCandidatesToReRank;
-	}
-
-	public int getRndWeight() {
-		return rndWeight;
-	}
-
-	public int getRndRank() {
-		return rndRank;
-	}
-	
-	public int getSolrRows() {
+	public int getNumberOfCandidatesToReRank() {
 		return numberOfCandidatesToReRank;
 	}
 
