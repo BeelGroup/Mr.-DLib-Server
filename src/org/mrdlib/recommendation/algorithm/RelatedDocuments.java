@@ -12,11 +12,11 @@ import org.mrdlib.api.response.DocumentSet;
  */
 public abstract class RelatedDocuments {
 	/**
-	 * Hashmap holding necessary information for correct algorithm logging
+	 * Class holding necessary information for correct algorithm logging
 	 * Fields roughly correspond to columns in recommendation_algorithms table
 	 * of database
 	 */
-	public HashMap<String, String> loggingInfo = new HashMap<String, String>();
+	public AlgorithmDetails algorithmLoggingInfo;
 
 	/**
 	 * Method to get related documents similar to a given input document.
@@ -44,4 +44,13 @@ public abstract class RelatedDocuments {
 	 */
 	public abstract DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs)
 			throws Exception;
+
+	/**
+	 * @return the algorithmLoggingInfo
+	 */
+	public AlgorithmDetails getAlgorithmLoggingInfo() {
+		return algorithmLoggingInfo;
+	}
+
+	
 }

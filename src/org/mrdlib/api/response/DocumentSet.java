@@ -513,7 +513,7 @@ public class DocumentSet {
 	@XmlTransient
 	public void setRDG(RelatedDocuments rdg) {
 		this.rdg = rdg;
-		debugDetailsPerSet.setRecommendationApproach(rdg.loggingInfo.get("name"));
+		debugDetailsPerSet.setRecommendationApproach(rdg.algorithmLoggingInfo.getName());
 	}
 
 	public long getNumberOfReturnedResults() {

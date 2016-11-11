@@ -57,11 +57,11 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 				name = bigrams ? "bigram" : "trigram";
 		}
 
-		// Set the randomly generated properties in the loggingInfo hashmap for
+		// Set the randomly generated properties in the algorithmLoggingInfo hashmap for
 		// future use
-		loggingInfo.replace("cbf_text_fields", "title" + (abstracts ? "_abstract" : ""));
-		loggingInfo.replace("name", "RelatedDocumentsFromSolrWithKeyphrases");
-		loggingInfo.replace("cbf_feature_type", name);
+		algorithmLoggingInfo.setCbfTextFields("title" + (abstracts ? "_abstract" : ""));
+		algorithmLoggingInfo.setName("RelatedDocumentsFromSolrWithKeyphrases");
+		algorithmLoggingInfo.setCbfFeatureType(name);
 	}
 
 	@Override
@@ -75,8 +75,8 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 
 			// Get the minimum basis for the keyphrase comparison based on the
 			// fields that we compare on
-			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(), loggingInfo.get("cbf_feature_type"),
-					loggingInfo.get("cbf_text_fields"));
+			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(), algorithmLoggingInfo.getCbfFeatureType(),
+					algorithmLoggingInfo.getCbfTextFields());
 
 			// If no comparison is possible because, say, there are no trigrams,
 			// which are needed for a bitri comparison, throw Exception
@@ -87,11 +87,11 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 			Random random = new Random();
 			int cbf_feature_count = maxNumber == 1 ? 1 : random.nextInt(maxNumber - 1) + 1;
 
-			// Set loggingInfo with the feature count that is used
-			loggingInfo.replace("cbf_feature_count", Integer.toString(cbf_feature_count));
+			// Set algorithmLoggingInfo with the feature count that is used
+			algorithmLoggingInfo.setCbfFeatureCount(Integer.toString(cbf_feature_count));
 
 			// Query solr for the related documents
-			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, loggingInfo);
+			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, algorithmLoggingInfo);
 		} catch (NoRelatedDocumentsException f) {
 			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
 			throw f;

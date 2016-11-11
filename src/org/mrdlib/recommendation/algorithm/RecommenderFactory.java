@@ -69,8 +69,8 @@ public class RecommenderFactory {
 	 */
 	public static RelatedDocuments getFallback(DBConnection con) throws Exception {
 		RelatedDocuments rdg = new RelatedDocumentsMLT(con);
-		rdg.loggingInfo.replace("recommendation_class", "fallback");
-		rdg.loggingInfo.replace("name", "fallback");
+		//rdg.algorithmLoggingInfo.replace("recommendation_class", "fallback");
+		rdg.algorithmLoggingInfo.setFallback(true);
 		return rdg;
 	}
 
@@ -145,8 +145,8 @@ public class RecommenderFactory {
 								rdg = new RelatedDocumentsKeyphrases(con);
 								String abstLang = con.getAbstractDetails(requestDocument);
 								if (!abstLang.equals("en"))
-									// if not set loggingInfo.type to title only
-									rdg.loggingInfo.replace("cbf_text_fields", "title");
+									// if not set algorithmLoggingInfo.type to title only
+									rdg.algorithmLoggingInfo.setCbfTextFields("title");
 								// otherwise leave it unset.
 							}
 						}

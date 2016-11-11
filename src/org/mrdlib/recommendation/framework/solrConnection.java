@@ -14,6 +14,7 @@ import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 /**
  * 
@@ -65,7 +66,7 @@ public class solrConnection {
 	 * @throws Exception
 	 */
 	public DocumentSet getRelatedDocumentSetByDocument(DisplayDocument document, int delimitedRows,
-			HashMap<String, String> logginginfo) throws Exception {
+			AlgorithmDetails logginginfo) throws Exception {
 		DocumentSet relatedDocuments = new DocumentSet(constants);
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
@@ -83,9 +84,9 @@ public class solrConnection {
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
 		// if rec_approach is Keyphrases: override default mlt.fl
-		if (logginginfo.get("name").equals("RelatedDocumentsFromSolrWithKeyphrases")) {
-			String similarityParams = getMltFL(logginginfo.get("cbf_text_fields"), logginginfo.get("cbf_feature_type"),
-					logginginfo.get("cbf_feature_count"));
+		if (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases")) {
+			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getCbfFeatureType(),
+					logginginfo.getCbfFeatureCount());
 			query.setParam("mlt.fl", similarityParams);
 			query.setParam("mlt.df", "2");
 		}

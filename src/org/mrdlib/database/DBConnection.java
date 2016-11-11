@@ -31,6 +31,7 @@ import org.mrdlib.api.response.StatusReport;
 import org.mrdlib.partnerContentManager.gesis.Abstract;
 import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.gesis.XMLDocument;
+import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 /**
  * 
@@ -1005,7 +1006,7 @@ public class DBConnection {
 	 * @return int, id of the created recommendation log
 	 * @throws Exception
 	 */
-	public int logRecommendations(DisplayDocument document, DocumentSet documentset) throws Exception {
+	/*public int logRecommendations(DisplayDocument document, DocumentSet documentset) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationId = -1;
@@ -1065,8 +1066,8 @@ public class DBConnection {
 
 	/**
 	 * Helper function to log the recommendationAlgorithmId in the
-	 * recommendations table Searches using the fields in the loggingInfo
-	 * hashmap for an exact match for an algorithm in the
+	 * recommendations table Searches using the fields in the
+	 * algorithmLoggingInfo hashmap for an exact match for an algorithm in the
 	 * recommendationAlgorithms table in the database, and returns the id if
 	 * present.
 	 * 
@@ -1082,12 +1083,12 @@ public class DBConnection {
 	 * @return the recommendationAlgorithm id
 	 * @throws Exception
 	 */
-	private int logRecommendationAlgorithm(DocumentSet documentset) throws Exception {
+	/*private int logRecommendationAlgorithm(DocumentSet documentset) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 
 		// get the hashmap which has the details of the recommendation algorithm
-		HashMap<String, String> recommenderDetails = documentset.getRDG().loggingInfo;
+		HashMap<String, String> recommenderDetails = documentset.getRDG().algorithmLoggingInfo;
 
 		int recommendationAlgorithmId = -1;
 		try {
@@ -1303,7 +1304,7 @@ public class DBConnection {
 	 * @return documentset, with new logging metadata
 	 * @throws Exception
 	 */
-	public DocumentSet logRecommendationDelivery(String documentId, Long requestTime, RootElement rootElement)
+	/*public DocumentSet logRecommendationDelivery(String documentId, Long requestTime, RootElement rootElement)
 			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -2268,8 +2269,8 @@ public class DBConnection {
 
 	/**
 	 * Helper function to log the recommendationAlgorithmId in the
-	 * recommendations table Searches using the fields in the loggingInfo
-	 * hashmap for an exact match for an algorithm in the
+	 * recommendations table Searches using the fields in the
+	 * algorithmLoggingInfo hashmap for an exact match for an algorithm in the
 	 * recommendationAlgorithms table in the database, and returns the id if
 	 * present.
 	 * 
@@ -2291,14 +2292,10 @@ public class DBConnection {
 		int recommendationAlgorithmId = -1;
 
 		// get the hashmap which has the details of the recommendation algorithm
-		HashMap<String, String> recommenderDetails = documentset.getRDG().loggingInfo;
+		AlgorithmDetails recommenderDetails = documentset.getRDG().algorithmLoggingInfo;
 
-		String recommendationClass = recommenderDetails.get("recommendation_class");
-		Boolean fallback = false;
-		if (recommendationClass.equals("fallback")) {
-			recommenderDetails.replace("recommendation_class", "cbf");
-			fallback = true;
-		}
+		String recommendationClass = recommenderDetails.getRecommendationClass();
+		Boolean fallback = recommenderDetails.isFallback();
 		int recommendationClassId = -1;
 
 		try {
@@ -2322,12 +2319,10 @@ public class DBConnection {
 			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
 
-			for (String key : recommenderDetails.keySet()) {
-				if (key != "name" && !key.contains("cbf")) {
-					query += (key + "='" + recommenderDetails.get(key) + "' AND ");
-				}
-			}
-			query += /* constants.getBibReRankingApplied() */ "reranking_apply_bibliometric_reranking" + " = "
+			query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
+					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
+					+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND "
+					+ constants.getBibReRankingApplied()  + "="
 					+ ((rerankingBibId > 0) ? "'Y'" : "'N'");
 			if (rerankingBibId > 0) {
 				query += " AND " /* constants.getBibReRankingId */ + "reranking_bibliometric_reranking_details" + "="
@@ -2367,17 +2362,16 @@ public class DBConnection {
 				query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
 				String columns = "";
 				String values = "";
-				for (String key : recommenderDetails.keySet()) {
-					if (key != "name" && !key.contains("cbf")) {
-						columns += (key + ", ");
-						values += ("'" + recommenderDetails.get(key) + "', ");
-					}
-				}
-				columns += "reranking_apply_bibliometric_reranking"
+				
+				columns += constants.getRecommendationClass() + ", "
+						+ constants.getLanguageRestrictionInRecommenderAlgorithm() +", "
+						+ constants.getBibReRankingApplied()
 						+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
 						+ (recommendationClass.contains("random") ? ""
 								: (", " + "recommendation_class_details_" + recommendationClass));
-				values += ((rerankingBibId > 0) ? "'Y'" : "'N'")
+				values += "'" + recommenderDetails.getRecommendationClass() + "', "
+						+ (recommenderDetails.isLanguageRestriction() ? "'Y'" : "'N'") + ", "
+						+ ((rerankingBibId > 0) ? "'Y'" : "'N'")
 						+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
 						+ (recommendationClass.contains("random") ? ""
 								: (", " + Integer.toString(recommendationClassId)));
@@ -2464,27 +2458,27 @@ public class DBConnection {
 		return recommendationId;
 	}
 
-	private int getMostPopularId(HashMap<String, String> recommenderDetails) {
+	private int getMostPopularId(AlgorithmDetails recommenderDetails) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	private int getStereotypesId(HashMap<String, String> recommenderDetails) {
+	private int getStereotypesId(AlgorithmDetails recommenderDetails) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	private int getCbfId(HashMap<String, String> recommenderDetails) throws SQLException {
+	private int getCbfId(AlgorithmDetails recommenderDetails) throws SQLException {
 		int cbfId = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
-		boolean keyphrases = !recommenderDetails.get("cbf_feature_type").equals("terms");
+		boolean keyphrases = !recommenderDetails.getCbfFeatureType().equals("terms");
 		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE "
 				+ constants.getCbfFeatureType() + " = '" + (keyphrases ? "terms" : "keyphrases") + "'";
 		if (keyphrases) {
-			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.get("cbf_feature_type")
-					+ "' AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.get("cbf_feature_count")
-					+ "' AND " + constants.getCbfFields() + "= '" + recommenderDetails.get("cbf_text_fields") + "'";
+			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getCbfFeatureType()
+					+ "' AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.getCbfFeatureCount()
+					+ "' AND " + constants.getCbfFields() + "= '" + recommenderDetails.getCbfTextFields() + "'";
 		}
 
 		try {
@@ -2503,9 +2497,9 @@ public class DBConnection {
 				if (keyphrases) {
 					columns += ", " + constants.getCbfNgramType() + ", " + constants.getCbfFeatureCount() + ", "
 							+ constants.getCbfFields();
-					values += ", '" + recommenderDetails.get("cbf_feature_type") + "', '"
-							+ recommenderDetails.get("cbf_feature_count") + "', '"
-							+ recommenderDetails.get("cbf_text_fields") + "'";
+					values += ", '" + recommenderDetails.getCbfFeatureType() + "', '"
+							+ recommenderDetails.getCbfFeatureCount() + "', '"
+							+ recommenderDetails.getCbfTextFields() + "'";
 				}
 				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
 
@@ -2547,7 +2541,7 @@ public class DBConnection {
 			if (rs.next()) {
 				bibId = rs.getInt("bibliometric_id");
 			}
-			
+
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -2568,7 +2562,7 @@ public class DBConnection {
 		ResultSet rs = null;
 		int rerankingBibliometricId = -1;
 
-		//search before
+		// search before
 		try {
 			// insertion query
 			String query = "INSERT INTO z_recommendation_algorithms__reranking_bibliometrics (number_of_candidates_to_rerank_with_bibliometrics, "

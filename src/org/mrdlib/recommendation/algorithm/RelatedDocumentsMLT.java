@@ -26,14 +26,11 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 			scon = new solrConnection(con);
 
 			// Store the details of the recommender approach for future use in
-			// the loggingInfo hashmap
-			loggingInfo.put("name", "RelatedDocumentsFromSolr");
-			//loggingInfo.put("recommendation_framework", "lucene");
-			loggingInfo.put("recommendation_class", "cbf");
-			loggingInfo.put("restriction_only_documents_from_this_language", "N");
-			loggingInfo.put("cbf_text_fields", "all");
-			loggingInfo.put("cbf_feature_type", "terms");
-			loggingInfo.put("cbf_feature_count", "0");
+			// the algorithmLoggingInfo hashmap
+			
+			algorithmLoggingInfo = new AlgorithmDetails("RelatedDocumentsFromSolr", "cbf", false, "all", "terms", "0");
+			//algorithmLoggingInfo.put("recommendation_framework", "lucene");
+
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -61,7 +58,7 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 		try {
 
 			// Query solr using the defaults set in solrConfig.xml
-			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, loggingInfo);
+			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, algorithmLoggingInfo);
 		} catch (NoRelatedDocumentsException f) {
 			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
 			throw f;

@@ -81,14 +81,12 @@ public class DocumentService {
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
 					rdg = RecommenderFactory.getRandomRDG(con, requestDocument);
-					System.out.println(rdg.loggingInfo.get("name"));
+					System.out.println(rdg.algorithmLoggingInfo.getName());
 					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getNumberOfCandidatesToReRank());
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
-					for (String key : rdg.loggingInfo.keySet()) {
-						System.out.println(key + ":" + rdg.loggingInfo.get(key));
-					}
+					System.out.println(rdg.algorithmLoggingInfo.toString());
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
 				}

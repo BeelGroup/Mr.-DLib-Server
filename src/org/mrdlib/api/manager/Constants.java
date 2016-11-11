@@ -157,8 +157,11 @@ public class Constants {
 	private String documentIdInStereotype;
 	private String collectionIdInStereotype;
 
-	// db table recommendation_algorithms
+	// db table z_recommendation_algorithms
 	private String recommendationAlgorithmId;
+	private String recommendationClass;
+	private String languageRestriction;
+	private String bibReRankingApplied;
 
 	// db table z_recommendation_algorithms__details_cbf
 	private String cbfId;
@@ -189,6 +192,8 @@ public class Constants {
 	private String mendeleyConfigPath;
 
 	private String probabilitiesConfigPath;
+
+	
 
 	// load the config file
 	public Constants() {
@@ -326,7 +331,10 @@ public class Constants {
 			this.collectionIdInStereotype = prop.getProperty("collectionIdInStereotype");
 
 			this.recommendationAlgorithmId = prop.getProperty("recommendationAlgorithmId");
-
+			this.recommendationClass = prop.getProperty("recommendationClass");
+			this.languageRestriction = prop.getProperty("languageRestriction");
+			this.bibReRankingApplied = prop.getProperty("bibReRankingApplied");
+			
 			this.cbfId = prop.getProperty("cbfId");
 			this.cbfFeatureType = prop.getProperty("cbfFeatureType");
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
@@ -882,6 +890,21 @@ public class Constants {
 
 	public String getCbfNgramType() {
 		return cbfNgramType;
+	}
+
+	public String getRecommendationClass() {
+		// TODO Auto-generated method stub
+		return recommendationClass;
+	}
+
+	public String getLanguageRestrictionInRecommenderAlgorithm() {
+		// TODO Auto-generated method stub
+		return languageRestriction;
+	}
+
+	public String getBibReRankingApplied() {
+		// TODO Auto-generated method stub
+		return bibReRankingApplied;
 	}
 
 }
