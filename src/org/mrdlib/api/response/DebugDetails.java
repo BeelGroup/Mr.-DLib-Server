@@ -8,20 +8,19 @@ package org.mrdlib.api.response;
  */
 
 public class DebugDetails {
-	//rankings
+	
+	//ranks
 	private int rankAfterAlgorithm = -1;
 	private int rankAfterReRanking = -1;
 	private int rankAfterShuffling = -1;
 	private int rankDelivered = -1;
 	
+	//scores
 	private double relevanceScoreFromAlgorithm;
 	private double bibScore;
 	private double finalScore;
 	
-	//private int realRank;  //currently: afterReRank  |||  NEED: rankAfterAlg; rankAfterReRank; rankAfterShuffling; rankAfterDelivered
-	//private double rankingValue; //currently: bibScore  ||| NEED: relevanceScoreFromAlg; metricValue; rankingValueFinal
-	//private double textRelevanceScore; //currently: relevanceScoreFromAlg
-	private int bibDocId; // ok
+	private int bibDocId;
 	
 	public DebugDetails() {
 	}

@@ -31,77 +31,8 @@ public class DocumentSet {
 
 	private Constants constants;
 
-	// metadata of the algorithm MOVE TO DEBUGDETAILS
-	private int numberOfCandidatesToReRank;// number of items choosed to rerank
-											// //ok
-	private String reRankingCombination; // ok
-	private String rankingOrder; // ok
-	private RelatedDocuments rdg; // sid changes
-	private long numberOfReturnedResults; // currently: numberFromAlgReturns
-											// //NEED: numberFromAlgReturns;
-											// desiredNumberFromAlg;
-											// numberOfRecWeDisplay
-	private boolean fallback; // Sid
-	private int recommendationAlgorithmId; // ok
-	private int bibliometricId; // ok
-	private boolean bibliometricReRanking = true;
-	// NEED boolean shuffled
-	// NEED boolearn removeDuplicates
-	// NEED accesskey
-	// NEED timestamps: start; afterChooseOfAlg; afterUserModel; afterAlg;
-	// afterReRank; end?
-	// NEED metric
-	// NEED type
-	// NEED source
-
 	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
 
-	public boolean isBibliometricReRanking() {
-		return bibliometricReRanking;
-	}
-
-	public void setBibliometricReRanking(boolean bibliometricReRanking) {
-		this.bibliometricReRanking = bibliometricReRanking;
-	}
-
-	public int getBibliometricId() {
-		return bibliometricId;
-	}
-
-	public void setBibliometricId(int bibliometricId) {
-		this.bibliometricId = bibliometricId;
-	}
-
-	public String getRankingOrder() {
-		return rankingOrder;
-	}
-
-	public void setRankingOrder(String rankingOrder) {
-		this.rankingOrder = rankingOrder;
-	}
-
-	public DisplayDocument getRequestedDocument() {
-		return requestedDocument;
-	}
-
-	public DebugDetailsPerSet getDebugDetailsPerSet() {
-		return debugDetailsPerSet;
-	}
-
-	@XmlElement(name = "debug_details")
-	public void setDebugDetailsPerSet(DebugDetailsPerSet debugDetailsPerSet) {
-		if (constants.getDebugModeOn())
-			this.debugDetailsPerSet = debugDetailsPerSet;
-	}
-
-	@XmlTransient
-	public void setRequestedDocument(DisplayDocument requestedDocument) {
-		this.requestedDocument = requestedDocument;
-	}
-
-	public DocumentSet(Constants constants) {
-		this.constants = constants;
-	}
 
 	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel,
 			Constants constants) {
@@ -110,194 +41,116 @@ public class DocumentSet {
 		this.suggestedLabel = suggestedLabel;
 		this.constants = constants;
 	}
-
+	
 	/**
 	 * 
-	 * sorts the documentset list desc for the ranking value
-	 * 
+	 * sorts the documentset list desc for the final score
+	 *  
 	 * @return resorted documentset
 	 */
-	public DocumentSet sortDescForRankingValue() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
+	public DocumentSet sortDescForFinalValue() {
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare(a.getBibScore(), b.getBibScore())).collect(Collectors.toList()));
-		this.reRankingCombination = "bibliometrics_only";
-		this.rankingOrder = "desc";
-		return this;
-	}
-
-	/**
-	 * 
-	 * sorts the documentset list asc for the ranking value
-	 * 
-	 * @return resorted documentset
-	 */
-	public DocumentSet sortAscForRankingValue() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare(a.getBibScore(), b.getBibScore())).collect(Collectors.toList()));
-		this.reRankingCombination = "bibliometrics_only";
-		this.rankingOrder = "asc";
-		return this;
-	}
-
-	/**
-	 * 
-	 * sorts the documentset list asc for the algorithm relevance
-	 * 
-	 * @return resorted documentset
-	 */
-	public DocumentSet sortAscForTextRelevance() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(this.getDocumentList().stream().sorted(
-				(a, b) -> Double.compare(a.getRelevanceScoreFromAlgorithm(), b.getRelevanceScoreFromAlgorithm()))
-				.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_only";
-		this.rankingOrder = "asc";
-		this.bibliometricReRanking = false;
-
+				.sorted((b, a) -> Double.compare(a.getFinalScore(), b.getFinalScore())).collect(Collectors.toList()));
+		this.setRankingOrder("desc");
 		return this;
 	}
 	
 	/**
 	 * 
-	 * sorts the documentset list desc for the algorithm relevance
-	 * 
+	 * sorts the documentset list asc for the final score
+	 *  
 	 * @return resorted documentset
 	 */
-	public DocumentSet sortDescForTextRelevance() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(this.getDocumentList().stream().sorted(
-				(a, b) -> Double.compare(b.getRelevanceScoreFromAlgorithm(), a.getRelevanceScoreFromAlgorithm()))
-				.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_only";
-		this.rankingOrder = "desc";
-		this.bibliometricReRanking = false;
-
-		return this;
-	}
-
-	/**
-	 * 
-	 * sorts the documentset list desc for the log (ranking value) * text
-	 * relevance
-	 * 
-	 * @return resorted documentset
-	 */
-	public DocumentSet sortDescForLogRankingValueTimesTextRelevance() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(
-				this.getDocumentList().stream()
-						.sorted((b, a) -> Double.compare(
-								(a.getRelevanceScoreFromAlgorithm() * Math.log(a.getBibScore())),
-								b.getRelevanceScoreFromAlgorithm() * Math.log(b.getBibScore())))
-						.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_*_log_bibliometrics_score";
-		this.rankingOrder = "desc";
-		return this;
-	}
-
-	/**
-	 * 
-	 * sorts the documentset list asc for the log (ranking value) * text
-	 * relevance
-	 * 
-	 * @return resorted documentset
-	 */
-	public DocumentSet sortAscForLogRankingValueTimesTextRelevance() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(
-				this.getDocumentList().stream()
-						.sorted((a, b) -> Double.compare(
-								(a.getRelevanceScoreFromAlgorithm() * Math.log(a.getBibScore())),
-								b.getRelevanceScoreFromAlgorithm() * Math.log(b.getBibScore())))
-						.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_*_log_bibliometrics_score";
-		this.rankingOrder = "asc";
-		return this;
-	}
-
-	/**
-	 * 
-	 * sorts the documentset list desc for the root (ranking value) * text
-	 * relevance
-	 * 
-	 * @return resorted documentset
-	 */
-	public DocumentSet sortDescForRootRankingValueTimesTextRelevance() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(
-				this.getDocumentList().stream()
-						.sorted((b, a) -> Double.compare(
-								(a.getRelevanceScoreFromAlgorithm() * Math.sqrt(a.getBibScore())),
-								b.getRelevanceScoreFromAlgorithm() * Math.sqrt(b.getBibScore())))
-						.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_*_root_bibliometrics_score";
-		this.rankingOrder = "desc";
-		return this;
-	}
-
-	/**
-	 * 
-	 * sorts the documentset list asc for the root (ranking value) * text
-	 * relevance
-	 * 
-	 * @return resorted documentset
-	 */
-	public DocumentSet sortAscForRootRankingValueTimesTextRelevance() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(
-				this.getDocumentList().stream()
-						.sorted((a, b) -> Double.compare(
-								(a.getRelevanceScoreFromAlgorithm() * Math.sqrt(a.getBibScore())),
-								b.getRelevanceScoreFromAlgorithm() * Math.sqrt(b.getBibScore())))
-						.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_*_root_bibliometrics_score";
-		this.rankingOrder = "asc";
-		return this;
-	}
-
-	/**
-	 * 
-	 * sorts the documentset list desc for the ranking value * text relevance
-	 * 
-	 * @return resorted documentset
-	 */
-	public DocumentSet sortDescForRankingValueTimesTextRelevance() {
-		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
+	public DocumentSet sortAscForFinalValue() {
 		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((b, a) -> Double.compare((a.getRelevanceScoreFromAlgorithm() * a.getBibScore()),
-						b.getRelevanceScoreFromAlgorithm() * b.getBibScore()))
-				.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_*_bibliometrics_score";
-		this.rankingOrder = "desc";
+				.sorted((b, a) -> Double.compare(b.getFinalScore(), a.getFinalScore())).collect(Collectors.toList()));
+		this.setRankingOrder("asc");
+		return this;
+	}
+	
+	/**
+	 * 
+	 * calculates the final score only from bibliometrics
+	 * 
+	 * @return documentset with final score
+	 */
+	public DocumentSet calculateFinalScoreOnlyBibScore() {
+		this.avoidZeroRankingValue();
+		DisplayDocument current = new DisplayDocument();
+		for(int i = 0; i < this.getSize(); i++) {
+			current = this.documentList.get(i);
+			current.setFinalScore(current.getBibScore());
+		}
+		this.setReRankingCombination("bibliometrics_only");
 		return this;
 	}
 
 	/**
 	 * 
-	 * sorts the documentset list asc for the ranking value * text relevance
+	 * calculates the final score only from Relevance Score From Algorithm
 	 * 
-	 * @return resorted documentset
+	 * @return documentset with final score
 	 */
-	public DocumentSet sortAscForRankingValueTimesTextRelevance() {
+	public DocumentSet calculateFinalScoreOnlyRelevanceScore() {
 		this.avoidZeroRankingValue();
-		// lambda exspression for sorting
-		this.setDocumentList(this.getDocumentList().stream()
-				.sorted((a, b) -> Double.compare((a.getRelevanceScoreFromAlgorithm() * a.getBibScore()),
-						b.getRelevanceScoreFromAlgorithm() * b.getBibScore()))
-				.collect(Collectors.toList()));
-		this.reRankingCombination = "standard_*_bibliometrics_score";
-		this.rankingOrder = "asc";
+		DisplayDocument current = new DisplayDocument();
+		for(int i = 0; i < this.getSize(); i++) {
+			current = this.documentList.get(i);
+			current.setFinalScore(current.getRelevanceScoreFromAlgorithm());
+		}
+
+		this.setReRankingCombination("standard_only");
+		return this;
+	}
+	
+	/**
+	 * 
+	 * calculates the final score from relevance score from algorithm times log(bib score)
+	 * 
+	 * @return documentset with final score
+	 */
+	public DocumentSet calculateFinalScoreForRelevanceScoreTimesLogBibScore() {
+		this.avoidZeroRankingValue();
+		DisplayDocument current = new DisplayDocument();
+		for(int i = 0; i < this.getSize(); i++) {
+			current = this.documentList.get(i);
+			current.setFinalScore(current.getRelevanceScoreFromAlgorithm() * Math.log(current.getBibScore()));
+		}
+		this.setReRankingCombination("standard_*_log_bibliometrics_score");
+		return this;
+	}
+
+	/**
+	 * 
+	 * calculates the final score from relevance score from algorithm times root(bib score)
+	 * 
+	 * @return documentset with final score
+	 */
+	public DocumentSet calculateFinalScoreForRelevanceScoreTimesRootBibScore() {
+		this.avoidZeroRankingValue();
+		DisplayDocument current = new DisplayDocument();
+		for(int i = 0; i < this.getSize(); i++) {
+			current = this.documentList.get(i);
+			current.setFinalScore(current.getRelevanceScoreFromAlgorithm() * Math.sqrt(current.getBibScore()));
+		}
+		this.setReRankingCombination("standard_*_root_bibliometrics_score");
+		return this;
+	}
+	
+	/**
+	 * 
+	 * calculates the final score from relevance score from algorithm times bib score
+	 * 
+	 * @return documentset with final score
+	 */
+	public DocumentSet calculateFinalScoreForRelevanceScoreTimesBibScore() {
+		this.avoidZeroRankingValue();
+		DisplayDocument current = new DisplayDocument();
+		for(int i = 0; i < this.getSize(); i++) {
+			current = this.documentList.get(i);
+			current.setFinalScore(current.getRelevanceScoreFromAlgorithm() * current.getBibScore());
+		}
+		this.setReRankingCombination("standard_*_bibliometrics_score");
 		return this;
 	}
 
@@ -361,6 +214,7 @@ public class DocumentSet {
 		for (int i = 0; i < this.getSize(); i++) {
 			current = this.getDocumentList().get(i);
 			current.setRankDelivered(i + 1);
+			current.setSuggestedRank(i + 1);
 		}
 		return this;
 	}
@@ -374,6 +228,7 @@ public class DocumentSet {
 	public DocumentSet shuffle() {
 		Collections.shuffle(this.getDocumentList());
 		this.setRankDelivered();
+		this.setShuffled(true);
 		return this;
 
 	}
@@ -394,33 +249,6 @@ public class DocumentSet {
 		}
 	}
 
-	@XmlTransient
-	public void setPercentageRankingValue(double percentageRankingValue) {
-		debugDetailsPerSet.setPercentageRankingValue(percentageRankingValue);
-	}
-
-	public double getPercentageRankingValue() {
-		return debugDetailsPerSet.getPercentageRankingValue();
-	}
-
-	public String getReRankingCombination() {
-		return reRankingCombination;
-	}
-
-	@XmlTransient
-	public void setReRankingCombination(String reRankingCombination) {
-		this.reRankingCombination = reRankingCombination;
-	}
-
-	public int getNumberOfCandidatesToReRank() {
-		return numberOfCandidatesToReRank;
-	}
-
-	@XmlTransient
-	public void setNumberOfCandidatesToReRank(int numberOfCandidatesToReRank) {
-		this.numberOfCandidatesToReRank = numberOfCandidatesToReRank;
-	}
-
 	public int getSize() {
 		return documentList.size();
 	}
@@ -433,26 +261,24 @@ public class DocumentSet {
 	 * @param displaydocument
 	 */
 	public void addDocument(DisplayDocument document) {
-		boolean newDocument = true;
 		DisplayDocument current;
+		
+		if (equalDocuments(document, this.requestedDocument))
+			return;
+		
 		for (int i = 0; i < this.documentList.size(); i++) {
 			current = this.documentList.get(i);
-			// System.out.println(current.getTitle());
-
+			
 			// if the document is the same, do not add as duplicate
 			if (equalDocuments(document, current)) {
 				if (Integer.parseInt(current.getDocumentId()) < Integer.parseInt(document.getDocumentId())) {
 					this.documentList.remove(i);
 					this.documentList.add(document);
 				}
-				newDocument = false;
+				return;
 			}
 		}
-		if (equalDocuments(document, this.requestedDocument))
-			newDocument = false;
-
-		if (newDocument)
-			this.documentList.add(document);
+		this.documentList.add(document);
 	}
 
 	/**
@@ -474,6 +300,141 @@ public class DocumentSet {
 		return documentList;
 	}
 
+	public void calculatePercentageRankingValue() {
+		int rankingValueCount = 0;
+		for (int i = 0; i < this.getSize(); i++) {
+			if (this.getDocumentList().get(i).getBibScore() != -1) {
+				rankingValueCount++;
+			}
+		}
+		debugDetailsPerSet.setPercentageRankingValue((double) rankingValueCount / this.getSize());
+	}
+
+	/**
+	 * 
+	 * calculate cleanTitle of a String, only numbers and letters are valid
+	 * characters
+	 * 
+	 * @param String
+	 *            to clean
+	 * @return clean String
+	 */
+	private String calculateTitleClean(String s) {
+		s = s.replaceAll("[^a-zA-Z0-9]", "");
+		s = s.toLowerCase();
+		return s;
+	}
+
+	//~~~~~~~~~~~~~~~~~GETTER AND SETTER~~~~~~~~~~~~~~~~~
+	public DebugDetailsPerSet getDebugDetailsPerSet() {
+		return debugDetailsPerSet;
+	}
+
+	@XmlElement(name = "debug_details")
+	public void setDebugDetailsPerSet(DebugDetailsPerSet debugDetailsPerSet) {
+		if (constants.getDebugModeOn())
+			this.debugDetailsPerSet = debugDetailsPerSet;
+	}
+	
+	/**
+	 * @return the recommendationAlgorithmId
+	 */
+	public String getRecommendationAlgorithmId() {
+		return this.debugDetailsPerSet.getRecommendationAlgorithmId();
+	}
+
+	/**
+	 * @param recommendationAlgorithmId
+	 *            the recommendationAlgorithmId to set
+	 */
+	@XmlTransient
+	public void setRecommendationAlgorithmId(int recommendationAlgorithmId) {
+		this.debugDetailsPerSet.setRecommendationAlgorithmId(recommendationAlgorithmId);
+	}
+
+	/**
+	 * @return the fallback
+	 */
+	public boolean isFallback() {
+		return this.debugDetailsPerSet.isFallback();
+	}
+
+	/**
+	 * @param fallback
+	 *            the fallback to set
+	 */
+	@XmlTransient
+	public void setFallback(boolean fallback) {
+		this.debugDetailsPerSet.setFallback(fallback);
+	}
+	
+	public boolean isBibliometricReRanking() {
+		return this.debugDetailsPerSet.isBibliometricReRanking();
+	}
+
+	@XmlTransient
+	public void setBibliometricReRanking(boolean bibliometricReRanking) {
+		this.debugDetailsPerSet.setBibliometricReRanking(bibliometricReRanking);
+	}
+
+	public int getBibliometricId() {
+		return this.debugDetailsPerSet.getBibliometricId();
+	}
+
+	@XmlTransient
+	public void setBibliometricId(int bibliometricId) {
+		this.debugDetailsPerSet.setBibliometricId(bibliometricId);
+	}
+
+	public String getRankingOrder() {
+		return this.debugDetailsPerSet.getRankingOrder();
+	}
+
+	@XmlTransient
+	public void setRankingOrder(String rankingOrder) {
+		this.debugDetailsPerSet.setRankingOrder(rankingOrder);
+	}
+
+	public DisplayDocument getRequestedDocument() {
+		return requestedDocument;
+	}
+
+	@XmlTransient
+	public void setRequestedDocument(DisplayDocument requestedDocument) {
+		this.requestedDocument = requestedDocument;
+	}
+
+	public DocumentSet(Constants constants) {
+		this.constants = constants;
+	}
+	
+	@XmlTransient
+	public void setPercentageRankingValue(double percentageRankingValue) {
+		debugDetailsPerSet.setPercentageRankingValue(percentageRankingValue);
+	}
+
+	public double getPercentageRankingValue() {
+		return debugDetailsPerSet.getPercentageRankingValue();
+	}
+
+	public String getReRankingCombination() {
+		return this.debugDetailsPerSet.getReRankingCombination();
+	}
+
+	@XmlTransient
+	public void setReRankingCombination(String reRankingCombination) {
+		this.debugDetailsPerSet.setReRankingCombination(reRankingCombination);
+	}
+
+	public int getNumberOfCandidatesToReRank() {
+		return this.debugDetailsPerSet.getNumberOfCandidatesToReRank();
+	}
+
+	@XmlTransient
+	public void setNumberOfCandidatesToReRank(int numberOfCandidatesToReRank) {
+		this.debugDetailsPerSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
+	}
+	
 	@XmlElement(name = "related_article")
 	public void setDocumentList(List<DisplayDocument> documentList) {
 		this.documentList = documentList;
@@ -507,76 +468,56 @@ public class DocumentSet {
 	}
 
 	public RelatedDocuments getRDG() {
-		return this.rdg;
+		return this.debugDetailsPerSet.getRdg();
 	}
 
 	@XmlTransient
 	public void setRDG(RelatedDocuments rdg) {
-		this.rdg = rdg;
-		debugDetailsPerSet.setRecommendationApproach(rdg.algorithmLoggingInfo.getName());
+		this.debugDetailsPerSet.setRdg(rdg);
 	}
 
 	public long getNumberOfReturnedResults() {
-		return numberOfReturnedResults;
+		return this.debugDetailsPerSet.getNumberOfReturnedResults();
 	}
 
 	@XmlTransient
 	public void setNumberOfReturnedResults(long numberOfReturnedResults) {
-		this.numberOfReturnedResults = numberOfReturnedResults;
+		this.debugDetailsPerSet.setNumberOfReturnedResults(numberOfReturnedResults);
+	}
+	
+	public boolean isShuffled() {
+		return this.debugDetailsPerSet.isShuffled();
+	}
+	
+	@XmlTransient
+	public void setShuffled(boolean shuffled) {
+		this.debugDetailsPerSet.setShuffled(shuffled);
 	}
 
-	public void calculatePercentageRankingValue() {
-		int rankingValueCount = 0;
-		for (int i = 0; i < this.getSize(); i++) {
-			if (this.getDocumentList().get(i).getBibScore() != -1) {
-				rankingValueCount++;
-			}
-		}
-		debugDetailsPerSet.setPercentageRankingValue((double) rankingValueCount / this.getSize());
+	public boolean isRemovedDuplicates() {
+		return this.debugDetailsPerSet.isRemovedDuplicates();
 	}
 
-	/**
-	 * 
-	 * calculate cleanTitle of a String, only numbers and letters are valid
-	 * characters
-	 * 
-	 * @param String
-	 *            to clean
-	 * @return clean String
-	 */
-	private String calculateTitleClean(String s) {
-		s = s.replaceAll("[^a-zA-Z0-9]", "");
-		s = s.toLowerCase();
-		return s;
+	@XmlTransient
+	public void setRemoveDuplicates(boolean removedDuplicates) {
+		this.debugDetailsPerSet.setRemovedDuplicates(removedDuplicates);
+	}
+	
+	public int getDesiredNumberFromAlgorithm() {
+		return this.debugDetailsPerSet.getDesiredNumberFromAlgorithm();
+	}
+	
+	@XmlTransient
+	public void setDesiredNumberFromAlgorithm(int desiredNumberFromAlgorithm) {
+		this.debugDetailsPerSet.setDesiredNumberFromAlgorithm(desiredNumberFromAlgorithm);
+	}
+	
+	public int getNumberOfDisplayedRecommendations() {
+		return this.debugDetailsPerSet.getNumberOfDisplayedRecommendations();
 	}
 
-	/**
-	 * @return the recommendationAlgorithmId
-	 */
-	public String getRecommendationAlgorithmId() {
-		return Integer.toString(recommendationAlgorithmId);
-	}
-
-	/**
-	 * @param recommendationAlgorithmId
-	 *            the recommendationAlgorithmId to set
-	 */
-	public void setRecommendationAlgorithmId(int recommendationAlgorithmId) {
-		this.recommendationAlgorithmId = recommendationAlgorithmId;
-	}
-
-	/**
-	 * @return the fallback
-	 */
-	public boolean isFallback() {
-		return fallback;
-	}
-
-	/**
-	 * @param fallback
-	 *            the fallback to set
-	 */
-	public void setFallback(boolean fallback) {
-		this.fallback = fallback;
+	@XmlTransient
+	public void setNumberOfDisplayedRecommendations(int numberOfDisplayedRecommendations) {
+		this.debugDetailsPerSet.setNumberOfDisplayedRecommendations(numberOfDisplayedRecommendations);
 	}
 }

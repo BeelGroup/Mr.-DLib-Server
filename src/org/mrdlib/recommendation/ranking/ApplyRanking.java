@@ -29,6 +29,7 @@ public class ApplyRanking {
 	private int rndRank;
 	private int numberOfCandidatesToReRank;
 	private int rndDisplayNumber;
+	private int rndOrder;
 
 	/**
 	 * 
@@ -44,11 +45,12 @@ public class ApplyRanking {
 		Random random = new Random();
 		// random number for the number of considered results from the algorithm
 		rndNumberOfCandidatesToReRank = random.nextInt(7) + 1;
-		// random number for the proportion of text relevance score and
-		// alt/bibliometric
-		rndWeight = random.nextInt(8) + 1;
+		// random number for the proportion of text relevance score and alt/bibliometric
+		rndWeight = random.nextInt(5) + 1;
 		// random number for the chosen metric
-		rndRank = random.nextInt(4) + 1;
+		rndRank = random.nextInt(3) + 1;
+		// random number asc or desc sorting
+		rndOrder = random.nextInt(2) + 1;
 
 		// choose a number of considered results from the algorithm
 		switch (rndNumberOfCandidatesToReRank) {
@@ -123,7 +125,7 @@ public class ApplyRanking {
 		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 		documentSet.setRankAfterAlgorithm();
 
-		if (rndWeight <= 8) {
+		if (rndWeight <= 4) {
 			// choose a ranking metric
 			switch (rndRank) {
 			case 1:
@@ -146,37 +148,35 @@ public class ApplyRanking {
 		// choose a proportion of text relevance score and alt/bibliometric
 		switch (rndWeight) {
 		case 1:
-			documentSet.sortDescForLogRankingValueTimesTextRelevance();
+			documentSet.calculateFinalScoreForRelevanceScoreTimesLogBibScore();
 			break;
 		case 2:
-			documentSet.sortDescForRootRankingValueTimesTextRelevance();
+			documentSet.calculateFinalScoreForRelevanceScoreTimesRootBibScore();
 			break;
 		case 3:
-			documentSet.sortDescForRankingValueTimesTextRelevance();
+			documentSet.calculateFinalScoreForRelevanceScoreTimesBibScore();
 			break;
 		case 4:
-			documentSet.sortAscForRankingValueTimesTextRelevance();
+			documentSet.calculateFinalScoreOnlyBibScore();
 			break;
 		case 5:
-			documentSet.sortAscForLogRankingValueTimesTextRelevance();
-			break;
-		case 6:
-			documentSet.sortAscForRootRankingValueTimesTextRelevance();
-			break;
-		case 7:
-			documentSet.sortAscForRankingValue();
-			break;
-		case 8:
-			documentSet.sortDescForRankingValue();
-			break;
-		case 9:
-			documentSet.sortAscForTextRelevance();
-			break;
-		case 10:
-			documentSet.sortDescForTextRelevance();
+			documentSet.calculateFinalScoreOnlyRelevanceScore();
 			break;
 		default:
-			documentSet.sortDescForRankingValue();
+			documentSet.calculateFinalScoreOnlyBibScore();
+			break;
+		}
+		
+		//choose an ordering
+		switch (rndOrder) {
+		case 1:
+			documentSet.sortDescForFinalValue();
+			break;
+		case 2:
+			documentSet.sortAscForFinalValue();
+			break;
+		default:
+			documentSet.sortDescForFinalValue();
 			break;
 		}
 

@@ -1,7 +1,6 @@
 package org.mrdlib.recommendation.framework;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;

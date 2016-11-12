@@ -1,8 +1,6 @@
 
 package org.mrdlib.recommendation.algorithm;
 
-import java.util.HashMap;
-
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 
