@@ -238,6 +238,9 @@ public class ApplyRanking {
 		DisplayDocument current = null;
 		DisplayDocument temp = new DisplayDocument(constants);
 		documentset.setBibliometricId(con.getBibId(metric, type, source));
+		documentset.setBibliometric(metric);
+		documentset.setBibType(type);
+		documentset.setBibSource(source);
 
 		for (int i = 0; i < documentset.getSize(); i++) {
 			current = documentset.getDocumentList().get(i);

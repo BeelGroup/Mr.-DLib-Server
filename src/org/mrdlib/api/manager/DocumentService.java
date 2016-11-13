@@ -103,8 +103,10 @@ public class DocumentService {
 			}
 			documentset.setRDG(rdg);
 			documentset = ar.selectRandomRanking(documentset);
+			documentset.setAfterRerankTime(System.currentTimeMillis());
 			documentset.setRankDelivered();
 			documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
+			documentset.setStartTime(requestRecieved);
 			// if there is no such document in the database
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
@@ -126,7 +128,7 @@ public class DocumentService {
 
 		try {
 			//log all the statistic about this execution
-			documentset = con.logRecommendationDeliveryNew(requestDocument.getDocumentId(), requestRecieved, rootElement);
+			documentset = con.logRecommendationDeliveryNew(requestDocument.getDocumentId(), rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
 				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"

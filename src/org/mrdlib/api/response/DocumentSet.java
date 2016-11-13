@@ -520,4 +520,76 @@ public class DocumentSet {
 	public void setNumberOfDisplayedRecommendations(int numberOfDisplayedRecommendations) {
 		this.debugDetailsPerSet.setNumberOfDisplayedRecommendations(numberOfDisplayedRecommendations);
 	}
+	
+	public String getBibliometric() {
+		return this.debugDetailsPerSet.getBibliometric();
+	}
+
+	@XmlTransient
+	public void setBibliometric(String bibliometric) {
+		this.debugDetailsPerSet.setBibliometric(bibliometric);
+	}
+
+	public String getBibType() {
+		return this.debugDetailsPerSet.getBibType();
+	}
+	
+	@XmlTransient
+	public void setBibType(String bibType) {
+		this.debugDetailsPerSet.setBibType(bibType);
+	}
+
+	public String getBibSource() {
+		return this.debugDetailsPerSet.getBibSource();
+	}
+
+	@XmlTransient
+	public void setBibSource(String bibSource) {
+		this.debugDetailsPerSet.setBibSource(bibSource);
+	}
+	
+	public Long getStartTime() {
+		return this.debugDetailsPerSet.getStartTime();
+	}
+
+	@XmlTransient
+	public void setStartTime(Long startTime) {
+		this.debugDetailsPerSet.setStartTime(startTime);
+	}
+
+	public Long getAfterAlgorithmChoosingTime() {
+		return this.debugDetailsPerSet.getAfterAlgorithmChoosingTime();
+	}
+
+	@XmlTransient
+	public void setAfterAlgorithmChoosingTime(Long afterAlgorithmChoosingTime) {
+		this.debugDetailsPerSet.setAfterAlgorithmChoosingTime(afterAlgorithmChoosingTime);
+	}
+
+	public Long getAfterUserModelTime() {
+		return this.debugDetailsPerSet.getAfterUserModelTime();
+	}
+
+	@XmlTransient
+	public void setAfterUserModelTime(Long afterUserModelTime) {
+		this.debugDetailsPerSet.getAfterUserModelTime();
+	}
+
+	public Long getAfterAlgorithmExecutionTime() {
+		return this.debugDetailsPerSet.getAfterAlgorithmExecutionTime();
+	}
+
+	@XmlTransient
+	public void setAfterAlgorithmExecutionTime(Long afterAlgorithmExecutionTime) {
+		this.debugDetailsPerSet.setAfterAlgorithmExecutionTime(afterAlgorithmExecutionTime);
+	}
+
+	public Long getAfterRerankTime() {
+		return this.debugDetailsPerSet.getAfterRerankTime();
+	}
+
+	@XmlTransient
+	public void setAfterRerankTime(Long afterRerankTime) {
+		this.debugDetailsPerSet.setAfterRerankTime(afterRerankTime);
+	}
 }

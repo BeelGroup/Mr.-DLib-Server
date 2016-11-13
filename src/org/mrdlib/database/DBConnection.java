@@ -1177,7 +1177,7 @@ public class DBConnection {
 	 * @return int, id of the created event
 	 * @throws Exception
 	 */
-	public int logEvent(String documentId, Long requestTime, RootElement rootElement, Boolean clicked)
+	public int logEvent(String documentId, RootElement rootElement, Boolean clicked)
 			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -1213,7 +1213,7 @@ public class DBConnection {
 			else
 				query += "'related_documents'";
 			// add the rest of the query
-			query += ", " + documentId + ", '" + new Timestamp(requestTime) + "', '"
+			query += ", " + documentId + ", '" + new Timestamp(rootElement.getDocumentSet().getStartTime()) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + statusCode + "', ?);";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -1423,7 +1423,7 @@ public class DBConnection {
 					+ recommendationId;
 
 			stmt.executeUpdate(query);
-			loggingId = logEvent(documentId, requestTime, rootElement, true);
+			loggingId = logEvent(documentId, rootElement, true);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -2124,14 +2124,14 @@ public class DBConnection {
 
 	}
 
-	public DocumentSet logRecommendationDeliveryNew(String documentId, Long requestTime, RootElement rootElement)
+	public DocumentSet logRecommendationDeliveryNew(String documentId, RootElement rootElement)
 			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationSetId = -1;
 		int loggingId = -1;
 		DocumentSet documentset = rootElement.getDocumentSet();
-		String accessKeyString = "mdl" + requestTime;
+		String accessKeyString = "mdl" + documentset.getStartTime();
 		String accessKeyHash = "";
 
 		try {
@@ -2142,7 +2142,7 @@ public class DBConnection {
 			e.printStackTrace();
 		}
 
-		loggingId = logEvent(documentId, requestTime, rootElement, false);
+		loggingId = logEvent(documentId, rootElement, false);
 		documentset = logRecommendationAlgorithmNew(documentset);
 
 		try {

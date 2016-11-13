@@ -27,16 +27,84 @@ public class DebugDetailsPerSet {
 	private boolean bibliometricReRanking = true;
 	private boolean shuffled = false;
 	private boolean removedDuplicates = true; //find a solution, that is modular
+	private Long startTime;
+	private Long afterAlgorithmChoosingTime; //implement
+	private Long afterUserModelTime; //implement
+	private Long afterAlgorithmExecutionTime; //implement
+	private Long afterRerankTime;
 	// NEED accesskey
-	// NEED timestamps: start; afterChooseOfAlg; afterUserModel; afterAlg;
-	// afterReRank; end?
-	// NEED metric
-	// NEED type
-	// NEED source
+	// NEED timestamps: end?
+	private String bibliometric;
+	private String bibType;
+	private String bibSource;
 
 	public DebugDetailsPerSet() {
-	}	
+	}
 	
+	public Long getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(Long startTime) {
+		this.startTime = startTime;
+	}
+
+	public Long getAfterAlgorithmChoosingTime() {
+		return afterAlgorithmChoosingTime;
+	}
+
+	public void setAfterAlgorithmChoosingTime(Long afterAlgorithmChoosingTime) {
+		this.afterAlgorithmChoosingTime = afterAlgorithmChoosingTime;
+	}
+
+	public Long getAfterUserModelTime() {
+		return afterUserModelTime;
+	}
+
+	public void setAfterUserModelTime(Long afterUserModelTime) {
+		this.afterUserModelTime = afterUserModelTime;
+	}
+
+	public Long getAfterAlgorithmExecutionTime() {
+		return afterAlgorithmExecutionTime;
+	}
+
+	public void setAfterAlgorithmExecutionTime(Long afterAlgorithmExecutionTime) {
+		this.afterAlgorithmExecutionTime = afterAlgorithmExecutionTime;
+	}
+
+	public Long getAfterRerankTime() {
+		return afterRerankTime;
+	}
+
+	public void setAfterRerankTime(Long afterRerankTime) {
+		this.afterRerankTime = afterRerankTime;
+	}
+
+	public String getBibliometric() {
+		return bibliometric;
+	}
+
+	public void setBibliometric(String bibliometric) {
+		this.bibliometric = bibliometric;
+	}
+
+	public String getBibType() {
+		return bibType;
+	}
+
+	public void setBibType(String bibType) {
+		this.bibType = bibType;
+	}
+
+	public String getBibSource() {
+		return bibSource;
+	}
+
+	public void setBibSource(String bibSource) {
+		this.bibSource = bibSource;
+	}
+
 	public int getNumberOfDisplayedRecommendations() {
 		return numberOfDisplayedRecommendations;
 	}
