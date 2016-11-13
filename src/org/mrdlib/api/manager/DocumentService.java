@@ -6,6 +6,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.mrdlib.api.response.DebugDetails;
+import org.mrdlib.api.response.DebugDetailsPerSet;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.api.response.RootElement;
@@ -147,6 +149,16 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
+		
+		if(!constants.getDebugModeOn()) {
+			DisplayDocument current = null;
+			rootElement.getDocumentSet().setDebugDetailsPerSet(null);
+			for(int i = 0; i < documentset.getSize(); i++) {
+				current = rootElement.getDocumentSet().getDisplayDocument(i);
+				current.setDebugDetails(null);
+			}
+		}
+		
 		return rootElement;
 	}
 

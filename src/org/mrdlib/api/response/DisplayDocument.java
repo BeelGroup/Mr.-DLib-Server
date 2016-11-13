@@ -94,8 +94,7 @@ public class DisplayDocument implements Serializable {
 
 	@XmlElement(name = "debug_details")
 	public void setDebugDetails(DebugDetails debugDetails) {
-		if(constants.getDebugModeOn())
-			this.debugDetails = debugDetails;
+		this.debugDetails = debugDetails;
 	}
 
 	public void setTitle(String title) {

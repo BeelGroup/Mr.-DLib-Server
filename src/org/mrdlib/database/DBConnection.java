@@ -1107,8 +1107,9 @@ public class DBConnection {
 	 * (SQLException e) { throw e; } }
 	 * 
 	 * // return the algorithm Id return recommendationAlgorithmId; }
-	 * 
-	 * /**
+	 */
+	 
+	 /**
 	 * 
 	 * logs the bibliometric data
 	 * 
@@ -1177,8 +1178,7 @@ public class DBConnection {
 	 * @return int, id of the created event
 	 * @throws Exception
 	 */
-	public int logEvent(String documentId, RootElement rootElement, Boolean clicked)
-			throws Exception {
+	public int logEvent(String documentId, RootElement rootElement, Boolean clicked) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
@@ -1291,7 +1291,7 @@ public class DBConnection {
 	 * documentset.setRecommendationSetId(recommendationSetId + "");
 	 * 
 	 * for (int i = 0; i < documentset.getSize(); i++) { DisplayDocument current
-	 * = documentset.getDocumentList().get(i); // log each single recommendation
+	 * = documentset.getDisplayDocument(i); // log each single recommendation
 	 * current.setRecommendationId(logRecommendations(current, documentset) +
 	 * ""); current.setAccessKeyHash(accessKeyHash); }
 	 * 
@@ -2124,8 +2124,7 @@ public class DBConnection {
 
 	}
 
-	public DocumentSet logRecommendationDeliveryNew(String documentId, RootElement rootElement)
-			throws Exception {
+	public DocumentSet logRecommendationDeliveryNew(String documentId, RootElement rootElement) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationSetId = -1;
@@ -2170,7 +2169,7 @@ public class DBConnection {
 			documentset.setRecommendationSetId(recommendationSetId + "");
 
 			for (int i = 0; i < documentset.getSize(); i++) {
-				DisplayDocument current = documentset.getDocumentList().get(i);
+				DisplayDocument current = documentset.getDisplayDocument(i);
 				// log each single recommendation
 				current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
 				current.setAccessKeyHash(accessKeyHash);
@@ -2489,10 +2488,16 @@ public class DBConnection {
 			// insertion query
 			String query = "INSERT INTO z_recommendation_algorithms__reranking_bibliometrics (number_of_candidates_to_rerank_with_bibliometrics, "
 					+ "reranking_order, bibliometric_id, reranking_bibliometric_combination_with_standard_relevance_score) VALUES ('"
-					+ documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder() + "', '"
-					+ documentset.getBibliometricId() + "', '" + documentset.getReRankingCombination() + "');";
-
+					+ documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder() + "', ?, '"
+					+ documentset.getReRankingCombination() + "');";
+			
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
+			if (documentset.getBibliometricId() == -1) {
+				stmt.setNull(1, java.sql.Types.BIGINT);
+			} else
+				stmt.setInt(1, documentset.getBibliometricId());
+
 
 			stmt.executeUpdate();
 
@@ -2515,7 +2520,7 @@ public class DBConnection {
 		return rerankingBibliometricId;
 	}
 
-	public DisplayDocument getRankingValue(String documentId, int bibliometricId) {
+	public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int metricValue = -1;
@@ -2542,13 +2547,13 @@ public class DBConnection {
 			document.setBibScore(metricValue);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw e;
 		} finally {
 			try {
 				if (stmt != null)
 					stmt.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw e;
 			}
 		}
 		return document;

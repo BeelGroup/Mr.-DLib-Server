@@ -48,7 +48,7 @@ public class CreateRanking {
 		documentSet = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
 		System.out.println(documentSet.getSize());
 		for (int i = 0; i < documentSet.getSize(); i++) {
-			current = documentSet.getDocumentList().get(i);
+			current = documentSet.getDisplayDocument(i);
 			
 			//print the current progress in 10.000 steps
 			if (i % 10000 == 0)
@@ -94,7 +94,7 @@ public class CreateRanking {
 		System.out.println(documentSet.getSize());
 
 		for (int i = 0; i < documentSet.getSize(); i++) {
-			current = documentSet.getDocumentList().get(i);
+			current = documentSet.getDisplayDocument(i);
 			
 			//print the current progress in 10.000 steps
 			if (i % 10000 == 0)
@@ -146,7 +146,7 @@ public class CreateRanking {
 					documentSet = con.getDocumentsByPersonId(currentAuthor.getId());
 
 					for (int j = 0; j < documentSet.getSize(); j++) {
-						currentDocument = documentSet.getDocumentList().get(j);
+						currentDocument = documentSet.getDisplayDocument(j);
 						documentSet.setBibliometricId(con.getBibId("simple_count", "readers", "mendeley"));
 						documentReadership = con
 								.getRankingValue(currentDocument.getDocumentId(), documentSet.getBibliometricId())

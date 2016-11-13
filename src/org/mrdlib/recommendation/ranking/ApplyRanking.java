@@ -243,7 +243,7 @@ public class ApplyRanking {
 		documentset.setBibSource(source);
 
 		for (int i = 0; i < documentset.getSize(); i++) {
-			current = documentset.getDocumentList().get(i);
+			current = documentset.getDisplayDocument(i);
 			temp = con.getRankingValue(current.getDocumentId(), documentset.getBibliometricId());
 			current.setBibScore(temp.getBibScore());
 			current.setBibDocId(temp.getBibDocId());

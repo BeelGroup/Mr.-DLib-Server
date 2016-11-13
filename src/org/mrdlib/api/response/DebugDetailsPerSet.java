@@ -14,17 +14,20 @@ public class DebugDetailsPerSet {
 	private String recommendationApproach;
 	private double percentageRankingValue;
 
+	private boolean bibliometricReRanking = true;
 	private int numberOfCandidatesToReRank;// number of items choosed to rerank 
 	private String reRankingCombination;
 	private String rankingOrder;
+	private int bibliometricId = -1;
+	private String bibliometric;
+	private String bibType;
+	private String bibSource;
 	private RelatedDocuments rdg; // sid changes
 	private long numberOfReturnedResults; // currently: numberFromAlgReturns
 	private int desiredNumberFromAlgorithm; //implement!!
 	private int numberOfDisplayedRecommendations = 1; 
 	private boolean fallback; // Sid
 	private int recommendationAlgorithmId;
-	private int bibliometricId = -1;
-	private boolean bibliometricReRanking = true;
 	private boolean shuffled = false;
 	private boolean removedDuplicates = true; //find a solution, that is modular
 	private Long startTime;
@@ -34,9 +37,6 @@ public class DebugDetailsPerSet {
 	private Long afterRerankTime;
 	// NEED accesskey
 	// NEED timestamps: end?
-	private String bibliometric;
-	private String bibType;
-	private String bibSource;
 
 	public DebugDetailsPerSet() {
 	}

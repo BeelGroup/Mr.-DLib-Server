@@ -164,7 +164,7 @@ public class DocumentSet {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
-			current = this.getDocumentList().get(i);
+			current = this.getDisplayDocument(i);
 			current.setRankAfterAlgorithm(i + 1);
 		}
 		return this;
@@ -180,7 +180,7 @@ public class DocumentSet {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
-			current = this.getDocumentList().get(i);
+			current = this.getDisplayDocument(i);
 			current.setRankAfterReRanking(i + 1);
 		}
 		return this;
@@ -196,7 +196,7 @@ public class DocumentSet {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
-			current = this.getDocumentList().get(i);
+			current = this.getDisplayDocument(i);
 			current.setRankAfterShuffling(i + 1);
 		}
 		return this;
@@ -212,7 +212,7 @@ public class DocumentSet {
 		DisplayDocument current = null;
 
 		for (int i = 0; i < this.getSize(); i++) {
-			current = this.getDocumentList().get(i);
+			current = this.getDisplayDocument(i);
 			current.setRankDelivered(i + 1);
 			current.setSuggestedRank(i + 1);
 		}
@@ -242,7 +242,7 @@ public class DocumentSet {
 	private void avoidZeroRankingValue() {
 		DisplayDocument current = null;
 		for (int i = 0; i < this.getSize(); i++) {
-			current = this.getDocumentList().get(i);
+			current = this.getDisplayDocument(i);
 			if (current.getBibScore() == -1)
 				current.setBibScore(0);
 			current.setBibScore(current.getBibScore() + 2);
@@ -303,7 +303,7 @@ public class DocumentSet {
 	public void calculatePercentageRankingValue() {
 		int rankingValueCount = 0;
 		for (int i = 0; i < this.getSize(); i++) {
-			if (this.getDocumentList().get(i).getBibScore() != -1) {
+			if (this.getDisplayDocument(i).getBibScore() != -1) {
 				rankingValueCount++;
 			}
 		}
@@ -324,6 +324,10 @@ public class DocumentSet {
 		s = s.toLowerCase();
 		return s;
 	}
+	
+	public DisplayDocument getDisplayDocument(int i) {
+		return this.getDocumentList().get(i);
+	}
 
 	//~~~~~~~~~~~~~~~~~GETTER AND SETTER~~~~~~~~~~~~~~~~~
 	public DebugDetailsPerSet getDebugDetailsPerSet() {
@@ -332,8 +336,7 @@ public class DocumentSet {
 
 	@XmlElement(name = "debug_details")
 	public void setDebugDetailsPerSet(DebugDetailsPerSet debugDetailsPerSet) {
-		if (constants.getDebugModeOn())
-			this.debugDetailsPerSet = debugDetailsPerSet;
+		this.debugDetailsPerSet = debugDetailsPerSet;
 	}
 	
 	/**
