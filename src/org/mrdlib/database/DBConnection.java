@@ -1108,15 +1108,17 @@ public class DBConnection {
 	 * 
 	 * // return the algorithm Id return recommendationAlgorithmId; }
 	 */
-	 
-	 /**
+
+	/**
 	 * 
 	 * logs the bibliometric data
 	 * 
-	 * @param DisplayDocument document, the recommendation where the
-	 * bibliometric to log belongs to
+	 * @param DisplayDocument
+	 *            document, the recommendation where the bibliometric to log
+	 *            belongs to
 	 * 
-	 * @param int, the BibId
+	 * @param int,
+	 *            the BibId
 	 * 
 	 * @return int, the created logging rerank bibliometric id
 	 * 
@@ -2150,18 +2152,15 @@ public class DBConnection {
 					+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
 					+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
 					+ constants.getDeliveredRecommendations() + ", number_of_displayed_recommendations, "
-					+ constants.getTrigger() + ", " 
-					+ constants.getPreparationTime() + ", " + constants.getUserModellingTime() + ", "
-					+ constants.getRecFrameworkTime() + ", " + constants.getPostProcessingTime() + ", "
-					+ constants.getAccessKey() + ") VALUES (" + loggingId + ", "
-					+ documentset.getRecommendationAlgorithmId() + ", " + (documentset.isFallback() ? "'Y'" : "'N'")
-					+ ", " + documentset.getNumberOfReturnedResults() + ", "
-					+ documentset.getNumberOfDisplayedRecommendations() + ", " + documentset.getSize() + ", 'system', '"
-					+ documentset.getAfterAlgorithmChoosingTime() + "', '"
-					+ documentset.getAfterUserModelTime() + "', '"
-					+ documentset.getAfterAlgorithmExecutionTime() + "', '"
-					+ documentset.getAfterRerankTime() + "', '"
-					+ accessKeyHash + "');";
+					+ constants.getTrigger() + ", " + constants.getPreparationTime() + ", "
+					+ constants.getUserModellingTime() + ", " + constants.getRecFrameworkTime() + ", "
+					+ constants.getPostProcessingTime() + ", " + constants.getAccessKey() + ") VALUES (" + loggingId
+					+ ", " + documentset.getRecommendationAlgorithmId() + ", "
+					+ (documentset.isFallback() ? "'Y'" : "'N'") + ", " + documentset.getNumberOfReturnedResults()
+					+ ", " + documentset.getNumberOfDisplayedRecommendations() + ", " + documentset.getSize()
+					+ ", 'system', '" + documentset.getAfterAlgorithmChoosingTime() + "', '"
+					+ documentset.getAfterUserModelTime() + "', '" + documentset.getAfterAlgorithmExecutionTime()
+					+ "', '" + documentset.getAfterRerankTime() + "', '" + accessKeyHash + "');";
 
 			System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -2356,10 +2355,11 @@ public class DBConnection {
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
 					+ constants.getDocumentIdInRecommendations() + ", "
 					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getRankReal() + ", "
-					+ constants.getRankCurrent() + ", " + constants.getTextRelevanceScoreInRecommendations()
-					+ ") VALUES (" + document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", '"
-					+ document.getSuggestedRank() + "', '" + document.getSuggestedRank() + "', '"
-					+ document.getRelevanceScoreFromAlgorithm() + "');";
+					+ constants.getRankCurrent() + ", " + constants.getTextRelevanceScoreInRecommendations() + ", "
+					+ constants.getFinalRankingScore() + ") VALUES (" + document.getDocumentId() + ", "
+					+ documentset.getRecommendationSetId() + ", '" + document.getSuggestedRank() + "', '"
+					+ document.getSuggestedRank() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
+					+ document.getFinalScore() + "');";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			System.out.println(query);
@@ -2496,14 +2496,13 @@ public class DBConnection {
 					+ "reranking_order, bibliometric_id, reranking_bibliometric_combination_with_standard_relevance_score) VALUES ('"
 					+ documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder() + "', ?, '"
 					+ documentset.getReRankingCombination() + "');";
-			
+
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			if (documentset.getBibliometricId() == -1) {
 				stmt.setNull(1, java.sql.Types.BIGINT);
 			} else
 				stmt.setInt(1, documentset.getBibliometricId());
-
 
 			stmt.executeUpdate();
 

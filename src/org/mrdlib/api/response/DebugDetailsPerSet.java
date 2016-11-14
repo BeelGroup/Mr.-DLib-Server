@@ -25,10 +25,10 @@ public class DebugDetailsPerSet {
 	private String bibSource;
 
 	private AlgorithmDetails algoDetails; 
-	private long numberOfReturnedResults; // currently: numberFromAlgReturns
-	private int desiredNumberFromAlgorithm; // implement!!
+	private long numberOfReturnedResults;
+	private int desiredNumberFromAlgorithm;
 	private int numberOfDisplayedRecommendations = 1;
-	private boolean fallback; // Sid
+	private boolean fallback;
 	private int recommendationAlgorithmId;
 	
 	private boolean shuffled = false;

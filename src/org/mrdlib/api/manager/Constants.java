@@ -78,6 +78,7 @@ public class Constants {
 	private String rankReal;
 	private String rankCurrent;
 	private String textRelevanceScoreInRecommendations;
+	private String finalRankingScore;
 
 	// db table recommendation sets
 	private String recommendationSetsId;
@@ -257,6 +258,7 @@ public class Constants {
 			this.rankReal = prop.getProperty("rankReal");
 			this.rankCurrent = prop.getProperty("rankCurrent");
 			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
+			this.finalRankingScore = prop.getProperty("finalRankingScore");
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
 			this.loggingIdInRecommendationSets = prop.getProperty("loggingIdInRecommendationSets");
 			this.numberOfReturnedResults = prop.getProperty("numberOfReturnedResults");
@@ -381,6 +383,16 @@ public class Constants {
 				}
 			}
 		}
+	}
+	
+
+	
+	public String getFinalRankingScore() {
+		return finalRankingScore;
+	}
+
+	public void setFinalRankingScore(String finalRankingScore) {
+		this.finalRankingScore = finalRankingScore;
 	}
 
 	public String getEnvironment() {
