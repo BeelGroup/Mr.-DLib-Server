@@ -2344,6 +2344,7 @@ public class DBConnection {
 		return documentset;
 	}
 
+
 	/**
 	 * 
 	 * logs the single recommendations
@@ -2408,31 +2409,45 @@ public class DBConnection {
 		return recommendationId;
 	}
 
-	private int getMostPopularId(AlgorithmDetails recommenderDetails) {
-		// TODO Auto-generated method stub
-		return 0;
+	private int getMostPopularId(AlgorithmDetails recommenderDetails) throws SQLException {
+		return getStereotypesId(recommenderDetails, false);
 	}
 
 	private int getStereotypesId(AlgorithmDetails recommenderDetails) throws SQLException {
+		return getStereotypesId(recommenderDetails, true);
+	}
+	
+	private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotypes) throws SQLException {
 		int stereotypeId = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
-		String query = "SELECT " + constants.getStereotypeRecommendationDetailsId() + " FROM "
-				+ constants.getStereotypeRecommendationDetails() + " WHERE "
-				+ constants.getStereotypeCategoryInStereotypeDetails() + "='" + recommenderDetails.getCategory() + "'";
+		String tableName,tableRowId, tableCategoryName = "";
+		if(stereotypes){
+			tableName=constants.getStereotypeRecommendationDetails();
+			tableRowId=constants.getStereotypeRecommendationDetailsId();
+			tableCategoryName=constants.getStereotypeCategoryInStereotypeDetails();
+		}
+		else{
+			tableName=constants.getMostPopularRecommendationDetails();
+			tableRowId=constants.getMostPopularRecommendationDetailsId();
+			tableCategoryName=constants.getCategoryInMostPopularDetails();
+		}
+		String query = "SELECT " + tableRowId + " FROM "
+				+ tableName + " WHERE "
+				+ tableCategoryName + "='" + recommenderDetails.getCategory() + "'";
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
-				stereotypeId = rs.getInt(constants.getStereotypeRecommendationDetailsId());
-				System.out.printf("StereotypeRecommendationDetailsId:%d\n", stereotypeId);
+				stereotypeId = rs.getInt(tableRowId);
+				System.out.println(tableName+":"+stereotypeId);
 			} else {
 				if (stmt != null)
 					stmt.close();
 				if (rs != null)
 					rs.close();
-				query = "INSERT INTO " + constants.getStereotypeRecommendationDetails() + "("
-						+ constants.getStereotypeCategoryInStereotypeDetails() + ") VALUES('"
+				query = "INSERT INTO " + tableName + "("
+						+ tableCategoryName + ") VALUES('"
 						+ recommenderDetails.getCategory() + "')";
 				stmt = con.createStatement();
 				System.out.println(query);
