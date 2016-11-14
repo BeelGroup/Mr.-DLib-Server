@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.mrdlib.api.manager.Constants;
+import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 import org.mrdlib.recommendation.algorithm.RelatedDocuments;
 
 /**
@@ -469,16 +470,7 @@ public class DocumentSet {
 	public void setRecommendationApproach(String recommendationApproach) {
 		debugDetailsPerSet.setRecommendationApproach(recommendationApproach);
 	}
-
-	public RelatedDocuments getRDG() {
-		return this.debugDetailsPerSet.getRdg();
-	}
-
-	@XmlTransient
-	public void setRDG(RelatedDocuments rdg) {
-		this.debugDetailsPerSet.setRdg(rdg);
-	}
-
+	
 	public long getNumberOfReturnedResults() {
 		return this.debugDetailsPerSet.getNumberOfReturnedResults();
 	}
@@ -561,38 +553,57 @@ public class DocumentSet {
 	}
 
 	public Long getAfterAlgorithmChoosingTime() {
-		return this.debugDetailsPerSet.getAfterAlgorithmChoosingTime();
+		return this.debugDetailsPerSet.getAlgorithmChoosingTime();
 	}
 
 	@XmlTransient
 	public void setAfterAlgorithmChoosingTime(Long afterAlgorithmChoosingTime) {
-		this.debugDetailsPerSet.setAfterAlgorithmChoosingTime(afterAlgorithmChoosingTime);
+		this.debugDetailsPerSet.setAlgorithmChoosingTime(afterAlgorithmChoosingTime);
 	}
 
 	public Long getAfterUserModelTime() {
-		return this.debugDetailsPerSet.getAfterUserModelTime();
+		return this.debugDetailsPerSet.getUserModelTime();
 	}
 
 	@XmlTransient
 	public void setAfterUserModelTime(Long afterUserModelTime) {
-		this.debugDetailsPerSet.getAfterUserModelTime();
+		this.debugDetailsPerSet.setUserModelTime(afterUserModelTime);
 	}
 
 	public Long getAfterAlgorithmExecutionTime() {
-		return this.debugDetailsPerSet.getAfterAlgorithmExecutionTime();
+		return this.debugDetailsPerSet.getAlgorithmExecutionTime();
 	}
 
 	@XmlTransient
 	public void setAfterAlgorithmExecutionTime(Long afterAlgorithmExecutionTime) {
-		this.debugDetailsPerSet.setAfterAlgorithmExecutionTime(afterAlgorithmExecutionTime);
+		this.debugDetailsPerSet.setAlgorithmExecutionTime(afterAlgorithmExecutionTime);
 	}
 
 	public Long getAfterRerankTime() {
-		return this.debugDetailsPerSet.getAfterRerankTime();
+		return this.debugDetailsPerSet.getRerankTime();
 	}
 
 	@XmlTransient
 	public void setAfterRerankTime(Long afterRerankTime) {
-		this.debugDetailsPerSet.setAfterRerankTime(afterRerankTime);
+		this.debugDetailsPerSet.setRerankTime(afterRerankTime);
+	}
+	
+	
+	public String getAccessKeyHash() {
+		return this.debugDetailsPerSet.getAccessKeyHash();
+	}
+
+	@XmlTransient
+	public void setAccessKeyHash(String accessKeyHash) {
+		this.debugDetailsPerSet.setAccessKeyHash(accessKeyHash);
+	}
+	
+	public AlgorithmDetails getAlgorithmDetails(){
+		return this.debugDetailsPerSet.getAlgoDetails();
+	}
+	
+	@XmlTransient
+	public void setAlgorithmDetails(AlgorithmDetails algoDetails){
+		this.debugDetailsPerSet.setAlgoDetails(algoDetails);
 	}
 }

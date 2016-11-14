@@ -28,7 +28,7 @@ public class DisplayDocument implements Serializable {
 	private String recommendationId;
 	private String documentId;
 	private String originalDocumentId;
-	private String accessKeyHash; //DELETE!!!
+	
 	
 	// elements
 	private List<Snippet> snippetList = new ArrayList<Snippet>();
@@ -209,15 +209,6 @@ public class DisplayDocument implements Serializable {
 	@XmlElement(name = "fallback_url")
 	public void setFallbackUrl(String fallbackUrl) {
 		this.fallbackUrl = fallbackUrl;
-	}
-	
-	public String getAccessKeyHash() {
-		return accessKeyHash;
-	}
-
-	@XmlTransient
-	public void setAccessKeyHash(String accessKeyHash) {
-		this.accessKeyHash = accessKeyHash;
 	}
 
 	public String getLanguage() {

@@ -2140,7 +2140,7 @@ public class DBConnection {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		documentset.setAccessKeyHash(accessKeyHash);
 		loggingId = logEvent(documentId, rootElement, false);
 		documentset = logRecommendationAlgorithmNew(documentset);
 
@@ -2150,10 +2150,17 @@ public class DBConnection {
 					+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
 					+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
 					+ constants.getDeliveredRecommendations() + ", number_of_displayed_recommendations, "
-					+ constants.getTrigger() + ", " + constants.getAccessKey() + ") VALUES (" + loggingId + ", "
+					+ constants.getTrigger() + ", " 
+					+ constants.getPreparationTime() + ", " + constants.getUserModellingTime() + ", "
+					+ constants.getRecFrameworkTime() + ", " + constants.getPostProcessingTime() + ", "
+					+ constants.getAccessKey() + ") VALUES (" + loggingId + ", "
 					+ documentset.getRecommendationAlgorithmId() + ", " + (documentset.isFallback() ? "'Y'" : "'N'")
 					+ ", " + documentset.getNumberOfReturnedResults() + ", "
 					+ documentset.getNumberOfDisplayedRecommendations() + ", " + documentset.getSize() + ", 'system', '"
+					+ documentset.getAfterAlgorithmChoosingTime() + "', '"
+					+ documentset.getAfterUserModelTime() + "', '"
+					+ documentset.getAfterAlgorithmExecutionTime() + "', '"
+					+ documentset.getAfterRerankTime() + "', '"
 					+ accessKeyHash + "');";
 
 			System.out.println(query);
@@ -2172,7 +2179,6 @@ public class DBConnection {
 				DisplayDocument current = documentset.getDisplayDocument(i);
 				// log each single recommendation
 				current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
-				current.setAccessKeyHash(accessKeyHash);
 			}
 
 		} catch (Exception e) {
@@ -2214,7 +2220,7 @@ public class DBConnection {
 		int recommendationAlgorithmId = -1;
 
 		// get the hashmap which has the details of the recommendation algorithm
-		AlgorithmDetails recommenderDetails = documentset.getRDG().algorithmLoggingInfo;
+		AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
 
 		String recommendationClass = recommenderDetails.getRecommendationClass();
 		Boolean fallback = recommenderDetails.isFallback();

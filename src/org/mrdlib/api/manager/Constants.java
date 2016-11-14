@@ -87,6 +87,10 @@ public class Constants {
 	private String algorithmId;
 	private String trigger;
 	private String maximumOriginalRank;
+	private String recommendationPreparationTime;
+	private String userModellingTime;
+	private String recommendationFrameworkTime;
+	private String postProcessingTime;
 	private String accessKey;
 
 	// db table external id
@@ -193,8 +197,6 @@ public class Constants {
 
 	private String probabilitiesConfigPath;
 
-	
-
 	// load the config file
 	public Constants() {
 
@@ -261,6 +263,10 @@ public class Constants {
 			this.deliveredRecommendations = prop.getProperty("deliveredRecommendations");
 			this.trigger = prop.getProperty("trigger");
 			this.maximumOriginalRank = prop.getProperty("maximumOriginalRank");
+			this.recommendationPreparationTime = prop.getProperty("recommendationPreparationTime");
+			this.userModellingTime = prop.getProperty("userModellingTime");
+			this.recommendationFrameworkTime = prop.getProperty("recommendationFrameworkTime");
+			this.postProcessingTime = prop.getProperty("postProcessingTime");
 			this.accessKey = prop.getProperty("accessKey");
 
 			this.documentIdInExternalIds = prop.getProperty("documentIdInExternalIds");
@@ -334,7 +340,7 @@ public class Constants {
 			this.recommendationClass = prop.getProperty("recommendationClass");
 			this.languageRestriction = prop.getProperty("languageRestriction");
 			this.bibReRankingApplied = prop.getProperty("bibReRankingApplied");
-			
+
 			this.cbfId = prop.getProperty("cbfId");
 			this.cbfFeatureType = prop.getProperty("cbfFeatureType");
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
@@ -893,18 +899,31 @@ public class Constants {
 	}
 
 	public String getRecommendationClass() {
-		// TODO Auto-generated method stub
 		return recommendationClass;
 	}
 
 	public String getLanguageRestrictionInRecommenderAlgorithm() {
-		// TODO Auto-generated method stub
 		return languageRestriction;
 	}
 
 	public String getBibReRankingApplied() {
-		// TODO Auto-generated method stub
 		return bibReRankingApplied;
+	}
+
+	public String getPreparationTime() {
+		return recommendationPreparationTime;
+	}
+
+	public String getUserModellingTime() {
+		return userModellingTime;
+	}
+
+	public String getRecFrameworkTime() {
+		return recommendationFrameworkTime;
+	}
+
+	public String getPostProcessingTime() {
+		return postProcessingTime;
 	}
 
 }

@@ -154,8 +154,9 @@ public class RecommenderFactory {
 				}
 			}
 		} catch (Exception e) {
-			if (rdg != null)
-				System.out.println(rdg.getClass().getName() + " has failed to initialize");
+			if (rdg != null){
+				e.printStackTrace();
+				System.out.println(rdg.getClass().getName() + " has failed to initialize");}
 			throw new UnknownException(e, true);
 		}
 		return new RelatedDocumentsKeyphrases(con);

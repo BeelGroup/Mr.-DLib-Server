@@ -70,7 +70,8 @@ public class DocumentService {
 	public RootElement getRelatedDocumentSet(@PathParam("documentId") String documentIdOriginal) {
 		DisplayDocument requestDocument = null;
 		DocumentSet documentset = null;
-
+		Long timeToPickAlgorithm = null;
+		Long timeToUserModel = null;
 		try {
 			// get the requested document from the database
 			requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
@@ -83,8 +84,11 @@ public class DocumentService {
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
 					rdg = RecommenderFactory.getRandomRDG(con, requestDocument);
+					timeToPickAlgorithm = System.currentTimeMillis();
+					timeToUserModel = timeToPickAlgorithm;
 					System.out.println(rdg.algorithmLoggingInfo.getName());
 					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getNumberOfCandidatesToReRank());
+					
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
@@ -103,9 +107,13 @@ public class DocumentService {
 				rdg = RecommenderFactory.getFallback(con);
 				documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getNumberOfCandidatesToReRank());
 			}
-			documentset.setRDG(rdg);
+			Long timeAfterExecution = System.currentTimeMillis();
+			documentset.setAfterAlgorithmExecutionTime(timeAfterExecution-timeToUserModel);
+			documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm-requestRecieved);
+			documentset.setAfterUserModelTime(timeToUserModel-timeToPickAlgorithm);
+			documentset.setAlgorithmDetails(rdg.getAlgorithmLoggingInfo());
 			documentset = ar.selectRandomRanking(documentset);
-			documentset.setAfterRerankTime(System.currentTimeMillis());
+			documentset.setAfterRerankTime(System.currentTimeMillis()-timeAfterExecution);
 			documentset.setRankDelivered();
 			documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
 			documentset.setStartTime(requestRecieved);
@@ -134,7 +142,7 @@ public class DocumentService {
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
 				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
-						+ doc.getRecommendationId() + "/original_url?access_key=" + doc.getAccessKeyHash()
+						+ doc.getRecommendationId() + "/original_url?access_key=" + documentset.getAccessKeyHash()
 						+ "&format=direct_url_forward";
 				doc.setClickUrl(url);
 			}

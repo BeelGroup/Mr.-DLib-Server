@@ -1,6 +1,6 @@
 package org.mrdlib.api.response;
 
-import org.mrdlib.recommendation.algorithm.RelatedDocuments;
+import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 /**
  * 
@@ -15,32 +15,36 @@ public class DebugDetailsPerSet {
 	private double percentageRankingValue;
 
 	private boolean bibliometricReRanking = true;
-	private int numberOfCandidatesToReRank;// number of items choosed to rerank 
+	private int numberOfCandidatesToReRank;// number of items choosed to rerank
 	private String reRankingCombination;
 	private String rankingOrder;
 	private int bibliometricId = -1;
 	private String bibliometric;
 	private String bibType;
 	private String bibSource;
-	private RelatedDocuments rdg; // sid changes
+
+	private AlgorithmDetails algoDetails; 
 	private long numberOfReturnedResults; // currently: numberFromAlgReturns
-	private int desiredNumberFromAlgorithm; //implement!!
-	private int numberOfDisplayedRecommendations = 1; 
+	private int desiredNumberFromAlgorithm; // implement!!
+	private int numberOfDisplayedRecommendations = 1;
 	private boolean fallback; // Sid
 	private int recommendationAlgorithmId;
 	private boolean shuffled = false;
-	private boolean removedDuplicates = true; //find a solution, that is modular
+	private boolean removedDuplicates = true; // find a solution, that is
+												// modular
+
 	private Long startTime;
-	private Long afterAlgorithmChoosingTime; //implement
-	private Long afterUserModelTime; //implement
-	private Long afterAlgorithmExecutionTime; //implement
-	private Long afterRerankTime;
-	// NEED accesskey
+	private Long algorithmChoosingTime;
+	private Long userModelTime;
+	private Long algorithmExecutionTime;
+	private Long rerankTime;
+
+	private String accessKeyHash;
 	// NEED timestamps: end?
 
 	public DebugDetailsPerSet() {
 	}
-	
+
 	public Long getStartTime() {
 		return startTime;
 	}
@@ -49,36 +53,36 @@ public class DebugDetailsPerSet {
 		this.startTime = startTime;
 	}
 
-	public Long getAfterAlgorithmChoosingTime() {
-		return afterAlgorithmChoosingTime;
+	public Long getAlgorithmChoosingTime() {
+		return algorithmChoosingTime;
 	}
 
-	public void setAfterAlgorithmChoosingTime(Long afterAlgorithmChoosingTime) {
-		this.afterAlgorithmChoosingTime = afterAlgorithmChoosingTime;
+	public void setAlgorithmChoosingTime(Long afterAlgorithmChoosingTime) {
+		this.algorithmChoosingTime = afterAlgorithmChoosingTime;
 	}
 
-	public Long getAfterUserModelTime() {
-		return afterUserModelTime;
+	public Long getUserModelTime() {
+		return userModelTime;
 	}
 
-	public void setAfterUserModelTime(Long afterUserModelTime) {
-		this.afterUserModelTime = afterUserModelTime;
+	public void setUserModelTime(Long afterUserModelTime) {
+		this.userModelTime = afterUserModelTime;
 	}
 
-	public Long getAfterAlgorithmExecutionTime() {
-		return afterAlgorithmExecutionTime;
+	public Long getAlgorithmExecutionTime() {
+		return algorithmExecutionTime;
 	}
 
-	public void setAfterAlgorithmExecutionTime(Long afterAlgorithmExecutionTime) {
-		this.afterAlgorithmExecutionTime = afterAlgorithmExecutionTime;
+	public void setAlgorithmExecutionTime(Long afterAlgorithmExecutionTime) {
+		this.algorithmExecutionTime = afterAlgorithmExecutionTime;
 	}
 
-	public Long getAfterRerankTime() {
-		return afterRerankTime;
+	public Long getRerankTime() {
+		return rerankTime;
 	}
 
-	public void setAfterRerankTime(Long afterRerankTime) {
-		this.afterRerankTime = afterRerankTime;
+	public void setRerankTime(Long afterRerankTime) {
+		this.rerankTime = afterRerankTime;
 	}
 
 	public String getBibliometric() {
@@ -140,7 +144,7 @@ public class DebugDetailsPerSet {
 	public int getNumberOfCandidatesToReRank() {
 		return numberOfCandidatesToReRank;
 	}
-	
+
 	public void setNumberOfCandidatesToReRank(int numberOfCandidatesToReRank) {
 		this.numberOfCandidatesToReRank = numberOfCandidatesToReRank;
 	}
@@ -161,15 +165,6 @@ public class DebugDetailsPerSet {
 		this.rankingOrder = rankingOrder;
 	}
 
-	public RelatedDocuments getRdg() {
-		return rdg;
-	}
-
-	public void setRdg(RelatedDocuments rdg) {
-		this.rdg = rdg;
-		this.recommendationApproach = rdg.algorithmLoggingInfo.getName();
-	}
-	
 	public long getNumberOfReturnedResults() {
 		return numberOfReturnedResults;
 	}
@@ -177,7 +172,7 @@ public class DebugDetailsPerSet {
 	public void setNumberOfReturnedResults(long numberOfReturnedResults) {
 		this.numberOfReturnedResults = numberOfReturnedResults;
 	}
-	
+
 	public boolean isFallback() {
 		return fallback;
 	}
@@ -224,6 +219,29 @@ public class DebugDetailsPerSet {
 
 	public void setPercentageRankingValue(double percentageRankingValue) {
 		this.percentageRankingValue = percentageRankingValue;
+	}
+
+	/**
+	 * @return the accessKeyHash
+	 */
+	public String getAccessKeyHash() {
+		return accessKeyHash;
+	}
+
+	/**
+	 * @param accessKeyHash
+	 *            the accessKeyHash to set
+	 */
+	public void setAccessKeyHash(String accessKeyHash) {
+		this.accessKeyHash = accessKeyHash;
+	}
+
+	public AlgorithmDetails getAlgoDetails() {
+		return algoDetails;
+	}
+
+	public void setAlgoDetails(AlgorithmDetails details) {
+		this.algoDetails = details;
 	}
 
 }
