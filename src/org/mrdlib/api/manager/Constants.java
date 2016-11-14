@@ -75,8 +75,10 @@ public class Constants {
 	private String documentIdInRecommendations;
 	private String recommendationSetIdInRecommendations;
 	private String clicked;
-	private String rankReal;
-	private String rankCurrent;
+	private String rankAfterAlgorithm;
+	private String rankAfterReRanking;
+	private String rankAfterShuffling;
+	private String rankDelivered;
 	private String textRelevanceScoreInRecommendations;
 	private String finalRankingScore;
 
@@ -255,8 +257,10 @@ public class Constants {
 			this.recommendationSetIdInRecommendations = prop.getProperty("recommendationSetIdInRecommendations");
 			this.algorithmId = prop.getProperty("algorithmId");
 			this.clicked = prop.getProperty("clicked");
-			this.rankReal = prop.getProperty("rankReal");
-			this.rankCurrent = prop.getProperty("rankCurrent");
+			this.rankAfterAlgorithm = prop.getProperty("rankAfterAlgorithm");
+			this.rankAfterReRanking = prop.getProperty("rankAfterReRanking");
+			this.rankAfterShuffling = prop.getProperty("rankAfterShuffling");
+			this.rankDelivered = prop.getProperty("rankDelivered");
 			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
 			this.finalRankingScore = prop.getProperty("finalRankingScore");
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
@@ -387,20 +391,28 @@ public class Constants {
 	
 
 	
+	public String getRankAfterAlgorithm() {
+		return rankAfterAlgorithm;
+	}
+
+	public String getRankAfterReRanking() {
+		return rankAfterReRanking;
+	}
+
+	public String getRankAfterShuffling() {
+		return rankAfterShuffling;
+	}
+
+	public String getRankDelivered() {
+		return rankDelivered;
+	}
+
 	public String getFinalRankingScore() {
 		return finalRankingScore;
 	}
 
-	public void setFinalRankingScore(String finalRankingScore) {
-		this.finalRankingScore = finalRankingScore;
-	}
-
 	public String getEnvironment() {
 		return environment;
-	}
-
-	public void setEnvironment(String environment) {
-		this.environment = environment;
 	}
 
 	public String getPercentageWithBibliometrics() {
@@ -525,14 +537,6 @@ public class Constants {
 
 	public String getClicked() {
 		return clicked;
-	}
-
-	public String getRankReal() {
-		return rankReal;
-	}
-
-	public String getRankCurrent() {
-		return rankCurrent;
 	}
 
 	public String getRecommendationSetsId() {

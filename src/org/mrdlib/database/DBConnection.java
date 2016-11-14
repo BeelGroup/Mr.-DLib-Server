@@ -2354,14 +2354,27 @@ public class DBConnection {
 			// insertion query
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
 					+ constants.getDocumentIdInRecommendations() + ", "
-					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getRankReal() + ", "
-					+ constants.getRankCurrent() + ", " + constants.getTextRelevanceScoreInRecommendations() + ", "
+					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getRankAfterAlgorithm()
+					+ ", " + constants.getRankAfterReRanking() + ", " + constants.getRankAfterShuffling() + ", "
+					+ constants.getRankDelivered() + ", " + constants.getTextRelevanceScoreInRecommendations() + ", "
 					+ constants.getFinalRankingScore() + ") VALUES (" + document.getDocumentId() + ", "
-					+ documentset.getRecommendationSetId() + ", '" + document.getSuggestedRank() + "', '"
-					+ document.getSuggestedRank() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
+					+ documentset.getRecommendationSetId() + ", '" + document.getRankAfterAlgorithm() + "', ?, ?, '"
+					+ document.getRankDelivered() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
 					+ document.getFinalScore() + "');";
+			
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			
+			if (document.getRankAfterReRanking() == -1) {
+				stmt.setNull(1, java.sql.Types.SMALLINT);
+			} else
+				stmt.setInt(1, document.getRankAfterReRanking());
+			
+			if (document.getRankAfterShuffling() == -1) {
+				stmt.setNull(2, java.sql.Types.SMALLINT);
+			} else
+				stmt.setInt(2, document.getRankAfterShuffling());
+
 			System.out.println(query);
 			stmt.executeUpdate();
 
