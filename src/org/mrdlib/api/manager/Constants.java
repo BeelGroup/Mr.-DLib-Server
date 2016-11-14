@@ -173,6 +173,7 @@ public class Constants {
 	private String recommendationClass;
 	private String languageRestriction;
 	private String bibReRankingApplied;
+	private String shuffled;
 
 	// db table z_recommendation_algorithms__details_cbf
 	private String cbfId;
@@ -277,6 +278,7 @@ public class Constants {
 			this.rankDelivered = prop.getProperty("rankDelivered");
 			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
 			this.finalRankingScore = prop.getProperty("finalRankingScore");
+			
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
 			this.loggingIdInRecommendationSets = prop.getProperty("loggingIdInRecommendationSets");
 			this.numberOfReturnedResults = prop.getProperty("numberOfReturnedResults");
@@ -361,6 +363,7 @@ public class Constants {
 			this.recommendationClass = prop.getProperty("recommendationClass");
 			this.languageRestriction = prop.getProperty("languageRestriction");
 			this.bibReRankingApplied = prop.getProperty("bibReRankingApplied");
+			this.shuffled = prop.getProperty("shuffled");
 
 			this.cbfId = prop.getProperty("cbfId");
 			this.cbfFeatureType = prop.getProperty("cbfFeatureType");
@@ -409,6 +412,10 @@ public class Constants {
 	
 
 	
+	public String getShuffled() {
+		return shuffled;
+	}
+
 	public String getRankAfterAlgorithm() {
 		return rankAfterAlgorithm;
 	}

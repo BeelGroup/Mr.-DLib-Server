@@ -2302,13 +2302,15 @@ public class DBConnection {
 						+ constants.getBibReRankingApplied()
 						+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
 						+ (recommendationClass.contains("random") ? ""
-								: (", " + "recommendation_class_details_" + recommendationClass));
+								: (", " + "recommendation_class_details_" + recommendationClass))
+						+ ", " + constants.getShuffled();
 				values += "'" + recommenderDetails.getRecommendationClass() + "', "
 						+ (recommenderDetails.isLanguageRestriction() ? "'Y'" : "'N'") + ", "
 						+ ((rerankingBibId > 0) ? "'Y'" : "'N'")
 						+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
 						+ (recommendationClass.contains("random") ? ""
-								: (", " + Integer.toString(recommendationClassId)));
+								: (", " + Integer.toString(recommendationClassId)))
+						+ ", " + (documentset.isShuffled() ? "'Y'" : "'N'");
 				query += (columns + ") VALUES(" + values + ")");
 
 				System.out.println(query);
