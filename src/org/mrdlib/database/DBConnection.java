@@ -2344,7 +2344,6 @@ public class DBConnection {
 		return documentset;
 	}
 
-
 	/**
 	 * 
 	 * logs the single recommendations
@@ -2372,15 +2371,14 @@ public class DBConnection {
 					+ documentset.getRecommendationSetId() + ", '" + document.getRankAfterAlgorithm() + "', ?, ?, '"
 					+ document.getRankDelivered() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
 					+ document.getFinalScore() + "');";
-			
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-			
+
 			if (document.getRankAfterReRanking() == -1) {
 				stmt.setNull(1, java.sql.Types.SMALLINT);
 			} else
 				stmt.setInt(1, document.getRankAfterReRanking());
-			
+
 			if (document.getRankAfterShuffling() == -1) {
 				stmt.setNull(2, java.sql.Types.SMALLINT);
 			} else
@@ -2416,38 +2414,35 @@ public class DBConnection {
 	private int getStereotypesId(AlgorithmDetails recommenderDetails) throws SQLException {
 		return getStereotypesId(recommenderDetails, true);
 	}
-	
+
 	private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotypes) throws SQLException {
 		int stereotypeId = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
-		String tableName,tableRowId, tableCategoryName = "";
-		if(stereotypes){
-			tableName=constants.getStereotypeRecommendationDetails();
-			tableRowId=constants.getStereotypeRecommendationDetailsId();
-			tableCategoryName=constants.getStereotypeCategoryInStereotypeDetails();
+		String tableName, tableRowId, tableCategoryName = "";
+		if (stereotypes) {
+			tableName = constants.getStereotypeRecommendationDetails();
+			tableRowId = constants.getStereotypeRecommendationDetailsId();
+			tableCategoryName = constants.getStereotypeCategoryInStereotypeDetails();
+		} else {
+			tableName = constants.getMostPopularRecommendationDetails();
+			tableRowId = constants.getMostPopularRecommendationDetailsId();
+			tableCategoryName = constants.getMostPopularCategoryInMostPopularDetails();
 		}
-		else{
-			tableName=constants.getMostPopularRecommendationDetails();
-			tableRowId=constants.getMostPopularRecommendationDetailsId();
-			tableCategoryName=constants.getMostPopularCategoryInMostPopularDetails();
-		}
-		String query = "SELECT " + tableRowId + " FROM "
-				+ tableName + " WHERE "
-				+ tableCategoryName + "='" + recommenderDetails.getCategory() + "'";
+		String query = "SELECT " + tableRowId + " FROM " + tableName + " WHERE " + tableCategoryName + "='"
+				+ recommenderDetails.getCategory() + "'";
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				stereotypeId = rs.getInt(tableRowId);
-				System.out.println(tableName+":"+stereotypeId);
+				System.out.println(tableName + ":" + stereotypeId);
 			} else {
 				if (stmt != null)
 					stmt.close();
 				if (rs != null)
 					rs.close();
-				query = "INSERT INTO " + tableName + "("
-						+ tableCategoryName + ") VALUES('"
+				query = "INSERT INTO " + tableName + "(" + tableCategoryName + ") VALUES('"
 						+ recommenderDetails.getCategory() + "')";
 				stmt = con.createStatement();
 				System.out.println(query);
@@ -2560,42 +2555,89 @@ public class DBConnection {
 		return bibId;
 	}
 
-	private int logBibReranking(DocumentSet documentset) throws Exception {
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
+		String bibliometricIdQueryString = "";
+		Statement stmt = null;
+		ResultSet rs = null;
 
-		// search before
+		if (documentset.getBibliometricId() == -1)
+			bibliometricIdQueryString = " IS NULL";
+		else
+			bibliometricIdQueryString = "=" + documentset.getBibliometricId();
+
+		// the query to get the person
+		String query = "SELECT " + constants.getAlgorithmRerankingBibliometricsId() + " FROM "
+				+ constants.getAlgorithmRerankingBibliometrics() + " WHERE " + constants.getNumberOfCandidatesToRerank()
+				+ "=" + documentset.getNumberOfCandidatesToReRank() + " AND " + constants.getRerankingOrder() + "='"
+				+ documentset.getRankingOrder() + "' AND "
+				+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + bibliometricIdQueryString + " AND "
+				+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "'";
 		try {
-			// insertion query
-			String query = "INSERT INTO z_recommendation_algorithms__reranking_bibliometrics (number_of_candidates_to_rerank_with_bibliometrics, "
-					+ "reranking_order, bibliometric_id, reranking_bibliometric_combination_with_standard_relevance_score) VALUES ('"
-					+ documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder() + "', ?, '"
-					+ documentset.getReRankingCombination() + "');";
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-
-			if (documentset.getBibliometricId() == -1) {
-				stmt.setNull(1, java.sql.Types.BIGINT);
-			} else
-				stmt.setInt(1, documentset.getBibliometricId());
-
-			stmt.executeUpdate();
-
-			// get the autogenerated key back
-			rs = stmt.getGeneratedKeys();
 			if (rs.next())
-				rerankingBibliometricId = rs.getInt(1);
+				rerankingBibliometricId = rs.getInt(constants.getAlgorithmRerankingBibliometricsId());
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw e;
 		} finally {
 			try {
 				if (stmt != null)
 					stmt.close();
+				if (rs != null)
+					rs.close();
 			} catch (SQLException e) {
 				throw e;
+			}
+		}
+		return rerankingBibliometricId;
+	}
+
+	public int logBibReranking(DocumentSet documentset) throws Exception {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		int rerankingBibliometricId = -1;
+
+		rerankingBibliometricId = searchLogBibRerankingId(documentset);
+
+		if (rerankingBibliometricId == -1) {
+
+			try {
+				// insertion query
+				String query = "INSERT INTO " + constants.getAlgorithmRerankingBibliometrics() + " ("
+						+ constants.getNumberOfCandidatesToRerank() + ", " + constants.getRerankingOrder() + ", "
+						+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + ", "
+						+ constants.getRerankingCombindation() + ") VALUES ('"
+						+ documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder()
+						+ "', ?, '" + documentset.getReRankingCombination() + "');";
+
+				stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
+				if (documentset.getBibliometricId() == -1) {
+					stmt.setNull(1, java.sql.Types.BIGINT);
+				} else
+					stmt.setInt(1, documentset.getBibliometricId());
+
+				stmt.executeUpdate();
+
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					rerankingBibliometricId = rs.getInt(1);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw e;
+
+			} finally {
+				try {
+					if (stmt != null)
+						stmt.close();
+				} catch (SQLException e) {
+					throw e;
+				}
 			}
 		}
 		return rerankingBibliometricId;

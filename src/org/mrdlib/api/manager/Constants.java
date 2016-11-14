@@ -45,6 +45,7 @@ public class Constants {
 	private String cbfDetails;
 	private String stereotypeRecommendationDetails;
 	private String mostPopularRecommendationDetails;
+	private String algorithmRerankingBibliometrics;
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
@@ -189,6 +190,13 @@ public class Constants {
 	//db table z_recommendation_algorithms__details_most_popular
 	private String mostPopularRecommendationDetailsId;
 	private String mostPopularCategoryInMostPopularDetails;
+	
+	//db table z_recommendation_algorithms_reranking_bibliometrics
+	private String algorithmRerankingBibliometricsId;
+	private String numberOfCandidatesToRerank;
+	private String rerankingOrder;
+	private String bibliometricIdInAlgorithmRerankingBibliometrics;
+	private String rerankingCombindation;
 
 	// db table keyphrases
 	private String sourceInKeyphrases;
@@ -250,6 +258,7 @@ public class Constants {
 			this.cbfDetails = prop.getProperty("cbfDetails");
 			this.stereotypeRecommendationDetails =  prop.getProperty("stereotypeRecommendationDetails");
 			this.mostPopularRecommendationDetails = prop.getProperty("mostPopularRecommendationDetails");
+			this.algorithmRerankingBibliometrics = prop.getProperty("algorithmRerankingBibliometrics");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -381,6 +390,12 @@ public class Constants {
 			this.sourceInKeyphrases = prop.getProperty("sourceInKeyphrases");
 			this.gramity = prop.getProperty("gramity");
 			this.documentIdInKeyphrases = prop.getProperty("documentIdInKeyphrases");
+			
+			this.algorithmRerankingBibliometricsId = prop.getProperty("algorithmRerankingBibliometricsId");
+			this.numberOfCandidatesToRerank = prop.getProperty("numberOfCandidatesToRerank");
+			this.rerankingOrder = prop.getProperty("rerankingOrder");
+			this.bibliometricIdInAlgorithmRerankingBibliometrics = prop.getProperty("bibliometricIdInAlgorithmRerankingBibliometrics");
+			this.rerankingCombindation = prop.getProperty("rerankingCombindation");
 
 			this.solrWebService = prop.getProperty("solrWebService");
 			this.solrMrdlib = prop.getProperty("solrMrdlib");
@@ -416,6 +431,30 @@ public class Constants {
 	
 
 	
+	public String getAlgorithmRerankingBibliometrics() {
+		return algorithmRerankingBibliometrics;
+	}
+
+	public String getAlgorithmRerankingBibliometricsId() {
+		return algorithmRerankingBibliometricsId;
+	}
+
+	public String getNumberOfCandidatesToRerank() {
+		return numberOfCandidatesToRerank;
+	}
+
+	public String getRerankingOrder() {
+		return rerankingOrder;
+	}
+
+	public String getBibliometricIdInAlgorithmRerankingBibliometrics() {
+		return bibliometricIdInAlgorithmRerankingBibliometrics;
+	}
+
+	public String getRerankingCombindation() {
+		return rerankingCombindation;
+	}
+
 	public String getShuffled() {
 		return shuffled;
 	}
