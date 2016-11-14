@@ -188,7 +188,7 @@ public class Constants {
 
 	//db table z_recommendation_algorithms__details_most_popular
 	private String mostPopularRecommendationDetailsId;
-	private String categoryInMostPopularDetails;
+	private String mostPopularCategoryInMostPopularDetails;
 
 	// db table keyphrases
 	private String sourceInKeyphrases;
@@ -249,6 +249,7 @@ public class Constants {
 			this.keyphrases = prop.getProperty("keyphrases");
 			this.cbfDetails = prop.getProperty("cbfDetails");
 			this.stereotypeRecommendationDetails =  prop.getProperty("stereotypeRecommendationDetails");
+			this.mostPopularRecommendationDetails = prop.getProperty("mostPopularRecommendationDetails");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -374,6 +375,9 @@ public class Constants {
 			this.stereotypeRecommendationDetailsId = prop.getProperty("stereotypeRecommendationDetailsId");
 			this.stereotypeCategoryInStereotypeDetails = prop.getProperty("stereotypeCategoryInStereotypeDetails");
 
+			this.mostPopularCategoryInMostPopularDetails = prop.getProperty("mostPopularCategoryInMostPopularDetails");
+			this.mostPopularRecommendationDetailsId = prop.getProperty("mostPopularRecommendationDetailsId");
+			
 			this.sourceInKeyphrases = prop.getProperty("sourceInKeyphrases");
 			this.gramity = prop.getProperty("gramity");
 			this.documentIdInKeyphrases = prop.getProperty("documentIdInKeyphrases");
@@ -1002,9 +1006,9 @@ public class Constants {
 	}
 
 	/**
-	 * @return the categoryInMostPopularDetails
+	 * @return the mostPopularCategoryInMostPopularDetails
 	 */
-	public String getCategoryInMostPopularDetails() {
-		return categoryInMostPopularDetails;
+	public String getMostPopularCategoryInMostPopularDetails() {
+		return mostPopularCategoryInMostPopularDetails;
 	}
 }

@@ -28,8 +28,6 @@ public class DebugDetailsPerSet {
 	private long numberOfReturnedResults;
 	private int desiredNumberFromAlgorithm;
 	private int numberOfDisplayedRecommendations = 1;
-	private boolean fallback;
-	private int recommendationAlgorithmId;
 	
 	private boolean shuffled = false;
 
@@ -176,19 +174,19 @@ public class DebugDetailsPerSet {
 	}
 
 	public boolean isFallback() {
-		return fallback;
+		return this.algoDetails.isFallback();
 	}
 
 	public void setFallback(boolean fallback) {
-		this.fallback = fallback;
+		this.algoDetails.setFallback(fallback);;
 	}
 
 	public String getRecommendationAlgorithmId() {
-		return Integer.toString(recommendationAlgorithmId);
+		return Integer.toString(this.algoDetails.getRecommendationAlgorithmId());
 	}
 
 	public void setRecommendationAlgorithmId(int recommendationAlgorithmId) {
-		this.recommendationAlgorithmId = recommendationAlgorithmId;
+		this.algoDetails.setRecommendationAlgorithmId(recommendationAlgorithmId);
 	}
 
 	public int getBibliometricId() {

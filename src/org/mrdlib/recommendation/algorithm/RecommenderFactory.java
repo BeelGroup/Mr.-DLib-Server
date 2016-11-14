@@ -69,7 +69,7 @@ public class RecommenderFactory {
 	 */
 	public static RelatedDocuments getFallback(DBConnection con) throws Exception {
 		RelatedDocuments rdg = new RelatedDocumentsMLT(con);
-		//rdg.algorithmLoggingInfo.replace("recommendation_class", "fallback");
+		// rdg.algorithmLoggingInfo.replace("recommendation_class", "fallback");
 		rdg.algorithmLoggingInfo.setFallback(true);
 		return rdg;
 	}
@@ -85,7 +85,7 @@ public class RecommenderFactory {
 	 * @param requestDocument
 	 *            Document for which recommendations need to be generated
 	 * @return A <code>RelatedDocuments</code> recommender object
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument) throws Exception {
 
@@ -100,7 +100,7 @@ public class RecommenderFactory {
 
 		// draw a random number
 		int randomRecommendationApproach = random.nextInt(10000);
-		
+
 		try {
 			if (randomRecommendationApproach < cumulative) // CASE: Completely
 															// random
@@ -119,47 +119,55 @@ public class RecommenderFactory {
 					if (randomRecommendationApproach < cumulative)
 						rdg = new StereotypeRecommender(con);
 					else {
-						cumulative += probs.getRelatedDocumentsFromSolr(); // CASE:
-																			// metadata
-																			// based
-																			// from
-																			// SOLR
+						cumulative += probs.getMostPopular();
 						if (randomRecommendationApproach < cumulative)
-							rdg = new RelatedDocumentsMLT(con);
+							rdg = new MostPopularRecommender(con);
 						else {
-							String language = requestDocument.getLanguage(); // Validity
-																				// of
-																				// keyphrase
-																				// algo
-																				// depends
-																				// on
-																				// language.
-																				// So
-																				// check
-																				// language
-							if (language == null || !language.equals("en"))
-								rdg = getFallback(con); // If not english, use
-														// fallback.
+							cumulative += probs.getRelatedDocumentsFromSolr(); // CASE:
+																				// metadata
+																				// based
+																				// from
+																				// SOLR
+							if (randomRecommendationApproach < cumulative)
+								rdg = new RelatedDocumentsMLT(con);
 							else {
-								// Check presence and language of abstract
-								rdg = new RelatedDocumentsKeyphrases(con);
-								String abstLang = con.getAbstractDetails(requestDocument);
-								if (!abstLang.equals("en"))
-									// if not set algorithmLoggingInfo.type to title only
-									rdg.algorithmLoggingInfo.setCbfTextFields("title");
-								// otherwise leave it unset.
+								String language = requestDocument.getLanguage(); // Validity
+																					// of
+																					// keyphrase
+																					// algo
+																					// depends
+																					// on
+																					// language.
+																					// So
+																					// check
+																					// language
+								if (language == null || !language.equals("en"))
+									rdg = getFallback(con); // If not english,
+															// use
+															// fallback.
+								else {
+									// Check presence and language of abstract
+									rdg = new RelatedDocumentsKeyphrases(con);
+									String abstLang = con.getAbstractDetails(requestDocument);
+									if (!abstLang.equals("en"))
+										// if not set algorithmLoggingInfo.type
+										// to title only
+										rdg.algorithmLoggingInfo.setCbfTextFields("title");
+									// otherwise leave it unset.
+								}
 							}
 						}
 					}
 				}
 			}
 		} catch (Exception e) {
-			if (rdg != null){
+			if (rdg != null) {
 				e.printStackTrace();
-				System.out.println(rdg.getClass().getName() + " has failed to initialize");}
+				System.out.println(rdg.getClass().getName() + " has failed to initialize");
+			}
 			throw new UnknownException(e, true);
 		}
-		return new StereotypeRecommender(con);
-		//return rdg;
+		//return new MostPopularRecommender(con);
+		return rdg;
 	}
 }

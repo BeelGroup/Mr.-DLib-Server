@@ -17,7 +17,7 @@ public class AlgorithmDetails {
 	private String category;
 	
 	private boolean fallback = false;
-	private int recommendationAlgorithmId = -1;
+	private int recommendationAlgorithmId;
 	
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction) {
 		this.name = name;
@@ -47,6 +47,7 @@ public class AlgorithmDetails {
 		this.cbfTextFields = cbfTextFields;
 		this.cbfFeatureType = cbfFeatureType;
 		this.cbfFeatureCount = cbfFeatureCount;
+		this.setContentBased(true);
 	}
 
 	/**

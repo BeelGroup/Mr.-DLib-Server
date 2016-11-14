@@ -16,6 +16,7 @@ public class Probabilities {
 	private int relatedDocumentsFromSolr;
 	private int relatedDocumentsFromSolrWithKeyphrases;
 	private int stereotypeRecommender;
+	private int mostPopular;
 
 	// the constructor loads the probablities from the probabilities.properties
 	// file
@@ -36,14 +37,17 @@ public class Probabilities {
 			this.relatedDocumentsFromSolrWithKeyphrases = Integer
 					.parseInt(prop.getProperty("RelatedDocumentsFromSolrWithKeyphrases"));
 			this.stereotypeRecommender = Integer.parseInt(prop.getProperty("StereotypeRecommender"));
+			this.mostPopular = Integer.parseInt(prop.getProperty("MostPopularRecommender"));
+
 			if ((this.randomDocumentRecommender + this.randomDocumentRecommenderLanguageRestricted
 					+ this.stereotypeRecommender + this.relatedDocumentsFromSolr
-					+ this.relatedDocumentsFromSolrWithKeyphrases) != 10000) {
+					+ this.relatedDocumentsFromSolrWithKeyphrases + this.mostPopular) != 10000) {
 				this.randomDocumentRecommender = 0;
 				this.randomDocumentRecommenderLanguageRestricted = 0;
 				this.relatedDocumentsFromSolr = 10000;
 				this.relatedDocumentsFromSolrWithKeyphrases = 0;
 				this.stereotypeRecommender = 0;
+				this.mostPopular = 0;
 				System.out.println("Probabilities do not sum up to 100%: Defaulting to Backup algorithm");
 			}
 		} catch (Exception ex) {
@@ -92,5 +96,10 @@ public class Probabilities {
 	 */
 	public int getStereotypeRecommender() {
 		return stereotypeRecommender;
+	}
+
+	public int getMostPopular() {
+		// TODO Auto-generated method stub
+		return mostPopular;
 	}
 }

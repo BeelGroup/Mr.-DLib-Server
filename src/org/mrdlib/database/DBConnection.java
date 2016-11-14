@@ -2430,7 +2430,7 @@ public class DBConnection {
 		else{
 			tableName=constants.getMostPopularRecommendationDetails();
 			tableRowId=constants.getMostPopularRecommendationDetailsId();
-			tableCategoryName=constants.getCategoryInMostPopularDetails();
+			tableCategoryName=constants.getMostPopularCategoryInMostPopularDetails();
 		}
 		String query = "SELECT " + tableRowId + " FROM "
 				+ tableName + " WHERE "
