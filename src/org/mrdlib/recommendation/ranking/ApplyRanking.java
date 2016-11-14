@@ -43,9 +43,12 @@ public class ApplyRanking {
 		this.con = con;
 
 		Random random = new Random();
+		// random number for the number of displayed recommendations
+		rndDisplayNumber = random.nextInt(15) + 1;
+
 		// random number for the number of considered results from the algorithm
 		rndNumberOfCandidatesToReRank = random.nextInt(7) + 1;
-		// random number for the proportion of text relevance score and alt/bibliometric
+
 		rndWeight = random.nextInt(5) + 1;
 		// random number for the chosen metric
 		rndRank = random.nextInt(3) + 1;
@@ -97,30 +100,24 @@ public class ApplyRanking {
 	public DocumentSet selectRandomRanking(DocumentSet documentSet) throws Exception {
 		Random random = new Random();
 
-		// random number for the number of displayed recommendations
-		rndDisplayNumber = random.nextInt(15) + 1;
+		if (rndDisplayNumber > numberOfCandidatesToReRank) {
+			rndDisplayNumber = random.nextInt(10) + 1;
+		}
 
-		// documentset = scon.getRelatedDocumentSetByDocument(requestDocument,
-		// solrRows);
-
-		// if the algorithm does not provide enough result, fall back on the
-		// biggest fitting enum from database
+		documentSet.setDesiredNumberFromAlgorithm(rndDisplayNumber);
+		
+		// if the algorithm does not provide enough results, fall back on a pre picked size
 		if (documentSet.getSize() < numberOfCandidatesToReRank)
-			numberOfCandidatesToReRank = getNextTinierAlgorithmRows(documentSet.getSize()); // CHANGED
-																							// THIS
-																							// HERE
-																							// BECAUSE
-																							// FOR
-																							// STEREOTYPE
-																							// RECOMMENDATIONS,
-																							// WE
-		// CAN ONLY GET AROUND 60 recommendations maximum
+			numberOfCandidatesToReRank = getNextTinierAlgorithmRows(documentSet.getSize());
+		
+		// CHANGED THIS HERE BECAUSE FOR STEREOTYPE RECOMMENDATIONS, WE CAN ONLY
+		// GET AROUND 60 recommendations maximum
 
 		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 
 		// if there are more results than wanted, cut the list
-		if (documentSet.getSize() > numberOfCandidatesToReRank - 1)
-			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, numberOfCandidatesToReRank - 1));
+		if (documentSet.getSize() > numberOfCandidatesToReRank)
+			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, numberOfCandidatesToReRank));
 
 		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 		documentSet.setRankAfterAlgorithm();
@@ -166,8 +163,8 @@ public class ApplyRanking {
 			documentSet.calculateFinalScoreOnlyBibScore();
 			break;
 		}
-		
-		//choose an ordering
+
+		// choose an ordering
 		switch (rndOrder) {
 		case 1:
 			documentSet.sortDescForFinalValue();
@@ -201,7 +198,9 @@ public class ApplyRanking {
 	 */
 	private int getNextTinierAlgorithmRows(int algorithmRows) {
 
-		if (algorithmRows < 20)
+		if (algorithmRows < 10)
+			return algorithmRows;
+		else if (algorithmRows < 20)
 			algorithmRows = 10;
 		else if (algorithmRows < 30)
 			algorithmRows = 20;

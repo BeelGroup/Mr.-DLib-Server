@@ -15,9 +15,18 @@ import javax.xml.bind.annotation.XmlElement;
 public class StatusReportSet {
 	
 	private List<StatusReport> statusReportList = new ArrayList<StatusReport>();
+	private DebugDetailsPerSet debugDetailsPerSetInStatusReport = null;
 	
 	public StatusReportSet() {}
 	
+	public DebugDetailsPerSet getDebugDetailsPerSetInStatusReport() {
+		return debugDetailsPerSetInStatusReport;
+	}
+
+	public void setDebugDetailsPerSetInStatusReport(DebugDetailsPerSet debugDetailsPerSetInStatusReport) {
+		this.debugDetailsPerSetInStatusReport = debugDetailsPerSetInStatusReport;
+	}
+
 	public int getSize() {
 		return statusReportList.size();
 	}

@@ -11,7 +11,6 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
-import org.mrdlib.recommendation.algorithm.RelatedDocuments;
 
 /**
  * 
@@ -264,8 +263,10 @@ public class DocumentSet {
 	public void addDocument(DisplayDocument document) {
 		DisplayDocument current;
 		
-		if (equalDocuments(document, this.requestedDocument))
+		if (equalDocuments(document, this.requestedDocument)) {
+			this.setRemoveDuplicates(true);
 			return;
+		}
 		
 		for (int i = 0; i < this.documentList.size(); i++) {
 			current = this.documentList.get(i);
@@ -275,6 +276,7 @@ public class DocumentSet {
 				if (Integer.parseInt(current.getDocumentId()) < Integer.parseInt(document.getDocumentId())) {
 					this.documentList.remove(i);
 					this.documentList.add(document);
+					this.setRemoveDuplicates(true);
 				}
 				return;
 			}

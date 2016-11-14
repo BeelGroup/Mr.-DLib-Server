@@ -15,7 +15,8 @@ public class DebugDetailsPerSet {
 	private double percentageRankingValue;
 
 	private boolean bibliometricReRanking = true;
-	private int numberOfCandidatesToReRank;// number of items choosed to rerank
+
+	private int numberOfCandidatesToReRank;
 	private String reRankingCombination;
 	private String rankingOrder;
 	private int bibliometricId = -1;
@@ -29,10 +30,11 @@ public class DebugDetailsPerSet {
 	private int numberOfDisplayedRecommendations = 1;
 	private boolean fallback; // Sid
 	private int recommendationAlgorithmId;
+	
 	private boolean shuffled = false;
-	private boolean removedDuplicates = true; // find a solution, that is
-												// modular
 
+	private boolean removedDuplicates = false;
+	
 	private Long startTime;
 	private Long algorithmChoosingTime;
 	private Long userModelTime;

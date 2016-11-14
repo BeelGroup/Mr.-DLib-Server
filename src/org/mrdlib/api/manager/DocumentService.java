@@ -112,6 +112,7 @@ public class DocumentService {
 			documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm-requestRecieved);
 			documentset.setAfterUserModelTime(timeToUserModel-timeToPickAlgorithm);
 			documentset.setAlgorithmDetails(rdg.getAlgorithmLoggingInfo());
+			
 			documentset = ar.selectRandomRanking(documentset);
 			documentset.setAfterRerankTime(System.currentTimeMillis()-timeAfterExecution);
 			documentset.setRankDelivered();
@@ -157,6 +158,9 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
+		
+		if(statusReportSet.getSize() > 1)
+			statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
 		
 		if(!constants.getDebugModeOn()) {
 			DisplayDocument current = null;
