@@ -159,7 +159,7 @@ public class RecommenderFactory {
 				System.out.println(rdg.getClass().getName() + " has failed to initialize");}
 			throw new UnknownException(e, true);
 		}
-		return new RelatedDocumentsKeyphrases(con);
+		return new StereotypeRecommender(con);
 		//return rdg;
 	}
 }

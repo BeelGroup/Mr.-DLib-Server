@@ -43,6 +43,8 @@ public class Constants {
 	private String recommendationAlgorithm;
 	private String keyphrases;
 	private String cbfDetails;
+	private String stereotypeRecommendationDetails;
+	private String mostPopularRecommendationDetails;
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
@@ -65,6 +67,7 @@ public class Constants {
 	private String documentIdInLogging;
 	private String requestReceived;
 	private String responseDelivered;
+	private String totalProcessingTime;
 	private String statusCode;
 	private String debugDetails;
 	private String ipHash;
@@ -161,6 +164,7 @@ public class Constants {
 	// db table stereotype_recommendations
 	private String documentIdInStereotype;
 	private String collectionIdInStereotype;
+	private String stereotypeCategory;
 
 	// db table z_recommendation_algorithms
 	private String recommendationAlgorithmId;
@@ -174,6 +178,14 @@ public class Constants {
 	private String cbfFeatureCount;
 	private String cbfFields;
 	private String cbfNgramType;
+	
+	//db table z_recommendation_algorithms__details_stereotype
+	private String stereotypeRecommendationDetailsId;
+	private String stereotypeCategoryInStereotypeDetails;
+
+	//db table z_recommendation_algorithms__details_most_popular
+	private String mostPopularRecommendationDetailsId;
+	private String categoryInMostPopularDetails;
 
 	// db table keyphrases
 	private String sourceInKeyphrases;
@@ -233,6 +245,7 @@ public class Constants {
 			this.recommendationAlgorithm = prop.getProperty("recommendationAlgorithm");
 			this.keyphrases = prop.getProperty("keyphrases");
 			this.cbfDetails = prop.getProperty("cbfDetails");
+			this.stereotypeRecommendationDetails =  prop.getProperty("stereotypeRecommendationDetails");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -245,6 +258,7 @@ public class Constants {
 			this.documentIdInLogging = prop.getProperty("documentIdInLogging");
 			this.requestReceived = prop.getProperty("requestReceived");
 			this.responseDelivered = prop.getProperty("responseDelivered");
+			this.totalProcessingTime = prop.getProperty("totalProcessingTime");
 			this.statusCode = prop.getProperty("statusCode");
 			this.debugDetails = prop.getProperty("debugDetails");
 			this.ipHash = prop.getProperty("ipHash");
@@ -337,6 +351,7 @@ public class Constants {
 
 			this.documentIdInStereotype = prop.getProperty("documentIdInStereotype");
 			this.collectionIdInStereotype = prop.getProperty("collectionIdInStereotype");
+			this.stereotypeCategory = prop.getProperty("stereotypeCategory");
 
 			this.recommendationAlgorithmId = prop.getProperty("recommendationAlgorithmId");
 			this.recommendationClass = prop.getProperty("recommendationClass");
@@ -348,6 +363,9 @@ public class Constants {
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
 			this.cbfFields = prop.getProperty("cbfFields");
 			this.cbfNgramType = prop.getProperty("cbfNgramType");
+
+			this.stereotypeRecommendationDetailsId = prop.getProperty("stereotypeRecommendationDetailsId");
+			this.stereotypeCategoryInStereotypeDetails = prop.getProperty("stereotypeCategoryInStereotypeDetails");
 
 			this.sourceInKeyphrases = prop.getProperty("sourceInKeyphrases");
 			this.gramity = prop.getProperty("gramity");
@@ -938,4 +956,44 @@ public class Constants {
 		return postProcessingTime;
 	}
 
+	public String getProcessingTimeTotal() {
+		return totalProcessingTime;
+	}
+
+	public String getStereotypeCategory() {
+		return stereotypeCategory;
+	}
+
+	public String getStereotypeRecommendationDetailsId() {
+		return stereotypeRecommendationDetailsId;
+	}
+
+	public String getStereotypeRecommendationDetails() {
+		return stereotypeRecommendationDetails;
+	}
+
+	public String getStereotypeCategoryInStereotypeDetails() {
+		return stereotypeCategoryInStereotypeDetails;
+	}
+
+	/**
+	 * @return the mostPopularRecommendationDetails
+	 */
+	public String getMostPopularRecommendationDetails() {
+		return mostPopularRecommendationDetails;
+	}
+
+	/**
+	 * @return the mostPopularRecommendationDetailsId
+	 */
+	public String getMostPopularRecommendationDetailsId() {
+		return mostPopularRecommendationDetailsId;
+	}
+
+	/**
+	 * @return the categoryInMostPopularDetails
+	 */
+	public String getCategoryInMostPopularDetails() {
+		return categoryInMostPopularDetails;
+	}
 }
