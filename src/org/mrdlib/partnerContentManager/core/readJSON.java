@@ -1,4 +1,4 @@
-package org.mrdlib.tools;
+package org.mrdlib.partnerContentManager.core;
 
 import java.io.File;
 import java.io.FileReader;
@@ -21,6 +21,8 @@ import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.mrdlib.database.DBConnection;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
@@ -49,7 +51,7 @@ public class readJSON {
 	{
 		
 		try {
-			con = new DBConnection();
+			con = new DBConnection("jar");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

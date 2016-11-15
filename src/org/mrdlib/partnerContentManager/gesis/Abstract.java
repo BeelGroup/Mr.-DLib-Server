@@ -15,6 +15,11 @@ public class Abstract {
 		this.content = content;
 		this.language = language;
 	}
+	
+	public Abstract(String content) {
+		this.content = content;
+		
+	}
 
 	public String getContent() {
 		return content;
