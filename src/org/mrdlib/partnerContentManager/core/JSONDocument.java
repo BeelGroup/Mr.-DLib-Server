@@ -1,5 +1,8 @@
-package org.mrdlib.tools;
+package org.mrdlib.partnerContentManager.core;
 import org.apache.commons.lang3.text.WordUtils;
+import org.mrdlib.partnerContentManager.gesis.Abstract;
+import org.mrdlib.partnerContentManager.gesis.Person;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
