@@ -1998,11 +1998,16 @@ public class DBConnection {
 		int metricValue = -1;
 
 		// selection query
-		String query = "SELECT " + constants.getPersonIdInBibliometricPers() + ", "
-				+ constants.getBibliometricPersonsId() + ", " + constants.getMetricValuePers() + " FROM "
-				+ constants.getBibPersons() + " WHERE " + constants.getMetricPers() + " = '" + metric + "' AND "
-				+ constants.getDataTypePers() + " = '" + dataType + "' AND " + constants.getDataSourcePers() + " = '"
-				+ dataSource + "' AND " + constants.getPersonID() + " = " + authorId + ";";
+		/*
+		 * String query = "SELECT " + constants.getPersonIdInBibliometricPers()
+		 * + ", " + constants.getBibliometricPersonsId() + ", " +
+		 * constants.getMetricValuePers() + " FROM " + constants.getBibPersons()
+		 * + " WHERE " + constants.getMetricPers() + " = '" + metric + "' AND "
+		 * + constants.getDataTypePers() + " = '" + dataType + "' AND " +
+		 * constants.getDataSourcePers() + " = '" + dataSource + "' AND " +
+		 * constants.getPersonID() + " = " + authorId + ";";
+		 */
+		String query = "";
 
 		try {
 
@@ -2115,12 +2120,19 @@ public class DBConnection {
 			stmt = con.createStatement();
 
 			// selection query
-			String query = "SELECT " + constants.getPersonIdInBibliometricPers() + ", "
-					+ constants.getBibliometricPersonsId() + ", " + constants.getMetricValuePers() + " FROM "
-					+ constants.getBibPersons() + " WHERE " + constants.getMetricPers() + " = '" + metric + "' AND "
-					+ constants.getDataTypePers() + " = '" + dataType + "' AND " + constants.getDataSourcePers()
-					+ " = '" + dataSource + "' AND " + constants.getPersonID() + " >= " + start + " AND "
-					+ constants.getPersonID() + " < " + (start + batchsize) + ";";
+			/*
+			 * String query = "SELECT " +
+			 * constants.getPersonIdInBibliometricPers() + ", " +
+			 * constants.getBibliometricPersonsId() + ", " +
+			 * constants.getMetricValuePers() + " FROM " +
+			 * constants.getBibPersons() + " WHERE " + constants.getMetricPers()
+			 * + " = '" + metric + "' AND " + constants.getDataTypePers() +
+			 * " = '" + dataType + "' AND " + constants.getDataSourcePers() +
+			 * " = '" + dataSource + "' AND " + constants.getPersonID() + " >= "
+			 * + start + " AND " + constants.getPersonID() + " < " + (start +
+			 * batchsize) + ";";
+			 */
+			String query = "";
 
 			rs = stmt.executeQuery(query);
 
@@ -2282,7 +2294,6 @@ public class DBConnection {
 				documents.addDocument(
 						getDocumentDataBy(constants.getDocumentId(), rs.getString(constants.getDocumentIDInDocPers())));
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -2318,13 +2329,22 @@ public class DBConnection {
 			double value) {
 		PreparedStatement stmt = null;
 		String query = "";
+		int bibId = -1;
+
+		try {
+			bibId = getBibId(metric, dataType, dataSource);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(bibId == -1)
+			System.out.println("new Combination: " + metric + ", " + dataType + ", " + dataSource);
 
 		try {
 			// insertion query
-			query = "INSERT IGNORE INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers()
-					+ ", " + constants.getMetricPers() + ", " + constants.getDataTypePers() + ", "
-					+ constants.getMetricValuePers() + ", " + constants.getDataSourcePers() + ") VALUES (" + id + ", '"
-					+ metric + "', '" + dataType + "', " + value + ", '" + dataSource + "');";
+			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers()
+					+ ", " + constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
+					+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
 
 			stmt = con.prepareStatement(query);
 			stmt.executeUpdate();
@@ -3017,13 +3037,14 @@ public class DBConnection {
 		try {
 			// Select query for lookup in the database
 			stmt = con.createStatement();
-			String query = "SELECT * FROM z_bibliometrics WHERE metric='" + metric + "' AND data_type='" + dataType
-					+ "' AND data_source='" + dataSource + "'";
+			String query = "SELECT " + constants.getBibliometricId() + " FROM " + constants.getBibliometrics() + " WHERE " + constants.getMetric() + "='"
+					+ metric + "' AND " + constants.getDataType() + "='" + dataType + "' AND " + constants.getDataSource() + "='" + dataSource
+					+ "'";
 
 			rs = stmt.executeQuery(query);
 
 			if (rs.next()) {
-				bibId = rs.getInt("bibliometric_id");
+				bibId = rs.getInt(constants.getBibliometricId());
 			}
 
 		} catch (Exception e) {

@@ -44,31 +44,31 @@ public class CreateRanking {
 		DisplayDocument current = null;
 		double value;
 
-		//get every document which has readership data
+		// get every document which has readership data
 		documentSet = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
 		System.out.println(documentSet.getSize());
 		for (int i = 0; i < documentSet.getSize(); i++) {
 			current = documentSet.getDisplayDocument(i);
-			
-			//print the current progress in 10.000 steps
+
+			// print the current progress in 10.000 steps
 			if (i % 10000 == 0)
 				System.out.println(i + "/" + documentSet.getSize());
 
 			try {
-				//get the published year of the paper
+				// get the published year of the paper
 				current.setYear(
 						con.getDocumentDataBy(constants.getDocumentId(), current.getDocumentId() + "").getYear());
 
-				//if there is a year stored
+				// if there is a year stored
 				if (current.getYear() != -1) {
-					//if the difference is 0, handle extra due to math error
+					// if the difference is 0, handle extra due to math error
 					if (current.getYear() == Year.now().getValue())
 						value = (double) current.getBibScore();
 					else
-						//divide through difference +1 to avoid math error
+						// divide through difference +1 to avoid math error
 						value = (double) current.getBibScore() / (Year.now().getValue() - current.getYear() + 1);
 
-					//write to database
+					// write to database
 					con.writeBibliometricsInDatabase(current.getDocumentId(), "normalizedByAge", "readers", "", "",
 							value, "mendeley");
 				}
@@ -89,26 +89,26 @@ public class CreateRanking {
 		double value;
 		int numberOfAuthors;
 
-		//get every document which has readership data
+		// get every document which has readership data
 		documentSet = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
 		System.out.println(documentSet.getSize());
 
 		for (int i = 0; i < documentSet.getSize(); i++) {
 			current = documentSet.getDisplayDocument(i);
-			
-			//print the current progress in 10.000 steps
+
+			// print the current progress in 10.000 steps
 			if (i % 10000 == 0)
 				System.out.println(i + "/" + documentSet.getSize());
 
 			try {
-				//get the number of authors per document
+				// get the number of authors per document
 				numberOfAuthors = con.getPersonsByDocumentID(current.getDocumentId()).size();
 
-				//only divide through non-zero values
+				// only divide through non-zero values
 				if (numberOfAuthors != 0) {
 					value = (double) current.getBibScore() / numberOfAuthors;
-					
-					//write to database
+
+					// write to database
 					con.writeBibliometricsInDatabase(current.getDocumentId(), "normalizedByNumberOfAuthors", "readers",
 							"", "", value, "mendeley");
 				}
@@ -119,7 +119,8 @@ public class CreateRanking {
 	}
 
 	/**
-	 * creates the Altmetric of Readership per author over all papers he wrote and stores it in database
+	 * creates the Altmetric of Readership per author over all papers he wrote
+	 * and stores it in database
 	 * 
 	 * under progress -> leads to errors
 	 */
@@ -130,12 +131,14 @@ public class CreateRanking {
 		double authorReadership;
 		DisplayDocument currentDocument = null;
 		double documentReadership;
+		int numberOfBib = 0;
 
 		int numberOfAuthors = con.getBiggestIdFromAuthors();
 
 		for (int k = 0; k < numberOfAuthors; k = k + 500) {
 
 			System.out.println(k + "/" + numberOfAuthors);
+			System.out.println(numberOfBib);
 			personList = con.getAllPersonsInBatches(k, 500);
 
 			for (int i = 0; i < personList.size(); i++) {
@@ -151,21 +154,29 @@ public class CreateRanking {
 						documentReadership = con
 								.getRankingValue(currentDocument.getDocumentId(), documentSet.getBibliometricId())
 								.getBibScore();
+
 						if (documentReadership != -1) {
 							authorReadership = authorReadership + documentReadership;
+							numberOfBib++;
 						}
 					}
-					con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), "simple_count", "readers",
-							"mendeley", authorReadership);
+
+					if (authorReadership != 0) {
+						con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), "simple_count", "readers",
+								"mendeley", authorReadership);
+					}
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
+			System.out.println("created: " + numberOfBib);
 		}
 	}
 
 	/**
-	 * creates the Altmetric of Readership per paper from the sum of the readership of all authors
+	 * creates the Altmetric of Readership per paper from the sum of the
+	 * readership of all authors
 	 * 
 	 * under progress -> leads to errors
 	 */
@@ -203,7 +214,7 @@ public class CreateRanking {
 			}
 		}
 	}
-	
+
 	/**
 	 * creates the Altmetric of an h-index of every author
 	 * 
@@ -228,15 +239,14 @@ public class CreateRanking {
 				documentNumber = con.getDocumentsByPersonId(currentAuthor.getId()).getSize();
 				hIndex = Math.min((int) currentAuthor.getRankingValue(), documentNumber);
 
-				con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), "h-index", "readers",
-						"mendeley", hIndex);
+				con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), "h-index", "readers", "mendeley", hIndex);
 			}
 		}
 	}
 
 	public static void main(String[] args) {
 		CreateRanking cr = new CreateRanking();
-		cr.createReadershipSumFromAuthors();
+		cr.createReadershipByAuthor();
 	}
 
 }

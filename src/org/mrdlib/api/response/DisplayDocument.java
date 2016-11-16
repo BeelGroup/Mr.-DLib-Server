@@ -78,6 +78,20 @@ public class DisplayDocument implements Serializable {
 		this.constants = constants;
 	}
 	
+	/**
+	 * 
+	 * calculate cleanTitle of a Document, only letters are valid
+	 * characters
+	 * 
+	 * @return String, cleanTitle
+	 */
+	public String getCleanTitle() {
+		String cleanTitle = "";
+		cleanTitle = this.getTitle().replaceAll("[^a-zA-Z]", "");
+		cleanTitle = cleanTitle.toLowerCase();
+		return cleanTitle;
+	}
+	
 	
 	public int getBibDocId() {
 		return this.debugDetails.getBibDocId();

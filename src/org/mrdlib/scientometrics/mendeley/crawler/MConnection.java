@@ -135,7 +135,7 @@ public class MConnection {
 								title = title.replaceAll("<strong>|<\\/strong>", "");
 							
 							//eliminate special characters for better comparison and search for matching title
-							if (calculateTitleClean(current).equals(calculateTitleClean(title))) {
+							if (documentData.getCleanTitle().equals(documentData.getCleanTitle())) {
 								
 								//if it matches, get the mendeley id for second request
 								mendeleyId = (String) document.get("id");
@@ -221,16 +221,6 @@ public class MConnection {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	/**
-	 * calculcates as clean title with only a-z letters and numbers
-	 * 
-	 * @return cleantitle with only a-z letters and numbers
-	 */
-	public String calculateTitleClean(String s) {
-		s = s.replaceAll("[^a-zA-Z0-9]", "");
-		s = s.toLowerCase();
-		return s;
 	}
 
 	public static void main(String[] args) throws Exception {

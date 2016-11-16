@@ -33,7 +33,6 @@ public class DocumentSet {
 
 	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
 
-
 	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel,
 			Constants constants) {
 		this.documentList = documentList;
@@ -41,11 +40,11 @@ public class DocumentSet {
 		this.suggestedLabel = suggestedLabel;
 		this.constants = constants;
 	}
-	
+
 	/**
 	 * 
 	 * sorts the documentset list desc for the final score
-	 *  
+	 * 
 	 * @return resorted documentset
 	 */
 	public DocumentSet sortDescForFinalValue() {
@@ -54,11 +53,11 @@ public class DocumentSet {
 		this.setRankingOrder("desc");
 		return this;
 	}
-	
+
 	/**
 	 * 
 	 * sorts the documentset list asc for the final score
-	 *  
+	 * 
 	 * @return resorted documentset
 	 */
 	public DocumentSet sortAscForFinalValue() {
@@ -67,7 +66,7 @@ public class DocumentSet {
 		this.setRankingOrder("asc");
 		return this;
 	}
-	
+
 	/**
 	 * 
 	 * calculates the final score only from bibliometrics
@@ -77,7 +76,7 @@ public class DocumentSet {
 	public DocumentSet calculateFinalScoreOnlyBibScore() {
 		this.avoidZeroRankingValue();
 		DisplayDocument current = new DisplayDocument();
-		for(int i = 0; i < this.getSize(); i++) {
+		for (int i = 0; i < this.getSize(); i++) {
 			current = this.documentList.get(i);
 			current.setFinalScore(current.getBibScore());
 		}
@@ -94,7 +93,7 @@ public class DocumentSet {
 	public DocumentSet calculateFinalScoreOnlyRelevanceScore() {
 		this.avoidZeroRankingValue();
 		DisplayDocument current = new DisplayDocument();
-		for(int i = 0; i < this.getSize(); i++) {
+		for (int i = 0; i < this.getSize(); i++) {
 			current = this.documentList.get(i);
 			current.setFinalScore(current.getRelevanceScoreFromAlgorithm());
 		}
@@ -102,17 +101,18 @@ public class DocumentSet {
 		this.setReRankingCombination("standard_only");
 		return this;
 	}
-	
+
 	/**
 	 * 
-	 * calculates the final score from relevance score from algorithm times log(bib score)
+	 * calculates the final score from relevance score from algorithm times
+	 * log(bib score)
 	 * 
 	 * @return documentset with final score
 	 */
 	public DocumentSet calculateFinalScoreForRelevanceScoreTimesLogBibScore() {
 		this.avoidZeroRankingValue();
 		DisplayDocument current = new DisplayDocument();
-		for(int i = 0; i < this.getSize(); i++) {
+		for (int i = 0; i < this.getSize(); i++) {
 			current = this.documentList.get(i);
 			current.setFinalScore(current.getRelevanceScoreFromAlgorithm() * Math.log(current.getBibScore()));
 		}
@@ -122,31 +122,33 @@ public class DocumentSet {
 
 	/**
 	 * 
-	 * calculates the final score from relevance score from algorithm times root(bib score)
+	 * calculates the final score from relevance score from algorithm times
+	 * root(bib score)
 	 * 
 	 * @return documentset with final score
 	 */
 	public DocumentSet calculateFinalScoreForRelevanceScoreTimesRootBibScore() {
 		this.avoidZeroRankingValue();
 		DisplayDocument current = new DisplayDocument();
-		for(int i = 0; i < this.getSize(); i++) {
+		for (int i = 0; i < this.getSize(); i++) {
 			current = this.documentList.get(i);
 			current.setFinalScore(current.getRelevanceScoreFromAlgorithm() * Math.sqrt(current.getBibScore()));
 		}
 		this.setReRankingCombination("standard_*_root_bibliometrics_score");
 		return this;
 	}
-	
+
 	/**
 	 * 
-	 * calculates the final score from relevance score from algorithm times bib score
+	 * calculates the final score from relevance score from algorithm times bib
+	 * score
 	 * 
 	 * @return documentset with final score
 	 */
 	public DocumentSet calculateFinalScoreForRelevanceScoreTimesBibScore() {
 		this.avoidZeroRankingValue();
 		DisplayDocument current = new DisplayDocument();
-		for(int i = 0; i < this.getSize(); i++) {
+		for (int i = 0; i < this.getSize(); i++) {
 			current = this.documentList.get(i);
 			current.setFinalScore(current.getRelevanceScoreFromAlgorithm() * current.getBibScore());
 		}
@@ -262,15 +264,17 @@ public class DocumentSet {
 	 */
 	public void addDocument(DisplayDocument document) {
 		DisplayDocument current;
-		
-		if (equalDocuments(document, this.requestedDocument)) {
-			this.setRemoveDuplicates(true);
-			return;
+
+		if (this.requestedDocument != null) {
+			if (equalDocuments(document, this.requestedDocument)) {
+				this.setRemoveDuplicates(true);
+				return;
+			}
 		}
-		
+
 		for (int i = 0; i < this.documentList.size(); i++) {
 			current = this.documentList.get(i);
-			
+
 			// if the document is the same, do not add as duplicate
 			if (equalDocuments(document, current)) {
 				if (Integer.parseInt(current.getDocumentId()) < Integer.parseInt(document.getDocumentId())) {
@@ -293,7 +297,7 @@ public class DocumentSet {
 	 * @return boolean, true if equal
 	 */
 	private boolean equalDocuments(DisplayDocument document1, DisplayDocument document2) {
-		if (calculateTitleClean(document1.getTitle()).equals(calculateTitleClean(document2.getTitle())))
+		if (document1.getCleanTitle().equals(document2.getCleanTitle()))
 			return true;
 		else
 			return false;
@@ -313,26 +317,26 @@ public class DocumentSet {
 		debugDetailsPerSet.setPercentageRankingValue((double) rankingValueCount / this.getSize());
 	}
 
-	/**
-	 * 
-	 * calculate cleanTitle of a String, only numbers and letters are valid
-	 * characters
-	 * 
-	 * @param String
-	 *            to clean
-	 * @return clean String
-	 */
-	private String calculateTitleClean(String s) {
-		s = s.replaceAll("[^a-zA-Z0-9]", "");
-		s = s.toLowerCase();
-		return s;
+	public void eliminateDuplicates() {
+		for (int i = 0; i < this.getSize(); i++) {
+			for (int j = i; j < this.getSize(); j++) {
+				if (this.getDisplayDocument(i).getCleanTitle().equals(this.getDisplayDocument(j).getCleanTitle())) {
+					this.removeDisplayDocument(j);
+					j--;
+				}
+			}
+		}
 	}
-	
+
+	public void removeDisplayDocument(int i) {
+		this.getDocumentList().remove(i);
+	}
+
 	public DisplayDocument getDisplayDocument(int i) {
 		return this.getDocumentList().get(i);
 	}
 
-	//~~~~~~~~~~~~~~~~~GETTER AND SETTER~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~GETTER AND SETTER~~~~~~~~~~~~~~~~~
 	public DebugDetailsPerSet getDebugDetailsPerSet() {
 		return debugDetailsPerSet;
 	}
@@ -341,7 +345,7 @@ public class DocumentSet {
 	public void setDebugDetailsPerSet(DebugDetailsPerSet debugDetailsPerSet) {
 		this.debugDetailsPerSet = debugDetailsPerSet;
 	}
-	
+
 	/**
 	 * @return the recommendationAlgorithmId
 	 */
@@ -373,7 +377,7 @@ public class DocumentSet {
 	public void setFallback(boolean fallback) {
 		this.debugDetailsPerSet.setFallback(fallback);
 	}
-	
+
 	public boolean isBibliometricReRanking() {
 		return this.debugDetailsPerSet.isBibliometricReRanking();
 	}
@@ -413,7 +417,7 @@ public class DocumentSet {
 	public DocumentSet(Constants constants) {
 		this.constants = constants;
 	}
-	
+
 	@XmlTransient
 	public void setPercentageRankingValue(double percentageRankingValue) {
 		debugDetailsPerSet.setPercentageRankingValue(percentageRankingValue);
@@ -440,7 +444,7 @@ public class DocumentSet {
 	public void setNumberOfCandidatesToReRank(int numberOfCandidatesToReRank) {
 		this.debugDetailsPerSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 	}
-	
+
 	@XmlElement(name = "related_article")
 	public void setDocumentList(List<DisplayDocument> documentList) {
 		this.documentList = documentList;
@@ -472,7 +476,7 @@ public class DocumentSet {
 	public void setRecommendationApproach(String recommendationApproach) {
 		debugDetailsPerSet.setRecommendationApproach(recommendationApproach);
 	}
-	
+
 	public long getNumberOfReturnedResults() {
 		return this.debugDetailsPerSet.getNumberOfReturnedResults();
 	}
@@ -481,11 +485,11 @@ public class DocumentSet {
 	public void setNumberOfReturnedResults(long numberOfReturnedResults) {
 		this.debugDetailsPerSet.setNumberOfReturnedResults(numberOfReturnedResults);
 	}
-	
+
 	public boolean isShuffled() {
 		return this.debugDetailsPerSet.isShuffled();
 	}
-	
+
 	@XmlTransient
 	public void setShuffled(boolean shuffled) {
 		this.debugDetailsPerSet.setShuffled(shuffled);
@@ -499,16 +503,16 @@ public class DocumentSet {
 	public void setRemoveDuplicates(boolean removedDuplicates) {
 		this.debugDetailsPerSet.setRemovedDuplicates(removedDuplicates);
 	}
-	
+
 	public int getDesiredNumberFromAlgorithm() {
 		return this.debugDetailsPerSet.getDesiredNumberFromAlgorithm();
 	}
-	
+
 	@XmlTransient
 	public void setDesiredNumberFromAlgorithm(int desiredNumberFromAlgorithm) {
 		this.debugDetailsPerSet.setDesiredNumberFromAlgorithm(desiredNumberFromAlgorithm);
 	}
-	
+
 	public int getNumberOfDisplayedRecommendations() {
 		return this.debugDetailsPerSet.getNumberOfDisplayedRecommendations();
 	}
@@ -517,7 +521,7 @@ public class DocumentSet {
 	public void setNumberOfDisplayedRecommendations(int numberOfDisplayedRecommendations) {
 		this.debugDetailsPerSet.setNumberOfDisplayedRecommendations(numberOfDisplayedRecommendations);
 	}
-	
+
 	public String getBibliometric() {
 		return this.debugDetailsPerSet.getBibliometric();
 	}
@@ -530,7 +534,7 @@ public class DocumentSet {
 	public String getBibType() {
 		return this.debugDetailsPerSet.getBibType();
 	}
-	
+
 	@XmlTransient
 	public void setBibType(String bibType) {
 		this.debugDetailsPerSet.setBibType(bibType);
@@ -544,7 +548,7 @@ public class DocumentSet {
 	public void setBibSource(String bibSource) {
 		this.debugDetailsPerSet.setBibSource(bibSource);
 	}
-	
+
 	public Long getStartTime() {
 		return this.debugDetailsPerSet.getStartTime();
 	}
@@ -589,8 +593,7 @@ public class DocumentSet {
 	public void setAfterRerankTime(Long afterRerankTime) {
 		this.debugDetailsPerSet.setRerankTime(afterRerankTime);
 	}
-	
-	
+
 	public String getAccessKeyHash() {
 		return this.debugDetailsPerSet.getAccessKeyHash();
 	}
@@ -599,13 +602,14 @@ public class DocumentSet {
 	public void setAccessKeyHash(String accessKeyHash) {
 		this.debugDetailsPerSet.setAccessKeyHash(accessKeyHash);
 	}
-	
-	public AlgorithmDetails getAlgorithmDetails(){
+
+	public AlgorithmDetails getAlgorithmDetails() {
 		return this.debugDetailsPerSet.getAlgoDetails();
 	}
-	
+
 	@XmlTransient
-	public void setAlgorithmDetails(AlgorithmDetails algoDetails){
+	public void setAlgorithmDetails(AlgorithmDetails algoDetails) {
 		this.debugDetailsPerSet.setAlgoDetails(algoDetails);
 	}
+
 }

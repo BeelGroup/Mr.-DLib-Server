@@ -46,14 +46,13 @@ public class Constants {
 	private String stereotypeRecommendationDetails;
 	private String mostPopularRecommendationDetails;
 	private String algorithmRerankingBibliometrics;
+	private String bibliometrics;
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
 	private String personIdInBibliometricPers;
-	private String metricPers;
+	private String bibliometricIdInBibliometricPers;
 	private String metricValuePers;
-	private String dataTypePers;
-	private String dataSourcePers;
 
 	// db table reRank
 	private String reRankingId;
@@ -108,10 +107,7 @@ public class Constants {
 	// db table bibliometrics document
 	private String bibliometricDocumentsId;
 	private String documentIdInBibliometricDoc;
-	private String metric;
 	private String metricValue;
-	private String dataType;
-	private String dataSource;
 
 	// db table bibliometrics document sub count
 	private String bilbiometricSubCountId;
@@ -197,6 +193,12 @@ public class Constants {
 	private String rerankingOrder;
 	private String bibliometricIdInAlgorithmRerankingBibliometrics;
 	private String rerankingCombindation;
+	
+	//db table z_bibliometrics
+	private String bibliometricId;
+	private String metric;
+	private String dataType;
+	private String dataSource;
 
 	// db table keyphrases
 	private String sourceInKeyphrases;
@@ -259,6 +261,7 @@ public class Constants {
 			this.stereotypeRecommendationDetails =  prop.getProperty("stereotypeRecommendationDetails");
 			this.mostPopularRecommendationDetails = prop.getProperty("mostPopularRecommendationDetails");
 			this.algorithmRerankingBibliometrics = prop.getProperty("algorithmRerankingBibliometrics");
+			this.bibliometrics = prop.getProperty("bibliometrics");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -307,17 +310,17 @@ public class Constants {
 
 			this.bibliometricPersonsId = prop.getProperty("bibliometricPersonsId");
 			this.personIdInBibliometricPers = prop.getProperty("personIdInBibliometricPers");
-			this.metricPers = prop.getProperty("metricPers");
+			this.bibliometricIdInBibliometricPers = prop.getProperty("bibliometricIdInBibliometricPers");
 			this.metricValuePers = prop.getProperty("metricValuePers");
-			this.dataTypePers = prop.getProperty("dataTypePers");
-			this.dataSourcePers = prop.getProperty("dataSourcePers");
-
+			
 			this.bibliometricDocumentsId = prop.getProperty("bibliometricDocumentsId");
 			this.documentIdInBibliometricDoc = prop.getProperty("documentIdInBibliometricDoc");
-			this.metric = prop.getProperty("metric");
 			this.metricValue = prop.getProperty("metricValue");
+			
+			this.bibliometricId = prop.getProperty("bibliometricId");
 			this.dataType = prop.getProperty("dataType");
 			this.dataSource = prop.getProperty("dataSource");
+			this.metric = prop.getProperty("metric");
 
 			this.bilbiometricSubCountId = prop.getProperty("bilbiometricSubCountId");
 			this.BibliometricDocIdInBibliometricDocSubCount = prop
@@ -429,8 +432,14 @@ public class Constants {
 		}
 	}
 	
+	public String getBibliometrics() {
+		return bibliometrics;
+	}
 
-	
+	public String getBibliometricId() {
+		return bibliometricId;
+	}
+
 	public String getAlgorithmRerankingBibliometrics() {
 		return algorithmRerankingBibliometrics;
 	}
@@ -498,21 +507,13 @@ public class Constants {
 	public String getPersonIdInBibliometricPers() {
 		return personIdInBibliometricPers;
 	}
-
-	public String getMetricPers() {
-		return metricPers;
+	
+	public String getBibliometricIdInBibliometricPers() {
+		return bibliometricIdInBibliometricPers;
 	}
 
 	public String getMetricValuePers() {
 		return metricValuePers;
-	}
-
-	public String getDataTypePers() {
-		return dataTypePers;
-	}
-
-	public String getDataSourcePers() {
-		return dataSourcePers;
 	}
 
 	public String getReRankingBibliometrics() {
