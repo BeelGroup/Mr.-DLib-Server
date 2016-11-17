@@ -57,7 +57,7 @@ public class CreateRanking {
 			try {
 				// get the published year of the paper
 				current.setYear(
-						con.getDocumentDataBy(constants.getDocumentId(), current.getDocumentId() + "").getYear());
+						con.getDocumentBy(constants.getDocumentId(), current.getDocumentId() + "").getYear());
 
 				// if there is a year stored
 				if (current.getYear() != -1) {
@@ -123,6 +123,7 @@ public class CreateRanking {
 	 * and stores it in database
 	 * 
 	 * under progress -> leads to errors
+	 * @throws Exception 
 	 */
 	public void createReadershipByAuthor() {
 		List<Person> personList = new ArrayList<Person>();
@@ -132,6 +133,12 @@ public class CreateRanking {
 		DisplayDocument currentDocument = null;
 		double documentReadership;
 		int numberOfBib = 0;
+		
+		try {
+			documentSet.setBibliometricId(con.getBibId("simple_count", "readers", "mendeley"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		int numberOfAuthors = con.getBiggestIdFromAuthors();
 
@@ -150,7 +157,6 @@ public class CreateRanking {
 
 					for (int j = 0; j < documentSet.getSize(); j++) {
 						currentDocument = documentSet.getDisplayDocument(j);
-						documentSet.setBibliometricId(con.getBibId("simple_count", "readers", "mendeley"));
 						documentReadership = con
 								.getRankingValue(currentDocument.getDocumentId(), documentSet.getBibliometricId())
 								.getBibScore();
@@ -243,6 +249,8 @@ public class CreateRanking {
 			}
 		}
 	}
+	
+	
 
 	public static void main(String[] args) {
 		CreateRanking cr = new CreateRanking();

@@ -90,6 +90,10 @@ public class DBConnection {
 			}
 		}
 	}
+	
+	public Connection getConnection() {
+		return con;
+	}
 
 	/**
 	 * stores the lengths of the database field in the length map
@@ -132,7 +136,7 @@ public class DBConnection {
 	 * 
 	 * @throws Exception
 	 */
-	public void createConnectionTomcat() throws Exception {
+	public Connection createConnectionTomcat() throws Exception {
 		try {
 			Context initContext = new InitialContext();
 			Context envContext = (Context) initContext.lookup("java:comp/env");
@@ -144,6 +148,7 @@ public class DBConnection {
 			e.printStackTrace();
 			throw e;
 		}
+		return con;
 	}
 
 	/**
@@ -151,13 +156,99 @@ public class DBConnection {
 	 * 
 	 * @throws Exception
 	 */
-	public void createConnectionJar() throws Exception {
+	public Connection createConnectionJar() throws Exception {
 		try {
 			Class.forName(constants.getDbClass());
 			con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
 					constants.getPassword());
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+		return con;
+	}
+	
+	public int getBibId(String metric, String dataType, String dataSource) throws Exception {
+		Statement stmt = null;
+		ResultSet rs = null;
+		int bibId = -1;
+
+		try {
+			// Select query for lookup in the database
+			stmt = con.createStatement();
+			String query = "SELECT " + constants.getBibliometricId() + " FROM " + constants.getBibliometrics() + " WHERE " + constants.getMetric() + "='"
+					+ metric + "' AND " + constants.getDataType() + "='" + dataType + "' AND " + constants.getDataSource() + "='" + dataSource
+					+ "'";
+
+			rs = stmt.executeQuery(query);
+
+			if (rs.next()) {
+				bibId = rs.getInt(constants.getBibliometricId());
+			}
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return bibId;
+	}
+	
+	/**
+	 * 
+	 * write the author Bibliometric in the database
+	 * 
+	 * @param int,
+	 *            id of the author
+	 * @param String,
+	 *            metric (eg "simple_count")
+	 * @param String,
+	 *            data_type (eg "readership")
+	 * @param String,
+	 *            datasource (eg "mendeley")
+	 * @param double,
+	 *            value of the bibliometric
+	 * @throws Exception
+	 */
+	public void writeAuthorBibliometricsInDatabase(int id, String metric, String dataType, String dataSource,
+			double value) {
+		PreparedStatement stmt = null;
+		String query = "";
+		int bibId = -1;
+		
+		try {
+			bibId = getBibId(metric, dataType, dataSource);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(bibId == -1)
+			System.out.println("new Combination: " + metric + ", " + dataType + ", " + dataSource);
+
+		try {
+			// insertion query
+			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers()
+					+ ", " + constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
+					+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
+
+			stmt = con.prepareStatement(query);
+			stmt.executeUpdate();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -1117,26 +1208,6 @@ public class DBConnection {
 	}
 
 	/**
-	 * makes a DocumentSet out of a single Document and set some dummy
-	 * attributes. Mostly for testing purposes
-	 * 
-	 * @param originalid
-	 * @return
-	 * @throws Exception
-	 */
-	public DocumentSet getDocumentSetByOriginalId(String originalid) throws Exception {
-		DocumentSet documentSet = new DocumentSet(constants);
-		documentSet.setRecommendationSetId("DummyId");
-		documentSet.setSuggested_label("Dummy Articles");
-		try {
-			documentSet.addDocument(getDocumentBy(constants.getIdOriginal(), originalid));
-		} catch (Exception e) {
-			throw e;
-		}
-		return documentSet;
-	}
-
-	/**
 	 * 
 	 * Get a complete displayable Document by any customized field (returns only
 	 * first retrieved document! Please use unique coloumns to obtain like
@@ -1191,7 +1262,9 @@ public class DBConnection {
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 666, title, authorNames, publishedIn,
 						rs.getInt(constants.getYear()), "", "", "", constants);
-
+				if (rs.wasNull())
+					document.setYear(-1);
+				
 				// get the collection id and then the shortName of the
 				// collection
 				document.setLanguage(rs.getString(constants.getLanguage()));
@@ -2160,61 +2233,6 @@ public class DBConnection {
 
 	/**
 	 * 
-	 * gets metadata (id, title, originalId, year) of an document from the
-	 * database
-	 * 
-	 * @param String,
-	 *            coloumnName (only use unique ones, id or originalId)
-	 * @param int,
-	 *            the associated id (id or originalId)
-	 * @return DisplayDocument, a document with metadata (id, title, originalId,
-	 *         year)
-	 * @throws Exception
-	 */
-	public DisplayDocument getDocumentDataBy(String coloumnName, String id) throws Exception {
-		DisplayDocument document = new DisplayDocument(constants);
-		Statement stmt = null;
-		ResultSet rs = null;
-
-		try {
-			stmt = con.createStatement();
-
-			// get all information of a document stored in a database by the
-			// value of a custom coloumn
-			String query = "SELECT " + constants.getTitle() + ", " + constants.getIdOriginal() + ", "
-					+ constants.getYear() + " FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = '" + id
-					+ "'";
-
-			rs = stmt.executeQuery(query);
-
-			// if there is a document
-			if (rs.next()) {
-				document.setDocumentId(id);
-				document.setTitle(rs.getString(constants.getTitle()));
-				document.setOriginalDocumentId(rs.getString(constants.getIdOriginal()));
-				document.setYear(rs.getInt(constants.getYear()));
-				if (rs.wasNull())
-					document.setYear(-1);
-
-			} else
-				throw new NoEntryException(id);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-		return document;
-	}
-
-	/**
-	 * 
 	 * get the authors in batch-sized chunks
 	 * 
 	 * @param int,
@@ -2292,7 +2310,7 @@ public class DBConnection {
 				// for each id obtained, get the complete document and store it
 				// in the list
 				documents.addDocument(
-						getDocumentDataBy(constants.getDocumentId(), rs.getString(constants.getDocumentIDInDocPers())));
+						getDocumentBy(constants.getDocumentId(), rs.getString(constants.getDocumentIDInDocPers())));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2309,57 +2327,7 @@ public class DBConnection {
 		return documents;
 	}
 
-	/**
-	 * 
-	 * write the author Bibliometric in the database
-	 * 
-	 * @param int,
-	 *            id of the author
-	 * @param String,
-	 *            metric (eg "simple_count")
-	 * @param String,
-	 *            data_type (eg "readership")
-	 * @param String,
-	 *            datasource (eg "mendeley")
-	 * @param double,
-	 *            value of the bibliometric
-	 * @throws Exception
-	 */
-	public void writeAuthorBibliometricsInDatabase(int id, String metric, String dataType, String dataSource,
-			double value) {
-		PreparedStatement stmt = null;
-		String query = "";
-		int bibId = -1;
-
-		try {
-			bibId = getBibId(metric, dataType, dataSource);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		if(bibId == -1)
-			System.out.println("new Combination: " + metric + ", " + dataType + ", " + dataSource);
-
-		try {
-			// insertion query
-			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers()
-					+ ", " + constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
-					+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
-
-			stmt = con.prepareStatement(query);
-			stmt.executeUpdate();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+	
 
 	/**
 	 * 
@@ -3029,40 +2997,7 @@ public class DBConnection {
 		return cbfId;
 	}
 
-	public int getBibId(String metric, String dataType, String dataSource) throws Exception {
-		Statement stmt = null;
-		ResultSet rs = null;
-		int bibId = -1;
-
-		try {
-			// Select query for lookup in the database
-			stmt = con.createStatement();
-			String query = "SELECT " + constants.getBibliometricId() + " FROM " + constants.getBibliometrics() + " WHERE " + constants.getMetric() + "='"
-					+ metric + "' AND " + constants.getDataType() + "='" + dataType + "' AND " + constants.getDataSource() + "='" + dataSource
-					+ "'";
-
-			rs = stmt.executeQuery(query);
-
-			if (rs.next()) {
-				bibId = rs.getInt(constants.getBibliometricId());
-			}
-
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				throw e;
-			}
-		}
-		return bibId;
-	}
-
-	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
+	private int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
 		String bibliometricIdQueryString = "";
 		Statement stmt = null;
