@@ -90,7 +90,7 @@ public class DBConnection {
 			}
 		}
 	}
-	
+
 	public Connection getConnection() {
 		return con;
 	}
@@ -166,7 +166,7 @@ public class DBConnection {
 		}
 		return con;
 	}
-	
+
 	public int getBibId(String metric, String dataType, String dataSource) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -175,9 +175,9 @@ public class DBConnection {
 		try {
 			// Select query for lookup in the database
 			stmt = con.createStatement();
-			String query = "SELECT " + constants.getBibliometricId() + " FROM " + constants.getBibliometrics() + " WHERE " + constants.getMetric() + "='"
-					+ metric + "' AND " + constants.getDataType() + "='" + dataType + "' AND " + constants.getDataSource() + "='" + dataSource
-					+ "'";
+			String query = "SELECT " + constants.getBibliometricId() + " FROM " + constants.getBibliometrics()
+					+ " WHERE " + constants.getMetric() + "='" + metric + "' AND " + constants.getDataType() + "='"
+					+ dataType + "' AND " + constants.getDataSource() + "='" + dataSource + "'";
 
 			rs = stmt.executeQuery(query);
 
@@ -199,7 +199,7 @@ public class DBConnection {
 		}
 		return bibId;
 	}
-	
+
 	/**
 	 * 
 	 * write the author Bibliometric in the database
@@ -221,20 +221,20 @@ public class DBConnection {
 		PreparedStatement stmt = null;
 		String query = "";
 		int bibId = -1;
-		
+
 		try {
 			bibId = getBibId(metric, dataType, dataSource);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		if(bibId == -1)
+
+		if (bibId == -1)
 			System.out.println("new Combination: " + metric + ", " + dataType + ", " + dataSource);
 
 		try {
 			// insertion query
-			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers()
-					+ ", " + constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
+			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers() + ", "
+					+ constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
 					+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
 
 			stmt = con.prepareStatement(query);
@@ -1264,7 +1264,7 @@ public class DBConnection {
 						rs.getInt(constants.getYear()), "", "", "", constants);
 				if (rs.wasNull())
 					document.setYear(-1);
-				
+
 				// get the collection id and then the shortName of the
 				// collection
 				document.setLanguage(rs.getString(constants.getLanguage()));
@@ -1904,7 +1904,7 @@ public class DBConnection {
 
 			stmt.executeUpdate(query);
 			int clickCount = updateClicksInRecommendationSet(recommendationId);
-			if(clickCount==0) {
+			if (clickCount == 0) {
 				System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
 			}
 			loggingId = logEvent(documentId, rootElement, true, requestTime);
@@ -1927,12 +1927,12 @@ public class DBConnection {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int recommendationSetId = getRecommendationSetIdFromRecommendationId(recommendationId);
-		if(recommendationSetId==-1) return 0;
-		String updateQuery = "UPDATE " + constants.getRecommendationSets()
-				+ " SET click_count = (SELECT COUNT(*) FROM " + constants.getRecommendations() + " WHERE "
-				+ constants.getRecommendationSetIdInRecommendations() + "= " + recommendationSetId + " AND "
-				+ constants.getClicked() + " IS NOT NULL)  WHERE " + constants.getRecommendationSetsId() + "="
-				+ recommendationSetId;
+		if (recommendationSetId == -1)
+			return 0;
+		String updateQuery = "UPDATE " + constants.getRecommendationSets() + " SET click_count = (SELECT COUNT(*) FROM "
+				+ constants.getRecommendations() + " WHERE " + constants.getRecommendationSetIdInRecommendations()
+				+ "= " + recommendationSetId + " AND " + constants.getClicked() + " IS NOT NULL)  WHERE "
+				+ constants.getRecommendationSetsId() + "=" + recommendationSetId;
 		String query = "";
 		String ctrUpdate = "";
 		try {
@@ -1948,11 +1948,14 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				ctrUpdate = "UPDATE " + constants.getRecommendationSets() + " SET ctr ='"
-						+ ((float)rs.getInt("click_count")/(float)rs.getInt(constants.getDeliveredRecommendations())) + "' WHERE "
-						+ constants.getRecommendationSetsId() + "=" + recommendationSetId;
+						+ ((float) rs.getInt("click_count")
+								/ (float) rs.getInt(constants.getDeliveredRecommendations()))
+						+ "' WHERE " + constants.getRecommendationSetsId() + "=" + recommendationSetId;
 			}
-			if(stmt!=null) stmt.close();
-			if(rs!=null) rs.close();
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
 			stmt = con.createStatement();
 			stmt.executeUpdate(ctrUpdate);
 			return 1;
@@ -1962,15 +1965,17 @@ public class DBConnection {
 			System.out.println(ctrUpdate);
 			e.printStackTrace();
 			return 0;
-		} finally{
-			try{
-				if(stmt!=null) stmt.close();
-				if(rs!=null) rs.close();
-			} catch (SQLException e){
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 	}
 
 	private int getRecommendationSetIdFromRecommendationId(String recommendationId) {
@@ -2182,8 +2187,7 @@ public class DBConnection {
 	 *         rankingValues
 	 * @throws Exception
 	 */
-	public List<Person> getRankingValueAuthorsInBatches(String metric, String dataType, String dataSource, int start,
-			int batchsize) {
+	public List<Person> getRankingValueAuthorsInBatches(int bibliometricId, int start, int batchsize) {
 		List<Person> authorDataList = new ArrayList<Person>();
 		Person newPerson = null;
 		Statement stmt = null;
@@ -2193,19 +2197,12 @@ public class DBConnection {
 			stmt = con.createStatement();
 
 			// selection query
-			/*
-			 * String query = "SELECT " +
-			 * constants.getPersonIdInBibliometricPers() + ", " +
-			 * constants.getBibliometricPersonsId() + ", " +
-			 * constants.getMetricValuePers() + " FROM " +
-			 * constants.getBibPersons() + " WHERE " + constants.getMetricPers()
-			 * + " = '" + metric + "' AND " + constants.getDataTypePers() +
-			 * " = '" + dataType + "' AND " + constants.getDataSourcePers() +
-			 * " = '" + dataSource + "' AND " + constants.getPersonID() + " >= "
-			 * + start + " AND " + constants.getPersonID() + " < " + (start +
-			 * batchsize) + ";";
-			 */
-			String query = "";
+
+			String query = "SELECT " + constants.getPersonIdInBibliometricPers() + ", "
+					+ constants.getBibliometricPersonsId() + ", " + constants.getMetricValuePers() + " FROM "
+					+ constants.getBibPersons() + " WHERE " + constants.getBibliometricId() + " = '" + bibliometricId
+					+ "' AND " + constants.getPersonID() + " >= " + start + " AND " + constants.getPersonID() + " < "
+					+ (start + batchsize) + ";";
 
 			rs = stmt.executeQuery(query);
 
@@ -2283,6 +2280,54 @@ public class DBConnection {
 
 	/**
 	 * 
+	 * get the author_ids in batch-sized chunks, which have a specified
+	 * bibliometric id
+	 * 
+	 * @param bibliometric
+	 *            id
+	 * @param int,
+	 *            start id
+	 * @param int,
+	 *            bachtsize
+	 * @return person List, list of batchsize of authors
+	 * @throws Exception
+	 */
+	public List<Person> getAllPersonsInBatchesIfBibliometricId(int start, int batchsize) {
+		List<Person> personList = new ArrayList<Person>();
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		// the query to get the persons
+		String query = "SELECT " + constants.getPersonIdInBibliometricPers() + " FROM " + constants.getBibPersons() + " WHERE "
+				+ constants.getBibliometricPersonsId() + " >= " + start + " AND " + constants.getBibliometricPersonsId()
+				+ " < " + (start + batchsize) + ";";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			// add the person to the list
+			while (rs.next()) {
+				personList.add(new Person(rs.getInt(constants.getPersonIdInBibliometricPers())));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return personList;
+	}
+
+	/**
+	 * 
 	 * get all Documents a specific author wrote
 	 * 
 	 * @param id,
@@ -2327,8 +2372,6 @@ public class DBConnection {
 		return documents;
 	}
 
-	
-
 	/**
 	 * 
 	 * get the biggest author id (to know how big the table is)
@@ -2348,7 +2391,48 @@ public class DBConnection {
 
 			// get the data from the result set
 			while (rs.next()) {
-				size = rs.getInt("MAX(" + constants.getDocumentId() + ")");
+				size = rs.getInt("MAX(" + constants.getPersonID() + ")");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return size;
+	}
+
+	/**
+	 * 
+	 * get the biggest BibPers id, who has a bibliometric value for specified
+	 * bibliometric id
+	 * 
+	 * @param bibliometric
+	 *            id
+	 * @return int, biggest BibPers id
+	 */
+	public int getBiggestIdFromBibAuthors(int bibliometricId) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		int size = 0;
+
+		try {
+			stmt = con.createStatement();
+			// query for returnning biggest id
+			String query = "SELECT MAX(" + constants.getBibliometricPersonsId() + ") FROM "
+					+ constants.getBibPersons() + " WHERE " + constants.getBibliometricIdInBibliometricPers() + " = "
+					+ bibliometricId;
+			rs = stmt.executeQuery(query);
+
+			// get the data from the result set
+			while (rs.next()) {
+				size = rs.getInt("MAX(" + constants.getBibliometricPersonsId() + ")");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3085,6 +3169,33 @@ public class DBConnection {
 		return rerankingBibliometricId;
 	}
 
+	public void calculateSumOfAuthors() {
+		Statement stmt = null;
+
+		// TODO: make variables
+		String query = "insert INTO bibliometrics_documents (document_id, bibliometrics_id, value) select D.id, 4 , "
+				+ "sum(BP.value) as sumOfPvalue from documents D JOIN xj_persons_documents PD ON PD.document_id = D.id "
+				+ "JOIN bibliometrics_persons BP ON BP.person_id = PD.person_id WHERE D.id > 1 AND D.id < 9505296 "
+				+ "GROUP BY D.id";
+
+		try {
+
+			stmt = con.createStatement();
+			stmt.executeQuery(query);
+
+		} catch (Exception e) {
+			System.out.println(e);
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				System.out.println(e);
+			}
+		}
+
+	}
+
 	public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -3093,7 +3204,7 @@ public class DBConnection {
 		DisplayDocument document = new DisplayDocument(constants);
 
 		// selection query
-		String query = "SELECT bibliometric_document_id, value FROM z_bibliometrics_documents WHERE document_id = '"
+		String query = "SELECT bibliometric_document_id, value FROM bibliometrics_documents WHERE document_id = '"
 				+ documentId + "' AND bibliometrics_id = '" + bibliometricId + "';";
 
 		try {
@@ -3122,6 +3233,42 @@ public class DBConnection {
 			}
 		}
 		return document;
+	}
+
+	public Map<String, Integer> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
+		Map<String, Integer> documentCitations = new HashMap<String, Integer>();
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			stmt = con.createStatement();
+
+			// selection query
+			String query = "select BD.value, D.title from bibliometrics_persons BP "
+					+ "JOIN xj_persons_documents PD ON PD.person_id = BP.person_id "
+					+ "JOIN bibliometrics_documents BD ON BD.document_id = PD.document_id "
+					+ "JOIN documents D ON D.id = PD.document_id WHERE BD.bibliometrics_id=" + bibliometricId
+					+ " AND PD.document_id < 9505296 AND BP.person_id=" + authorId;
+
+			rs = stmt.executeQuery(query);
+
+			// add the retrieved person to the list
+			while (rs.next()) {
+				documentCitations.put(rs.getString(constants.getTitle()), rs.getInt(constants.getMetricValue()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documentCitations;
 	}
 
 }

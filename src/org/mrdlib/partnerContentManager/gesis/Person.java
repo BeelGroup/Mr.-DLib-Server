@@ -46,6 +46,10 @@ public class Person {
 		this.surname = surname;
 		this.unstructured = unstructured;
 	}
+	
+	public Person(int id) {
+		this.id = id;
+	}
 
 	public double getRankingValue() {
 		return rankingValue;
