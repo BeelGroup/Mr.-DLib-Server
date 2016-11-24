@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -3081,7 +3083,7 @@ public class DBConnection {
 		return cbfId;
 	}
 
-	private int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
+	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
 		String bibliometricIdQueryString = "";
 		Statement stmt = null;
@@ -3235,6 +3237,7 @@ public class DBConnection {
 		return document;
 	}
 
+
 	public Map<String, Integer> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
 		Map<String, Integer> documentCitations = new HashMap<String, Integer>();
 		Statement stmt = null;
@@ -3256,7 +3259,36 @@ public class DBConnection {
 			while (rs.next()) {
 				documentCitations.put(rs.getString(constants.getTitle()), rs.getInt(constants.getMetricValue()));
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}	
+		return documentCitations;
+	}
+
+	public long getNumberOfAbstractsInLanguage(String language) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "SELECT COUNT(*) FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
+				+ "`='" + language + "'";
+		System.out.println(query);
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if(rs.next()){
+				return rs.getInt(1);
+			}
+			 
+		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
 			try {
@@ -3268,7 +3300,39 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		return documentCitations;
+		return 0;
+	}
+
+	public List<SimpleEntry<Long, Abstract>> fillAbstractsList(String language, long offset) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage() + "`='"
+				+ language + "' LIMIT " + offset + ",500";
+		System.out.println(query);
+		List<SimpleEntry<Long, Abstract>> abstractList = new ArrayList<AbstractMap.SimpleEntry<Long, Abstract>>();
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				abstractList
+						.add(new AbstractMap.SimpleEntry<Long, Abstract>(rs.getLong(constants.getAbstractDocumentId()),
+								new Abstract(rs.getString(constants.getAbstr()), language)));
+			}
+			return abstractList;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println("Didn't return normally");
+		return null;
 	}
 
 }
