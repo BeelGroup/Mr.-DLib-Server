@@ -2300,9 +2300,9 @@ public class DBConnection {
 		ResultSet rs = null;
 
 		// the query to get the persons
-		String query = "SELECT " + constants.getPersonIdInBibliometricPers() + " FROM " + constants.getBibPersons() + " WHERE "
-				+ constants.getBibliometricPersonsId() + " >= " + start + " AND " + constants.getBibliometricPersonsId()
-				+ " < " + (start + batchsize) + ";";
+		String query = "SELECT " + constants.getPersonIdInBibliometricPers() + " FROM " + constants.getBibPersons()
+				+ " WHERE " + constants.getBibliometricPersonsId() + " >= " + start + " AND "
+				+ constants.getBibliometricPersonsId() + " < " + (start + batchsize) + ";";
 
 		try {
 			stmt = con.createStatement();
@@ -2427,9 +2427,8 @@ public class DBConnection {
 		try {
 			stmt = con.createStatement();
 			// query for returnning biggest id
-			String query = "SELECT MAX(" + constants.getBibliometricPersonsId() + ") FROM "
-					+ constants.getBibPersons() + " WHERE " + constants.getBibliometricIdInBibliometricPers() + " = "
-					+ bibliometricId;
+			String query = "SELECT MAX(" + constants.getBibliometricPersonsId() + ") FROM " + constants.getBibPersons()
+					+ " WHERE " + constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId;
 			rs = stmt.executeQuery(query);
 
 			// get the data from the result set
@@ -3237,7 +3236,6 @@ public class DBConnection {
 		return document;
 	}
 
-
 	public Map<String, Integer> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
 		Map<String, Integer> documentCitations = new HashMap<String, Integer>();
 		Statement stmt = null;
@@ -3270,7 +3268,7 @@ public class DBConnection {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-		}	
+		}
 		return documentCitations;
 	}
 
@@ -3284,10 +3282,10 @@ public class DBConnection {
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
-			if(rs.next()){
+			if (rs.next()) {
 				return rs.getInt(1);
 			}
-			 
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -3306,8 +3304,8 @@ public class DBConnection {
 	public List<SimpleEntry<Long, Abstract>> fillAbstractsList(String language, long offset) {
 		Statement stmt = null;
 		ResultSet rs = null;
-		String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage() + "`='"
-				+ language + "' LIMIT " + offset + ",500";
+		String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
+				+ "`='" + language + "' LIMIT " + offset + ",500";
 		System.out.println(query);
 		List<SimpleEntry<Long, Abstract>> abstractList = new ArrayList<AbstractMap.SimpleEntry<Long, Abstract>>();
 		try {
@@ -3335,4 +3333,36 @@ public class DBConnection {
 		return null;
 	}
 
+	public int addTranslatedEntry(long documentId, String type, String text, String translationTool,
+			String sourceLanguage, String targetLanguage) {
+		PreparedStatement stmt = null;
+		String query = "INSERT INTO " + "translated_document_fields"
+				+ "(document_id,field_type,translation_tool,source_language,target_language,text)" + " VALUES("
+				+ "?, ?, ?, ?, ?, ?)";
+		try{
+			stmt = con.prepareStatement(query);
+			stmt.setLong(1, documentId);
+			stmt.setString(2,type);
+			stmt.setString(3,translationTool);
+			stmt.setString(4,sourceLanguage);
+			stmt.setString(5,targetLanguage);
+			stmt.setString(6,replaceHighComma(text).replace("\\", ""));
+			stmt.executeUpdate();
+			return 1;
+		}catch(SQLException e){
+			System.out.println(stmt.toString());
+			e.printStackTrace();
+			return -1;
+		}finally {
+			try{
+				if(stmt!=null) stmt.close();
+			}catch(SQLException e){
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public int addTranslatedAbstract(AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract){
+		return addTranslatedEntry(translatedAbstract.getKey(),"abstract",translatedAbstract.getValue().getContent(), "joshua", "de", "en");
+	}
 }

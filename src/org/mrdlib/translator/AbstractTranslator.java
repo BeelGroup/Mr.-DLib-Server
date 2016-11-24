@@ -51,16 +51,22 @@ public class AbstractTranslator {
 				AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract;
 				try {
 					translatedAbstract = future.get();
-					System.out.println("Document id" + translatedAbstract.getKey());
-					System.out.println("Abstract:");
-					System.out.println(translatedAbstract.getValue().getContent());
-					System.out.println("------------------------------");
+					//System.out.println(i);
+					//System.out.println("Document id" + translatedAbstract.getKey());
+					//System.out.println("Abstract:");
+					//System.out.println(translatedAbstract.getValue().getContent());
+					//System.out.println("------------------------------");
+					int returnValue = con.addTranslatedAbstract(translatedAbstract);
+					if (returnValue<0) {
+						System.out.println(translatedAbstract.getKey());
+					}
 				} catch (InterruptedException | ExecutionException e) {
 
 					e.printStackTrace();
 				}
 
 			}
+			if(i%1000==0)System.out.println("Completed Translating " + i + " documents. At documentId"); 
 		}
 
 	}
