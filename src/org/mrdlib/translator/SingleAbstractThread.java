@@ -24,20 +24,20 @@ public class SingleAbstractThread implements Callable<AbstractMap.SimpleEntry<Lo
 	
 	@Override
 	public SimpleEntry<Long, Abstract> call() throws Exception {
-		String[] germanText = abstractText.split("\\. |\\? |! ");
-		ExecutorService pool = Executors.newFixedThreadPool(4);
-		List<Future<String>> futures = new ArrayList<Future<String>>(10);
-		for(int i = 0; i<germanText.length; i++){
-			futures.add(pool.submit(new SendPacket(germanText[i])));
-		}
+		//String[] germanText = abstractText.split("\\. |\\? |! ");
+		ExecutorService pool = Executors.newSingleThreadExecutor();
+		Future<String> future = pool.submit(new SendPacket(abstractText));
 		
-		List<String> translatedAbstract = new ArrayList<>();
-		for (Future<String> future : futures) {
-			String result = future.get();
-			translatedAbstract.add(result); 
-		}
 		
-		return new SimpleEntry<Long,Abstract>(documentId, new Abstract(String.join(". ", translatedAbstract),"de"));
+		//List<String> translatedAbstract = new ArrayList<>();
+		String result = (String) future.get();
+		/*for (Future<String> future : futures) {
+			//System.out.println("Waiting for line");
+			result = future.get();
+			//translatedAbstract.add(result); 
+		}*/
+		
+		return new SimpleEntry<Long,Abstract>(documentId, new Abstract(result,"de"));
 	}
 
 }

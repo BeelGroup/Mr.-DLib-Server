@@ -41,7 +41,7 @@ public class AbstractTranslator {
 
 		for (int i = 0; i < totalGermanAbstracts; i += 500) {
 			abstracts = con.fillAbstractsList("de", i);
-			ExecutorService pool = Executors.newFixedThreadPool(10);
+			ExecutorService pool = Executors.newFixedThreadPool(20);
 			List<Future<SimpleEntry<Long, Abstract>>> futures = new ArrayList<Future<AbstractMap.SimpleEntry<Long, Abstract>>>(
 					500);
 			for (int k = 0; k < abstracts.size(); k++) {
@@ -50,6 +50,7 @@ public class AbstractTranslator {
 			for (Future<SimpleEntry<Long, Abstract>> future : futures) {
 				AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract;
 				try {
+					//System.out.println("Trying to get " + i);
 					translatedAbstract = future.get();
 					//System.out.println(i);
 					//System.out.println("Document id" + translatedAbstract.getKey());

@@ -3346,7 +3346,7 @@ public class DBConnection {
 			stmt.setString(3,translationTool);
 			stmt.setString(4,sourceLanguage);
 			stmt.setString(5,targetLanguage);
-			stmt.setString(6,replaceHighComma(text).replace("\\", ""));
+			stmt.setString(6,replaceHighComma(text).replaceAll("[^A-Za-z0-9 ]", ""));
 			stmt.executeUpdate();
 			return 1;
 		}catch(SQLException e){

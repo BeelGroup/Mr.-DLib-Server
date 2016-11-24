@@ -14,13 +14,39 @@ import java.io.*;
 public class SendPacket implements Callable<String> {
 	private static final Charset FILE_ENCODING = Charset.forName("UTF-8");
 	private String message;
+	private boolean multiple;
 	private String translatedText;
 
 	public SendPacket(String message) {
 		super();
 		this.message = message;
 	}
+	
+	public SendPacket(String text, boolean multiple){
+		this.multiple = multiple;
+		this.message = text;
+	}
+	
+	private ArrayList<String> sendMultiple(String[] germanText) throws UnknownHostException, IOException {
+		Socket socket = null;
+		socket = new Socket("localhost", 5674);
+		OutputStream os = socket.getOutputStream();
 
+		for(String message: germanText){
+			os.write((message + "\n").getBytes());
+			os.flush();
+		}
+		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), FILE_ENCODING));
+		ArrayList<String> translatedText = new ArrayList<String>(germanText.length);
+		for(int i = 0; i < germanText.length; i++){
+			translatedText.add((String) reader.readLine());
+		}
+		os.close();
+		reader.close();
+		socket.close();
+		return translatedText;
+	}
+	
 	public String send(String msg) throws Exception {
 
 		Socket socket = null;
@@ -33,7 +59,7 @@ public class SendPacket implements Callable<String> {
 		os.write((msg + "\n").getBytes());
 		os.flush();
 
-		// System.out.println("Flushed");
+		 //System.out.println("Flushed");
 		// System.out.println(msg + "\n");
 
 		// System.out.println("Got input stream");
@@ -41,7 +67,7 @@ public class SendPacket implements Callable<String> {
 			System.out.println("socket is closed");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), FILE_ENCODING));
 
-		// System.out.println("Got object input stream");
+		 //System.out.println("Got object input stream");
 		// read the server response message
 		String message = (String) reader.readLine();
 
@@ -109,7 +135,14 @@ public class SendPacket implements Callable<String> {
 	public String call() {
 
 		try {
-			return send(message);
+			if(this.multiple){
+				String[] germanText = message.split("\\. |\\? |! ");
+				ArrayList<String> translatedText = sendMultiple(germanText);
+				return String.join(". ", translatedText);
+			}
+			else{
+				return send(message);
+			}
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -117,6 +150,8 @@ public class SendPacket implements Callable<String> {
 		}
 
 	}
+
+	
 
 	public String getTranslatedText() {
 		return translatedText;
