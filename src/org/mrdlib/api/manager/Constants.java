@@ -178,23 +178,23 @@ public class Constants {
 	private String cbfFeatureCount;
 	private String cbfFields;
 	private String cbfNgramType;
-	
-	//db table z_recommendation_algorithms__details_stereotype
+
+	// db table z_recommendation_algorithms__details_stereotype
 	private String stereotypeRecommendationDetailsId;
 	private String stereotypeCategoryInStereotypeDetails;
 
-	//db table z_recommendation_algorithms__details_most_popular
+	// db table z_recommendation_algorithms__details_most_popular
 	private String mostPopularRecommendationDetailsId;
 	private String mostPopularCategoryInMostPopularDetails;
-	
-	//db table z_recommendation_algorithms_reranking_bibliometrics
+
+	// db table z_recommendation_algorithms_reranking_bibliometrics
 	private String algorithmRerankingBibliometricsId;
 	private String numberOfCandidatesToRerank;
 	private String rerankingOrder;
 	private String bibliometricIdInAlgorithmRerankingBibliometrics;
 	private String rerankingCombindation;
-	
-	//db table z_bibliometrics
+
+	// db table z_bibliometrics
 	private String bibliometricId;
 	private String metric;
 	private String dataType;
@@ -258,7 +258,7 @@ public class Constants {
 			this.recommendationAlgorithm = prop.getProperty("recommendationAlgorithm");
 			this.keyphrases = prop.getProperty("keyphrases");
 			this.cbfDetails = prop.getProperty("cbfDetails");
-			this.stereotypeRecommendationDetails =  prop.getProperty("stereotypeRecommendationDetails");
+			this.stereotypeRecommendationDetails = prop.getProperty("stereotypeRecommendationDetails");
 			this.mostPopularRecommendationDetails = prop.getProperty("mostPopularRecommendationDetails");
 			this.algorithmRerankingBibliometrics = prop.getProperty("algorithmRerankingBibliometrics");
 			this.bibliometrics = prop.getProperty("bibliometrics");
@@ -291,7 +291,7 @@ public class Constants {
 			this.rankDelivered = prop.getProperty("rankDelivered");
 			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
 			this.finalRankingScore = prop.getProperty("finalRankingScore");
-			
+
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
 			this.loggingIdInRecommendationSets = prop.getProperty("loggingIdInRecommendationSets");
 			this.numberOfReturnedResults = prop.getProperty("numberOfReturnedResults");
@@ -312,11 +312,11 @@ public class Constants {
 			this.personIdInBibliometricPers = prop.getProperty("personIdInBibliometricPers");
 			this.bibliometricIdInBibliometricPers = prop.getProperty("bibliometricIdInBibliometricPers");
 			this.metricValuePers = prop.getProperty("metricValuePers");
-			
+
 			this.bibliometricDocumentsId = prop.getProperty("bibliometricDocumentsId");
 			this.documentIdInBibliometricDoc = prop.getProperty("documentIdInBibliometricDoc");
 			this.metricValue = prop.getProperty("metricValue");
-			
+
 			this.bibliometricId = prop.getProperty("bibliometricId");
 			this.dataType = prop.getProperty("dataType");
 			this.dataSource = prop.getProperty("dataSource");
@@ -389,15 +389,16 @@ public class Constants {
 
 			this.mostPopularCategoryInMostPopularDetails = prop.getProperty("mostPopularCategoryInMostPopularDetails");
 			this.mostPopularRecommendationDetailsId = prop.getProperty("mostPopularRecommendationDetailsId");
-			
+
 			this.sourceInKeyphrases = prop.getProperty("sourceInKeyphrases");
 			this.gramity = prop.getProperty("gramity");
 			this.documentIdInKeyphrases = prop.getProperty("documentIdInKeyphrases");
-			
+
 			this.algorithmRerankingBibliometricsId = prop.getProperty("algorithmRerankingBibliometricsId");
 			this.numberOfCandidatesToRerank = prop.getProperty("numberOfCandidatesToRerank");
 			this.rerankingOrder = prop.getProperty("rerankingOrder");
-			this.bibliometricIdInAlgorithmRerankingBibliometrics = prop.getProperty("bibliometricIdInAlgorithmRerankingBibliometrics");
+			this.bibliometricIdInAlgorithmRerankingBibliometrics = prop
+					.getProperty("bibliometricIdInAlgorithmRerankingBibliometrics");
 			this.rerankingCombindation = prop.getProperty("rerankingCombindation");
 
 			this.solrWebService = prop.getProperty("solrWebService");
@@ -431,7 +432,7 @@ public class Constants {
 			}
 		}
 	}
-	
+
 	public String getBibliometrics() {
 		return bibliometrics;
 	}
@@ -507,7 +508,7 @@ public class Constants {
 	public String getPersonIdInBibliometricPers() {
 		return personIdInBibliometricPers;
 	}
-	
+
 	public String getBibliometricIdInBibliometricPers() {
 		return bibliometricIdInBibliometricPers;
 	}

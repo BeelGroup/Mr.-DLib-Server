@@ -26,6 +26,7 @@ import org.mrdlib.recommendation.ranking.ApplyRanking;
  * 
  *         This class is called by Tomcat and the start of the webapp
  */
+// yxc get the name here
 @Path("documents/{documentId : [a-zA-Z0-9-_.,]+}")
 // set Path and allow numbers, letters and -_., Save Path as document_id
 public class DocumentService {
@@ -39,11 +40,12 @@ public class DocumentService {
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
 	private ApplyRanking ar = null;
+	// related document generator
 	private RelatedDocuments rdg = null;
 
 	public DocumentService() {
-		//get the time the request came in for statistic
-		//initialize the xml structure
+		// get the time the request came in for statistic
+		// initialize the xml structure
 		requestRecieved = System.currentTimeMillis();
 		constants = new Constants();
 		rootElement = new RootElement();
@@ -72,13 +74,35 @@ public class DocumentService {
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
 		Long timeToUserModel = null;
+		// this is an ugly hack, inconsistent and leads to mistakes. an
+		// identifier like title, mdlid or original id would be better. i do my
+		// very best but if this makes problems: we told you :)
 		try {
+
+			/*
+			 * First we have a look if it is an integer. if the conversion
+			 * fails, e.g. there are some letters in it, we go on and try to get
+			 * an document by its original id. If that fails, we search for the
+			 * title in our database. Later, we can add here the function to do
+			 * a lucene mlt.
+			 */
+			try {
+				Integer.parseInt(documentIdOriginal);
+				requestDocument = con.getDocumentBy(constants.getDocumentId(), documentIdOriginal);
+			} catch (NumberFormatException e) {
+				try {
+					requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
+				} catch (NoEntryException e1) {
+					requestDocument = con.getDocumentBy(constants.getTitle(), documentIdOriginal);
+				}
+			}
+
 			// get the requested document from the database
-			requestDocument = con.getDocumentBy(constants.getIdOriginal(), documentIdOriginal);
+
 			// get all related documents from solr
 			Boolean validAlgorithmFlag = false;
 			int numberOfAttempts = 0;
-			
+
 			// Retry while algorithm is not valid, and we still have retries
 			// left
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
@@ -88,7 +112,7 @@ public class DocumentService {
 					timeToUserModel = timeToPickAlgorithm;
 					System.out.println(rdg.algorithmLoggingInfo.getName());
 					documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getNumberOfCandidatesToReRank());
-					
+
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
@@ -108,19 +132,21 @@ public class DocumentService {
 				documentset = rdg.getRelatedDocumentSet(requestDocument, ar.getNumberOfCandidatesToReRank());
 			}
 			Long timeAfterExecution = System.currentTimeMillis();
-			documentset.setAfterAlgorithmExecutionTime(timeAfterExecution-timeToUserModel);
-			documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm-requestRecieved);
-			documentset.setAfterUserModelTime(timeToUserModel-timeToPickAlgorithm);
+			documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
+			documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
+			documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
 			documentset.setAlgorithmDetails(rdg.getAlgorithmLoggingInfo());
-			
+
 			documentset = ar.selectRandomRanking(documentset);
-			documentset.setAfterRerankTime(System.currentTimeMillis()-timeAfterExecution);
+			documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
 			documentset.setRankDelivered();
 			documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
 			documentset.setStartTime(requestRecieved);
+
+		} catch (NoEntryException e1) {
 			// if there is no such document in the database
-		} catch (NoEntryException e) {
-			statusReportSet.addStatusReport(e.getStatusReport());
+			statusReportSet.addStatusReport(e1.getStatusReport());
+
 			// if retry limit has been reached and no related documents still
 			// have been extracted
 		} catch (NoRelatedDocumentsException e) {
@@ -138,7 +164,7 @@ public class DocumentService {
 		rootElement.setStatusReportSet(statusReportSet);
 
 		try {
-			//log all the statistic about this execution
+			// log all the statistic about this execution
 			documentset = con.logRecommendationDeliveryNew(requestDocument.getDocumentId(), rootElement);
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
@@ -158,19 +184,19 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
-		
-		if(statusReportSet.getSize() > 1)
+
+		if (statusReportSet.getSize() > 1)
 			statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
-		
-		if(!constants.getDebugModeOn()) {
+
+		if (!constants.getDebugModeOn()) {
 			DisplayDocument current = null;
 			rootElement.getDocumentSet().setDebugDetailsPerSet(null);
-			for(int i = 0; i < documentset.getSize(); i++) {
+			for (int i = 0; i < documentset.getSize(); i++) {
 				current = rootElement.getDocumentSet().getDisplayDocument(i);
 				current.setDebugDetails(null);
 			}
 		}
-		
+
 		return rootElement;
 	}
 
