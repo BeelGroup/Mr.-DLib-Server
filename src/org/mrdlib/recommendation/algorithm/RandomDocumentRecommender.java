@@ -53,10 +53,10 @@ public class RandomDocumentRecommender extends RelatedDocumentsMLT {
 		} catch (Exception e) {
 			// e.printStackTrace();
 			throw e;
-		} finally {
-			if (scon != null)
-				scon.close();
-		}
+		} /*finally {
+		if (scon != null)
+		scon.close();
+}*/
 	}
 
 }

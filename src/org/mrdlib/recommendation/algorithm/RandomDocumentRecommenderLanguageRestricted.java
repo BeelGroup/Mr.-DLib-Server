@@ -51,10 +51,10 @@ public class RandomDocumentRecommenderLanguageRestricted extends RandomDocumentR
 			return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, true, seed);
 		} catch (Exception e) {
 			throw e;
-		} finally {
-			if (scon != null)
-				scon.close();
-		}
+		} /*finally {
+		if (scon != null)
+		scon.close();
+}*/
 	}
 
 }

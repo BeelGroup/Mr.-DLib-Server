@@ -41,14 +41,14 @@ public class solrConnection {
 	/**
 	 * close a solr connection
 	 */
-	protected void finalize() throws Throwable {
+	/*protected void finalize() throws Throwable {
 		solr.close();
 		super.finalize();
 	}
 
 	public void close() throws IOException {
 		solr.close();
-	}
+	}*/
 
 	/**
 	 * 

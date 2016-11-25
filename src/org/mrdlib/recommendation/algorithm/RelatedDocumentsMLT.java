@@ -65,10 +65,10 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
-		} finally {
+		} /*finally {
 			if (scon != null)
 				scon.close();
-		}
+		}*/
 	}
 
 }
