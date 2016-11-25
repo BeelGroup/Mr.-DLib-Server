@@ -229,10 +229,9 @@ public class DocumentSet {
 	 */
 	public DocumentSet shuffle() {
 		Collections.shuffle(this.getDocumentList());
-		this.setRankDelivered();
 		this.setShuffled(true);
+		this.setRankAfterShuffling();
 		return this;
-
 	}
 
 	/**

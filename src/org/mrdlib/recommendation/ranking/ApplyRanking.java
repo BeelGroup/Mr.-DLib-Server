@@ -28,8 +28,9 @@ public class ApplyRanking {
 	private int rndWeight;
 	private int rndRank;
 	private int numberOfCandidatesToReRank;
-	//private int rndDisplayNumber;
+	// private int rndDisplayNumber;
 	private int rndOrder;
+	private int rndShuffling;
 
 	/**
 	 * 
@@ -44,7 +45,7 @@ public class ApplyRanking {
 
 		Random random = new Random();
 		// random number for the number of displayed recommendations
-		//rndDisplayNumber = random.nextInt(15) + 1;
+		// rndDisplayNumber = random.nextInt(15) + 1;
 
 		// random number for the number of considered results from the algorithm
 		rndNumberOfCandidatesToReRank = random.nextInt(7) + 1;
@@ -101,16 +102,19 @@ public class ApplyRanking {
 		Random random = new Random();
 		int displayNumber = 6;
 
-		//if (rndDisplayNumber > numberOfCandidatesToReRank) {
-			//rndDisplayNumber = random.nextInt(10) + 1;
-		//}
+		rndShuffling = random.nextInt(2) + 1;
+
+		// if (rndDisplayNumber > numberOfCandidatesToReRank) {
+		// rndDisplayNumber = random.nextInt(10) + 1;
+		// }
 
 		documentSet.setDesiredNumberFromAlgorithm(displayNumber);
-		
-		// if the algorithm does not provide enough results, fall back on a pre picked size
+
+		// if the algorithm does not provide enough results, fall back on a pre
+		// picked size
 		if (documentSet.getSize() < numberOfCandidatesToReRank)
 			numberOfCandidatesToReRank = getNextTinierAlgorithmRows(documentSet.getSize());
-		
+
 		// CHANGED THIS HERE BECAUSE FOR STEREOTYPE RECOMMENDATIONS, WE CAN ONLY
 		// GET AROUND 60 recommendations maximum
 
@@ -138,20 +142,17 @@ public class ApplyRanking {
 						"mendeley");
 				break;
 			case 4:
-				documentSet = getAltmetric(documentSet, "sum_of_authors", "readers",
-						"mendeley");
+				documentSet = getAltmetric(documentSet, "sum_of_authors", "readers", "mendeley");
 				break;
 			case 5:
 				documentSet = getAltmetric(documentSet, "sum_of_authors_normalized_by_number_of_authors", "readers",
 						"mendeley");
 				break;
 			case 6:
-				documentSet = getAltmetric(documentSet, "sum_of_h-index", "readers",
-						"mendeley");
+				documentSet = getAltmetric(documentSet, "sum_of_h-index", "readers", "mendeley");
 				break;
 			case 7:
-				documentSet = getAltmetric(documentSet, "h-index_average", "readers",
-						"mendeley");
+				documentSet = getAltmetric(documentSet, "h-index_average", "readers", "mendeley");
 				break;
 			default:
 				documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
@@ -194,7 +195,12 @@ public class ApplyRanking {
 		if (documentSet.getSize() > displayNumber)
 			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, displayNumber));
 
-		return documentSet.setRankAfterReRanking();
+		documentSet.setRankAfterReRanking();
+		
+		if (rndShuffling == 1) 
+			documentSet.shuffle();
+
+		return documentSet;
 	}
 
 	/**
