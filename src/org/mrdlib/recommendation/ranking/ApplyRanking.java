@@ -28,7 +28,7 @@ public class ApplyRanking {
 	private int rndWeight;
 	private int rndRank;
 	private int numberOfCandidatesToReRank;
-	private int rndDisplayNumber;
+	//private int rndDisplayNumber;
 	private int rndOrder;
 
 	/**
@@ -44,16 +44,16 @@ public class ApplyRanking {
 
 		Random random = new Random();
 		// random number for the number of displayed recommendations
-		rndDisplayNumber = random.nextInt(15) + 1;
+		//rndDisplayNumber = random.nextInt(15) + 1;
 
 		// random number for the number of considered results from the algorithm
 		rndNumberOfCandidatesToReRank = random.nextInt(7) + 1;
 
 		rndWeight = random.nextInt(5) + 1;
 		// random number for the chosen metric
-		rndRank = random.nextInt(3) + 1;
+		rndRank = random.nextInt(7) + 1;
 		// random number asc or desc sorting
-		rndOrder = random.nextInt(2) + 1;
+		rndOrder = random.nextInt(10) + 1;
 
 		// choose a number of considered results from the algorithm
 		switch (rndNumberOfCandidatesToReRank) {
@@ -99,12 +99,13 @@ public class ApplyRanking {
 	 */
 	public DocumentSet selectRandomRanking(DocumentSet documentSet) throws Exception {
 		Random random = new Random();
+		int displayNumber = 6;
 
-		if (rndDisplayNumber > numberOfCandidatesToReRank) {
-			rndDisplayNumber = random.nextInt(10) + 1;
-		}
+		//if (rndDisplayNumber > numberOfCandidatesToReRank) {
+			//rndDisplayNumber = random.nextInt(10) + 1;
+		//}
 
-		documentSet.setDesiredNumberFromAlgorithm(rndDisplayNumber);
+		documentSet.setDesiredNumberFromAlgorithm(displayNumber);
 		
 		// if the algorithm does not provide enough results, fall back on a pre picked size
 		if (documentSet.getSize() < numberOfCandidatesToReRank)
@@ -136,6 +137,22 @@ public class ApplyRanking {
 				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "readers",
 						"mendeley");
 				break;
+			case 4:
+				documentSet = getAltmetric(documentSet, "sum_of_authors", "readers",
+						"mendeley");
+				break;
+			case 5:
+				documentSet = getAltmetric(documentSet, "sum_of_authors_normalized_by_number_of_authors", "readers",
+						"mendeley");
+				break;
+			case 6:
+				documentSet = getAltmetric(documentSet, "sum_of_h-index", "readers",
+						"mendeley");
+				break;
+			case 7:
+				documentSet = getAltmetric(documentSet, "h-index_average", "readers",
+						"mendeley");
+				break;
 			default:
 				documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
 				break;
@@ -164,25 +181,18 @@ public class ApplyRanking {
 			break;
 		}
 
-		// choose an ordering
-		switch (rndOrder) {
-		case 1:
-			documentSet.sortDescForFinalValue();
-			break;
-		case 2:
+		// choose an ordering with 80% Desc, 20% Asc
+		if (rndOrder > 8)
 			documentSet.sortAscForFinalValue();
-			break;
-		default:
+		else
 			documentSet.sortDescForFinalValue();
-			break;
-		}
 
 		// find out how much of the documents have a alt/bibliometric
 		documentSet.calculatePercentageRankingValue();
 
 		// cut the list to the number we want to display
-		if (documentSet.getSize() > rndDisplayNumber)
-			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, rndDisplayNumber));
+		if (documentSet.getSize() > displayNumber)
+			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, displayNumber));
 
 		return documentSet.setRankAfterReRanking();
 	}
