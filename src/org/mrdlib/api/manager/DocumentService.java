@@ -74,9 +74,7 @@ public class DocumentService {
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
 		Long timeToUserModel = null;
-		// this is an ugly hack, inconsistent and leads to mistakes. an
-		// identifier like title, mdlid or original id would be better. i do my
-		// very best but if this makes problems: we told you :)
+		// could lead to inconsistency. Identifyer would be better
 		try {
 
 			/*
