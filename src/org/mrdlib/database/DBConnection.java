@@ -34,6 +34,7 @@ import org.mrdlib.partnerContentManager.gesis.Abstract;
 import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
+import org.mrdlib.translator.SendPacket;
 import org.mrdlib.partnerContentManager.core.*;
 
 /**
@@ -3303,6 +3304,70 @@ public class DBConnection {
 		}
 		return 0;
 	}
+	
+	 public long getNumberOfTitlesInLanguage(String language) {
+	        Statement stmt = null;
+	        ResultSet rs = null;
+	        String query = "SELECT COUNT(*) FROM " + this.constants.getDocuments() + " WHERE `" + this.constants.getLanguage() + "`='" + language + "'";
+	        try {
+	            stmt = this.con.createStatement();
+	            rs = stmt.executeQuery(query);
+	            if (rs.next()) {
+	                System.out.println(rs.getInt(1));
+	                long l = rs.getInt(1);
+	                return l;
+	            }
+	        }
+	        catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        finally {
+	            try {
+	                if (stmt != null) {
+	                    stmt.close();
+	                }
+	                if (rs != null) {
+	                    rs.close();
+	                }
+	            }
+	            catch (SQLException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	        return 0;
+	    }
+
+	    public long getNumberOfKeywordsInLanguage(String language) {
+	        Statement stmt = null;
+	        ResultSet rs = null;
+	        String query = "SELECT COUNT(*) FROM " + this.constants.getDocuments() + " WHERE `" + this.constants.getLanguage() + "`='" + language + "'" + " AND " + this.constants.getKeywords() + " != ''";
+	        try {
+	            stmt = this.con.createStatement();
+	            rs = stmt.executeQuery(query);
+	            if (rs.next()) {
+	                System.out.println(rs.getInt(1));
+	                long l = rs.getInt(1);
+	                return l;
+	            }
+	        }
+	        catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        finally {
+	            try {
+	                if (stmt != null) {
+	                    stmt.close();
+	                }
+	                if (rs != null) {
+	                    rs.close();
+	                }
+	            }
+	            catch (SQLException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	        return 0;
+	    }
 
 	public List<SimpleEntry<Long, Abstract>> fillAbstractsList(String language, long offset) {
 		Statement stmt = null;
@@ -3370,4 +3435,109 @@ public class DBConnection {
 		return addTranslatedEntry(translatedAbstract.getKey(), "abstract", translatedAbstract.getValue().getContent(),
 				"joshua", "de", "en");
 	}
+	
+	public List<String> getTitlesInBatches(int start, int batchsize) {
+        ArrayList<String> documentDataList;
+        documentDataList = new ArrayList<String>();
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            try {
+                stmt = this.con.createStatement();
+                String query = "SELECT " + this.constants.getDocumentId() + "," + this.constants.getTitle() + " FROM " + this.constants.getDocuments() + " WHERE " + this.constants.getLanguage() + " = 'de' " + " AND " + this.constants.getTitle() + " != ''" + " LIMIT " + (start + batchsize);
+                rs = stmt.executeQuery(query);
+                while (rs.next()) {
+                    String documentId = rs.getString(this.constants.getDocumentId());
+                    String title = rs.getString(this.constants.getTitle());
+                    SendPacket originalKeywords = new SendPacket(title);
+                    String translatedTitle = originalKeywords.send(title);
+                    this.addTranslatedEntry(Long.valueOf(documentId), "title", translatedTitle, "joshua", "de", "en");
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                    if (rs != null) {
+                        rs.close();
+                    }
+                }
+                catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+        finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return documentDataList;
+    }
+
+    public List<String> getKeywordsInBatches(int start, int batchsize) {
+        ArrayList<String> documentDataList;
+        documentDataList = new ArrayList<String>();
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            try {
+                stmt = this.con.createStatement();
+                String query = "SELECT " + this.constants.getDocumentId() + "," + this.constants.getKeywords() + " FROM " + this.constants.getDocuments() + " WHERE " + this.constants.getLanguage() + " = 'de' " + " AND " + this.constants.getKeywords() + " != ''" + " LIMIT " + (start + batchsize);
+                rs = stmt.executeQuery(query);
+                while (rs.next()) {
+                    String documentId = rs.getString(this.constants.getDocumentId());
+                    String keywordsArray = rs.getString(this.constants.getKeywords());
+                    String[] splitKeywords = keywordsArray.trim().split(",");
+                    ArrayList<String> translatedKeywords = new ArrayList<String>();
+                    int i = 0;
+                    while (i < splitKeywords.length) {
+                        SendPacket originalKeywords = new SendPacket(splitKeywords[i]);
+                        translatedKeywords.add(originalKeywords.send(splitKeywords[i]));
+                        ++i;
+                    }
+                    String listString = String.join((CharSequence)", ", translatedKeywords);
+                    this.addTranslatedEntry(Long.valueOf(documentId), "keywords", listString, "joshua", "de", "en");
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                    if (rs != null) {
+                        rs.close();
+                    }
+                }
+                catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+        finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return documentDataList;
+    }
 }
