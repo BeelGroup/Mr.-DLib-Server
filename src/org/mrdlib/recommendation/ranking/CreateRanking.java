@@ -1,12 +1,19 @@
 package org.mrdlib.recommendation.ranking;
 
+import java.io.FileReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
@@ -295,9 +302,40 @@ public class CreateRanking {
 		return cleanTitle;
 	}
 
+	public void createCitationsForGesis(Path path) {
+		JSONParser parser = new JSONParser();
+
+		try {
+			// get the file to parse
+			Object obj = parser.parse(new FileReader(path.toString()));
+
+			// get the json object from the file
+			JSONObject jsonObject = (JSONObject) obj;
+			jsonObject = (JSONObject) jsonObject.get("response");
+			JSONArray arr = (JSONArray) jsonObject.get("docs");
+
+			Iterator i = arr.iterator();
+
+			while (i.hasNext()) {
+				jsonObject = (JSONObject) i.next();
+				int citation = (int) (long) jsonObject.get("citation_count_int");
+				String gesisId = (String) jsonObject.get("id");
+
+				String id = con.getDocumentBy(constants.getIdOriginal(), gesisId).getDocumentId();
+
+				con.writeBibliometricsInDatabase(id, "simple_count", "citations", citation, "gesis");
+			}
+
+		} catch (Exception e) {
+			System.out.println(path.toString());
+			e.printStackTrace();
+		}
+
+	}
+
 	public static void main(String[] args) {
 		CreateRanking cr = new CreateRanking();
-		cr.createHIndexByAuthor();
+		cr.createCitationsForGesis(Paths.get("citation.json"));
 	}
 
 }
