@@ -1,6 +1,6 @@
 package org.mrdlib.recommendation.framework;
 
-import java.io.IOException;
+import java.net.URLEncoder;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -41,14 +41,12 @@ public class solrConnection {
 	/**
 	 * close a solr connection
 	 */
-	/*protected void finalize() throws Throwable {
-		solr.close();
-		super.finalize();
-	}
-
-	public void close() throws IOException {
-		solr.close();
-	}*/
+	/*
+	 * protected void finalize() throws Throwable { solr.close();
+	 * super.finalize(); }
+	 * 
+	 * public void close() throws IOException { solr.close(); }
+	 */
 
 	/**
 	 * 
@@ -117,8 +115,8 @@ public class solrConnection {
 					relDocument.setSuggestedRank(i + 1);
 
 					// add the solrScore
-					relDocument
-							.setRelevanceScoreFromAlgorithm(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+					relDocument.setRelevanceScoreFromAlgorithm(
+							Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
@@ -171,7 +169,7 @@ public class solrConnection {
 		case "bitri":
 			return bi + "," + tri;
 		default:
-			return String.format(template, type+"s");
+			return String.format(template, type + "s");
 
 		}
 	}
@@ -246,8 +244,8 @@ public class solrConnection {
 					relDocument.setSuggestedRank(i + 1);
 
 					// add the solrScore
-					relDocument
-							.setRelevanceScoreFromAlgorithm(Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+					relDocument.setRelevanceScoreFromAlgorithm(
+							Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
@@ -269,4 +267,95 @@ public class solrConnection {
 		}
 		return relatedDocuments;
 	}
+
+	public DocumentSet getDocumentsFromSolrByQuery(DisplayDocument requestedDocument, int delimitedRows,
+			AlgorithmDetails logginginfo) throws Exception {
+		System.out.println("reached solr connection class and im in method getDocumentsFromSolrByQuery");
+		String title = requestedDocument.getTitle();
+		DocumentSet relatedDocuments = new DocumentSet(constants);
+		SolrQuery query = new SolrQuery();
+		QueryResponse response = null;
+		DisplayDocument oneRelatedDocument = new DisplayDocument(constants);
+		query.setRequestHandler("/select");
+		String fallback_url = "";
+
+		// get related documents for the given document title
+		query.set("q", "title:" + "\"" + title + "\"");
+		System.out.println("set query with title: " + title);
+
+		// return only "delimitedRows" much
+		query.setRows(delimitedRows);
+		System.out.println("max rows are: " + delimitedRows);
+
+		// if rec_approach is Keyphrases: override default mlt.fl
+		if (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases")) {
+			System.out.println("if with RelatedDocumentsFromSolrWithKeyphrases");
+			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getCbfFeatureType(),
+					logginginfo.getCbfFeatureCount());
+			query.setParam("mlt.fl", similarityParams);
+			query.setParam("mlt.df", "2");
+		}
+
+		// set display params
+		query.setParam("fl", "score,id");
+
+		try {
+			System.out.println("try to get the response from solr! The query looks like: " + query);
+			response = solr.query(query);
+			System.out.println("response seems to be: " + response.toString());
+			SolrDocumentList docs = response.getResults();
+			System.out.println("Query Time: " + Integer.toString(response.getQTime()));
+
+			// no related documents found
+			if (docs.isEmpty()) {
+				System.out.println("docs.isEmpty() is true");
+				throw new NoRelatedDocumentsException("query was performed by title: " + title,
+						"query was performed by title: " + title);
+			} else {
+				System.out.println("docs.isEmpty() is false");
+				long timeNow = System.currentTimeMillis();
+				relatedDocuments.setSuggested_label("Related Articles");
+				relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
+				// for each document add it to documentSet
+				for (int i = 0; i < docs.size(); i++) {
+					// get the document
+					oneRelatedDocument = con.getDocumentBy(constants.getDocumentId(),
+							docs.get(i).getFieldValue(constants.getDocumentId()).toString());
+
+					// add the rank
+					oneRelatedDocument.setSuggestedRank(i + 1);
+
+					// add the solrScore
+					oneRelatedDocument.setRelevanceScoreFromAlgorithm(
+							Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
+
+					// set gesis specific link
+					if (oneRelatedDocument.getCollectionShortName().equals(constants.getGesis()))
+						fallback_url = constants.getGesisCollectionLink()
+								.concat(oneRelatedDocument.getOriginalDocumentId());
+					else {
+						String titleAsUrl = URLEncoder.encode(title, "UTF-8");
+						fallback_url = "https://scholar.google.com/scholar?q=" + titleAsUrl;
+						System.out.println("the fallback url is: " + fallback_url);
+					}
+
+					oneRelatedDocument.setFallbackUrl(fallback_url);
+					oneRelatedDocument.setClickUrl(fallback_url);
+
+					// add it to the collection
+					relatedDocuments.addDocument(oneRelatedDocument);
+					System.out.println("added the related document with title: " + oneRelatedDocument.getTitle());
+				}
+				System.out.printf("Time for adding docs to list\t");
+				System.out.println(System.currentTimeMillis() - timeNow);
+			}
+		} catch (Exception e) {
+			System.out.println("test: " + e.getStackTrace());
+			e.printStackTrace();
+			throw e;
+		}
+
+		return relatedDocuments;
+	}
+
 }

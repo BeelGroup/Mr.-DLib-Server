@@ -76,7 +76,7 @@ public class RecommenderFactory {
 
 	/***
 	 * Initializes a new recommender object according to the probabilities
-	 * described in the probabilities.properties file Uses the details of the
+	 * described in the probabilities.properties file. Uses the details of the
 	 * document for which we are recommending to choose randomly from a valid
 	 * subset of recommender objects
 	 * 
@@ -87,8 +87,14 @@ public class RecommenderFactory {
 	 * @return A <code>RelatedDocuments</code> recommender object
 	 * @throws Exception
 	 */
-	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument) throws Exception {
+	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument,
+			Boolean requestByTitle) throws Exception {
 
+		System.out.println("reached getRandomRDG");
+		if (requestByTitle) {
+			System.out.println("will now return a RelatedDocumentsQuery");
+			return new RelatedDocumentsQuery(con);
+		}
 		// Load probabilities from the config file
 		Random random = new Random();
 		Probabilities probs = new Probabilities();
@@ -101,16 +107,14 @@ public class RecommenderFactory {
 		// draw a random number
 		int randomRecommendationApproach = random.nextInt(10000);
 
+		// what the hell is this doing?
 		try {
-			if (randomRecommendationApproach < cumulative) // CASE: Completely
-															// random
+			// CASE: Completely random
+			if (randomRecommendationApproach < cumulative)
 				rdg = new RandomDocumentRecommender(con);
 			else {
-				cumulative += probs.getRandomDocumentRecommenderLanguageRestricted(); // CASE:
-																						// Random
-																						// with
-																						// lang
-																						// restriction
+				// CASE: Random with lang restriction
+				cumulative += probs.getRandomDocumentRecommenderLanguageRestricted();
 				if (randomRecommendationApproach < cumulative)
 					rdg = new RandomDocumentRecommenderLanguageRestricted(con);
 				else {
@@ -167,7 +171,7 @@ public class RecommenderFactory {
 			}
 			throw new UnknownException(e, true);
 		}
-		//return new MostPopularRecommender(con);
+
 		return rdg;
 	}
 }

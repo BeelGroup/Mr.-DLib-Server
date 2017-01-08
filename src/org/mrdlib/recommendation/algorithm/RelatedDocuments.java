@@ -10,9 +10,9 @@ import org.mrdlib.api.response.DocumentSet;
  */
 public abstract class RelatedDocuments {
 	/**
-	 * Class holding necessary information for correct algorithm logging
-	 * Fields roughly correspond to columns in recommendation_algorithms table
-	 * of database
+	 * Class holding necessary information for correct algorithm logging Fields
+	 * roughly correspond to columns in recommendation_algorithms table of
+	 * database
 	 */
 	public AlgorithmDetails algorithmLoggingInfo;
 
@@ -24,7 +24,8 @@ public abstract class RelatedDocuments {
 	 *            The DisplayDocument object that holds the details of the
 	 *            documents
 	 * @return A set of related Documents
-	 * @throws Exception if noRelatedDocuments are found or SQLException occurs
+	 * @throws Exception
+	 *             if noRelatedDocuments are found or SQLException occurs
 	 */
 	public abstract DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception;
 
@@ -38,7 +39,8 @@ public abstract class RelatedDocuments {
 	 * @param numberOfRelatedDocs
 	 *            number of documents to be contained in the DocumentSet object
 	 * @return A set of numberOfRelatedDocs DisplayDocuments
-	 * @throws Exception if noRelatedDocuments are found or SQLException occurs
+	 * @throws Exception
+	 *             if noRelatedDocuments are found or SQLException occurs
 	 */
 	public abstract DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs)
 			throws Exception;
@@ -50,5 +52,4 @@ public abstract class RelatedDocuments {
 		return algorithmLoggingInfo;
 	}
 
-	
 }

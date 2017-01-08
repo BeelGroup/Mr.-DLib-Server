@@ -30,11 +30,11 @@ import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.api.response.RootElement;
 import org.mrdlib.api.response.StatusReport;
+import org.mrdlib.partnerContentManager.core.JSONDocument;
 import org.mrdlib.partnerContentManager.gesis.Abstract;
 import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
-import org.mrdlib.partnerContentManager.core.*;
 
 /**
  * 
@@ -123,6 +123,7 @@ public class DBConnection {
 	/**
 	 * close connection
 	 */
+	@Override
 	protected void finalize() throws Throwable {
 		con.close();
 		super.finalize();
@@ -145,6 +146,7 @@ public class DBConnection {
 			DataSource ds = (DataSource) envContext.lookup("jdbc/mrdlib");
 			con = ds.getConnection();
 		} catch (Exception e) {
+			System.out.println("Exception in Database connection via tomcat");
 			if (con == null)
 				System.out.println("No connection");
 			e.printStackTrace();
@@ -164,10 +166,21 @@ public class DBConnection {
 			con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
 					constants.getPassword());
 		} catch (Exception e) {
+			System.out.println("Exception in Database connection via jar");
 			e.printStackTrace();
 		}
 		return con;
 	}
+
+	/**
+	 * Please fill me!
+	 * 
+	 * @param metric
+	 * @param dataType
+	 * @param dataSource
+	 * @return
+	 * @throws Exception
+	 */
 
 	public int getBibId(String metric, String dataType, String dataSource) throws Exception {
 		Statement stmt = null;
@@ -1155,7 +1168,7 @@ public class DBConnection {
 				// for each id obtained, get the complete person and store it in
 				// the list
 				person = getPersonById(rs.getLong(constants.getPersonIDInDocPers()));
-				if(person!=null)
+				if (person != null)
 					persons.add(person);
 			}
 
@@ -1783,15 +1796,19 @@ public class DBConnection {
 	 * } catch (Exception e) { throw e; } finally { try { if (stmt != null)
 	 * stmt.close(); } catch (SQLException e) { e.printStackTrace(); throw e; }
 	 * } return documentset; }
-	 * 
-	 * /** Utility method to easily access the document_id given the
+	 */
+
+	/**
+	 * Utility method to easily access the document_id given the
 	 * recommendation_id from the recommendations table
 	 * 
-	 * @param recommendationId the recommendation_id
+	 * @param recommendationId
+	 *            the recommendation_id
 	 * 
 	 * @return
 	 * 
-	 * @throws Exception if SQL errors occur
+	 * @throws Exception
+	 *             if SQL errors occur
 	 */
 	public String getDocIdFromRecommendation(String recommendationId) throws Exception {
 		String docId = "dummy";
@@ -1928,6 +1945,12 @@ public class DBConnection {
 		return loggingId > 0;
 	}
 
+	/**
+	 * please fill me!
+	 * 
+	 * @param recommendationId
+	 * @return
+	 */
 	private int updateClicksInRecommendationSet(String recommendationId) {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1948,7 +1971,7 @@ public class DBConnection {
 			query = "SELECT click_count, " + constants.getDeliveredRecommendations() + " FROM "
 					+ constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId() + " = "
 					+ recommendationSetId;
-			//System.out.println(query);
+			// System.out.println(query);
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
@@ -1983,6 +2006,12 @@ public class DBConnection {
 
 	}
 
+	/**
+	 * PLease fill me!
+	 * 
+	 * @param recommendationId
+	 * @return
+	 */
 	private int getRecommendationSetIdFromRecommendationId(String recommendationId) {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2483,7 +2512,7 @@ public class DBConnection {
 				query += "='" + algorithmLoggingInfo.getCategory() + "'";
 			}
 			query += " ORDER BY RAND()";
-			//System.out.println(query);
+			// System.out.println(query);
 			rs = stmt.executeQuery(query);
 			DocumentSet documentSet = new DocumentSet(constants);
 			documentSet.setSuggested_label("Related Articles");
@@ -2696,6 +2725,14 @@ public class DBConnection {
 
 	}
 
+	/**
+	 * Please fill me!
+	 * 
+	 * @param documentId
+	 * @param rootElement
+	 * @return
+	 * @throws Exception
+	 */
 	public DocumentSet logRecommendationDeliveryNew(String documentId, RootElement rootElement) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -2732,7 +2769,7 @@ public class DBConnection {
 					+ documentset.getAfterUserModelTime() + "', '" + documentset.getAfterAlgorithmExecutionTime()
 					+ "', '" + documentset.getAfterRerankTime() + "', '" + accessKeyHash + "');";
 
-			//System.out.println(query);
+			// System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 			stmt.executeUpdate();
 
@@ -2875,7 +2912,7 @@ public class DBConnection {
 						+ ", " + (documentset.isShuffled() ? "'Y'" : "'N'");
 				query += (columns + ") VALUES(" + values + ")");
 
-				//System.out.println(query);
+				// System.out.println(query);
 
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
@@ -2946,7 +2983,7 @@ public class DBConnection {
 			} else
 				stmt.setInt(2, document.getRankAfterShuffling());
 
-			//System.out.println(query);
+			// System.out.println(query);
 			stmt.executeUpdate();
 
 			// get the autogenerated key back
@@ -2969,14 +3006,36 @@ public class DBConnection {
 		return recommendationId;
 	}
 
+	/**
+	 * Please fill me!
+	 * 
+	 * @param recommenderDetails
+	 * @return
+	 * @throws SQLException
+	 */
 	private int getMostPopularId(AlgorithmDetails recommenderDetails) throws SQLException {
 		return getStereotypesId(recommenderDetails, false);
 	}
 
+	/**
+	 * Please fill me!
+	 * 
+	 * @param recommenderDetails
+	 * @return
+	 * @throws SQLException
+	 */
 	private int getStereotypesId(AlgorithmDetails recommenderDetails) throws SQLException {
 		return getStereotypesId(recommenderDetails, true);
 	}
 
+	/**
+	 * Please fill me!
+	 * 
+	 * @param recommenderDetails
+	 * @param stereotypes
+	 * @return
+	 * @throws SQLException
+	 */
 	private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotypes) throws SQLException {
 		int stereotypeId = -1;
 		Statement stmt = null;
@@ -2998,7 +3057,7 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				stereotypeId = rs.getInt(tableRowId);
-				//System.out.println(tableName + ":" + stereotypeId);
+				// System.out.println(tableName + ":" + stereotypeId);
 			} else {
 				if (stmt != null)
 					stmt.close();
@@ -3007,14 +3066,14 @@ public class DBConnection {
 				query = "INSERT INTO " + tableName + "(" + tableCategoryName + ") VALUES('"
 						+ recommenderDetails.getCategory() + "')";
 				stmt = con.createStatement();
-				//System.out.println(query);
+				// System.out.println(query);
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 
 				// get the autogenerated key back
 				rs = stmt.getGeneratedKeys();
 				if (rs.next())
 					stereotypeId = rs.getInt(1);
-				//System.out.println(stereotypeId);
+				// System.out.println(stereotypeId);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -3028,6 +3087,13 @@ public class DBConnection {
 		return stereotypeId;
 	}
 
+	/**
+	 * please fill me!
+	 * 
+	 * @param recommenderDetails
+	 * @return
+	 * @throws SQLException
+	 */
 	private int getCbfId(AlgorithmDetails recommenderDetails) throws SQLException {
 		int cbfId = -1;
 		Statement stmt = null;
@@ -3064,14 +3130,14 @@ public class DBConnection {
 				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
 
 				stmt = con.createStatement();
-				//System.out.println(query);
+				// System.out.println(query);
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 
 				// get the autogenerated key back
 				rs = stmt.getGeneratedKeys();
 				if (rs.next())
 					cbfId = rs.getInt(1);
-				//System.out.println(cbfId);
+				// System.out.println(cbfId);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -3085,6 +3151,13 @@ public class DBConnection {
 		return cbfId;
 	}
 
+	/**
+	 * Please fill me!
+	 * 
+	 * @param documentset
+	 * @return
+	 * @throws Exception
+	 */
 	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
 		String bibliometricIdQueryString = "";
@@ -3125,6 +3198,13 @@ public class DBConnection {
 		return rerankingBibliometricId;
 	}
 
+	/**
+	 * Please fill me!
+	 * 
+	 * @param documentset
+	 * @return
+	 * @throws Exception
+	 */
 	public int logBibReranking(DocumentSet documentset) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -3173,6 +3253,9 @@ public class DBConnection {
 		return rerankingBibliometricId;
 	}
 
+	/**
+	 * please fill me
+	 */
 	public void calculateSumOfAuthors() {
 		Statement stmt = null;
 
@@ -3200,6 +3283,14 @@ public class DBConnection {
 
 	}
 
+	/**
+	 * please fill me
+	 * 
+	 * @param documentId
+	 * @param bibliometricId
+	 * @return
+	 * @throws Exception
+	 */
 	public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -3239,6 +3330,13 @@ public class DBConnection {
 		return document;
 	}
 
+	/**
+	 * please fill me
+	 * 
+	 * @param bibliometricId
+	 * @param authorId
+	 * @return
+	 */
 	public Map<String, Integer> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
 		Map<String, Integer> documentCitations = new HashMap<String, Integer>();
 		Statement stmt = null;
@@ -3275,12 +3373,18 @@ public class DBConnection {
 		return documentCitations;
 	}
 
+	/**
+	 * please fill me
+	 * 
+	 * @param language
+	 * @return
+	 */
 	public long getNumberOfAbstractsInLanguage(String language) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "SELECT COUNT(*) FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
 				+ "`='" + language + "'";
-		//System.out.println(query);
+		// System.out.println(query);
 
 		try {
 			stmt = con.createStatement();
@@ -3304,12 +3408,19 @@ public class DBConnection {
 		return 0;
 	}
 
+	/**
+	 * please fill me
+	 * 
+	 * @param language
+	 * @param offset
+	 * @return
+	 */
 	public List<SimpleEntry<Long, Abstract>> fillAbstractsList(String language, long offset) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
 				+ "`='" + language + "' LIMIT " + offset + ",500";
-		//System.out.println(query);
+		// System.out.println(query);
 		List<SimpleEntry<Long, Abstract>> abstractList = new ArrayList<AbstractMap.SimpleEntry<Long, Abstract>>();
 		try {
 			stmt = con.createStatement();
@@ -3336,6 +3447,17 @@ public class DBConnection {
 		return null;
 	}
 
+	/**
+	 * please fill me
+	 * 
+	 * @param documentId
+	 * @param type
+	 * @param text
+	 * @param translationTool
+	 * @param sourceLanguage
+	 * @param targetLanguage
+	 * @return
+	 */
 	public int addTranslatedEntry(long documentId, String type, String text, String translationTool,
 			String sourceLanguage, String targetLanguage) {
 		PreparedStatement stmt = null;
@@ -3366,6 +3488,12 @@ public class DBConnection {
 		}
 	}
 
+	/**
+	 * please fill me!
+	 * 
+	 * @param translatedAbstract
+	 * @return
+	 */
 	public int addTranslatedAbstract(AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract) {
 		return addTranslatedEntry(translatedAbstract.getKey(), "abstract", translatedAbstract.getValue().getContent(),
 				"joshua", "de", "en");
