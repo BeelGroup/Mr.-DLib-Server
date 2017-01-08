@@ -27,7 +27,7 @@ import org.mrdlib.recommendation.ranking.ApplyRanking;
  *         This class is called by Tomcat and the start of the webapp
  */
 // yxc get the name here
-@Path("documents/{documentId : [a-zA-Z0-9-_.,%]+}")
+@Path("documents/{documentId : [a-zA-Z0-9-_.,%:!?]+}")
 // set Path and allow numbers, letters and -_., Save Path as document_id
 public class DocumentService {
 
@@ -70,7 +70,7 @@ public class DocumentService {
 	 * @return a document set of related documents
 	 */
 	public RootElement getRelatedDocumentSet(@PathParam("documentId") String inputQuery) {
-		System.out.println("started getRelatedDocumentSet with documentIdOriginal: " + inputQuery);
+		System.out.println("started getRelatedDocumentSet with documentI: " + inputQuery);
 		DisplayDocument requestDocument = null;
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
@@ -107,6 +107,7 @@ public class DocumentService {
 						// get the requested document from the database by its
 						// title
 						requestDocument = con.getDocumentBy(constants.getTitle(), inputQuery);
+						System.out.println("The Document is in our Database!");
 					} catch (Exception e2) {
 						System.out.println("it seems there is no document in our database with this title");
 						System.out.println("lets now try if lucene find some documents for us.");

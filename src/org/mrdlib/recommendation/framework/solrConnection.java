@@ -280,8 +280,21 @@ public class solrConnection {
 		String fallback_url = "";
 
 		// get related documents for the given document title
-		query.set("q", "title:" + "\"" + title + "\"");
-		System.out.println("set query with title: " + title);
+		String[] splitedTitle = title.split("\\s+");
+		StringBuffer queryString = new StringBuffer();
+		for (int i = 0; i < splitedTitle.length; i++) {
+			queryString.append("title:" + splitedTitle[i] + " OR ");
+			queryString.append("abstract_en:" + splitedTitle[i] + " OR ");
+			queryString.append("abstract_de:" + splitedTitle[i] + " OR ");
+			queryString.append("keywords:" + splitedTitle[i]);
+			if (i < splitedTitle.length - 1) {
+				queryString.append(" OR ");
+			}
+
+		}
+		System.out.println("set query with= " + queryString.toString());
+		query.set("q", queryString.toString());
+		System.out.println("set query with title: " + queryString.toString());
 
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
