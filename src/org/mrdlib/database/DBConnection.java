@@ -1468,7 +1468,8 @@ public class DBConnection {
 					+ "');";
 
 			stmt = con.prepareStatement(query);
-			stmt.executeUpdate();
+			System.out.println(query);
+			// stmt.executeUpdate();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3283,6 +3284,7 @@ public class DBConnection {
 
 	}
 
+
 	/**
 	 * please fill me
 	 * 
@@ -3291,6 +3293,40 @@ public class DBConnection {
 	 * @return
 	 * @throws Exception
 	 */
+
+	public void writeBibliometricsInDatabase(String id, String metric, String dataType, int value, String dataSource) {
+		Statement stmt = null;
+		int bibId = -1;
+
+		try {
+			bibId = getBibId(metric, dataType, dataSource);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// TODO: make variables
+		String query = "insert INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
+				+ ", bibliometrics_id, " + constants.getMetricValue() + ") VALUES (" + id + ", " + bibId + ", " + value
+				+ ")";
+
+		try {
+			stmt = con.createStatement();
+			stmt.executeUpdate(query);
+
+		} catch (Exception e) {
+			System.out.println(e);
+			System.out.println(query);
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				System.out.println(e);
+			}
+		}
+
+	}
+
+
 	public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
