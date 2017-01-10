@@ -77,10 +77,11 @@ public class MConnection {
 		//get the number of documents for batch processing
 		int numberOfDocuments = con.getBiggestIdFromDocuments();
 
-		//if the process was finished, start new
+		//if the process was finished, stop
 		if (lastSuccessId >= con.getBiggestIdFromDocuments()) {
-			mconfig.writeMendeleyCrawlingProcessToConfigFile(0);
-			lastSuccessId = 0;
+			//mconfig.writeMendeleyCrawlingProcessToConfigFile(0);
+			//lastSuccessId = 0;
+			return;
 		}
 
 		//iterate over every document in database in batch size steps

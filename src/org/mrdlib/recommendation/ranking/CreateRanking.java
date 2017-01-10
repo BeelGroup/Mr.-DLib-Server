@@ -128,14 +128,14 @@ public class CreateRanking {
 	}
 
 	/**
-	 * creates the Altmetric of Readership per author over all papers he wrote
+	 * creates the Altmetric per author over all papers he wrote
 	 * and stores it in database
 	 * 
 	 * under progress -> leads to errors
 	 * 
 	 * @throws Exception
 	 */
-	public void createReadershipByAuthor() {
+	public void createMetricByAuthor(String metric, String type, String source) {
 		List<Person> personList = new ArrayList<Person>();
 		DocumentSet documentSet = new DocumentSet(constants);
 		Person currentAuthor = null;
@@ -145,7 +145,7 @@ public class CreateRanking {
 		int numberOfBib = 0;
 
 		try {
-			documentSet.setBibliometricId(con.getBibId("simple_count", "readers", "mendeley"));
+			documentSet.setBibliometricId(con.getBibId(metric, type, source));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -178,8 +178,7 @@ public class CreateRanking {
 					}
 
 					if (authorReadership != 0) {
-						con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), "simple_count", "readers",
-								"mendeley", authorReadership);
+						con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), documentSet.getBibliometricId(), authorReadership);
 						numberOfBib++;
 					}
 
@@ -187,8 +186,8 @@ public class CreateRanking {
 					e.printStackTrace();
 				}
 			}
-			System.out.println("created: " + numberOfBib);
 		}
+		System.out.println("created: " + numberOfBib);
 	}
 
 	/**
@@ -335,7 +334,7 @@ public class CreateRanking {
 
 	public static void main(String[] args) {
 		CreateRanking cr = new CreateRanking();
-		cr.createCitationsForGesis(Paths.get("citation.json"));
+		cr.createMetricByAuthor("simple_count", "citations", "gesis");
 	}
 
 }

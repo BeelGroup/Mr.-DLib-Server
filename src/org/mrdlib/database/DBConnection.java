@@ -269,6 +269,43 @@ public class DBConnection {
 
 	/**
 	 * 
+	 * write the author Bibliometric in the database
+	 * 
+	 * @param int,
+	 *            id of the author
+	 * @param bibId,
+	 *            bibliometric id
+	 * @param double,
+	 *            value of the bibliometric
+	 * @throws Exception
+	 */
+	public void writeAuthorBibliometricsInDatabase(int id, int bibId, double value) {
+		PreparedStatement stmt = null;
+		String query = "";
+
+		try {
+			// insertion query
+			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers() + ", "
+					+ constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
+					+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
+
+			stmt = con.prepareStatement(query);
+			stmt.executeUpdate();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 
 	 * get the related information to a personId out of the database.
 	 * 
 	 * @param authorID
@@ -3284,7 +3321,6 @@ public class DBConnection {
 
 	}
 
-
 	/**
 	 * please fill me
 	 * 
@@ -3326,7 +3362,6 @@ public class DBConnection {
 
 	}
 
-
 	public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -3335,8 +3370,9 @@ public class DBConnection {
 		DisplayDocument document = new DisplayDocument(constants);
 
 		// selection query
-		String query = "SELECT bibliometric_document_id, value FROM bibliometrics_documents WHERE document_id = '"
-				+ documentId + "' AND bibliometrics_id = '" + bibliometricId + "';";
+		String query = "SELECT " + constants.getBibliometricDocumentsId() + ", " + constants.getMetricValue() + " FROM "
+				+ constants.getBibDocuments() + " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = '"
+				+ documentId + "' AND " + constants.getBibliometricId() + " = '" + bibliometricId + "';";
 
 		try {
 
