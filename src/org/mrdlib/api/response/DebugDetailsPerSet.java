@@ -1,5 +1,10 @@
 package org.mrdlib.api.response;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlTransient;
+
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 /**
@@ -12,7 +17,8 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
  */
 public class DebugDetailsPerSet {
 	private String recommendationApproach;
-	private double percentageRankingValue;
+	
+	private List<RankingStatistics> rankStats = new ArrayList<RankingStatistics>();
 
 	private boolean bibliometricReRanking = true;
 
@@ -43,6 +49,18 @@ public class DebugDetailsPerSet {
 	// NEED timestamps: end?
 
 	public DebugDetailsPerSet() {
+	}
+	
+	public void addRankingStats(RankingStatistics stats) {
+		this.rankStats.add(stats);
+	}
+	
+	public List<RankingStatistics> getRankStats() {
+		return rankStats;
+	}
+
+	public void setRankStats(List<RankingStatistics> rankStats) {
+		this.rankStats = rankStats;
 	}
 
 	public Long getStartTime() {
@@ -211,14 +229,6 @@ public class DebugDetailsPerSet {
 
 	public void setRecommendationApproach(String recommendationApproach) {
 		this.recommendationApproach = recommendationApproach;
-	}
-
-	public double getPercentageRankingValue() {
-		return percentageRankingValue;
-	}
-
-	public void setPercentageRankingValue(double percentageRankingValue) {
-		this.percentageRankingValue = percentageRankingValue;
 	}
 
 	/**

@@ -78,7 +78,7 @@ public class MConnection {
 		int numberOfDocuments = con.getBiggestIdFromDocuments();
 
 		//if the process was finished, stop
-		if (lastSuccessId >= con.getBiggestIdFromDocuments()) {
+		if (lastSuccessId >= numberOfDocuments) {
 			//mconfig.writeMendeleyCrawlingProcessToConfigFile(0);
 			//lastSuccessId = 0;
 			return;

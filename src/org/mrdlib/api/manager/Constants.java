@@ -47,6 +47,18 @@ public class Constants {
 	private String mostPopularRecommendationDetails;
 	private String algorithmRerankingBibliometrics;
 	private String bibliometrics;
+	private String recommendationStatisticsReRankingBibliometric;
+	
+	// db table log rank stats
+	private String recommendationStatisticsRecommendationSetId;
+	private String numberOfCandidatesToInspect;
+	private String percentageOfRecommendationsWithBibliometric;
+	private String minimum;
+	private String maximum;
+	private String mean;
+	private String median;
+	private String mode;
+	
 
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
@@ -58,7 +70,6 @@ public class Constants {
 	private String reRankingId;
 	private String numberFromSolr;
 	private String reRankingMethod;
-	private String percentageWithBibliometrics;
 	private String bibIdInReRank;
 
 	// db table logging
@@ -107,6 +118,7 @@ public class Constants {
 	// db table bibliometrics document
 	private String bibliometricDocumentsId;
 	private String documentIdInBibliometricDoc;
+	private String bibliometricIdInBibliometricDocument;
 	private String metricValue;
 
 	// db table bibliometrics document sub count
@@ -262,11 +274,20 @@ public class Constants {
 			this.mostPopularRecommendationDetails = prop.getProperty("mostPopularRecommendationDetails");
 			this.algorithmRerankingBibliometrics = prop.getProperty("algorithmRerankingBibliometrics");
 			this.bibliometrics = prop.getProperty("bibliometrics");
+			this.recommendationStatisticsReRankingBibliometric = prop.getProperty("recommendationStatisticsReRankingBibliometric");
+			
+			this.recommendationStatisticsRecommendationSetId = prop.getProperty("recommendationStatisticsRecommendationSetId");
+			this.numberOfCandidatesToInspect = prop.getProperty("numberOfCandidatesToInspect");
+			this.percentageOfRecommendationsWithBibliometric = prop.getProperty("percentageOfRecommendationsWithBibliometric");
+			this.minimum = prop.getProperty("minimum");
+			this.maximum = prop.getProperty("maximum");
+			this.mean = prop.getProperty("mean");
+			this.median = prop.getProperty("median");
+			this.mode = prop.getProperty("mode");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
 			this.reRankingMethod = prop.getProperty("reRankingMethod");
-			this.percentageWithBibliometrics = prop.getProperty("percentageWithBibliometrics");
 			this.bibIdInReRank = prop.getProperty("bibIdInReRank");
 
 			this.loggingId = prop.getProperty("loggingId");
@@ -315,6 +336,7 @@ public class Constants {
 
 			this.bibliometricDocumentsId = prop.getProperty("bibliometricDocumentsId");
 			this.documentIdInBibliometricDoc = prop.getProperty("documentIdInBibliometricDoc");
+			this.bibliometricIdInBibliometricDocument = prop.getProperty("bibliometricIdInBibliometricDocument");
 			this.metricValue = prop.getProperty("metricValue");
 
 			this.bibliometricId = prop.getProperty("bibliometricId");
@@ -432,6 +454,66 @@ public class Constants {
 			}
 		}
 	}
+	
+	
+
+	public String getRecommendationStatisticsReRankingBibliometric() {
+		return recommendationStatisticsReRankingBibliometric;
+	}
+
+
+
+	public String getRecommendationStatisticsRecommendationSetId() {
+		return recommendationStatisticsRecommendationSetId;
+	}
+
+
+
+	public String getNumberOfCandidatesToInspect() {
+		return numberOfCandidatesToInspect;
+	}
+
+
+
+	public String getPercentageOfRecommendationsWithBibliometric() {
+		return percentageOfRecommendationsWithBibliometric;
+	}
+
+
+
+	public String getMinimum() {
+		return minimum;
+	}
+
+
+
+	public String getMaximum() {
+		return maximum;
+	}
+
+
+
+	public String getMean() {
+		return mean;
+	}
+
+
+
+	public String getMedian() {
+		return median;
+	}
+
+
+
+	public String getMode() {
+		return mode;
+	}
+
+
+
+	public String getBibliometricIdInBibliometricDocument() {
+		return bibliometricIdInBibliometricDocument;
+	}
 
 	public String getBibliometrics() {
 		return bibliometrics;
@@ -491,10 +573,6 @@ public class Constants {
 
 	public String getEnvironment() {
 		return environment;
-	}
-
-	public String getPercentageWithBibliometrics() {
-		return percentageWithBibliometrics;
 	}
 
 	public String getBibPersons() {

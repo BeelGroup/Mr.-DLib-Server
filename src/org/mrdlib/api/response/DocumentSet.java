@@ -1,7 +1,9 @@
 package org.mrdlib.api.response;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -156,6 +158,99 @@ public class DocumentSet {
 		return this;
 	}
 
+	public void calculateRankingStatistics() {
+		
+		if(this.getReRankingCombination().equals("standard_only"))
+			return;
+
+		List<Double> rankValues = new ArrayList<Double>();
+
+		//fill a list with only the bibScores. For easier reading and better editing.
+		//Subtract -2 everywhere since it was added to avoid calculation errors.
+		for (int i = 0; i < this.getSize(); i++)
+			rankValues.add(this.getDisplayDocument(i).getBibScore()-2);
+
+		if (this.getSize() >= 10) {
+			calculateRankingStatistics(rankValues.subList(0, 10));
+			if (this.getSize() >= 20) {
+				calculateRankingStatistics(rankValues.subList(0, 30));
+				if (this.getSize() >= 30) {
+					calculateRankingStatistics(rankValues.subList(0, 20));
+					if (this.getSize() >= 40) {
+						calculateRankingStatistics(rankValues.subList(0, 40));
+						if (this.getSize() >= 50) {
+							calculateRankingStatistics(rankValues.subList(0, 50));
+							if (this.getSize() >= 75) {
+								calculateRankingStatistics(rankValues.subList(0, 75));
+								if (this.getSize() >= 100) {
+									calculateRankingStatistics(rankValues.subList(0, 100));
+									if (this.getSize() >= 200)
+										calculateRankingStatistics(rankValues.subList(0, 200));
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public void calculateRankingStatistics(List<Double> rankValues) {
+		RankingStatistics stats = new RankingStatistics();
+
+		rankValues = rankValues.stream().sorted((a, b) -> Double.compare(a, b)).collect(Collectors.toList());
+
+		double currentBibScore;
+		double sum = 0;
+		double min = Double.MAX_VALUE;
+		double max = -1;
+		double rankingValueCount = 0;
+		HashMap<Double, Integer> modeCount = new HashMap<Double, Integer>();
+		double mostFrequent = -1;
+		double mostFrequentCount = 0;
+
+		for (int i = 0; i < rankValues.size(); i++) {
+			currentBibScore = rankValues.get(i);
+
+			if (currentBibScore > 0) {
+				rankingValueCount++;
+			} else {
+				currentBibScore = 0;
+				rankValues.set(i, 0.0);
+			}
+
+			sum = sum + currentBibScore;
+			max = Math.max(max, currentBibScore);
+			min = Math.min(min, currentBibScore);
+
+			// mode
+			if (modeCount.containsKey(currentBibScore)) {
+				modeCount.put(currentBibScore, modeCount.get(currentBibScore) + 1);
+				if (modeCount.get(currentBibScore) > mostFrequentCount) {
+					mostFrequent = currentBibScore;
+					mostFrequentCount = modeCount.get(currentBibScore);
+				}
+			} else {
+				modeCount.put(currentBibScore, 1);
+			}
+		}
+		// median
+		if (rankValues.size() % 2 != 0)
+			stats.setRankVMedian(rankValues.get((rankValues.size() - 1) / 2));
+		else
+			stats.setRankVMedian(
+					(rankValues.get(rankValues.size() / 2) + rankValues.get((rankValues.size() / 2) - 1)) / 2);
+
+		stats.setRankVMean(sum / rankValues.size());
+		stats.setRankVMin(min);
+		stats.setRankVMax(max);
+		stats.setPercentageRankingValue(rankingValueCount / (double) rankValues.size());
+		stats.setRankVMode(mostFrequent);
+		stats.setInspectedCandidates(rankValues.size());
+
+		this.addRankingStats(stats);
+	}
+
 	/**
 	 * 
 	 * sets the rankAfterAlgorithm property
@@ -306,16 +401,6 @@ public class DocumentSet {
 		return documentList;
 	}
 
-	public void calculatePercentageRankingValue() {
-		int rankingValueCount = 0;
-		for (int i = 0; i < this.getSize(); i++) {
-			if (this.getDisplayDocument(i).getBibScore() != -1) {
-				rankingValueCount++;
-			}
-		}
-		debugDetailsPerSet.setPercentageRankingValue((double) rankingValueCount / this.getSize());
-	}
-
 	public void eliminateDuplicates() {
 		for (int i = 0; i < this.getSize(); i++) {
 			for (int j = i; j < this.getSize(); j++) {
@@ -415,15 +500,6 @@ public class DocumentSet {
 
 	public DocumentSet(Constants constants) {
 		this.constants = constants;
-	}
-
-	@XmlTransient
-	public void setPercentageRankingValue(double percentageRankingValue) {
-		debugDetailsPerSet.setPercentageRankingValue(percentageRankingValue);
-	}
-
-	public double getPercentageRankingValue() {
-		return debugDetailsPerSet.getPercentageRankingValue();
 	}
 
 	public String getReRankingCombination() {
@@ -611,4 +687,16 @@ public class DocumentSet {
 		this.debugDetailsPerSet.setAlgoDetails(algoDetails);
 	}
 
+	public List<RankingStatistics> getRankStats() {
+		return this.debugDetailsPerSet.getRankStats();
+	}
+
+	@XmlTransient
+	public void setRankStats(List<RankingStatistics> rankStats) {
+		this.debugDetailsPerSet.setRankStats(rankStats);
+	}
+
+	public void addRankingStats(RankingStatistics stats) {
+		this.debugDetailsPerSet.addRankingStats(stats);
+	}
 }

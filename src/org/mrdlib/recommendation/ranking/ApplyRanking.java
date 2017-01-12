@@ -124,7 +124,6 @@ public class ApplyRanking {
 		if (documentSet.getSize() > numberOfCandidatesToReRank)
 			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, numberOfCandidatesToReRank));
 
-		documentSet.setNumberOfCandidatesToReRank(numberOfCandidatesToReRank);
 		documentSet.setRankAfterAlgorithm();
 
 		if (rndWeight <= 4) {
@@ -187,9 +186,8 @@ public class ApplyRanking {
 			documentSet.sortAscForFinalValue();
 		else
 			documentSet.sortDescForFinalValue();
-
-		// find out how much of the documents have a alt/bibliometric
-		documentSet.calculatePercentageRankingValue();
+		
+		documentSet.calculateRankingStatistics();
 
 		// cut the list to the number we want to display
 		if (documentSet.getSize() > displayNumber)
@@ -202,6 +200,7 @@ public class ApplyRanking {
 
 		return documentSet;
 	}
+	
 
 	/**
 	 * 
