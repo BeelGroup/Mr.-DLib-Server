@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,7 +29,7 @@ import javax.sql.DataSource;
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
-import org.mrdlib.api.response.RankingStatistics;
+import org.mrdlib.api.response.Statistics;
 import org.mrdlib.api.response.RootElement;
 import org.mrdlib.api.response.StatusReport;
 import org.mrdlib.partnerContentManager.core.JSONDocument;
@@ -74,8 +75,9 @@ public class DBConnection {
 			fillMap(rs);
 			rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getAbstracts());
 			fillMap(rs2);
-			rs3 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getPersons());
-			fillMap(rs3);
+			// rs3 = stmt.executeQuery("SHOW COLUMNS FROM " +
+			// constants.getPersons());
+			// fillMap(rs3);
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -1303,20 +1305,13 @@ public class DBConnection {
 					joiner.add(authors.get(i).getName());
 
 				authorNames = joiner.toString();
-				// encode special characters like ae, oe, ue or others to html
-				// entitys
-				// authorNames = StringEscapeUtils.escapeHtml4(authorNames);
-				// title =
-				// StringEscapeUtils.escapeHtml4(rs.getString(constants.getTitle()));
-				// publishedIn =
-				// StringEscapeUtils.escapeHtml4(rs.getString(constants.getPublishedId()));
 
 				title = rs.getString(constants.getTitle());
 				publishedIn = rs.getString(constants.getPublishedId());
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
-						rs.getString(constants.getIdOriginal()), 666, title, authorNames, publishedIn,
+						rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn,
 						rs.getInt(constants.getYear()), "", "", "", constants);
 				if (rs.wasNull())
 					document.setYear(-1);
@@ -1326,6 +1321,71 @@ public class DBConnection {
 				document.setLanguage(rs.getString(constants.getLanguage()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
 				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
+				return document;
+			} else
+				throw new NoEntryException(id);
+		} catch (SQLException e) {
+			throw e;
+		} catch (NoEntryException e) {
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * Gets a document with all information from documents, without authors and
+	 * collection name
+	 * 
+	 * @param coloumnName
+	 *            for which should be searched (please use original id or id)
+	 * @param id,
+	 *            either original id or id
+	 * @return the (first) retrieved Document
+	 * @throws Exception
+	 */
+	public DisplayDocument getPureDocumentBy(String coloumnName, String id) throws Exception {
+		DisplayDocument document = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String title = null;
+		String publishedIn = null;
+
+		try {
+			stmt = con.createStatement();
+
+			// get all information of a document stored in a database by the
+			// value of a custom coloumn
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = '" + id + "'";
+
+			rs = stmt.executeQuery(query);
+			// if there is a document
+			if (rs.next()) {
+
+				title = rs.getString(constants.getTitle());
+				publishedIn = rs.getString(constants.getPublishedId());
+
+				// create a new document with values from the database
+				document = new DisplayDocument(String.valueOf(rs.getLong(constants.getDocumentId())),
+						rs.getString(constants.getIdOriginal()), title, publishedIn, rs.getInt(constants.getYear()), "",
+						constants);
+				if (rs.wasNull())
+					document.setYear(-1);
+
+				// get the collection id and then the shortName of the
+				// collection
+				document.setLanguage(rs.getString(constants.getLanguage()));
+				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
 				return document;
 			} else
 				throw new NoEntryException(id);
@@ -2176,18 +2236,14 @@ public class DBConnection {
 	 * get the ranking value (altmetric) from the database for every paper, that
 	 * has a associated rankingValue
 	 * 
-	 * @param String,
-	 *            metric (eg "simple_count")
-	 * @param String,
-	 *            data_type (eg "readership")
-	 * @param String,
-	 *            datasource (eg "mendeley")
+	 * @param int,
+	 *            bibliometricId
 	 * @return DisplayDocument List, a list of all documents, that has a
 	 *         rankingValue, with its associated data
 	 * @throws Exception
 	 */
-	public DocumentSet getRankingValueDocuments(String metric, String dataType, String dataSource) {
-		DocumentSet documentSet = new DocumentSet(constants);
+	public List<DisplayDocument> getRankingValueDocuments(int bibliometricId) {
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 		DisplayDocument newDocument = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2195,12 +2251,10 @@ public class DBConnection {
 		try {
 			stmt = con.createStatement();
 
-			// selection query
 			String query = "SELECT " + constants.getDocumentIdInBibliometricDoc() + ", "
 					+ constants.getBibliometricDocumentsId() + ", " + constants.getMetricValue() + " FROM "
-					+ constants.getBibDocuments() + " WHERE " + constants.getMetric() + " = '" + metric + "' AND "
-					+ constants.getDataType() + " = '" + dataType + "' AND " + constants.getDataSource() + " = '"
-					+ dataSource + "';";
+					+ constants.getBibDocuments() + " WHERE " + constants.getBibliometricIdInBibliometricDocument()
+					+ " = '" + bibliometricId + "';";
 
 			rs = stmt.executeQuery(query);
 
@@ -2209,8 +2263,7 @@ public class DBConnection {
 				newDocument = new DisplayDocument(constants);
 				newDocument.setBibScore(rs.getInt(constants.getMetricValue()));
 				newDocument.setDocumentId(rs.getString(constants.getDocumentIdInBibliometricDoc()));
-				documentSet.setBibliometricId(rs.getInt(constants.getBibliometricDocumentsId()));
-				documentSet.addDocument(newDocument);
+				documentList.add(newDocument);
 			}
 
 		} catch (Exception e) {
@@ -2225,7 +2278,7 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		return documentSet;
+		return documentList;
 	}
 
 	/**
@@ -2340,6 +2393,58 @@ public class DBConnection {
 
 	/**
 	 * 
+	 * get the author ids in batch-sized chunks, who have a document which has a
+	 * specified bibliometric
+	 * 
+	 * @param int,
+	 *            start id
+	 * @param int,
+	 *            bachtsize
+	 * @return Integer List, list of batchsize of author ids
+	 * @throws Exception
+	 */
+	public List<Integer> getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(int start, int batchsize,
+			int bibliometricId) {
+		List<Integer> personList = new ArrayList<Integer>();
+		Integer personId = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		// the query to get the persons
+		String query = "SELECT " + constants.getPersonIDInDocPers() + " FROM " + constants.getDocPers() + " DP JOIN "
+				+ constants.getBibDocuments() + " BD ON DP." + constants.getDocumentIDInDocPers() + "= BD."
+				+ constants.getDocumentIdInBibliometricDoc() + " WHERE "
+				+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND "
+				+ constants.getPersonIDInDocPers() + " >= " + start + " AND " + constants.getPersonIDInDocPers() + " < "
+				+ (start + batchsize) + " GROUP BY DP." + constants.getPersonIDInDocPers() + ";";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			// add the person to the list
+			while (rs.next()) {
+				personId = rs.getInt(constants.getPersonIDInDocPers());
+				personList.add(personId);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return personList;
+	}
+
+	/**
+	 * 
 	 * get the author_ids in batch-sized chunks, which have a specified
 	 * bibliometric id
 	 * 
@@ -2352,15 +2457,16 @@ public class DBConnection {
 	 * @return person List, list of batchsize of authors
 	 * @throws Exception
 	 */
-	public List<Person> getAllPersonsInBatchesIfBibliometricId(int start, int batchsize) {
+	public List<Person> getAllPersonsInBatchesIfBibliometricId(int bibliometricId, int start, int batchsize) {
 		List<Person> personList = new ArrayList<Person>();
 		Statement stmt = null;
 		ResultSet rs = null;
 
 		// the query to get the persons
 		String query = "SELECT " + constants.getPersonIdInBibliometricPers() + " FROM " + constants.getBibPersons()
-				+ " WHERE " + constants.getBibliometricPersonsId() + " >= " + start + " AND "
-				+ constants.getBibliometricPersonsId() + " < " + (start + batchsize) + ";";
+				+ " WHERE " + constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId + " AND "
+				+ constants.getBibliometricPersonsId() + " >= " + start + " AND " + constants.getBibliometricPersonsId()
+				+ " < " + (start + batchsize) + ";";
 
 		try {
 			stmt = con.createStatement();
@@ -2477,21 +2583,23 @@ public class DBConnection {
 	 *            id
 	 * @return int, biggest BibPers id
 	 */
-	public int getBiggestIdFromBibAuthors(int bibliometricId) {
+	public int[] getRangeFromBibAuthors(int bibliometricId) {
+		int[] range = new int[2];
 		Statement stmt = null;
 		ResultSet rs = null;
-		int size = 0;
 
 		try {
 			stmt = con.createStatement();
 			// query for returnning biggest id
-			String query = "SELECT MAX(" + constants.getBibliometricPersonsId() + ") FROM " + constants.getBibPersons()
-					+ " WHERE " + constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId;
+			String query = "SELECT MAX(" + constants.getBibliometricPersonsId() + "), MIN("
+					+ constants.getBibliometricPersonsId() + ") FROM " + constants.getBibPersons() + " WHERE "
+					+ constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId;
 			rs = stmt.executeQuery(query);
 
 			// get the data from the result set
 			while (rs.next()) {
-				size = rs.getInt("MAX(" + constants.getBibliometricPersonsId() + ")");
+				range[0] = rs.getInt("MIN(" + constants.getBibliometricPersonsId() + ")");
+				range[1] = rs.getInt("MAX(" + constants.getBibliometricPersonsId() + ")");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2505,7 +2613,7 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		return size;
+		return range;
 	}
 
 	/**
@@ -2974,43 +3082,65 @@ public class DBConnection {
 	private void logRankingStatistics(DocumentSet documentset) throws Exception {
 		PreparedStatement stmt = null;
 
-		for (RankingStatistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+		String query = "INSERT INTO " + constants.getRecommendationStatisticsReRankingBibliometric() + " ("
+				+ constants.getRecommendationStatisticsRecommendationSetId() + ", "
+				+ constants.getPercentageOfRecommendationsWithBibliometricDisplay() + ", "
+				+ constants.getMinimumBibDisplay() + ", " + constants.getMaximumBibDisplay() + ", "
+				+ constants.getMeanBibDisplay() + ", " + constants.getMedianBibDisplay() + ", "
+				+ constants.getModeBibDisplay() + ", "
+				+ constants.getPercentageOfRecommendationsWithBibliometricRerank() + ", "
+				+ constants.getMinimumBibRerank() + ", " + constants.getMaximumBibRerank() + ", "
+				+ constants.getMeanBibRerank() + ", " + constants.getMedianBibRerank() + ", "
+				+ constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
+				+ "',?,?,?,?,?,?,?,?,?,?,?,?);";
+		
+		System.out.println(query);
 
-			// insertion query
-			String query = "INSERT INTO " + constants.getRecommendationStatisticsReRankingBibliometric() + " ("
-					+ constants.getRecommendationStatisticsRecommendationSetId() + ", "
-					+ constants.getNumberOfCandidatesToInspect() + ", "
-					+ constants.getPercentageOfRecommendationsWithBibliometric() + ", " + constants.getMinimum() + ", "
-					+ constants.getMaximum() + ", " + constants.getMean() + ", " + constants.getMedian() + ", "
-					+ constants.getMode() + ") VALUES ('" + documentset.getRecommendationSetId() + "', '"
-					+ currentStats.getInspectedCandidates() + "', '" + currentStats.getPercentageRankingValue() + "', '"
-					+ currentStats.getRankVMin() + "', '" + currentStats.getRankVMax() + "', '"
-					+ currentStats.getRankVMean() + "', '" + currentStats.getRankVMedian() + "', ?);";
-			
-			try {
-				stmt = con.prepareStatement(query);
-				
-				if (currentStats.getRankVMode() == -1) {
-					stmt.setNull(1, java.sql.Types.FLOAT);
-				} else
-					stmt.setDouble(1, currentStats.getRankVMode());
-				
-				stmt.executeUpdate();
+		try {
+			stmt = con.prepareStatement(query);
 
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println(query);
-				throw e;
-			} finally {
-				try {
-					if (stmt != null)
-						stmt.close();
-				} catch (SQLException e) {
-					throw e;
+			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+
+				if (currentStats.getType().equals("bibliometricDisplay")) {
+					stmt.setDouble(1, currentStats.getPercentageRankingValue());
+					stmt.setDouble(2, currentStats.getRankVMin());
+					stmt.setDouble(3, currentStats.getRankVMax());
+					stmt.setDouble(4, currentStats.getRankVMean());
+					stmt.setDouble(5, currentStats.getRankVMedian());
+
+					if (currentStats.getRankVMode() == -1) {
+						stmt.setNull(6, java.sql.Types.FLOAT);
+					} else
+						stmt.setDouble(6, currentStats.getRankVMode());
+
+				} else if (currentStats.getType().equals("bibliometricRerank")) {
+					stmt.setDouble(7, currentStats.getPercentageRankingValue());
+					stmt.setDouble(8, currentStats.getRankVMin());
+					stmt.setDouble(9, currentStats.getRankVMax());
+					stmt.setDouble(10, currentStats.getRankVMean());
+					stmt.setDouble(11, currentStats.getRankVMedian());
+
+					if (currentStats.getRankVMode() == -1) {
+						stmt.setNull(12, java.sql.Types.FLOAT);
+					} else
+						stmt.setDouble(12, currentStats.getRankVMode());
 				}
 			}
-		}
 
+			stmt.executeUpdate();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println(query);
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
 	}
 
 	/**
@@ -3394,6 +3524,41 @@ public class DBConnection {
 
 	}
 
+	/**
+	 * please fill me
+	 * 
+	 * @param documentId
+	 * @param bibliometricId
+	 * @return
+	 * @throws Exception
+	 */
+
+	public void writeBibliometricsInDatabase(String id, int bibId, double value) {
+		Statement stmt = null;
+
+		// TODO: make variables
+		String query = "insert INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
+				+ ", bibliometrics_id, " + constants.getMetricValue() + ") VALUES (" + id + ", " + bibId + ", " + value
+				+ ")";
+
+		try {
+			stmt = con.createStatement();
+			stmt.executeUpdate(query);
+
+		} catch (Exception e) {
+			System.out.println(e);
+			System.out.println(query);
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				System.out.println(e);
+			}
+		}
+
+	}
+
 	public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -3442,8 +3607,9 @@ public class DBConnection {
 	 * @param authorId
 	 * @return
 	 */
-	public Map<String, Integer> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
-		Map<String, Integer> documentCitations = new HashMap<String, Integer>();
+	public List<DisplayDocument> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
+		DisplayDocument document = new DisplayDocument();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -3451,9 +3617,9 @@ public class DBConnection {
 			stmt = con.createStatement();
 
 			// selection query
-			String query = "select BD.value, D.title from bibliometrics_persons BP "
-					+ "JOIN xj_persons_documents PD ON PD.person_id = BP.person_id "
-					+ "JOIN bibliometrics_documents BD ON BD.document_id = PD.document_id "
+			String query = "select BD.value, D.title_clean from bibliometric_person BP "
+					+ "JOIN document_person PD ON PD.person_id = BP.person_id "
+					+ "JOIN bibliometric_document BD ON BD.document_id = PD.document_id "
 					+ "JOIN documents D ON D.id = PD.document_id WHERE BD.bibliometrics_id=" + bibliometricId
 					+ " AND PD.document_id < 9505296 AND BP.person_id=" + authorId;
 
@@ -3461,7 +3627,10 @@ public class DBConnection {
 
 			// add the retrieved person to the list
 			while (rs.next()) {
-				documentCitations.put(rs.getString(constants.getTitle()), rs.getInt(constants.getMetricValue()));
+				document = new DisplayDocument();
+				document.setCleanTitle(rs.getString(constants.getTitleClean()));
+				document.setBibScore(rs.getInt(constants.getMetricValue()));
+				documentList.add(document);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -3475,7 +3644,7 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		return documentCitations;
+		return documentList;
 	}
 
 	/**
@@ -3602,5 +3771,45 @@ public class DBConnection {
 	public int addTranslatedAbstract(AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract) {
 		return addTranslatedEntry(translatedAbstract.getKey(), "abstract", translatedAbstract.getValue().getContent(),
 				"joshua", "de", "en");
+	}
+
+	public List<DisplayDocument> getRankingValuesOfDocumentsOfSpecifiedAuthor(int personId, int bibliometricId) {
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
+		DisplayDocument document;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		// the query
+		String query = "SELECT " + constants.getMetricValue() + ", " + constants.getTitleClean() + " FROM "
+				+ constants.getDocPers() + " DP JOIN " + constants.getBibDocuments() + " BD ON DP."
+				+ constants.getDocumentIDInDocPers() + "= BD." + constants.getDocumentIdInBibliometricDoc() + " JOIN "
+				+ constants.getDocuments() + " D ON D." + constants.getDocumentId() + "= BD."
+				+ constants.getDocumentIdInBibliometricDoc() + " WHERE "
+				+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND "
+				+ constants.getPersonIDInDocPers() + " = " + personId + ";";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			while (rs.next()) {
+				document = new DisplayDocument();
+				document.setCleanTitle(rs.getString(constants.getTitleClean()));
+				document.setBibScore(rs.getInt(constants.getMetricValue()));
+				documentList.add(document);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documentList;
 	}
 }

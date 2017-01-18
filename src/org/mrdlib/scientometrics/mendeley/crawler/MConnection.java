@@ -136,7 +136,7 @@ public class MConnection {
 								title = title.replaceAll("<strong>|<\\/strong>", "");
 							
 							//eliminate special characters for better comparison and search for matching title
-							if (documentData.getCleanTitle().equals(documentData.getCleanTitle())) {
+							if (documentData.calculateCleanTitle().equals(documentData.calculateCleanTitle())) {
 								
 								//if it matches, get the mendeley id for second request
 								mendeleyId = (String) document.get("id");

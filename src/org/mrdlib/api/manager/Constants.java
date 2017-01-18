@@ -51,15 +51,19 @@ public class Constants {
 	
 	// db table log rank stats
 	private String recommendationStatisticsRecommendationSetId;
-	private String numberOfCandidatesToInspect;
-	private String percentageOfRecommendationsWithBibliometric;
-	private String minimum;
-	private String maximum;
-	private String mean;
-	private String median;
-	private String mode;
+	private String percentageOfRecommendationsWithBibliometricDisplay;
+	private String minimumBibDisplay;
+	private String maximumBibDisplay;
+	private String meanBibDisplay;
+	private String medianBibDisplay;
+	private String modeBibDisplay;
+	private String percentageOfRecommendationsWithBibliometricRerank;
+	private String minimumBibRerank;
+	private String maximumBibRerank;
+	private String meanBibRerank;
+	private String medianBibRerank;
+	private String modeBibRerank;
 	
-
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
 	private String personIdInBibliometricPers;
@@ -277,13 +281,18 @@ public class Constants {
 			this.recommendationStatisticsReRankingBibliometric = prop.getProperty("recommendationStatisticsReRankingBibliometric");
 			
 			this.recommendationStatisticsRecommendationSetId = prop.getProperty("recommendationStatisticsRecommendationSetId");
-			this.numberOfCandidatesToInspect = prop.getProperty("numberOfCandidatesToInspect");
-			this.percentageOfRecommendationsWithBibliometric = prop.getProperty("percentageOfRecommendationsWithBibliometric");
-			this.minimum = prop.getProperty("minimum");
-			this.maximum = prop.getProperty("maximum");
-			this.mean = prop.getProperty("mean");
-			this.median = prop.getProperty("median");
-			this.mode = prop.getProperty("mode");
+			this.percentageOfRecommendationsWithBibliometricDisplay = prop.getProperty("percentageOfRecommendationsWithBibliometricDisplay");
+			this.minimumBibDisplay = prop.getProperty("minimumBibDisplay");
+			this.maximumBibDisplay = prop.getProperty("maximumBibDisplay");
+			this.meanBibDisplay = prop.getProperty("meanBibDisplay");
+			this.medianBibDisplay = prop.getProperty("medianBibDisplay");
+			this.modeBibDisplay = prop.getProperty("modeBibDisplay");
+			this.percentageOfRecommendationsWithBibliometricRerank = prop.getProperty("percentageOfRecommendationsWithBibliometricRerank");
+			this.minimumBibRerank = prop.getProperty("minimumBibRerank");
+			this.maximumBibRerank = prop.getProperty("maximumBibRerank");
+			this.meanBibRerank = prop.getProperty("meanBibRerank");
+			this.medianBibRerank = prop.getProperty("medianBibRerank");
+			this.modeBibRerank = prop.getProperty("modeBibRerank");
 
 			this.reRankingId = prop.getProperty("reRankingId");
 			this.numberFromSolr = prop.getProperty("numberFromSolr");
@@ -461,55 +470,57 @@ public class Constants {
 		return recommendationStatisticsReRankingBibliometric;
 	}
 
-
-
 	public String getRecommendationStatisticsRecommendationSetId() {
 		return recommendationStatisticsRecommendationSetId;
 	}
-
-
-
-	public String getNumberOfCandidatesToInspect() {
-		return numberOfCandidatesToInspect;
+	
+	public String getPercentageOfRecommendationsWithBibliometricDisplay() {
+		return percentageOfRecommendationsWithBibliometricDisplay;
 	}
 
-
-
-	public String getPercentageOfRecommendationsWithBibliometric() {
-		return percentageOfRecommendationsWithBibliometric;
+	public String getMinimumBibDisplay() {
+		return minimumBibDisplay;
 	}
 
-
-
-	public String getMinimum() {
-		return minimum;
+	public String getMaximumBibDisplay() {
+		return maximumBibDisplay;
 	}
 
-
-
-	public String getMaximum() {
-		return maximum;
+	public String getMeanBibDisplay() {
+		return meanBibDisplay;
 	}
 
-
-
-	public String getMean() {
-		return mean;
+	public String getMedianBibDisplay() {
+		return medianBibDisplay;
 	}
 
-
-
-	public String getMedian() {
-		return median;
+	public String getModeBibDisplay() {
+		return modeBibDisplay;
 	}
 
-
-
-	public String getMode() {
-		return mode;
+	public String getPercentageOfRecommendationsWithBibliometricRerank() {
+		return percentageOfRecommendationsWithBibliometricRerank;
 	}
 
+	public String getMinimumBibRerank() {
+		return minimumBibRerank;
+	}
 
+	public String getMaximumBibRerank() {
+		return maximumBibRerank;
+	}
+
+	public String getMeanBibRerank() {
+		return meanBibRerank;
+	}
+
+	public String getMedianBibRerank() {
+		return medianBibRerank;
+	}
+
+	public String getModeBibRerank() {
+		return modeBibRerank;
+	}
 
 	public String getBibliometricIdInBibliometricDocument() {
 		return bibliometricIdInBibliometricDocument;

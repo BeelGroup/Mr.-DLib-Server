@@ -158,8 +158,36 @@ public class DocumentSet {
 		return this;
 	}
 
-	public void calculateRankingStatistics() {
+	public void calculateRankingStatistics(int displayNumber) {
+		calculateBibScoreStatistics(displayNumber);
+		calculateRelevanceScoreStatistics(displayNumber);
+		calculateFinalScoreStatistics(displayNumber);
+	}
+	
+	private void calculateFinalScoreStatistics(int displayNumber) {
+		List<Double> rankValues = new ArrayList<Double>();
+
+		//fill a list with only the relevance Scores. For easier reading and better editing.
+		for (int i = 0; i < this.getSize(); i++)
+			rankValues.add(this.getDisplayDocument(i).getFinalScore());
 		
+		calculateRankingStatistics("final", rankValues.subList(0, displayNumber));
+	}
+	
+	private void calculateRelevanceScoreStatistics(int displayNumber) {
+		if(this.getReRankingCombination().equals("bibliometrics_only"))
+			return;
+
+		List<Double> rankValues = new ArrayList<Double>();
+
+		//fill a list with only the relevance Scores. For easier reading and better editing.
+		for (int i = 0; i < this.getSize(); i++)
+			rankValues.add(this.getDisplayDocument(i).getRelevanceScoreFromAlgorithm());
+		
+		calculateRankingStatistics("relevance", rankValues.subList(0, displayNumber));
+	}
+	
+	private void calculateBibScoreStatistics(int displayNumber) {
 		if(this.getReRankingCombination().equals("standard_only"))
 			return;
 
@@ -169,38 +197,17 @@ public class DocumentSet {
 		//Subtract -2 everywhere since it was added to avoid calculation errors.
 		for (int i = 0; i < this.getSize(); i++)
 			rankValues.add(this.getDisplayDocument(i).getBibScore()-2);
-
-		if (this.getSize() >= 10) {
-			calculateRankingStatistics(rankValues.subList(0, 10));
-			if (this.getSize() >= 20) {
-				calculateRankingStatistics(rankValues.subList(0, 30));
-				if (this.getSize() >= 30) {
-					calculateRankingStatistics(rankValues.subList(0, 20));
-					if (this.getSize() >= 40) {
-						calculateRankingStatistics(rankValues.subList(0, 40));
-						if (this.getSize() >= 50) {
-							calculateRankingStatistics(rankValues.subList(0, 50));
-							if (this.getSize() >= 75) {
-								calculateRankingStatistics(rankValues.subList(0, 75));
-								if (this.getSize() >= 100) {
-									calculateRankingStatistics(rankValues.subList(0, 100));
-									if (this.getSize() >= 200)
-										calculateRankingStatistics(rankValues.subList(0, 200));
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		
+		calculateRankingStatistics("bibliometricDisplay", rankValues.subList(0, displayNumber));
+		calculateRankingStatistics("bibliometricRerank", rankValues);
 	}
 
-	public void calculateRankingStatistics(List<Double> rankValues) {
-		RankingStatistics stats = new RankingStatistics();
+	private void calculateRankingStatistics(String type, List<Double> rankValues) {
+		Statistics stats = new Statistics();
 
 		rankValues = rankValues.stream().sorted((a, b) -> Double.compare(a, b)).collect(Collectors.toList());
 
-		double currentBibScore;
+		double currentScore;
 		double sum = 0;
 		double min = Double.MAX_VALUE;
 		double max = -1;
@@ -210,28 +217,28 @@ public class DocumentSet {
 		double mostFrequentCount = 0;
 
 		for (int i = 0; i < rankValues.size(); i++) {
-			currentBibScore = rankValues.get(i);
+			currentScore = rankValues.get(i);
 
-			if (currentBibScore > 0) {
+			if (currentScore > 0) {
 				rankingValueCount++;
 			} else {
-				currentBibScore = 0;
+				currentScore = 0;
 				rankValues.set(i, 0.0);
 			}
 
-			sum = sum + currentBibScore;
-			max = Math.max(max, currentBibScore);
-			min = Math.min(min, currentBibScore);
+			sum = sum + currentScore;
+			max = Math.max(max, currentScore);
+			min = Math.min(min, currentScore);
 
 			// mode
-			if (modeCount.containsKey(currentBibScore)) {
-				modeCount.put(currentBibScore, modeCount.get(currentBibScore) + 1);
-				if (modeCount.get(currentBibScore) > mostFrequentCount) {
-					mostFrequent = currentBibScore;
-					mostFrequentCount = modeCount.get(currentBibScore);
+			if (modeCount.containsKey(currentScore)) {
+				modeCount.put(currentScore, modeCount.get(currentScore) + 1);
+				if (modeCount.get(currentScore) > mostFrequentCount) {
+					mostFrequent = currentScore;
+					mostFrequentCount = modeCount.get(currentScore);
 				}
 			} else {
-				modeCount.put(currentBibScore, 1);
+				modeCount.put(currentScore, 1);
 			}
 		}
 		// median
@@ -241,12 +248,12 @@ public class DocumentSet {
 			stats.setRankVMedian(
 					(rankValues.get(rankValues.size() / 2) + rankValues.get((rankValues.size() / 2) - 1)) / 2);
 
+		stats.setType(type);
 		stats.setRankVMean(sum / rankValues.size());
 		stats.setRankVMin(min);
 		stats.setRankVMax(max);
 		stats.setPercentageRankingValue(rankingValueCount / (double) rankValues.size());
 		stats.setRankVMode(mostFrequent);
-		stats.setInspectedCandidates(rankValues.size());
 
 		this.addRankingStats(stats);
 	}
@@ -391,7 +398,7 @@ public class DocumentSet {
 	 * @return boolean, true if equal
 	 */
 	private boolean equalDocuments(DisplayDocument document1, DisplayDocument document2) {
-		if (document1.getCleanTitle().equals(document2.getCleanTitle()))
+		if (document1.calculateCleanTitle().equals(document2.calculateCleanTitle()))
 			return true;
 		else
 			return false;
@@ -404,7 +411,7 @@ public class DocumentSet {
 	public void eliminateDuplicates() {
 		for (int i = 0; i < this.getSize(); i++) {
 			for (int j = i; j < this.getSize(); j++) {
-				if (this.getDisplayDocument(i).getCleanTitle().equals(this.getDisplayDocument(j).getCleanTitle())) {
+				if (this.getDisplayDocument(i).calculateCleanTitle().equals(this.getDisplayDocument(j).calculateCleanTitle())) {
 					this.removeDisplayDocument(j);
 					j--;
 				}
@@ -687,16 +694,16 @@ public class DocumentSet {
 		this.debugDetailsPerSet.setAlgoDetails(algoDetails);
 	}
 
-	public List<RankingStatistics> getRankStats() {
+	public List<Statistics> getRankStats() {
 		return this.debugDetailsPerSet.getRankStats();
 	}
 
 	@XmlTransient
-	public void setRankStats(List<RankingStatistics> rankStats) {
+	public void setRankStats(List<Statistics> rankStats) {
 		this.debugDetailsPerSet.setRankStats(rankStats);
 	}
 
-	public void addRankingStats(RankingStatistics stats) {
+	public void addRankingStats(Statistics stats) {
 		this.debugDetailsPerSet.addRankingStats(stats);
 	}
 }

@@ -18,7 +18,7 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 public class DebugDetailsPerSet {
 	private String recommendationApproach;
 	
-	private List<RankingStatistics> rankStats = new ArrayList<RankingStatistics>();
+	private List<Statistics> rankStats = new ArrayList<Statistics>();
 
 	private boolean bibliometricReRanking = true;
 
@@ -51,15 +51,15 @@ public class DebugDetailsPerSet {
 	public DebugDetailsPerSet() {
 	}
 	
-	public void addRankingStats(RankingStatistics stats) {
+	public void addRankingStats(Statistics stats) {
 		this.rankStats.add(stats);
 	}
 	
-	public List<RankingStatistics> getRankStats() {
+	public List<Statistics> getRankStats() {
 		return rankStats;
 	}
 
-	public void setRankStats(List<RankingStatistics> rankStats) {
+	public void setRankStats(List<Statistics> rankStats) {
 		this.rankStats = rankStats;
 	}
 

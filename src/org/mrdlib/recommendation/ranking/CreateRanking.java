@@ -2,7 +2,6 @@ package org.mrdlib.recommendation.ranking;
 
 import java.io.FileReader;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +15,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
-import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.partnerContentManager.gesis.Person;
 
@@ -50,23 +48,34 @@ public class CreateRanking {
 	 * the paper in years and stores it in the database
 	 */
 	public void createReadershipNormalizedByAge() {
-		DocumentSet documentSet = new DocumentSet(constants);
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 		DisplayDocument current = null;
 		double value;
+		int bibIdSimple = -1;
+		int bibIdNormalized = -1;
+
+		try {
+			bibIdSimple = con.getBibId("simple_count", "citations", "gesis");
+			bibIdNormalized = con.getBibId("simple_count_normalized_by_age_in_years", "citations", "gesis");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		// get every document which has readership data
-		documentSet = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
-		System.out.println(documentSet.getSize());
-		for (int i = 0; i < documentSet.getSize(); i++) {
-			current = documentSet.getDisplayDocument(i);
+		documentList = con.getRankingValueDocuments(bibIdSimple);
+
+		System.out.println(documentList.size());
+		for (int i = 0; i < documentList.size(); i++) {
+			current = documentList.get(i);
 
 			// print the current progress in 10.000 steps
 			if (i % 10000 == 0)
-				System.out.println(i + "/" + documentSet.getSize());
+				System.out.println(i + "/" + documentList.size());
 
 			try {
 				// get the published year of the paper
-				current.setYear(con.getDocumentBy(constants.getDocumentId(), current.getDocumentId() + "").getYear());
+				current.setYear(
+						con.getPureDocumentBy(constants.getDocumentId(), current.getDocumentId() + "").getYear());
 
 				// if there is a year stored
 				if (current.getYear() != -1) {
@@ -74,18 +83,18 @@ public class CreateRanking {
 					if (current.getYear() == Year.now().getValue())
 						value = (double) current.getBibScore();
 					else
-						// divide through difference +1 to avoid math error
+						// divide through difference +1 to have a difference
+						// between years identical and 1 year difference
 						value = (double) current.getBibScore() / (Year.now().getValue() - current.getYear() + 1);
 
 					// write to database
-					con.writeBibliometricsInDatabase(current.getDocumentId(), "normalizedByAge", "readers", "", "",
-							value, "mendeley");
+					con.writeBibliometricsInDatabase(current.getDocumentId(), bibIdNormalized, value);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-
+		System.out.println("finished");
 	}
 
 	/**
@@ -93,21 +102,30 @@ public class CreateRanking {
 	 * authors, who contributed to it and stores it in the database
 	 */
 	public void createReadershipNormalizedByNumberOfAuthors() {
-		DocumentSet documentSet = new DocumentSet(constants);
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 		DisplayDocument current = null;
 		double value;
 		int numberOfAuthors;
+		int bibliometricIdSimple = -1;
+		int bibIdNormalized = -1;
+
+		try {
+			bibliometricIdSimple = con.getBibId("simple_count", "citations", "gesis");
+			bibIdNormalized = con.getBibId("simple_count_normalized_by_number_of_authors", "citations", "gesis");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		// get every document which has readership data
-		documentSet = con.getRankingValueDocuments("simple_count", "readers", "mendeley");
-		System.out.println(documentSet.getSize());
+		documentList = con.getRankingValueDocuments(bibliometricIdSimple);
+		System.out.println(documentList.size());
 
-		for (int i = 0; i < documentSet.getSize(); i++) {
-			current = documentSet.getDisplayDocument(i);
+		for (int i = 0; i < documentList.size(); i++) {
+			current = documentList.get(i);
 
 			// print the current progress in 10.000 steps
 			if (i % 10000 == 0)
-				System.out.println(i + "/" + documentSet.getSize());
+				System.out.println(i + "/" + documentList.size());
 
 			try {
 				// get the number of authors per document
@@ -118,8 +136,7 @@ public class CreateRanking {
 					value = (double) current.getBibScore() / numberOfAuthors;
 
 					// write to database
-					con.writeBibliometricsInDatabase(current.getDocumentId(), "normalizedByNumberOfAuthors", "readers",
-							"", "", value, "mendeley");
+					con.writeBibliometricsInDatabase(current.getDocumentId(), bibIdNormalized, value);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -128,24 +145,23 @@ public class CreateRanking {
 	}
 
 	/**
-	 * creates the Altmetric per author over all papers he wrote
-	 * and stores it in database
-	 * 
-	 * under progress -> leads to errors
+	 * creates the Altmetric per author over all papers he wrote and stores it
+	 * in database
 	 * 
 	 * @throws Exception
 	 */
-	public void createMetricByAuthor(String metric, String type, String source) {
-		List<Person> personList = new ArrayList<Person>();
-		DocumentSet documentSet = new DocumentSet(constants);
-		Person currentAuthor = null;
+	public void createMetricSumByAuthor(String metric, String type, String source) {
+		List<Integer> personIds = new ArrayList<Integer>();
+		int bibliometricId = 0;
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
+		HashMap<String, Double> titleBibList = new HashMap<String, Double>();
+		int currentId;
 		double authorReadership;
 		DisplayDocument currentDocument = null;
-		double documentReadership;
 		int numberOfBib = 0;
 
 		try {
-			documentSet.setBibliometricId(con.getBibId(metric, type, source));
+			bibliometricId = con.getBibId(metric, type, source);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -153,34 +169,37 @@ public class CreateRanking {
 		int numberOfAuthors = 3510000;
 		// con.getBiggestIdFromAuthors();
 
-		for (int k = 2815780; k < numberOfAuthors; k = k + 500) {
+		for (int k = 0; k < numberOfAuthors; k = k + 500000) {
 
 			System.out.println(k + "/" + numberOfAuthors);
 			System.out.println(numberOfBib);
-			personList = con.getAllPersonsInBatches(k, 500);
+			personIds = con.getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(k, 500000, bibliometricId);
 
-			for (int i = 0; i < personList.size(); i++) {
-				currentAuthor = personList.get(i);
+			for (int i = 0; i < personIds.size(); i++) {
+				currentId = personIds.get(i);
 				authorReadership = 0;
+				titleBibList.clear();
 
 				try {
-					documentSet.setDocumentList(con.getDocumentsByPersonId(currentAuthor.getId()).getDocumentList());
+					documentList = con.getRankingValuesOfDocumentsOfSpecifiedAuthor(currentId, bibliometricId);
 
-					for (int j = 0; j < documentSet.getSize(); j++) {
-						currentDocument = documentSet.getDisplayDocument(j);
-						documentReadership = con
-								.getRankingValue(currentDocument.getDocumentId(), documentSet.getBibliometricId())
-								.getBibScore();
-
-						if (documentReadership != -1) {
-							authorReadership = authorReadership + documentReadership;
+					for (int j = 0; j < documentList.size(); j++) {
+						currentDocument = documentList.get(j);
+						if (titleBibList.containsKey(currentDocument.getCleanTitle())) {
+							if (currentDocument.getBibScore() > titleBibList.get(currentDocument.getCleanTitle())) {
+								titleBibList.put(currentDocument.getCleanTitle(), currentDocument.getBibScore());
+							}
+						} else {
+							titleBibList.put(currentDocument.getCleanTitle(), currentDocument.getBibScore());
 						}
 					}
 
-					if (authorReadership != 0) {
-						con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), documentSet.getBibliometricId(), authorReadership);
-						numberOfBib++;
+					for (Map.Entry<String, Double> entry : titleBibList.entrySet()) {
+						authorReadership = authorReadership + entry.getValue();
 					}
+
+					con.writeAuthorBibliometricsInDatabase(currentId, bibliometricId, authorReadership);
+					numberOfBib++;
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -191,103 +210,71 @@ public class CreateRanking {
 	}
 
 	/**
-	 * creates the Altmetric of Readership per paper from the sum of the
-	 * readership of all authors
-	 * 
-	 * under progress -> leads to errors
-	 */
-	public void createReadershipSumFromAuthors() {
-		List<DisplayDocument> documentDataList = new ArrayList<DisplayDocument>();
-		List<Person> personList = new ArrayList<Person>();
-		DisplayDocument currentDocument = null;
-		Person currentPerson = null;
-		int sumReadership = 0;
-
-		int numberOfDocuments = con.getBiggestIdFromDocuments();
-
-		for (int k = 0; k < numberOfDocuments; k = k + 500) {
-			documentDataList = con.getDocumentDataInBatches(k, k + 500);
-			System.out.println(k + "/" + numberOfDocuments);
-
-			try {
-				for (int i = 0; i < documentDataList.size(); i++) {
-					currentDocument = documentDataList.get(i);
-					personList = con.getPersonsByDocumentID(currentDocument.getDocumentId());
-					sumReadership = 0;
-
-					for (int j = 0; j < personList.size(); j++) {
-						currentPerson = personList.get(j);
-						currentPerson.setRankingValue(con.getRankingValueAuthor(currentPerson.getId() + "",
-								"simple_count", "readers", "mendeley"));
-						sumReadership = sumReadership + (int) currentPerson.getRankingValue();
-					}
-					if (sumReadership != 0)
-						con.writeBibliometricsInDatabase(currentDocument.getDocumentId(), "sumFromAuthors", "readers",
-								"", "", sumReadership, "mendeley");
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	/**
 	 * creates the Altmetric of an h-index of every author
 	 * 
-	 * under progress -> leads to errors
 	 */
 	public void createHIndexByAuthor() {
-		Map<String, Integer> documentCitations = new HashMap<String, Integer>();
-		Map<String, Integer> documentCitations2 = new HashMap<String, Integer>();
+		HashMap<String, Double> titleBibList = new HashMap<String, Double>();
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 		List<Person> personList = new ArrayList<Person>();
 		Person currentAuthor = null;
-		int hIndex = 0;
-		int bibliometricId = 0;
+		double hIndex = 0;
+		int bibliometricIdSimple = -1;
+		int bibliometricIdHIndex = -1;
 		int hadHIndex = 0;
+		DisplayDocument currentDocument = new DisplayDocument();
 
 		try {
-			bibliometricId = con.getBibId("simple_count", "readers", "mendeley");
+			bibliometricIdSimple = con.getBibId("simple_count", "citations", "gesis");
+			bibliometricIdHIndex = con.getBibId("h-index", "citations", "gesis");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		int numberOfAuthors = con.getBiggestIdFromBibAuthors(bibliometricId);
-		System.out.println(numberOfAuthors);
+		int[] range = con.getRangeFromBibAuthors(bibliometricIdSimple);
+		System.out.println(range[0] + ", " + range[1]);
 
-		for (int k = 1; k < numberOfAuthors; k = k + 500) {
-			personList = con.getAllPersonsInBatchesIfBibliometricId(k, 500);
+		for (int k = range[0]; k <= range[1]; k = k + 2000) {
+			personList = con.getAllPersonsInBatchesIfBibliometricId(bibliometricIdSimple, k, 2000);
 
-			System.out.println(k + "/" + numberOfAuthors);
+			System.out.println((k-range[0]) + "/" + (range[1]-range[0]));
 
 			for (int i = 0; i < personList.size(); i++) {
-				documentCitations.clear();
-				documentCitations2.clear();
+				documentList.clear();
+				titleBibList.clear();
 				currentAuthor = personList.get(i);
 
-				documentCitations = con.getRankingValuesOfAuthorPerDocument(bibliometricId, currentAuthor.getId());
+				documentList = con.getRankingValuesOfAuthorPerDocument(bibliometricIdSimple, currentAuthor.getId());
 
-				for (Map.Entry<String, Integer> entry : documentCitations.entrySet()) {
-					String key = entry.getKey();
-					Integer value = entry.getValue();
-					documentCitations2.put(getCleanTitle(key), value);
+				for (int j = 0; j < documentList.size(); j++) {
+					currentDocument = documentList.get(j);
+					if (titleBibList.containsKey(currentDocument.getCleanTitle())) {
+						if (currentDocument.getBibScore() > titleBibList.get(currentDocument.getCleanTitle())) {
+							titleBibList.put(currentDocument.getCleanTitle(), currentDocument.getBibScore());
+						}
+					} else {
+						titleBibList.put(currentDocument.getCleanTitle(), currentDocument.getBibScore());
+					}
 				}
 
-				hIndex = hIndex(documentCitations2.values().toArray(new Integer[0]));
+				hIndex = hIndex(titleBibList.values().toArray(new Double[0]));
 
-				con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), "h-index", "readers", "mendeley", hIndex);
-				hadHIndex++;
+				if (hIndex != 0) {
+					con.writeAuthorBibliometricsInDatabase(currentAuthor.getId(), bibliometricIdHIndex, hIndex);
+					hadHIndex++;
+				}
 
 			}
-			System.out.println("inserted:" + hadHIndex);
 		}
+		System.out.println("inserted:" + hadHIndex);
 	}
 
-	public int hIndex(Integer[] citations) {
+	public double hIndex(Double[] citations) {
 		Arrays.sort(citations);
 
-		int result = 0;
+		double result = 0;
 		for (int i = 0; i < citations.length; i++) {
-			int smaller = Math.min(citations[i], citations.length - i);
+			double smaller = Math.min(citations[i], citations.length - i);
 			result = Math.max(result, smaller);
 		}
 
@@ -334,7 +321,7 @@ public class CreateRanking {
 
 	public static void main(String[] args) {
 		CreateRanking cr = new CreateRanking();
-		cr.createMetricByAuthor("simple_count", "citations", "gesis");
+		cr.createHIndexByAuthor();
 	}
 
 }

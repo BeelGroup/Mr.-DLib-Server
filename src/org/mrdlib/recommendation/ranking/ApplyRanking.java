@@ -187,7 +187,7 @@ public class ApplyRanking {
 		else
 			documentSet.sortDescForFinalValue();
 		
-		documentSet.calculateRankingStatistics();
+		documentSet.calculateRankingStatistics(displayNumber);
 
 		// cut the list to the number we want to display
 		if (documentSet.getSize() > displayNumber)

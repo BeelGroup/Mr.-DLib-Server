@@ -42,6 +42,7 @@ public class DisplayDocument implements Serializable {
 	private String authorNames;
 	private String publishedIn;
 	private int year;
+	private String cleanTitle;
 
 	private int suggestedRank;
 	private String collectionShortName;
@@ -58,6 +59,17 @@ public class DisplayDocument implements Serializable {
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
 		this.title = title;
+	}
+	
+	public DisplayDocument(String documentId, String originalDocumentId,
+			String title, String publishedIn, int year,	String collectionShortName, Constants constants) {
+		this.documentId = documentId;
+		this.originalDocumentId = originalDocumentId;
+		this.title = title;
+		this.publishedIn = publishedIn;
+		this.year = year;
+		this.collectionShortName = collectionShortName;
+		this.constants = constants;
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
@@ -86,11 +98,20 @@ public class DisplayDocument implements Serializable {
 	 * 
 	 * @return String, cleanTitle
 	 */
-	public String getCleanTitle() {
+	public String calculateCleanTitle() {
 		String cleanTitle = "";
 		cleanTitle = this.getTitle().replaceAll("[^a-zA-Z]", "");
 		cleanTitle = cleanTitle.toLowerCase();
 		return cleanTitle;
+	}
+	
+	public String getCleanTitle() {
+		return this.cleanTitle;
+	}
+	
+	@XmlTransient
+	public void setCleanTitle(String cleanTitle) {
+		this.cleanTitle = cleanTitle;
 	}
 
 	public int getBibDocId() {
