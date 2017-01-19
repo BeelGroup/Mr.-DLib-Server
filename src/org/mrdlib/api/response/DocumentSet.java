@@ -175,9 +175,6 @@ public class DocumentSet {
 	}
 	
 	private void calculateRelevanceScoreStatistics(int displayNumber) {
-		if(this.getReRankingCombination().equals("bibliometrics_only"))
-			return;
-
 		List<Double> rankValues = new ArrayList<Double>();
 
 		//fill a list with only the relevance Scores. For easier reading and better editing.

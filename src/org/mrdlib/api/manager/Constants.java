@@ -113,6 +113,16 @@ public class Constants {
 	private String recommendationFrameworkTime;
 	private String postProcessingTime;
 	private String accessKey;
+	private String minimumRelevanceScoreDisplay;
+	private String maximumRelevanceScoreDisplay;
+	private String meanRelevanceScoreDisplay;
+	private String medianRelevanceScoreDisplay;
+	private String modeRelevanceScoreDisplay;
+	private String minimumFinalScoreDisplay;
+	private String maximumFinalScoreDisplay;
+	private String meanFinalScoreDisplay;
+	private String medianFinalScoreDisplay;
+	private String modeFinalScoreDisplay;
 
 	// db table external id
 	private String documentIdInExternalIds;
@@ -333,6 +343,16 @@ public class Constants {
 			this.recommendationFrameworkTime = prop.getProperty("recommendationFrameworkTime");
 			this.postProcessingTime = prop.getProperty("postProcessingTime");
 			this.accessKey = prop.getProperty("accessKey");
+			this.minimumRelevanceScoreDisplay = prop.getProperty("minimumRelevanceScoreDisplay");
+			this.maximumRelevanceScoreDisplay = prop.getProperty("maximumRelevanceScoreDisplay");
+			this.meanRelevanceScoreDisplay = prop.getProperty("meanRelevanceScoreDisplay");
+			this.medianRelevanceScoreDisplay = prop.getProperty("medianRelevanceScoreDisplay");
+			this.modeRelevanceScoreDisplay = prop.getProperty("modeRelevanceScoreDisplay");
+			this.minimumFinalScoreDisplay = prop.getProperty("minimumFinalScoreDisplay");
+			this.maximumFinalScoreDisplay = prop.getProperty("maximumFinalScoreDisplay");
+			this.meanFinalScoreDisplay = prop.getProperty("meanFinalScoreDisplay");
+			this.medianFinalScoreDisplay = prop.getProperty("medianFinalScoreDisplay");
+			this.modeFinalScoreDisplay = prop.getProperty("modeFinalScoreDisplay");
 
 			this.documentIdInExternalIds = prop.getProperty("documentIdInExternalIds");
 			this.externalName = prop.getProperty("externalName");
@@ -463,8 +483,46 @@ public class Constants {
 			}
 		}
 	}
+
+	public String getMinimumRelevanceScoreDisplay() {
+		return minimumRelevanceScoreDisplay;
+	}
 	
+	public String getMaximumRelevanceScoreDisplay() {
+		return maximumRelevanceScoreDisplay;
+	}
 	
+	public String getMeanRelevanceScoreDisplay() {
+		return meanRelevanceScoreDisplay;
+	}
+
+	public String getMedianRelevanceScoreDisplay() {
+		return medianRelevanceScoreDisplay;
+	}
+
+	public String getModeRelevanceScoreDisplay() {
+		return modeRelevanceScoreDisplay;
+	}
+
+	public String getMinimumFinalScoreDisplay() {
+		return minimumFinalScoreDisplay;
+	}
+
+	public String getMaximumFinalScoreDisplay() {
+		return maximumFinalScoreDisplay;
+	}
+
+	public String getMeanFinalScoreDisplay() {
+		return meanFinalScoreDisplay;
+	}
+
+	public String getMedianFinalScoreDisplay() {
+		return medianFinalScoreDisplay;
+	}
+
+	public String getModeFinalScoreDisplay() {
+		return modeFinalScoreDisplay;
+	}
 
 	public String getRecommendationStatisticsReRankingBibliometric() {
 		return recommendationStatisticsReRankingBibliometric;
