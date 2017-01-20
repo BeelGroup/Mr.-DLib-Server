@@ -1,8 +1,6 @@
 package org.mrdlib.translator;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;

@@ -70,12 +70,6 @@ public class Constants {
 	private String bibliometricIdInBibliometricPers;
 	private String metricValuePers;
 
-	// db table reRank
-	private String reRankingId;
-	private String numberFromSolr;
-	private String reRankingMethod;
-	private String bibIdInReRank;
-
 	// db table logging
 	private String loggingId;
 	private String request;
@@ -303,11 +297,6 @@ public class Constants {
 			this.meanBibRerank = prop.getProperty("meanBibRerank");
 			this.medianBibRerank = prop.getProperty("medianBibRerank");
 			this.modeBibRerank = prop.getProperty("modeBibRerank");
-
-			this.reRankingId = prop.getProperty("reRankingId");
-			this.numberFromSolr = prop.getProperty("numberFromSolr");
-			this.reRankingMethod = prop.getProperty("reRankingMethod");
-			this.bibIdInReRank = prop.getProperty("bibIdInReRank");
 
 			this.loggingId = prop.getProperty("loggingId");
 			this.request = prop.getProperty("request");
@@ -666,22 +655,6 @@ public class Constants {
 
 	public String getReRankingBibliometrics() {
 		return reRankingBibliometrics;
-	}
-
-	public String getReRankingId() {
-		return reRankingId;
-	}
-
-	public String getNumberFromSolr() {
-		return numberFromSolr;
-	}
-
-	public String getReRankingMethod() {
-		return reRankingMethod;
-	}
-
-	public String getBibIdInReRank() {
-		return bibIdInReRank;
 	}
 
 	public String getAlgorithmId() {

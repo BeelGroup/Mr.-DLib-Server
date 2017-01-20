@@ -64,10 +64,10 @@ public class solrConnection {
 	 */
 	public DocumentSet getRelatedDocumentSetByDocument(DisplayDocument document, int delimitedRows,
 			AlgorithmDetails logginginfo) throws Exception {
-		DocumentSet relatedDocuments = new DocumentSet(constants);
+		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
-		DisplayDocument relDocument = new DisplayDocument(constants);
+		DisplayDocument relDocument = new DisplayDocument();
 		query.setRequestHandler("/" + MoreLikeThisParams.MLT);
 		String fallback_url = "";
 
@@ -194,10 +194,10 @@ public class solrConnection {
 	public DocumentSet getRandomDocumentSet(DisplayDocument document, int delimitedRows, Boolean restrictLanguage,
 			String seed) throws Exception {
 
-		DocumentSet relatedDocuments = new DocumentSet(constants);
+		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
-		DisplayDocument relDocument = new DisplayDocument(constants);
+		DisplayDocument relDocument = new DisplayDocument();
 
 		// Setting solr query to select mode
 		query.setRequestHandler("/select");
@@ -272,10 +272,10 @@ public class solrConnection {
 			AlgorithmDetails logginginfo) throws Exception {
 		System.out.println("reached solr connection class and im in method getDocumentsFromSolrByQuery");
 		String title = requestedDocument.getTitle();
-		DocumentSet relatedDocuments = new DocumentSet(constants);
+		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
-		DisplayDocument oneRelatedDocument = new DisplayDocument(constants);
+		DisplayDocument oneRelatedDocument = new DisplayDocument();
 		query.setRequestHandler("/select");
 		String fallback_url = "";
 

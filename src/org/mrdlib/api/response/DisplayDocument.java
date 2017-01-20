@@ -24,8 +24,6 @@ public class DisplayDocument implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private Constants constants;
-
 	// attributes
 	private String recommendationId;
 	private String documentId;
@@ -48,10 +46,6 @@ public class DisplayDocument implements Serializable {
 	private String collectionShortName;
 	private Long collectionId;
 
-	public DisplayDocument(Constants constants) {
-		this.constants = constants;
-	}
-
 	public DisplayDocument() {
 	}
 
@@ -69,7 +63,6 @@ public class DisplayDocument implements Serializable {
 		this.publishedIn = publishedIn;
 		this.year = year;
 		this.collectionShortName = collectionShortName;
-		this.constants = constants;
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
@@ -89,7 +82,6 @@ public class DisplayDocument implements Serializable {
 		this.clickUrl = clickUrl;
 		this.fallbackUrl = fallbackUrl;
 		this.collectionShortName = collectionShortName;
-		this.constants = constants;
 	}
 
 	/**

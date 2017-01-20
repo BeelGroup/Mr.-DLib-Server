@@ -52,7 +52,7 @@ public class ApplyRanking {
 
 		rndWeight = random.nextInt(5) + 1;
 		// random number for the chosen metric
-		rndRank = random.nextInt(7) + 1;
+		rndRank = random.nextInt(14) + 1;
 		// random number asc or desc sorting
 		rndOrder = random.nextInt(10) + 1;
 
@@ -153,6 +153,30 @@ public class ApplyRanking {
 			case 7:
 				documentSet = getAltmetric(documentSet, "h-index_average", "readers", "mendeley");
 				break;
+			case 8:
+				documentSet = getAltmetric(documentSet, "simple_count", "citations", "gesis");
+				break;
+			case 9:
+				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "citations",
+						"gesis");
+				break;
+			case 10:
+				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "citations",
+						"gesis");
+				break;
+			case 11:
+				documentSet = getAltmetric(documentSet, "sum_of_authors", "citations", "gesis");
+				break;
+			case 12:
+				documentSet = getAltmetric(documentSet, "sum_of_authors_normalized_by_number_of_authors", "citations",
+						"gesis");
+				break;
+			case 13:
+				documentSet = getAltmetric(documentSet, "sum_of_h-index", "citations", "gesis");
+				break;
+			case 14:
+				documentSet = getAltmetric(documentSet, "h-index_average", "citations", "gesis");
+				break;
 			default:
 				documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
 				break;
@@ -186,21 +210,23 @@ public class ApplyRanking {
 			documentSet.sortAscForFinalValue();
 		else
 			documentSet.sortDescForFinalValue();
-		
-		documentSet.calculateRankingStatistics(displayNumber);
+
+		if (displayNumber <= documentSet.getSize())
+			documentSet.calculateRankingStatistics(displayNumber);
+		else
+			documentSet.calculateRankingStatistics(documentSet.getSize());
 
 		// cut the list to the number we want to display
 		if (documentSet.getSize() > displayNumber)
 			documentSet.setDocumentList(documentSet.getDocumentList().subList(0, displayNumber));
 
 		documentSet.setRankAfterReRanking();
-		
-		if (rndShuffling == 1) 
+
+		if (rndShuffling == 1)
 			documentSet.shuffle();
 
 		return documentSet;
 	}
-	
 
 	/**
 	 * 
@@ -250,7 +276,7 @@ public class ApplyRanking {
 	public DocumentSet getAltmetric(DocumentSet documentset, String metric, String type, String source)
 			throws Exception {
 		DisplayDocument current = null;
-		DisplayDocument temp = new DisplayDocument(constants);
+		DisplayDocument temp = new DisplayDocument();
 		documentset.setBibliometricId(con.getBibId(metric, type, source));
 		documentset.setBibliometric(metric);
 		documentset.setBibType(type);

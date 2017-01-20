@@ -1,7 +1,6 @@
 package org.mrdlib.api.response;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -31,16 +30,15 @@ public class DocumentSet {
 
 	private DisplayDocument requestedDocument;
 
-	private Constants constants;
-
 	private DebugDetailsPerSet debugDetailsPerSet = new DebugDetailsPerSet();
+	
+	public DocumentSet() {}
 
 	public DocumentSet(List<DisplayDocument> documentList, String recommendationSetId, String suggestedLabel,
 			Constants constants) {
 		this.documentList = documentList;
 		this.recommendationSetId = recommendationSetId;
 		this.suggestedLabel = suggestedLabel;
-		this.constants = constants;
 	}
 
 	/**
@@ -365,7 +363,6 @@ public class DocumentSet {
 
 		if (this.requestedDocument != null) {
 			if (equalDocuments(document, this.requestedDocument)) {
-				this.setRemoveDuplicates(true);
 				return;
 			}
 		}
@@ -378,7 +375,6 @@ public class DocumentSet {
 				if (Integer.parseInt(current.getDocumentId()) < Integer.parseInt(document.getDocumentId())) {
 					this.documentList.remove(i);
 					this.documentList.add(document);
-					this.setRemoveDuplicates(true);
 				}
 				return;
 			}
@@ -502,10 +498,6 @@ public class DocumentSet {
 		this.requestedDocument = requestedDocument;
 	}
 
-	public DocumentSet(Constants constants) {
-		this.constants = constants;
-	}
-
 	public String getReRankingCombination() {
 		return this.debugDetailsPerSet.getReRankingCombination();
 	}
@@ -572,15 +564,6 @@ public class DocumentSet {
 	@XmlTransient
 	public void setShuffled(boolean shuffled) {
 		this.debugDetailsPerSet.setShuffled(shuffled);
-	}
-
-	public boolean isRemovedDuplicates() {
-		return this.debugDetailsPerSet.isRemovedDuplicates();
-	}
-
-	@XmlTransient
-	public void setRemoveDuplicates(boolean removedDuplicates) {
-		this.debugDetailsPerSet.setRemovedDuplicates(removedDuplicates);
 	}
 
 	public int getDesiredNumberFromAlgorithm() {

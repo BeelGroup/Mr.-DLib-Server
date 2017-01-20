@@ -3,8 +3,6 @@ package org.mrdlib.api.response;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 /**
@@ -36,8 +34,6 @@ public class DebugDetailsPerSet {
 	private int numberOfDisplayedRecommendations = 1;
 	
 	private boolean shuffled = false;
-
-	private boolean removedDuplicates = false;
 	
 	private Long startTime;
 	private Long algorithmChoosingTime;
@@ -149,14 +145,6 @@ public class DebugDetailsPerSet {
 
 	public void setShuffled(boolean shuffled) {
 		this.shuffled = shuffled;
-	}
-
-	public boolean isRemovedDuplicates() {
-		return removedDuplicates;
-	}
-
-	public void setRemovedDuplicates(boolean removedDuplicates) {
-		this.removedDuplicates = removedDuplicates;
 	}
 
 	public int getNumberOfCandidatesToReRank() {

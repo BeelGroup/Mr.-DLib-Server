@@ -2,7 +2,6 @@ package org.mrdlib.recommendation.algorithm;
 
 import java.util.Random;
 
-import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
@@ -10,7 +9,6 @@ import org.mrdlib.database.DBConnection;
 public class StereotypeRecommender extends RelatedDocuments {
 
 	private DBConnection con = null;
-	private Constants constants = null;
 
 	/**
 	 * Creates a new instance of StereotypeRecommender which exposes methods to
@@ -22,7 +20,6 @@ public class StereotypeRecommender extends RelatedDocuments {
 	public StereotypeRecommender(DBConnection con) {
 
 		this.con = con;
-		constants = new Constants();
 		Random random = new Random();
 		String category = "";
 		switch(random.nextInt(4)){
@@ -55,7 +52,7 @@ public class StereotypeRecommender extends RelatedDocuments {
 	 * returns stereotype documents from database
 	 */
 	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
-		DocumentSet results = new DocumentSet(constants);
+		DocumentSet results = new DocumentSet();
 		try {
 			results = con.getStereotypeRecommendations(requestDoc, numberOfRelatedDocs, algorithmLoggingInfo);
 		} catch (Exception e) {
