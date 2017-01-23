@@ -76,7 +76,7 @@ public class solrConnection {
 		query.addFilterQuery(filterquery);
 
 		// get related documents for the given document
-		query.setQuery(constants.getDocumentId() + ":" + document.getDocumentId());
+		query.setQuery(constants.getDocumentIdInSolr() + ":" + document.getDocumentId());
 
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
@@ -109,7 +109,7 @@ public class solrConnection {
 				for (int i = 0; i < docs.size(); i++) {
 					// get the document
 					relDocument = con.getDocumentBy(constants.getDocumentId(),
-							docs.get(i).getFieldValue(constants.getDocumentId()).toString());
+							docs.get(i).getFieldValue(constants.getDocumentIdInSolr()).toString());
 
 					// add the rank
 					relDocument.setSuggestedRank(i + 1);
@@ -238,7 +238,7 @@ public class solrConnection {
 				for (int i = 0; i < docs.size(); i++) {
 					// get the document
 					relDocument = con.getDocumentBy(constants.getDocumentId(),
-							docs.get(i).getFieldValue(constants.getDocumentId()).toString());
+							docs.get(i).getFieldValue(constants.getDocumentIdInSolr()).toString());
 
 					// add the rank
 					relDocument.setSuggestedRank(i + 1);
@@ -333,7 +333,7 @@ public class solrConnection {
 				for (int i = 0; i < docs.size(); i++) {
 					// get the document
 					oneRelatedDocument = con.getDocumentBy(constants.getDocumentId(),
-							docs.get(i).getFieldValue(constants.getDocumentId()).toString());
+							docs.get(i).getFieldValue(constants.getDocumentIdInSolr()).toString());
 
 					// add the rank
 					oneRelatedDocument.setSuggestedRank(i + 1);

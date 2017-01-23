@@ -229,6 +229,7 @@ public class Constants {
 	private String solrWebService;
 	private String solrMrdlib;
 	private String solrCollectionShortName;
+	private String documentIdInSolr;
 
 	// collections
 	private String gesis;
@@ -242,6 +243,7 @@ public class Constants {
 	private String mendeleyConfigPath;
 
 	private String probabilitiesConfigPath;
+
 
 	// load the config file
 	public Constants() {
@@ -444,7 +446,8 @@ public class Constants {
 			this.solrWebService = prop.getProperty("solrWebService");
 			this.solrMrdlib = prop.getProperty("solrMrdlib");
 			this.solrCollectionShortName = prop.getProperty("solrCollectionShortName");
-
+			this.documentIdInSolr = prop.getProperty("documentIdInSolr");
+			
 			this.gesisCollectionLink = prop.getProperty("gesisCollectionLink");
 			this.gesis = prop.getProperty("gesis");
 
@@ -1171,5 +1174,9 @@ public class Constants {
 	 */
 	public String getMostPopularCategoryInMostPopularDetails() {
 		return mostPopularCategoryInMostPopularDetails;
+	}
+
+	public String getDocumentIdInSolr() {
+		return documentIdInSolr;
 	}
 }

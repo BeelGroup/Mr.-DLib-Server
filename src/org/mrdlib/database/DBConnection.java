@@ -1565,7 +1565,7 @@ public class DBConnection {
 					+ "');";
 
 			stmt = con.prepareStatement(query);
-			System.out.println(query);
+			//System.out.println(query);
 			// stmt.executeUpdate();
 
 		} catch (Exception e) {
@@ -2906,7 +2906,7 @@ public class DBConnection {
 					+ documentset.getAfterAlgorithmExecutionTime() + "', '" + documentset.getAfterRerankTime() + "', '"
 					+ accessKeyHash + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-			System.out.println(query);
+			//System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
@@ -3031,23 +3031,24 @@ public class DBConnection {
 			}
 			switch (recommendationClass) {
 			case "cbf": {
-				query += " AND " + "recommendation_class_details_cbf" + "=" + Integer.toString(recommendationClassId);
+				query += " AND " + constants.getCbfId() + "=" + Integer.toString(recommendationClassId);
 				break;
 			}
 			case "stereotypes": {
-				query += " AND " + "recommendation_class_details_stereotypes" + "="
+				query += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
 						+ Integer.toString(recommendationClassId);
 				break;
 			}
 
 			case "most_popular": {
-				query += " AND " + "recommendation_class_details_most_popular" + "="
+				query += " AND " + constants.getMostPopularRecommendationDetailsId() + "="
 						+ Integer.toString(recommendationClassId);
 				break;
 			}
 
 			}
 			stmt = con.createStatement();
+			//System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			// if found, get the id of the exact match
@@ -3069,7 +3070,7 @@ public class DBConnection {
 						+ constants.getBibReRankingApplied()
 						+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
 						+ (recommendationClass.contains("random") ? ""
-								: (", " + "recommendation_class_details_" + recommendationClass))
+								: (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
 						+ ", " + constants.getShuffled();
 				values += "'" + recommenderDetails.getRecommendationClass() + "', "
 						+ (recommenderDetails.isLanguageRestriction() ? "'Y'" : "'N'") + ", "
@@ -3125,7 +3126,7 @@ public class DBConnection {
 				+ constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
 				+ "',?,?,?,?,?,?,?,?,?,?,?,?);";
 
-		System.out.println(query);
+		//System.out.println(query);
 
 		try {
 			stmt = con.prepareStatement(query);
