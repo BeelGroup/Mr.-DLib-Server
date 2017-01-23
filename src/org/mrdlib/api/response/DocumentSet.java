@@ -346,6 +346,18 @@ public class DocumentSet {
 			current.setBibScore(current.getBibScore() + 2);
 		}
 	}
+	
+	public double calculateBibliometricValuePercentage() {
+		DisplayDocument current = null;
+		int count = 0;
+		for (int i = 0; i < this.getSize(); i++) {
+			current = this.getDisplayDocument(i);
+			if (current.getBibScore() > 0) {
+				count++;
+			}
+		}
+		return (count/(double) this.getSize());
+	}
 
 	public int getSize() {
 		return documentList.size();
@@ -685,5 +697,12 @@ public class DocumentSet {
 
 	public void addRankingStats(Statistics stats) {
 		this.debugDetailsPerSet.addRankingStats(stats);
+	}
+	public boolean isFallbackRanking() {
+		return this.debugDetailsPerSet.isFallbackRanking();
+	}
+	@XmlTransient
+	public void setFallbackRanking(boolean fallbackRanking) {
+		this.setFallbackRanking(fallbackRanking);
 	}
 }

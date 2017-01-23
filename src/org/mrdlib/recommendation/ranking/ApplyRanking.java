@@ -128,59 +128,79 @@ public class ApplyRanking {
 
 		if (rndWeight <= 4) {
 			// choose a ranking metric
-			switch (rndRank) {
-			case 1:
-				documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
-				break;
-			case 2:
-				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "readers",
-						"mendeley");
-				break;
-			case 3:
-				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "readers",
-						"mendeley");
-				break;
-			case 4:
-				documentSet = getAltmetric(documentSet, "sum_of_authors", "readers", "mendeley");
-				break;
-			case 5:
-				documentSet = getAltmetric(documentSet, "sum_of_authors_normalized_by_number_of_authors", "readers",
-						"mendeley");
-				break;
-			case 6:
-				documentSet = getAltmetric(documentSet, "sum_of_h-index", "readers", "mendeley");
-				break;
-			case 7:
-				documentSet = getAltmetric(documentSet, "h-index_average", "readers", "mendeley");
-				break;
-			case 8:
-				documentSet = getAltmetric(documentSet, "simple_count", "citations", "gesis");
-				break;
-			case 9:
-				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "citations",
-						"gesis");
-				break;
-			case 10:
-				documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "citations",
-						"gesis");
-				break;
-			case 11:
-				documentSet = getAltmetric(documentSet, "sum_of_authors", "citations", "gesis");
-				break;
-			case 12:
-				documentSet = getAltmetric(documentSet, "sum_of_authors_normalized_by_number_of_authors", "citations",
-						"gesis");
-				break;
-			case 13:
-				documentSet = getAltmetric(documentSet, "sum_of_h-index", "citations", "gesis");
-				break;
-			case 14:
-				documentSet = getAltmetric(documentSet, "h-index_average", "citations", "gesis");
-				break;
-			default:
-				documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
-				break;
-			}
+			double percentage = 0;
+
+			do {
+				switch (rndRank) {
+				case 1:
+					documentSet = getAltmetric(documentSet, "sum_of_authors", "readers", "mendeley");
+					break;
+				case 2:
+					documentSet = getAltmetric(documentSet, "sum_of_authors_normalized_by_number_of_authors", "readers",
+							"mendeley");
+					break;
+				case 3:
+					documentSet = getAltmetric(documentSet, "sum_of_h-index", "readers", "mendeley");
+					break;
+				case 4:
+					documentSet = getAltmetric(documentSet, "h-index_average", "readers", "mendeley");
+					break;
+				case 5:
+					documentSet = getAltmetric(documentSet, "sum_of_authors", "citations", "gesis");
+					break;
+				case 6:
+					documentSet = getAltmetric(documentSet, "sum_of_authors_normalized_by_number_of_authors",
+							"citations", "gesis");
+					break;
+				case 7:
+					documentSet = getAltmetric(documentSet, "sum_of_h-index", "citations", "gesis");
+					break;
+				case 8:
+					documentSet = getAltmetric(documentSet, "h-index_average", "citations", "gesis");
+					break;
+				case 9:
+					documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
+					break;
+				case 10:
+					documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "readers",
+							"mendeley");
+					break;
+				case 11:
+					documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "readers",
+							"mendeley");
+					break;
+				case 12:
+					documentSet = getAltmetric(documentSet, "simple_count", "citations", "gesis");
+					break;
+				case 13:
+					documentSet = getAltmetric(documentSet, "simple_count_normalized_by_age_in_years", "citations",
+							"gesis");
+					break;
+				case 14:
+					documentSet = getAltmetric(documentSet, "simple_count_normalized_by_number_of_authors", "citations",
+							"gesis");
+					break;
+				default:
+					documentSet = getAltmetric(documentSet, "simple_count", "readers", "mendeley");
+					break;
+				}
+
+				percentage = documentSet.calculateBibliometricValuePercentage();
+
+				if (percentage <= 0) {
+					documentSet.setFallback(true);
+					if (rndRank > 11) {
+						rndRank = random.nextInt(11) + 1;
+					} else if (rndRank > 8) {
+						rndRank = random.nextInt(8) + 1;
+					} else if (rndRank > 4) {
+						rndRank = random.nextInt(4) + 1;
+					} else {
+						break;
+					}
+				}
+
+			} while (percentage <= 0);
 		}
 
 		// choose a proportion of text relevance score and alt/bibliometric

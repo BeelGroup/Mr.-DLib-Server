@@ -213,6 +213,7 @@ public class Constants {
 	private String rerankingOrder;
 	private String bibliometricIdInAlgorithmRerankingBibliometrics;
 	private String rerankingCombindation;
+	private String fallbackReranking;
 
 	// db table z_bibliometrics
 	private String bibliometricId;
@@ -442,6 +443,7 @@ public class Constants {
 			this.bibliometricIdInAlgorithmRerankingBibliometrics = prop
 					.getProperty("bibliometricIdInAlgorithmRerankingBibliometrics");
 			this.rerankingCombindation = prop.getProperty("rerankingCombindation");
+			this.fallbackReranking = prop.getProperty("fallbackReranking"); 
 
 			this.solrWebService = prop.getProperty("solrWebService");
 			this.solrMrdlib = prop.getProperty("solrMrdlib");
@@ -474,6 +476,10 @@ public class Constants {
 				}
 			}
 		}
+	}
+
+	public String getFallbackReranking() {
+		return fallbackReranking;
 	}
 
 	public String getMinimumRelevanceScoreDisplay() {

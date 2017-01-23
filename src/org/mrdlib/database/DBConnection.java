@@ -1565,7 +1565,7 @@ public class DBConnection {
 					+ "');";
 
 			stmt = con.prepareStatement(query);
-			//System.out.println(query);
+			System.out.println(query);
 			// stmt.executeUpdate();
 
 		} catch (Exception e) {
@@ -2906,7 +2906,7 @@ public class DBConnection {
 					+ documentset.getAfterAlgorithmExecutionTime() + "', '" + documentset.getAfterRerankTime() + "', '"
 					+ accessKeyHash + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-			//System.out.println(query);
+			System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
@@ -3031,24 +3031,23 @@ public class DBConnection {
 			}
 			switch (recommendationClass) {
 			case "cbf": {
-				query += " AND " + constants.getCbfId() + "=" + Integer.toString(recommendationClassId);
+				query += " AND " + "recommendation_class_details_cbf" + "=" + Integer.toString(recommendationClassId);
 				break;
 			}
 			case "stereotypes": {
-				query += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
+				query += " AND " + "recommendation_class_details_stereotypes" + "="
 						+ Integer.toString(recommendationClassId);
 				break;
 			}
 
 			case "most_popular": {
-				query += " AND " + constants.getMostPopularRecommendationDetailsId() + "="
+				query += " AND " + "recommendation_class_details_most_popular" + "="
 						+ Integer.toString(recommendationClassId);
 				break;
 			}
 
 			}
 			stmt = con.createStatement();
-			//System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			// if found, get the id of the exact match
@@ -3070,7 +3069,7 @@ public class DBConnection {
 						+ constants.getBibReRankingApplied()
 						+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
 						+ (recommendationClass.contains("random") ? ""
-								: (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
+								: (", " + "recommendation_class_details_" + recommendationClass))
 						+ ", " + constants.getShuffled();
 				values += "'" + recommenderDetails.getRecommendationClass() + "', "
 						+ (recommenderDetails.isLanguageRestriction() ? "'Y'" : "'N'") + ", "
@@ -3126,7 +3125,7 @@ public class DBConnection {
 				+ constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
 				+ "',?,?,?,?,?,?,?,?,?,?,?,?);";
 
-		//System.out.println(query);
+		System.out.println(query);
 
 		try {
 			stmt = con.prepareStatement(query);
@@ -3451,9 +3450,9 @@ public class DBConnection {
 				String query = "INSERT INTO " + constants.getAlgorithmRerankingBibliometrics() + " ("
 						+ constants.getNumberOfCandidatesToRerank() + ", " + constants.getRerankingOrder() + ", "
 						+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + ", "
-						+ constants.getRerankingCombindation() + ") VALUES ('"
+						+ constants.getRerankingCombindation() + ", " + constants.getFallbackReranking() + ") VALUES ('"
 						+ documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder()
-						+ "', ?, '" + documentset.getReRankingCombination() + "');";
+						+ "', ?, '" + documentset.getReRankingCombination() + "', ?);";
 
 				stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -3461,6 +3460,11 @@ public class DBConnection {
 					stmt.setNull(1, java.sql.Types.BIGINT);
 				} else
 					stmt.setInt(1, documentset.getBibliometricId());
+				
+				if (documentset.isFallbackRanking()) {
+					stmt.setString(2, "Y");
+				} else
+					stmt.setString(2, "N");
 
 				stmt.executeUpdate();
 

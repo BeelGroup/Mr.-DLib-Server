@@ -27,6 +27,7 @@ public class DebugDetailsPerSet {
 	private String bibliometric;
 	private String bibType;
 	private String bibSource;
+	private boolean fallbackRanking = false;
 
 	private AlgorithmDetails algoDetails; 
 	private long numberOfReturnedResults;
@@ -46,7 +47,15 @@ public class DebugDetailsPerSet {
 
 	public DebugDetailsPerSet() {
 	}
-	
+
+	public boolean isFallbackRanking() {
+		return fallbackRanking;
+	}
+
+	public void setFallbackRanking(boolean fallbackRanking) {
+		this.fallbackRanking = fallbackRanking;
+	}
+
 	public void addRankingStats(Statistics stats) {
 		this.rankStats.add(stats);
 	}
