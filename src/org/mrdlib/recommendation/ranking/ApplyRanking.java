@@ -204,25 +204,30 @@ public class ApplyRanking {
 		}
 
 		// choose a proportion of text relevance score and alt/bibliometric
-		switch (rndWeight) {
-		case 1:
-			documentSet.calculateFinalScoreForRelevanceScoreTimesLogBibScore();
-			break;
-		case 2:
-			documentSet.calculateFinalScoreForRelevanceScoreTimesRootBibScore();
-			break;
-		case 3:
-			documentSet.calculateFinalScoreForRelevanceScoreTimesBibScore();
-			break;
-		case 4:
+
+		if (documentSet.getAlgorithmDetails().getRecommendationClass().equals("cbf")) {
+			switch (rndWeight) {
+			case 1:
+				documentSet.calculateFinalScoreForRelevanceScoreTimesLogBibScore();
+				break;
+			case 2:
+				documentSet.calculateFinalScoreForRelevanceScoreTimesRootBibScore();
+				break;
+			case 3:
+				documentSet.calculateFinalScoreForRelevanceScoreTimesBibScore();
+				break;
+			case 4:
+				documentSet.calculateFinalScoreOnlyBibScore();
+				break;
+			case 5:
+				documentSet.calculateFinalScoreOnlyRelevanceScore();
+				break;
+			default:
+				documentSet.calculateFinalScoreOnlyBibScore();
+				break;
+			}
+		} else {
 			documentSet.calculateFinalScoreOnlyBibScore();
-			break;
-		case 5:
-			documentSet.calculateFinalScoreOnlyRelevanceScore();
-			break;
-		default:
-			documentSet.calculateFinalScoreOnlyBibScore();
-			break;
 		}
 
 		// choose an ordering with 80% Desc, 20% Asc
@@ -246,6 +251,7 @@ public class ApplyRanking {
 			documentSet.shuffle();
 
 		return documentSet;
+
 	}
 
 	/**
