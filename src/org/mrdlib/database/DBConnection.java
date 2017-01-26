@@ -28,8 +28,8 @@ import javax.sql.DataSource;
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
-import org.mrdlib.api.response.Statistics;
 import org.mrdlib.api.response.RootElement;
+import org.mrdlib.api.response.Statistics;
 import org.mrdlib.api.response.StatusReport;
 import org.mrdlib.partnerContentManager.core.JSONDocument;
 import org.mrdlib.partnerContentManager.gesis.Abstract;
@@ -3460,7 +3460,7 @@ public class DBConnection {
 					stmt.setNull(1, java.sql.Types.BIGINT);
 				} else
 					stmt.setInt(1, documentset.getBibliometricId());
-				
+
 				if (documentset.isFallbackRanking()) {
 					stmt.setString(2, "Y");
 				} else
