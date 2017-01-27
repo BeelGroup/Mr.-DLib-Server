@@ -3048,6 +3048,7 @@ public class DBConnection {
 
 			}
 			stmt = con.createStatement();
+			//System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			// if found, get the id of the exact match
@@ -3072,7 +3073,7 @@ public class DBConnection {
 								: (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
 						+ ", " + constants.getShuffled();
 				values += "'" + recommenderDetails.getRecommendationClass() + "', "
-						+ (recommenderDetails.isLanguageRestriction() ? "'Y'" : "'N'") + ", "
+						+ (recommenderDetails.isLanguageRestriction() ? "'same_language_only'" : "'N'") + ", "
 						+ ((rerankingBibId > 0) ? "'Y'" : "'N'")
 						+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
 						+ (recommendationClass.contains("random") ? ""
@@ -3080,7 +3081,7 @@ public class DBConnection {
 						+ ", " + (documentset.isShuffled() ? "'Y'" : "'N'");
 				query += (columns + ") VALUES(" + values + ")");
 
-				// System.out.println(query);
+				//System.out.println(query);
 
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
