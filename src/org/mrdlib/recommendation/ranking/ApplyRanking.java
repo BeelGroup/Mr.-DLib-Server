@@ -1,6 +1,7 @@
 package org.mrdlib.recommendation.ranking;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.manager.UnknownException;
@@ -50,9 +51,10 @@ public class ApplyRanking {
 		// random number for the number of considered results from the algorithm
 		rndNumberOfCandidatesToReRank = random.nextInt(7) + 1;
 
-		rndWeight = random.nextInt(5) + 1;
+		rndWeight = random.nextInt(100) + 1;
 		// random number for the chosen metric
-		rndRank = random.nextInt(14) + 1;
+		//rndRank = random.nextInt(14) + 1;
+		rndRank = ThreadLocalRandom.current().nextInt(12, 14 + 1);
 		// random number asc or desc sorting
 		rndOrder = random.nextInt(10) + 1;
 
@@ -126,10 +128,11 @@ public class ApplyRanking {
 
 		documentSet.setRankAfterAlgorithm();
 
-		if (rndWeight <= 4) {
-			// choose a ranking metric
-			double percentage = 0;
+		boolean onlyTextRelevanceBecauseTooLessBibData = false;
 
+		if (rndWeight >= 96 || documentSet.getAlgorithmDetails().getRecommendationClass().equals("cbf")) {
+			// choose a ranking metric
+			int count = 0;
 			do {
 				switch (rndRank) {
 				case 1:
@@ -185,44 +188,57 @@ public class ApplyRanking {
 					break;
 				}
 
-				percentage = documentSet.calculateBibliometricValuePercentage();
+				count = documentSet.calculateCountOfBibliometricValue();
 
-				if (percentage <= 0) {
-					documentSet.setFallback(true);
+
+				System.out.println(count);
+				if (count < 5) {
+					System.out.println("under 5");
+					System.out.println(rndRank);
+					documentSet.setFallbackRanking(true);
 					if (rndRank > 11) {
-						rndRank = random.nextInt(11) + 1;
+						System.out.println("set under 11");
+						rndRank = ThreadLocalRandom.current().nextInt(9, 11 + 1);
+						//rndRank = random.nextInt(11) + 1;
 					} else if (rndRank > 8) {
-						rndRank = random.nextInt(8) + 1;
+						System.out.println("set under 8");
+						rndRank = ThreadLocalRandom.current().nextInt(5, 8 + 1);
+						//rndRank = random.nextInt(8) + 1;
 					} else if (rndRank > 4) {
+						System.out.println("set under 4");
 						rndRank = random.nextInt(4) + 1;
 					} else {
+						System.out.println("only TR");
+						onlyTextRelevanceBecauseTooLessBibData = true;
+						documentSet.setBibliometricId(-1);
+						documentSet.setBibliometric(null);
+						documentSet.setBibType(null);
+						documentSet.setBibSource(null);
 						break;
 					}
+					System.out.println("try again!");
 				}
-
-			} while (percentage <= 0);
+			} while (count < 5);
 		}
 
 		// choose a proportion of text relevance score and alt/bibliometric
-		switch (rndWeight) {
-		case 1:
-			documentSet.calculateFinalScoreForRelevanceScoreTimesLogBibScore();
-			break;
-		case 2:
-			documentSet.calculateFinalScoreForRelevanceScoreTimesRootBibScore();
-			break;
-		case 3:
-			documentSet.calculateFinalScoreForRelevanceScoreTimesBibScore();
-			break;
-		case 4:
-			documentSet.calculateFinalScoreOnlyBibScore();
-			break;
-		case 5:
+
+		if (onlyTextRelevanceBecauseTooLessBibData) {
 			documentSet.calculateFinalScoreOnlyRelevanceScore();
-			break;
-		default:
+		} else if (documentSet.getAlgorithmDetails().getRecommendationClass().equals("cbf")) {
+			if(rndWeight < 24) {
+				documentSet.calculateFinalScoreForRelevanceScoreTimesLogBibScore();
+			} else if (rndWeight < 48) {
+				documentSet.calculateFinalScoreForRelevanceScoreTimesRootBibScore();
+			} else if (rndWeight < 72) {
+				documentSet.calculateFinalScoreForRelevanceScoreTimesBibScore();
+			} else if (rndWeight < 96) {
+				documentSet.calculateFinalScoreOnlyBibScore();
+			} else {
+				documentSet.calculateFinalScoreOnlyRelevanceScore();
+			}
+		} else {
 			documentSet.calculateFinalScoreOnlyBibScore();
-			break;
 		}
 
 		// choose an ordering with 80% Desc, 20% Asc
@@ -246,6 +262,7 @@ public class ApplyRanking {
 			documentSet.shuffle();
 
 		return documentSet;
+
 	}
 
 	/**

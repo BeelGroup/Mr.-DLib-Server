@@ -224,9 +224,9 @@ public class DocumentService {
 			if (statusReportSet.getSize() > 1)
 				statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
 		} catch (NullPointerException e) {
-			throw new NullPointerException("It seems we don't have access to the database or solr index."
-					+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
-			// e.printStackTrace();
+			//throw new NullPointerException("It seems we don't have access to the database or solr index."
+			//		+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
+			e.printStackTrace();
 		}
 
 		if (!constants.getDebugModeOn()) {

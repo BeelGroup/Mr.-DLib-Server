@@ -33,7 +33,7 @@ public class StereotypeRecommender extends RelatedDocuments {
 
 		default: category = "mix";
 		}
-		algorithmLoggingInfo = new AlgorithmDetails("StereotypeRecommender", "stereotypes", false, category);
+		algorithmLoggingInfo = new AlgorithmDetails("StereotypeRecommender", "stereotype", false, category);
 
 	}
 

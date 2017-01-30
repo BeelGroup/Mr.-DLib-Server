@@ -347,7 +347,7 @@ public class DocumentSet {
 		}
 	}
 	
-	public double calculateBibliometricValuePercentage() {
+	public int calculateCountOfBibliometricValue() {
 		DisplayDocument current = null;
 		int count = 0;
 		for (int i = 0; i < this.getSize(); i++) {
@@ -356,7 +356,7 @@ public class DocumentSet {
 				count++;
 			}
 		}
-		return (count/(double) this.getSize());
+		return count;
 	}
 
 	public int getSize() {
@@ -703,6 +703,6 @@ public class DocumentSet {
 	}
 	@XmlTransient
 	public void setFallbackRanking(boolean fallbackRanking) {
-		this.setFallbackRanking(fallbackRanking);
+		this.debugDetailsPerSet.setFallbackRanking(fallbackRanking);
 	}
 }

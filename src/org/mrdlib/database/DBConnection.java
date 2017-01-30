@@ -70,6 +70,7 @@ public class DBConnection {
 			stmt.executeQuery("SET NAMES 'utf8'");
 
 			// get all the lengths of the database fields and store it in a map
+			System.out.println(constants.getDocuments());
 			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
 			fillMap(rs);
 			rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getAbstracts());
@@ -2906,7 +2907,7 @@ public class DBConnection {
 					+ documentset.getAfterAlgorithmExecutionTime() + "', '" + documentset.getAfterRerankTime() + "', '"
 					+ accessKeyHash + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-			//System.out.println(query);
+			System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
@@ -3005,7 +3006,7 @@ public class DBConnection {
 				recommendationClassId = getCbfId(recommenderDetails);
 				break;
 			}
-			case "stereotypes": {
+			case "stereotype": {
 				recommendationClassId = getStereotypesId(recommenderDetails);
 				break;
 			}
@@ -3034,7 +3035,7 @@ public class DBConnection {
 				query += " AND " + constants.getCbfId() + "=" + Integer.toString(recommendationClassId);
 				break;
 			}
-			case "stereotypes": {
+			case "stereotype": {
 				query += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
 						+ Integer.toString(recommendationClassId);
 				break;
@@ -3048,6 +3049,7 @@ public class DBConnection {
 
 			}
 			stmt = con.createStatement();
+			// System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			// if found, get the id of the exact match
@@ -3072,7 +3074,7 @@ public class DBConnection {
 								: (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
 						+ ", " + constants.getShuffled();
 				values += "'" + recommenderDetails.getRecommendationClass() + "', "
-						+ (recommenderDetails.isLanguageRestriction() ? "'Y'" : "'N'") + ", "
+						+ (recommenderDetails.isLanguageRestriction() ? "'same_language_only'" : "'N'") + ", "
 						+ ((rerankingBibId > 0) ? "'Y'" : "'N'")
 						+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
 						+ (recommendationClass.contains("random") ? ""
@@ -3125,7 +3127,7 @@ public class DBConnection {
 				+ constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
 				+ "',?,?,?,?,?,?,?,?,?,?,?,?);";
 
-		//System.out.println(query);
+		// System.out.println(query);
 
 		try {
 			stmt = con.prepareStatement(query);
@@ -3263,16 +3265,16 @@ public class DBConnection {
 	 * Please fill me!
 	 * 
 	 * @param recommenderDetails
-	 * @param stereotypes
+	 * @param stereotype
 	 * @return
 	 * @throws SQLException
 	 */
-	private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotypes) throws SQLException {
+	private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotype) throws SQLException {
 		int stereotypeId = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
 		String tableName, tableRowId, tableCategoryName = "";
-		if (stereotypes) {
+		if (stereotype) {
 			tableName = constants.getStereotypeRecommendationDetails();
 			tableRowId = constants.getStereotypeRecommendationDetailsId();
 			tableCategoryName = constants.getStereotypeCategoryInStereotypeDetails();
@@ -3392,7 +3394,7 @@ public class DBConnection {
 	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
 		String bibliometricIdQueryString = "";
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
 		if (documentset.getBibliometricId() == -1)
@@ -3406,10 +3408,18 @@ public class DBConnection {
 				+ "=" + documentset.getNumberOfCandidatesToReRank() + " AND " + constants.getRerankingOrder() + "='"
 				+ documentset.getRankingOrder() + "' AND "
 				+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + bibliometricIdQueryString + " AND "
-				+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "'";
+				+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "' AND "
+				+ constants.getFallbackReranking() + "=?";
 		try {
-			stmt = con.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = con.prepareStatement(query);
+			
+			if (documentset.isFallbackRanking()) {
+				stmt.setString(2, "Y");
+			} else
+				stmt.setString(2, "N");
+			
+			stmt.executeUpdate();
+			rs = stmt.getResultSet();
 
 			if (rs.next())
 				rerankingBibliometricId = rs.getInt(constants.getAlgorithmRerankingBibliometricsId());
@@ -3497,7 +3507,7 @@ public class DBConnection {
 
 		// TODO: make variables
 		String query = "insert INTO bibliometrics_documents (document_id, bibliometrics_id, value) select D.id, 4 , "
-				+ "sum(BP.value) as sumOfPvalue from documents D JOIN xj_persons_documents PD ON PD.document_id = D.id "
+				+ "sum(BP.value) as sumOfPvalue from document D JOIN xj_persons_documents PD ON PD.document_id = D.id "
 				+ "JOIN bibliometrics_persons BP ON BP.person_id = PD.person_id WHERE D.id > 1 AND D.id < 9505296 "
 				+ "GROUP BY D.id";
 
@@ -3656,7 +3666,7 @@ public class DBConnection {
 			String query = "select BD.value, D.title_clean from bibliometric_person BP "
 					+ "JOIN document_person PD ON PD.person_id = BP.person_id "
 					+ "JOIN bibliometric_document BD ON BD.document_id = PD.document_id "
-					+ "JOIN documents D ON D.id = PD.document_id WHERE BD.bibliometrics_id=" + bibliometricId
+					+ "JOIN document D ON D.id = PD.document_id WHERE BD.bibliometrics_id=" + bibliometricId
 					+ " AND PD.document_id < 9505296 AND BP.person_id=" + authorId;
 
 			rs = stmt.executeQuery(query);
