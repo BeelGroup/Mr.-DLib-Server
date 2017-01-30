@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlValue;
 public class Snippet implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private String content;
 	private String format;
 	private String clickUrl;
@@ -64,9 +64,9 @@ public class Snippet implements Serializable {
 	 * @return snippet as String
 	 */
 	private String formatContentHtmlFully(String title, String authorNames, String publishedIn, int year) {
-		return "<![CDATA[<a href='" + clickUrl + "'><font color='#000000' size='5' face='Arial, Helvetica, sans-serif'>" + title
-				+ ".</font></a><font color='#000000' size='5' face='Arial, Helvetica, sans-serif'>" + authorNames
-				+ ". <i>" + publishedIn + "</i>. " + year + ".</font>]]>";
+		return "<![CDATA[<a href='" + clickUrl + "'><font color='#000000' size='4' face='Arial, Helvetica, sans-serif'>"
+				+ title + ".</font></a><font color='#000000' size='4' face='Arial, Helvetica, sans-serif'>"
+				+ authorNames + ". <i>" + publishedIn + "</i>. " + year + ".</font>]]>";
 	}
 
 	/**
@@ -80,20 +80,23 @@ public class Snippet implements Serializable {
 	 * @return snippet as String
 	 */
 	private String formatContentHtmlPlain(String title, String authorNames, String publishedIn, int year) {
-		return "<![CDATA[<a href='" + clickUrl + "'>" + title + "</a>. " + authorNames + ". " + publishedIn + ".  " + year + ".]]>";
+		return "<![CDATA[<a href='" + clickUrl + "'>" + title + "</a>. " + authorNames + ". " + publishedIn + ".  "
+				+ year + ".]]>";
 	}
 
 	/**
 	 * 
 	 * set the clickURL, also in the already build content
 	 * 
-	 * @param click URL
+	 * @param click
+	 *            URL
 	 */
 	@XmlTransient
 	public void setClickUrl(String clickUrl) {
 		this.clickUrl = clickUrl;
-		if(content.contains("<a href="))
-			this.content = content.substring(0, content.lastIndexOf("<a href='")+9) + clickUrl + content.substring(content.lastIndexOf("<a href='")+9);
+		if (content.contains("<a href="))
+			this.content = content.substring(0, content.lastIndexOf("<a href='") + 9) + clickUrl
+					+ content.substring(content.lastIndexOf("<a href='") + 9);
 	}
 
 	public String getContent() {
