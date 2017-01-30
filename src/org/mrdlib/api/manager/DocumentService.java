@@ -1,7 +1,5 @@
 package org.mrdlib.api.manager;
 
-import java.net.URLDecoder;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,8 +25,7 @@ import org.mrdlib.recommendation.ranking.ApplyRanking;
  *         This class is called by Tomcat and the start of the webapp
  */
 // yxc get the name here
-// @Path("documents/{documentId : [a-zA-Z0-9-_.,%:!?+]+}")
-@Path("documents/{documentId : .+}")
+@Path("documents/{documentId : [a-zA-Z0-9-_.,%:;!?+*()$]+}")
 // set Path and allow numbers, letters and -_., Save Path as document_id
 public class DocumentService {
 
@@ -71,7 +68,7 @@ public class DocumentService {
 	 * @return a document set of related documents
 	 */
 	public RootElement getRelatedDocumentSet(@PathParam("documentId") String inputQuery) {
-		System.out.println("started getRelatedDocumentSet with documentI: " + inputQuery);
+		System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
 		DisplayDocument requestDocument = null;
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
@@ -101,9 +98,10 @@ public class DocumentService {
 					requestDocument = con.getDocumentBy(constants.getIdOriginal(), inputQuery);
 				} catch (NoEntryException e1) {
 					System.out.println("original id failed");
-					inputQuery = URLDecoder.decode(inputQuery, "UTF-8");
-					System.out.println("the stuff coming in: " + inputQuery);
-					System.out.println("searching the database for a document with the title");
+					// The encoding does not work for / so we convert them
+					// by our own on JabRef side
+					inputQuery = inputQuery.replaceAll("convbckslsh", "/");
+					System.out.println("searching the database for a document with title");
 					try {
 						// get the requested document from the database by its
 						// title
@@ -112,6 +110,10 @@ public class DocumentService {
 					} catch (Exception e2) {
 						System.out.println("it seems there is no document in our database with this title");
 						System.out.println("lets now try if lucene find some documents for us.");
+						inputQuery = inputQuery.toLowerCase();
+						// lucene does not like these chars
+						inputQuery = inputQuery
+								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", "");
 						requestByTitle = true;
 						requestDocument = new DisplayDocument();
 						requestDocument.setTitle(inputQuery);
@@ -119,8 +121,6 @@ public class DocumentService {
 					}
 				}
 			}
-
-			System.out.println("after catch. the document exists!");
 
 			// get all related documents from solr
 			Boolean validAlgorithmFlag = false;
@@ -224,9 +224,9 @@ public class DocumentService {
 			if (statusReportSet.getSize() > 1)
 				statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
 		} catch (NullPointerException e) {
-			//throw new NullPointerException("It seems we don't have access to the database or solr index."
-			//		+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
-			e.printStackTrace();
+			throw new NullPointerException("It seems we don't have access to the database or solr index."
+					+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
+			// e.printStackTrace();
 		}
 
 		if (!constants.getDebugModeOn()) {
