@@ -2906,7 +2906,7 @@ public class DBConnection {
 					+ documentset.getAfterAlgorithmExecutionTime() + "', '" + documentset.getAfterRerankTime() + "', '"
 					+ accessKeyHash + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-			//System.out.println(query);
+			// System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
@@ -3048,7 +3048,7 @@ public class DBConnection {
 
 			}
 			stmt = con.createStatement();
-			//System.out.println(query);
+			// System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			// if found, get the id of the exact match
@@ -3081,7 +3081,7 @@ public class DBConnection {
 						+ ", " + (documentset.isShuffled() ? "'Y'" : "'N'");
 				query += (columns + ") VALUES(" + values + ")");
 
-				//System.out.println(query);
+				// System.out.println(query);
 
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
@@ -3126,7 +3126,7 @@ public class DBConnection {
 				+ constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
 				+ "',?,?,?,?,?,?,?,?,?,?,?,?);";
 
-		//System.out.println(query);
+		// System.out.println(query);
 
 		try {
 			stmt = con.prepareStatement(query);
@@ -3393,7 +3393,7 @@ public class DBConnection {
 	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
 		String bibliometricIdQueryString = "";
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
 		if (documentset.getBibliometricId() == -1)
@@ -3407,10 +3407,18 @@ public class DBConnection {
 				+ "=" + documentset.getNumberOfCandidatesToReRank() + " AND " + constants.getRerankingOrder() + "='"
 				+ documentset.getRankingOrder() + "' AND "
 				+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + bibliometricIdQueryString + " AND "
-				+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "'";
+				+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "' AND "
+				+ constants.getFallbackReranking() + "=?";
 		try {
-			stmt = con.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = con.prepareStatement(query);
+			
+			if (documentset.isFallbackRanking()) {
+				stmt.setString(2, "Y");
+			} else
+				stmt.setString(2, "N");
+			
+			stmt.executeUpdate();
+			rs = stmt.getResultSet();
 
 			if (rs.next())
 				rerankingBibliometricId = rs.getInt(constants.getAlgorithmRerankingBibliometricsId());
