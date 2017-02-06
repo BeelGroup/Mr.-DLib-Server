@@ -362,10 +362,9 @@ public class solrConnection {
 				System.out.printf("Time for adding docs to list\t");
 				System.out.println(System.currentTimeMillis() - timeNow);
 			}
-		} catch (Exception e) {
-			System.out.println("test: " + e.getStackTrace());
-			e.printStackTrace();
-			throw e;
+		} catch (NoRelatedDocumentsException f){
+			System.out.println("No related documents found related to " + title);
+			throw f;
 		}
 
 		return relatedDocuments;

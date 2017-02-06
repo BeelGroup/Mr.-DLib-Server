@@ -146,6 +146,11 @@ public class DocumentService {
 							"algorithmLoggingInfo: " + relatedDocumentGenerator.algorithmLoggingInfo.toString());
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
+					if(requestByTitle){
+						statusReportSet.addStatusReport(new StatusReport(404, "No related documents corresponding to input query:"
+								+ requestDocument.getTitle()));
+						validAlgorithmFlag=true;
+					}
 				}
 			}
 
@@ -187,7 +192,20 @@ public class DocumentService {
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
-
+		else{
+			boolean fourOFourError = false;
+			for(StatusReport statusReport: statusReportSet.getStatusReportList()){
+				if(statusReport.getStatusCode()==404){
+					fourOFourError = true;
+					break;
+				}
+			}
+			if(fourOFourError){
+				statusReportSet = new StatusReportSet();
+				statusReportSet.addStatusReport(new StatusReport(404, "Documents related to query by title("
+						+ requestDocument.getTitle() +" )were not found"));
+			}
+		}
 		// add both the status message and the related document to the xml
 		rootElement.setDocumentSet(documentset);
 		rootElement.setStatusReportSet(statusReportSet);
