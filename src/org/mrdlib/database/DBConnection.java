@@ -3394,7 +3394,7 @@ public class DBConnection {
 	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
 		String bibliometricIdQueryString = "";
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 
 		if (documentset.getBibliometricId() == -1)
@@ -3402,6 +3402,7 @@ public class DBConnection {
 		else
 			bibliometricIdQueryString = "=" + documentset.getBibliometricId();
 
+		
 		// the query to get the person
 		String query = "SELECT " + constants.getAlgorithmRerankingBibliometricsId() + " FROM "
 				+ constants.getAlgorithmRerankingBibliometrics() + " WHERE " + constants.getNumberOfCandidatesToRerank()
@@ -3409,16 +3410,13 @@ public class DBConnection {
 				+ documentset.getRankingOrder() + "' AND "
 				+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + bibliometricIdQueryString + " AND "
 				+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "' AND "
-				+ constants.getFallbackReranking() + "=?";
+				+ constants.getFallbackReranking() + "='" + (documentset.isFallbackRanking() ? 'Y' : 'N')+"'";
+		
+		System.out.println(query);
+		
 		try {
-			stmt = con.prepareStatement(query);
-			
-			if (documentset.isFallbackRanking()) {
-				stmt.setString(2, "Y");
-			} else
-				stmt.setString(2, "N");
-			
-			stmt.executeUpdate();
+			stmt = con.createStatement();
+			stmt.executeQuery(query);
 			rs = stmt.getResultSet();
 
 			if (rs.next())
