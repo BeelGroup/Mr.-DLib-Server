@@ -3021,11 +3021,13 @@ public class DBConnection {
 			// search for an exact match of the algorithm in the table
 			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
-
+			System.out.println();
 			query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
 					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
 					+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND "
-					+ constants.getBibReRankingApplied() + "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'");
+					+ constants.getBibReRankingApplied() + "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
+					+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '" 
+					+ documentset.getDesiredNumberFromAlgorithm() + "'";
 			if (rerankingBibId > 0) {
 				query += " AND " /* constants.getBibReRankingId */ + "reranking_bibliometric_reranking_details" + "="
 						+ Integer.toString(rerankingBibId);
@@ -3049,7 +3051,7 @@ public class DBConnection {
 
 			}
 			stmt = con.createStatement();
-			// System.out.println(query);
+			 System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			// if found, get the id of the exact match
@@ -3072,17 +3074,19 @@ public class DBConnection {
 						+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
 						+ (recommendationClass.contains("random") ? ""
 								: (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
-						+ ", " + constants.getShuffled();
+						+ ", " + constants.getShuffled()
+						+ ", " + constants.getDesiredRecommendationsInRecommendationAlgorithms();
 				values += "'" + recommenderDetails.getRecommendationClass() + "', "
 						+ (recommenderDetails.isLanguageRestriction() ? "'same_language_only'" : "'N'") + ", "
 						+ ((rerankingBibId > 0) ? "'Y'" : "'N'")
 						+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
 						+ (recommendationClass.contains("random") ? ""
 								: (", " + Integer.toString(recommendationClassId)))
-						+ ", " + (documentset.isShuffled() ? "'Y'" : "'N'");
+						+ ", " + (documentset.isShuffled() ? "'Y' " : "'N' ")
+						+ ", '" + documentset.getDesiredNumberFromAlgorithm() + "'";
 				query += (columns + ") VALUES(" + values + ")");
 
-				// System.out.println(query);
+				 System.out.println(query);
 
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);

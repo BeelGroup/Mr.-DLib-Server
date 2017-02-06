@@ -191,6 +191,7 @@ public class Constants {
 	private String languageRestriction;
 	private String bibReRankingApplied;
 	private String shuffled;
+	private String desiredRecommendationsInRecommendationAlgorithms; 
 
 	// db table z_recommendation_algorithms__details_cbf
 	private String cbfId;
@@ -244,7 +245,6 @@ public class Constants {
 	private String mendeleyConfigPath;
 
 	private String probabilitiesConfigPath;
-
 
 	// load the config file
 	public Constants() {
@@ -420,7 +420,8 @@ public class Constants {
 			this.languageRestriction = prop.getProperty("languageRestriction");
 			this.bibReRankingApplied = prop.getProperty("bibReRankingApplied");
 			this.shuffled = prop.getProperty("shuffled");
-
+			this.desiredRecommendationsInRecommendationAlgorithms = prop.getProperty("desiredRecommendationsInRecommendationAlgorithms");
+			
 			this.cbfId = prop.getProperty("cbfId");
 			this.cbfFeatureType = prop.getProperty("cbfFeatureType");
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
@@ -1184,5 +1185,10 @@ public class Constants {
 
 	public String getDocumentIdInSolr() {
 		return documentIdInSolr;
+	}
+
+	public String getDesiredRecommendationsInRecommendationAlgorithms() {
+		// TODO Auto-generated method stub
+		return desiredRecommendationsInRecommendationAlgorithms;
 	}
 }
