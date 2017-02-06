@@ -130,7 +130,7 @@ public class ApplyRanking {
 
 		boolean onlyTextRelevanceBecauseTooLessBibData = false;
 
-		if (rndWeight >= 96 || documentSet.getAlgorithmDetails().getRecommendationClass().equals("cbf")) {
+		if (rndWeight < 96 && documentSet.getAlgorithmDetails().getRecommendationClass().equals("cbf")) {
 			// choose a ranking metric
 			int count = 0;
 			do {
@@ -193,22 +193,14 @@ public class ApplyRanking {
 
 				System.out.println(count);
 				if (count < 5) {
-					System.out.println("under 5");
-					System.out.println(rndRank);
 					documentSet.setFallbackRanking(true);
 					if (rndRank > 11) {
-						System.out.println("set under 11");
 						rndRank = ThreadLocalRandom.current().nextInt(9, 11 + 1);
-						//rndRank = random.nextInt(11) + 1;
 					} else if (rndRank > 8) {
-						System.out.println("set under 8");
 						rndRank = ThreadLocalRandom.current().nextInt(5, 8 + 1);
-						//rndRank = random.nextInt(8) + 1;
 					} else if (rndRank > 4) {
-						System.out.println("set under 4");
 						rndRank = random.nextInt(4) + 1;
 					} else {
-						System.out.println("only TR");
 						onlyTextRelevanceBecauseTooLessBibData = true;
 						documentSet.setBibliometricId(-1);
 						documentSet.setBibliometric(null);
@@ -216,7 +208,6 @@ public class ApplyRanking {
 						documentSet.setBibSource(null);
 						break;
 					}
-					System.out.println("try again!");
 				}
 			} while (count < 5);
 		}
