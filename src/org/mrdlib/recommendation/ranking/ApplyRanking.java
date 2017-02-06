@@ -229,7 +229,7 @@ public class ApplyRanking {
 				documentSet.calculateFinalScoreOnlyRelevanceScore();
 			}
 		} else {
-			documentSet.calculateFinalScoreOnlyBibScore();
+			documentSet.calculateFinalScoreOnlyRelevanceScore();
 		}
 
 		// choose an ordering with 80% Desc, 20% Asc
