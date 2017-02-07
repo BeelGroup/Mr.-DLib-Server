@@ -130,7 +130,7 @@ public class ApplyRanking {
 
 		boolean onlyTextRelevanceBecauseTooLessBibData = false;
 
-		if (rndWeight < 96 && documentSet.getAlgorithmDetails().getRecommendationClass().equals("cbf")) {
+		if (rndWeight < 96) {
 			// choose a ranking metric
 			int count = 0;
 			do {
@@ -229,7 +229,7 @@ public class ApplyRanking {
 				documentSet.calculateFinalScoreOnlyRelevanceScore();
 			}
 		} else {
-			documentSet.calculateFinalScoreOnlyRelevanceScore();
+			documentSet.calculateFinalScoreOnlyBibScore();
 		}
 
 		// choose an ordering with 80% Desc, 20% Asc
