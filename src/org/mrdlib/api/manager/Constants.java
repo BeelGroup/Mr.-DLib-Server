@@ -48,7 +48,7 @@ public class Constants {
 	private String algorithmRerankingBibliometrics;
 	private String bibliometrics;
 	private String recommendationStatisticsReRankingBibliometric;
-	
+
 	// db table log rank stats
 	private String recommendationStatisticsRecommendationSetId;
 	private String percentageOfRecommendationsWithBibliometricDisplay;
@@ -63,7 +63,7 @@ public class Constants {
 	private String meanBibRerank;
 	private String medianBibRerank;
 	private String modeBibRerank;
-	
+
 	// db table bibliometrics document
 	private String bibliometricPersonsId;
 	private String personIdInBibliometricPers;
@@ -191,7 +191,7 @@ public class Constants {
 	private String languageRestriction;
 	private String bibReRankingApplied;
 	private String shuffled;
-	private String desiredRecommendationsInRecommendationAlgorithms; 
+	private String desiredRecommendationsInRecommendationAlgorithms;
 
 	// db table z_recommendation_algorithms__details_cbf
 	private String cbfId;
@@ -236,6 +236,8 @@ public class Constants {
 	// collections
 	private String gesis;
 	private String gesisCollectionLink;
+	private String core;
+	private String coreCollectionLink;
 
 	// settings
 	private boolean debugModeOn = false;
@@ -285,16 +287,20 @@ public class Constants {
 			this.mostPopularRecommendationDetails = prop.getProperty("mostPopularRecommendationDetails");
 			this.algorithmRerankingBibliometrics = prop.getProperty("algorithmRerankingBibliometrics");
 			this.bibliometrics = prop.getProperty("bibliometrics");
-			this.recommendationStatisticsReRankingBibliometric = prop.getProperty("recommendationStatisticsReRankingBibliometric");
-			
-			this.recommendationStatisticsRecommendationSetId = prop.getProperty("recommendationStatisticsRecommendationSetId");
-			this.percentageOfRecommendationsWithBibliometricDisplay = prop.getProperty("percentageOfRecommendationsWithBibliometricDisplay");
+			this.recommendationStatisticsReRankingBibliometric = prop
+					.getProperty("recommendationStatisticsReRankingBibliometric");
+
+			this.recommendationStatisticsRecommendationSetId = prop
+					.getProperty("recommendationStatisticsRecommendationSetId");
+			this.percentageOfRecommendationsWithBibliometricDisplay = prop
+					.getProperty("percentageOfRecommendationsWithBibliometricDisplay");
 			this.minimumBibDisplay = prop.getProperty("minimumBibDisplay");
 			this.maximumBibDisplay = prop.getProperty("maximumBibDisplay");
 			this.meanBibDisplay = prop.getProperty("meanBibDisplay");
 			this.medianBibDisplay = prop.getProperty("medianBibDisplay");
 			this.modeBibDisplay = prop.getProperty("modeBibDisplay");
-			this.percentageOfRecommendationsWithBibliometricRerank = prop.getProperty("percentageOfRecommendationsWithBibliometricRerank");
+			this.percentageOfRecommendationsWithBibliometricRerank = prop
+					.getProperty("percentageOfRecommendationsWithBibliometricRerank");
 			this.minimumBibRerank = prop.getProperty("minimumBibRerank");
 			this.maximumBibRerank = prop.getProperty("maximumBibRerank");
 			this.meanBibRerank = prop.getProperty("meanBibRerank");
@@ -420,8 +426,9 @@ public class Constants {
 			this.languageRestriction = prop.getProperty("languageRestriction");
 			this.bibReRankingApplied = prop.getProperty("bibReRankingApplied");
 			this.shuffled = prop.getProperty("shuffled");
-			this.desiredRecommendationsInRecommendationAlgorithms = prop.getProperty("desiredRecommendationsInRecommendationAlgorithms");
-			
+			this.desiredRecommendationsInRecommendationAlgorithms = prop
+					.getProperty("desiredRecommendationsInRecommendationAlgorithms");
+
 			this.cbfId = prop.getProperty("cbfId");
 			this.cbfFeatureType = prop.getProperty("cbfFeatureType");
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
@@ -444,15 +451,17 @@ public class Constants {
 			this.bibliometricIdInAlgorithmRerankingBibliometrics = prop
 					.getProperty("bibliometricIdInAlgorithmRerankingBibliometrics");
 			this.rerankingCombindation = prop.getProperty("rerankingCombindation");
-			this.fallbackReranking = prop.getProperty("fallbackReranking"); 
+			this.fallbackReranking = prop.getProperty("fallbackReranking");
 
 			this.solrWebService = prop.getProperty("solrWebService");
 			this.solrMrdlib = prop.getProperty("solrMrdlib");
 			this.solrCollectionShortName = prop.getProperty("solrCollectionShortName");
 			this.documentIdInSolr = prop.getProperty("documentIdInSolr");
-			
+
 			this.gesisCollectionLink = prop.getProperty("gesisCollectionLink");
 			this.gesis = prop.getProperty("gesis");
+			this.core = prop.getProperty("core");
+			this.coreCollectionLink = prop.getProperty("coreCollectionLink");
 
 			this.mendeleyConfigPath = prop.getProperty("mendeleyConfigPath");
 			this.probabilitiesConfigPath = prop.getProperty("probabilityConfigPath");
@@ -486,11 +495,11 @@ public class Constants {
 	public String getMinimumRelevanceScoreDisplay() {
 		return minimumRelevanceScoreDisplay;
 	}
-	
+
 	public String getMaximumRelevanceScoreDisplay() {
 		return maximumRelevanceScoreDisplay;
 	}
-	
+
 	public String getMeanRelevanceScoreDisplay() {
 		return meanRelevanceScoreDisplay;
 	}
@@ -530,7 +539,7 @@ public class Constants {
 	public String getRecommendationStatisticsRecommendationSetId() {
 		return recommendationStatisticsRecommendationSetId;
 	}
-	
+
 	public String getPercentageOfRecommendationsWithBibliometricDisplay() {
 		return percentageOfRecommendationsWithBibliometricDisplay;
 	}
@@ -875,6 +884,10 @@ public class Constants {
 		return gesisCollectionLink;
 	}
 
+	public String getCoreCollectionLink() {
+		return coreCollectionLink;
+	}
+
 	public String getSolrWebService() {
 		return solrWebService;
 	}
@@ -885,6 +898,10 @@ public class Constants {
 
 	public String getGesis() {
 		return gesis;
+	}
+
+	public String getCore() {
+		return core;
 	}
 
 	public String getRank() {
