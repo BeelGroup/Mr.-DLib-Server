@@ -116,6 +116,7 @@ public class RecommendationService {
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 
 
+
 				} catch (NoEntryException e) {
 					statusReportSet.addStatusReport(e.getStatusReport());
 				} catch (Exception e) {

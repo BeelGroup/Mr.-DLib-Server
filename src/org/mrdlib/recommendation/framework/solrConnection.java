@@ -262,6 +262,7 @@ public class solrConnection {
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 
+
 					// url = "http://api.mr-dlib.org/trial/recommendations/" +
 					// relDocument.getRecommendationId() +
 					// "/original_url/&access_key=" +"hash"
