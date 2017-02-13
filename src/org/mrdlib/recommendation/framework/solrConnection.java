@@ -84,7 +84,7 @@ public class solrConnection {
 		if (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases")) {
 			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getCbfFeatureType(),
 					logginginfo.getCbfFeatureCount());
-			query.setParam("mlt.fl", similarityParams);
+			query.setParam("mlt.fl", similarityParams+", keywords, published_in");
 			query.setParam("mlt.df", "2");
 		}
 		// set display params
