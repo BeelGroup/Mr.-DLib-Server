@@ -53,7 +53,7 @@ public class ApplyRanking {
 
 		rndWeight = random.nextInt(100) + 1;
 		// random number for the chosen metric
-		//rndRank = random.nextInt(14) + 1;
+		// rndRank = random.nextInt(14) + 1;
 		rndRank = ThreadLocalRandom.current().nextInt(12, 14 + 1);
 		// random number asc or desc sorting
 		rndOrder = random.nextInt(10) + 1;
@@ -130,7 +130,17 @@ public class ApplyRanking {
 
 		boolean onlyTextRelevanceBecauseTooLessBibData = false;
 
-		if (rndWeight < 96) {
+		// TEMPORARILY FOR CORE DOCUMENTS WE DON'T DO RE-RANKING
+		if (documentSet.getRequestedDocument().getCollectionShortName() == null
+				|| documentSet.getRequestedDocument().getCollectionShortName().contains(constants.getCore())) {
+			onlyTextRelevanceBecauseTooLessBibData = true;
+			documentSet.setBibliometricId(-1);
+			documentSet.setBibliometric(null);
+			documentSet.setBibType(null);
+			documentSet.setBibSource(null);
+		}
+
+		if (!onlyTextRelevanceBecauseTooLessBibData & rndWeight < 96) {
 			// choose a ranking metric
 			int count = 0;
 			do {
@@ -190,7 +200,6 @@ public class ApplyRanking {
 
 				count = documentSet.calculateCountOfBibliometricValue();
 
-
 				System.out.println(count);
 				if (count < 5) {
 					documentSet.setFallbackRanking(true);
@@ -217,7 +226,7 @@ public class ApplyRanking {
 		if (onlyTextRelevanceBecauseTooLessBibData) {
 			documentSet.calculateFinalScoreOnlyRelevanceScore();
 		} else if (documentSet.getAlgorithmDetails().getRecommendationClass().equals("cbf")) {
-			if(rndWeight < 24) {
+			if (rndWeight < 24) {
 				documentSet.calculateFinalScoreForRelevanceScoreTimesLogBibScore();
 			} else if (rndWeight < 48) {
 				documentSet.calculateFinalScoreForRelevanceScoreTimesRootBibScore();

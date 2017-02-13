@@ -72,7 +72,10 @@ public class solrConnection {
 		String fallback_url = "";
 
 		// get only documents which are in the same collection
-		String filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
+		String filterquery = "";
+		if (document.getCollectionShortName() == constants.getGesis())
+			filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
+	 
 		query.addFilterQuery(filterquery);
 
 		// get related documents for the given document
@@ -84,7 +87,7 @@ public class solrConnection {
 		if (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases")) {
 			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getCbfFeatureType(),
 					logginginfo.getCbfFeatureCount());
-			query.setParam("mlt.fl", similarityParams+", keywords, published_in");
+			query.setParam("mlt.fl", similarityParams + ", keywords, published_in");
 			query.setParam("mlt.df", "2");
 		}
 		// set display params
@@ -121,6 +124,10 @@ public class solrConnection {
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
 						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+						fallback_url = constants.getCoreCollectionLink()
+								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+
 					// url = "http://api.mr-dlib.org/trial/recommendations/" +
 					// relDocument.getRecommendationId() +
 					// "/original_url?access_key=" +"hash"
@@ -203,10 +210,11 @@ public class solrConnection {
 		query.setRequestHandler("/select");
 		String fallback_url = "";
 		query.setQuery("*:*");
-
+		String filterQuery = "";
 		// get only documents which are in the same collection
-		String filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
-		query.addFilterQuery(filterquery);
+		if (document.getCollectionShortName() == constants.getGesis())
+			filterQuery= constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
+		query.addFilterQuery(filterQuery);
 
 		// add second filter query if language needs to be restricted
 		if (restrictLanguage) {
@@ -250,6 +258,9 @@ public class solrConnection {
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
 						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					else {
+						fallback_url = constants.getCoreCollectionLink().concat(relDocument.getOriginalDocumentId());
+					}
 					// url = "http://api.mr-dlib.org/trial/recommendations/" +
 					// relDocument.getRecommendationId() +
 					// "/original_url/&access_key=" +"hash"
@@ -346,7 +357,10 @@ public class solrConnection {
 					if (oneRelatedDocument.getCollectionShortName().equals(constants.getGesis()))
 						fallback_url = constants.getGesisCollectionLink()
 								.concat(oneRelatedDocument.getOriginalDocumentId());
-					else {
+					else if(oneRelatedDocument.getCollectionShortName().contains(constants.getCore()))
+						fallback_url = constants.getCoreCollectionLink()
+								.concat(oneRelatedDocument.getOriginalDocumentId().split("-")[1]);
+					else{
 						String titleAsUrl = URLEncoder.encode(title, "UTF-8");
 						fallback_url = "https://scholar.google.com/scholar?q=" + titleAsUrl;
 						System.out.println("the fallback url is: " + fallback_url);
@@ -357,12 +371,12 @@ public class solrConnection {
 
 					// add it to the collection
 					relatedDocuments.addDocument(oneRelatedDocument);
-					System.out.println("added the related document with title: " + oneRelatedDocument.getTitle());
+					//System.out.println("added the related document with title: " + oneRelatedDocument.getTitle());
 				}
 				System.out.printf("Time for adding docs to list\t");
 				System.out.println(System.currentTimeMillis() - timeNow);
 			}
-		} catch (NoRelatedDocumentsException f){
+		} catch (NoRelatedDocumentsException f) {
 			System.out.println("No related documents found related to " + title);
 			throw f;
 		}

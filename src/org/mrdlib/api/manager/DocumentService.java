@@ -138,7 +138,7 @@ public class DocumentService {
 
 					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
 							ar.getNumberOfCandidatesToReRank());
-
+					documentset.setRequestedDocument(requestDocument);
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {

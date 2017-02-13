@@ -109,7 +109,11 @@ public class RecommendationService {
 					relDocument = con.getDocumentBy(constants.getDocumentId(), docId);
 					
 					// Generate the redirection Path
-					urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
+						urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					else {
+						urlString = constants.getCoreCollectionLink().concat(relDocument.getOriginalDocumentId());
+					}
 
 				} catch (NoEntryException e) {
 					statusReportSet.addStatusReport(e.getStatusReport());
