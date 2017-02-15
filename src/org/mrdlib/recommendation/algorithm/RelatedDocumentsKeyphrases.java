@@ -57,9 +57,11 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 				name = bigrams ? "bigram" : "trigram";
 		}
 
-		// Set the randomly generated properties in the algorithmLoggingInfo hashmap for
+		// Set the randomly generated properties in the algorithmLoggingInfo
+		// hashmap for
 		// future use
-		algorithmLoggingInfo.setCbfTextFields("title" + (abstracts ? "_abstract" : ""));
+		algorithmLoggingInfo.setCbfTextFields("title" + (abstracts ? "_abstract" : "") + "_keywords_published_in");
+		System.out.println("title" + (abstracts ? "_abstract" : "") + "_keywords_published_in");
 		algorithmLoggingInfo.setName("RelatedDocumentsFromSolrWithKeyphrases");
 		algorithmLoggingInfo.setCbfFeatureType(name);
 	}
@@ -75,8 +77,8 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 
 			// Get the minimum basis for the keyphrase comparison based on the
 			// fields that we compare on
-			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(), algorithmLoggingInfo.getCbfFeatureType(),
-					algorithmLoggingInfo.getCbfTextFields());
+			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(),
+					algorithmLoggingInfo.getCbfFeatureType(), algorithmLoggingInfo.getCbfTextFields());
 
 			// If no comparison is possible because, say, there are no trigrams,
 			// which are needed for a bitri comparison, throw Exception
@@ -98,9 +100,8 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
-		} /*finally {
-		if (scon != null)
-		scon.close();
-}*/
+		} /*
+			 * finally { if (scon != null) scon.close(); }
+			 */
 	}
 }

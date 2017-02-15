@@ -156,7 +156,7 @@ public class RecommenderFactory {
 									if (!abstLang.equals("en"))
 										// if not set algorithmLoggingInfo.type
 										// to title only
-										rdg.algorithmLoggingInfo.setCbfTextFields("title");
+										rdg.algorithmLoggingInfo.setCbfTextFields("title_keywords_published_in");
 									// otherwise leave it unset.
 								}
 							}

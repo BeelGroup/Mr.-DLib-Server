@@ -27,10 +27,10 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 
 			// Store the details of the recommender approach for future use in
 			// the algorithmLoggingInfo hashmap
-			
-			algorithmLoggingInfo = new AlgorithmDetails("RelatedDocumentsFromSolr", "cbf", false, "all", "terms", "0");
-			//algorithmLoggingInfo.put("recommendation_framework", "lucene");
 
+			algorithmLoggingInfo = new AlgorithmDetails("RelatedDocumentsFromSolr", "cbf", false,
+					"title_abstract_keywords_published_in", "terms", "0");
+			// algorithmLoggingInfo.put("recommendation_framework", "lucene");
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -65,10 +65,9 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
-		} /*finally {
-			if (scon != null)
-				scon.close();
-		}*/
+		} /*
+			 * finally { if (scon != null) scon.close(); }
+			 */
 	}
 
 }

@@ -2006,8 +2006,9 @@ public class DBConnection {
 
 			// Update query to set the time at which a recommendation was
 			// clicked
-			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " = '"
-					+ new Timestamp(requestTime) + "' WHERE " + constants.getRecommendationId() + " = "
+			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " =  IF( "
+					+ constants.getClicked() + " IS NULL, '" + new Timestamp(requestTime) + "', "
+					+ constants.getClicked() + ") WHERE " + constants.getRecommendationId() + " = "
 					+ recommendationId;
 
 			stmt.executeUpdate(query);
@@ -2907,7 +2908,6 @@ public class DBConnection {
 					+ documentset.getAfterAlgorithmExecutionTime() + "', '" + documentset.getAfterRerankTime() + "', '"
 					+ accessKeyHash + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-			System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
@@ -3015,18 +3015,16 @@ public class DBConnection {
 				break;
 			}
 			}
-			System.out.printf("Recommendation class id is %d\n", recommendationClassId);
 			int rerankingBibId = logBibReranking(documentset);
 
 			// search for an exact match of the algorithm in the table
 			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
-			System.out.println();
 			query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
 					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
 					+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND "
 					+ constants.getBibReRankingApplied() + "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
-					+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '" 
+					+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
 					+ documentset.getDesiredNumberFromAlgorithm() + "'";
 			if (rerankingBibId > 0) {
 				query += " AND " /* constants.getBibReRankingId */ + "reranking_bibliometric_reranking_details" + "="
@@ -3051,7 +3049,6 @@ public class DBConnection {
 
 			}
 			stmt = con.createStatement();
-			 System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			// if found, get the id of the exact match
@@ -3074,19 +3071,17 @@ public class DBConnection {
 						+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
 						+ (recommendationClass.contains("random") ? ""
 								: (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
-						+ ", " + constants.getShuffled()
-						+ ", " + constants.getDesiredRecommendationsInRecommendationAlgorithms();
+						+ ", " + constants.getShuffled() + ", "
+						+ constants.getDesiredRecommendationsInRecommendationAlgorithms();
 				values += "'" + recommenderDetails.getRecommendationClass() + "', "
 						+ (recommenderDetails.isLanguageRestriction() ? "'same_language_only'" : "'N'") + ", "
 						+ ((rerankingBibId > 0) ? "'Y'" : "'N'")
 						+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
 						+ (recommendationClass.contains("random") ? ""
 								: (", " + Integer.toString(recommendationClassId)))
-						+ ", " + (documentset.isShuffled() ? "'Y' " : "'N' ")
-						+ ", '" + documentset.getDesiredNumberFromAlgorithm() + "'";
+						+ ", " + (documentset.isShuffled() ? "'Y' " : "'N' ") + ", '"
+						+ documentset.getDesiredNumberFromAlgorithm() + "'";
 				query += (columns + ") VALUES(" + values + ")");
-
-				 System.out.println(query);
 
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
@@ -3339,17 +3334,18 @@ public class DBConnection {
 		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE "
 				+ constants.getCbfFeatureType() + " = '" + (keyphrases ? "keyphrases" : "terms") + "'";
 		if (keyphrases) {
+			System.out.println(recommenderDetails);
 			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getCbfFeatureType() + "'";
 		}
-		 query += " AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.getCbfFeatureCount() + "' AND "
-					+ constants.getCbfFields() + "= '" + recommenderDetails.getCbfTextFields() + "'";
-		
+		query += " AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.getCbfFeatureCount() + "' AND "
+				+ constants.getCbfFields() + "= '" + recommenderDetails.getCbfTextFields() + "'";
+
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				cbfId = rs.getInt(constants.getCbfId());
-				//System.out.printf("cbfId:%d\n", cbfId);
+				// System.out.printf("cbfId:%d\n", cbfId);
 			} else {
 				if (stmt != null)
 					stmt.close();
@@ -3363,15 +3359,15 @@ public class DBConnection {
 					values += ", '" + recommenderDetails.getCbfFeatureType() + "', '"
 							+ recommenderDetails.getCbfFeatureCount() + "', '" + recommenderDetails.getCbfTextFields()
 							+ "'";
-				}else{
+				} else {
 					columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
-					values += ", '" + recommenderDetails.getCbfFeatureCount() + "', '" + recommenderDetails.getCbfTextFields() 
-					+ "'";
+					values += ", '" + recommenderDetails.getCbfFeatureCount() + "', '"
+							+ recommenderDetails.getCbfTextFields() + "'";
 				}
 				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
 
 				stmt = con.createStatement();
-				
+
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 
 				// get the autogenerated key back
@@ -3410,7 +3406,6 @@ public class DBConnection {
 		else
 			bibliometricIdQueryString = "=" + documentset.getBibliometricId();
 
-		
 		// the query to get the person
 		String query = "SELECT " + constants.getAlgorithmRerankingBibliometricsId() + " FROM "
 				+ constants.getAlgorithmRerankingBibliometrics() + " WHERE " + constants.getNumberOfCandidatesToRerank()
@@ -3418,10 +3413,8 @@ public class DBConnection {
 				+ documentset.getRankingOrder() + "' AND "
 				+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + bibliometricIdQueryString + " AND "
 				+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "' AND "
-				+ constants.getFallbackReranking() + "='" + (documentset.isFallbackRanking() ? 'Y' : 'N')+"'";
-		
-		System.out.println(query);
-		
+				+ constants.getFallbackReranking() + "='" + (documentset.isFallbackRanking() ? 'Y' : 'N') + "'";
+
 		try {
 			stmt = con.createStatement();
 			stmt.executeQuery(query);
@@ -3564,7 +3557,6 @@ public class DBConnection {
 
 		} catch (Exception e) {
 			System.out.println(e);
-			System.out.println(query);
 		} finally {
 			try {
 				if (stmt != null)
@@ -3599,7 +3591,6 @@ public class DBConnection {
 
 		} catch (Exception e) {
 			System.out.println(e);
-			System.out.println(query);
 		} finally {
 			try {
 				if (stmt != null)
