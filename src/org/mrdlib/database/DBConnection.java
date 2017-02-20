@@ -2008,8 +2008,7 @@ public class DBConnection {
 			// clicked
 			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " =  IF( "
 					+ constants.getClicked() + " IS NULL, '" + new Timestamp(requestTime) + "', "
-					+ constants.getClicked() + ") WHERE " + constants.getRecommendationId() + " = "
-					+ recommendationId;
+					+ constants.getClicked() + ") WHERE " + constants.getRecommendationId() + " = " + recommendationId;
 
 			stmt.executeUpdate(query);
 			int clickCount = updateClicksInRecommendationSet(recommendationId);
@@ -3854,5 +3853,64 @@ public class DBConnection {
 			}
 		}
 		return documentList;
+	}
+
+	public boolean updateStereotypes(ArrayList<SimpleEntry<String, String>> updates) {
+		
+		PreparedStatement stmt = null;
+		String query = "INSERT INTO " + constants.getStereotypeRecommendations() + " ( "
+				+ constants.getDocumentIdinStereotypeRecommendations() + ", " + constants.getStereotypeCategory()
+				+ ") VALUES (?,?)";
+		try{
+			stmt= con.prepareStatement(query);
+			for(SimpleEntry<String,String> entry: updates){
+				try{
+					stmt.setInt(1, Integer.parseInt(entry.getKey()));
+				} catch(NumberFormatException f){
+					String documentId = getDocumentIdFromURL(entry.getKey());
+					if(documentId.equals("No such document in database")){
+						System.out.println("This URL has no assosciated document in our database:");
+						System.out.println(entry.getKey());
+						continue;
+					}
+					stmt.setInt(1, Integer.parseInt(documentId));
+				}
+				stmt.setString(2, entry.getValue());
+				stmt.executeUpdate();
+			}
+		} catch(SQLException e){
+			System.out.println(query);
+			e.printStackTrace();
+			return false;
+		}
+		
+
+		return true;
+	}
+
+	private String getDocumentIdFromURL(String key) {
+		if(key.contains("sowiport")){
+			String[] parts = key.split("/");
+			String originalId = parts[parts.length-1];
+			DisplayDocument document;
+			try {
+				document = getDocumentBy("id_original", originalId);
+				return document.getDocumentId();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}else if(key.contains("core")){
+			String[] parts = key.split("/");
+			String originalId = parts[parts.length-1];
+			DisplayDocument document;
+			try {
+				document = getDocumentBy("id_original", "core-" + originalId);
+				return document.getDocumentId();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return "No document in database";
 	}
 }
