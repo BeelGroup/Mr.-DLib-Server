@@ -1,5 +1,7 @@
 package org.mrdlib.partnerContentManager.gesis;
 
+import java.util.stream.Collectors;
+
 /**
  * 
  * @author Millah
@@ -14,6 +16,7 @@ public class Person {
 	String surname;
 	String unstructured;
 	double rankingValue;
+	int position;
 
 	public Person(String unstructured) {
 		this.unstructured = unstructured;
@@ -47,6 +50,14 @@ public class Person {
 		this.unstructured = unstructured;
 	}
 	
+	public int getPosition() {
+		return position;
+	}
+
+	public void setPosition(int position) {
+		this.position = position;
+	}
+
 	public Person(int id) {
 		this.id = id;
 	}

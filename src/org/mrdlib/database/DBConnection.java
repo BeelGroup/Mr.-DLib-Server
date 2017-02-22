@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1195,7 +1196,7 @@ public class DBConnection {
 		Person person = null;
 
 		// query to select all author of a given document
-		String query = "SELECT " + constants.getPersonIDInDocPers() + " FROM " + constants.getDocPers() + " WHERE "
+		String query = "SELECT " + constants.getPersonIDInDocPers() + ", " + constants.getRank() + " FROM " + constants.getDocPers() + " WHERE "
 				+ constants.getDocumentIDInDocPers() + " = '" + i + "'";
 
 		try {
@@ -1208,10 +1209,13 @@ public class DBConnection {
 				// for each id obtained, get the complete person and store it in
 				// the list
 				person = getPersonById(rs.getLong(constants.getPersonIDInDocPers()));
+				person.setPosition(rs.getInt(constants.getRank()));
 				if (person != null)
 					persons.add(person);
 			}
-
+			
+			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition())).collect(Collectors.toList());
+			
 		} catch (Exception e) {
 			throw e;
 		} finally {
