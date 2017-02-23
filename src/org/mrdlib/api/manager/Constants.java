@@ -236,6 +236,7 @@ public class Constants {
 	// collections
 	private String gesis;
 	private String gesisCollectionLink;
+	private String gesisBetaCollectionLink;
 	private String core;
 	private String coreCollectionLink;
 
@@ -459,6 +460,7 @@ public class Constants {
 			this.documentIdInSolr = prop.getProperty("documentIdInSolr");
 
 			this.gesisCollectionLink = prop.getProperty("gesisCollectionLink");
+			this.gesisBetaCollectionLink = prop.getProperty("gesisBetaCollectionLink");
 			this.gesis = prop.getProperty("gesis");
 			this.core = prop.getProperty("core");
 			this.coreCollectionLink = prop.getProperty("coreCollectionLink");
@@ -1207,5 +1209,9 @@ public class Constants {
 	public String getDesiredRecommendationsInRecommendationAlgorithms() {
 		// TODO Auto-generated method stub
 		return desiredRecommendationsInRecommendationAlgorithms;
+	}
+	
+	public String getGesisBetaCollectionLink(){
+		return gesisBetaCollectionLink;
 	}
 }

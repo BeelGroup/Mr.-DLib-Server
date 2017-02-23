@@ -2670,9 +2670,14 @@ public class DBConnection {
 
 				// HARDCODED FOR COMPATABILITY
 				relDocument.setRelevanceScoreFromAlgorithm(1.00);
-				if (relDocument.getCollectionShortName().equals(constants.getGesis()))
-					fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-
+				if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+					if (constants.getEnvironment().equals("api"))
+						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					else
+						fallback_url = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+				} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+					fallback_url = constants.getCoreCollectionLink()
+							.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 				relDocument.setFallbackUrl(fallback_url);
 				documentSet.addDocument(relDocument);
 				i++;
@@ -3860,19 +3865,19 @@ public class DBConnection {
 	}
 
 	public boolean updateStereotypes(ArrayList<SimpleEntry<String, String>> updates) {
-		
+
 		PreparedStatement stmt = null;
 		String query = "INSERT INTO " + constants.getStereotypeRecommendations() + " ( "
 				+ constants.getDocumentIdinStereotypeRecommendations() + ", " + constants.getStereotypeCategory()
 				+ ") VALUES (?,?)";
-		try{
-			stmt= con.prepareStatement(query);
-			for(SimpleEntry<String,String> entry: updates){
-				try{
+		try {
+			stmt = con.prepareStatement(query);
+			for (SimpleEntry<String, String> entry : updates) {
+				try {
 					stmt.setInt(1, Integer.parseInt(entry.getKey()));
-				} catch(NumberFormatException f){
+				} catch (NumberFormatException f) {
 					String documentId = getDocumentIdFromURL(entry.getKey());
-					if(documentId.equals("No such document in database")){
+					if (documentId.equals("No such document in database")) {
 						System.out.println("This URL has no assosciated document in our database:");
 						System.out.println(entry.getKey());
 						continue;
@@ -3882,20 +3887,19 @@ public class DBConnection {
 				stmt.setString(2, entry.getValue());
 				stmt.executeUpdate();
 			}
-		} catch(SQLException e){
+		} catch (SQLException e) {
 			System.out.println(query);
 			e.printStackTrace();
 			return false;
 		}
-		
 
 		return true;
 	}
 
 	private String getDocumentIdFromURL(String key) {
-		if(key.contains("sowiport")){
+		if (key.contains("sowiport")) {
 			String[] parts = key.split("/");
-			String originalId = parts[parts.length-1];
+			String originalId = parts[parts.length - 1];
 			DisplayDocument document;
 			try {
 				document = getDocumentBy("id_original", originalId);
@@ -3903,10 +3907,10 @@ public class DBConnection {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
-		}else if(key.contains("core")){
+
+		} else if (key.contains("core")) {
 			String[] parts = key.split("/");
-			String originalId = parts[parts.length-1];
+			String originalId = parts[parts.length - 1];
 			DisplayDocument document;
 			try {
 				document = getDocumentBy("id_original", "core-" + originalId);

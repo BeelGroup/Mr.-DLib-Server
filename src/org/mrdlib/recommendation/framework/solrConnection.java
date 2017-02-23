@@ -122,12 +122,14 @@ public class solrConnection {
 							Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
-					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
-						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-					else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+					if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+						if (constants.getEnvironment().equals("api"))
+							fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+						else
+							fallback_url = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
-
 					// url = "http://api.mr-dlib.org/trial/recommendations/" +
 					// relDocument.getRecommendationId() +
 					// "/original_url?access_key=" +"hash"
@@ -256,9 +258,12 @@ public class solrConnection {
 							Double.parseDouble(docs.get(i).getFieldValue("score").toString()));
 
 					// set gesis specific link
-					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
-						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-					else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+					if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+						if (constants.getEnvironment().equals("api"))
+							fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+						else
+							fallback_url = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 

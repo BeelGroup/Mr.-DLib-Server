@@ -107,15 +107,16 @@ public class RecommendationService {
 					// Get document related to recommendation
 					docId = con.getDocIdFromRecommendation(recoId);
 					relDocument = con.getDocumentBy(constants.getDocumentId(), docId);
-					
+
 					// Generate the redirection Path
-					if (relDocument.getCollectionShortName().equals(constants.getGesis()))
-						urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-					else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+					if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+						if (constants.getEnvironment().equals("api"))
+							urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+						else
+							urlString = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						urlString = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
-
-
 
 				} catch (NoEntryException e) {
 					statusReportSet.addStatusReport(e.getStatusReport());
@@ -137,11 +138,11 @@ public class RecommendationService {
 		rootElement.setStatusReportSet(statusReportSet);
 		try {
 			url = new URI(urlString);
-			
+
 			// Log recommendation Click
 			Boolean loggingDone = con.logRecommendationClick(recoId, docId, requestRecieved, rootElement);
 			if (loggingDone)
-				
+
 				// Return redirected response
 				return Response.seeOther(url).build();
 			else
