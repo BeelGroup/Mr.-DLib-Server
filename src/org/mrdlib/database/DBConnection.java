@@ -1196,8 +1196,8 @@ public class DBConnection {
 		Person person = null;
 
 		// query to select all author of a given document
-		String query = "SELECT " + constants.getPersonIDInDocPers() + ", " + constants.getRank() + " FROM " + constants.getDocPers() + " WHERE "
-				+ constants.getDocumentIDInDocPers() + " = '" + i + "'";
+		String query = "SELECT " + constants.getPersonIDInDocPers() + ", " + constants.getRank() + " FROM "
+				+ constants.getDocPers() + " WHERE " + constants.getDocumentIDInDocPers() + " = '" + i + "'";
 
 		try {
 			stmt = con.createStatement();
@@ -1213,9 +1213,10 @@ public class DBConnection {
 				if (person != null)
 					persons.add(person);
 			}
-			
-			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition())).collect(Collectors.toList());
-			
+
+			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
+					.collect(Collectors.toList());
+
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -1934,16 +1935,22 @@ public class DBConnection {
 
 	/**
 	 * Utility method to verify the accesskey provided by the user against the
-	 * one present in our database for that recommendation_id
+	 * one present in our database for that recommendation_id or
+	 * recommendationSetId
 	 * 
-	 * @param recommendationId
-	 *            the recommendation_id for which we need to check the accessKey
+	 * @param Id
+	 *            the id for which we need to check the accessKey if
+	 *            recommendationSet=true, then Id = recommendationSetId else it
+	 *            is recommendationId
 	 * @param accessKey
 	 *            the access key hash provided by the user
+	 * @param recommendationSet
+	 *            if recommendationSet=true, then Id = recommendationSetId else
+	 *            it is recommendationId
 	 * @return True if access key matches, false if not
 	 * @throws SQLException
 	 */
-	public Boolean checkAccessKey(String recommendationId, String accessKey) throws SQLException {
+	public Boolean checkAccessKey(String Id, String accessKey, boolean recommendationSet) throws SQLException,NoEntryException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String accessKeyInDb = "";
@@ -1953,15 +1960,19 @@ public class DBConnection {
 			// Select query to lookup accesskey for the recommendationId in the
 			// database
 			String query = "SELECT " + constants.getAccessKey() + " FROM " + constants.getRecommendationSets()
-					+ " WHERE " + constants.getRecommendationSetsId() + " IN (SELECT "
-					+ constants.getRecommendationSetIdInRecommendations() + " FROM " + constants.getRecommendations()
-					+ " WHERE " + constants.getRecommendationId() + " = " + recommendationId + ")";
-
+					+ " WHERE " + constants.getRecommendationSetsId() + " IN (";
+			if (recommendationSet) {
+				query += Id + ")";
+			} else {
+				query += "SELECT " + constants.getRecommendationSetIdInRecommendations() + " FROM "
+						+ constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " = " + Id
+						+ ")";
+			}
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				accessKeyInDb = rs.getString(constants.getAccessKey());
 			} else {
-				throw new NoEntryException(recommendationId);
+				throw new NoEntryException(Id,"recommendation");
 			}
 
 			// Compare accessKey in our database against the one which was
@@ -2674,7 +2685,8 @@ public class DBConnection {
 					if (constants.getEnvironment().equals("api"))
 						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 					else
-						fallback_url = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+						fallback_url = constants.getGesisBetaCollectionLink()
+								.concat(relDocument.getOriginalDocumentId());
 				} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 					fallback_url = constants.getCoreCollectionLink()
 							.concat(relDocument.getOriginalDocumentId().split("-")[1]);
@@ -3920,5 +3932,22 @@ public class DBConnection {
 			}
 		}
 		return "No document in database";
+	}
+
+	public void logRecommendationSetReceivedAcknowledgement(String recommendationSetId, Long requestRecieved) throws SQLException {
+		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
+				+ constants.getRecommendationSetReceivedTime() + "=  IF( "
+				+ constants.getRecommendationSetReceivedTime() + " IS NULL, ?, "
+				+ constants.getRecommendationSetReceivedTime() + ") WHERE " + constants.getRecommendationSetsId()
+				+ "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setTimestamp(1, new Timestamp(requestRecieved));
+			stmt.setString(2, recommendationSetId);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 }

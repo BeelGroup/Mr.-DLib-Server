@@ -73,7 +73,7 @@ public class solrConnection {
 
 		// get only documents which are in the same collection
 		String filterquery = "";
-		if (document.getCollectionShortName() == constants.getGesis())
+		if (document.getCollectionShortName().equals(constants.getGesis()))
 			filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
 	 
 		query.addFilterQuery(filterquery);
@@ -214,7 +214,7 @@ public class solrConnection {
 		query.setQuery("*:*");
 		String filterQuery = "";
 		// get only documents which are in the same collection
-		if (document.getCollectionShortName() == constants.getGesis())
+		if (document.getCollectionShortName().equals(constants.getGesis()))
 			filterQuery= constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
 		query.addFilterQuery(filterQuery);
 

@@ -3,6 +3,7 @@ package org.mrdlib.api.manager;
 import java.net.URI;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -88,10 +89,7 @@ public class RecommendationService {
 	 *         clicked
 	 * @throws Exception
 	 */
-	@GET
-	@Path("{recommendationId:[0-9]+}/original_url/&access_key={access_key: [0-9a-z]+}&format={request_format}")
-	public Response getRedirectedPath(@PathParam("recommendationId") String recoId,
-			@PathParam("access_key") String accessKey, @PathParam("request_format") String format) throws Exception {
+	public Response getRedirectedPath(String recoId, String accessKey, String format) throws Exception {
 		URI url;
 		Boolean accessKeyCheck = false;
 		DisplayDocument relDocument;
@@ -101,7 +99,7 @@ public class RecommendationService {
 
 			// Check accessKey from clickURL against the one stored in our
 			// database
-			accessKeyCheck = con.checkAccessKey(recoId, accessKey);
+			accessKeyCheck = con.checkAccessKey(recoId, accessKey, false);
 			if (accessKeyCheck) {
 				try {
 					// Get document related to recommendation
@@ -113,13 +111,12 @@ public class RecommendationService {
 						if (constants.getEnvironment().equals("api"))
 							urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 						else
-							urlString = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+							urlString = constants.getGesisBetaCollectionLink()
+									.concat(relDocument.getOriginalDocumentId());
 					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						urlString = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 
-				} catch (NoEntryException e) {
-					statusReportSet.addStatusReport(e.getStatusReport());
 				} catch (Exception e) {
 					statusReportSet
 							.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
@@ -130,7 +127,7 @@ public class RecommendationService {
 
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(
-					new UnknownException("Recommendation id" + recoId + " is invalid").getStatusReport());
+					new NoEntryException(recoId, "Recommendation").getStatusReport());
 		}
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
@@ -140,14 +137,15 @@ public class RecommendationService {
 			url = new URI(urlString);
 
 			// Log recommendation Click
-			Boolean loggingDone = con.logRecommendationClick(recoId, docId, requestRecieved, rootElement);
-			if (loggingDone)
-
-				// Return redirected response
-				return Response.seeOther(url).build();
-			else
-				throw new UnknownException("Logging could not be completed for this click");
-
+			if(accessKeyCheck){
+				Boolean loggingDone = con.logRecommendationClick(recoId, docId, requestRecieved, rootElement);
+				if (loggingDone)
+	
+					// Return redirected response
+					return Response.seeOther(url).build();
+				else 
+					throw new UnknownException("Logging could not be completed for this click");
+			}
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		} finally {
@@ -161,4 +159,5 @@ public class RecommendationService {
 
 		return Response.ok(rootElement, MediaType.APPLICATION_XML).build();
 	}
+
 }

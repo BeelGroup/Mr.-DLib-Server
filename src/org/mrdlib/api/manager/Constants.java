@@ -101,6 +101,7 @@ public class Constants {
 	private String deliveredRecommendations;
 	private String algorithmId;
 	private String trigger;
+	private String recommendationSetReceivedTime;
 	private String maximumOriginalRank;
 	private String recommendationPreparationTime;
 	private String userModellingTime;
@@ -336,6 +337,7 @@ public class Constants {
 			this.numberOfReturnedResults = prop.getProperty("numberOfReturnedResults");
 			this.deliveredRecommendations = prop.getProperty("deliveredRecommendations");
 			this.trigger = prop.getProperty("trigger");
+			this.recommendationSetReceivedTime = prop.getProperty("recommendationSetReceivedTime");
 			this.maximumOriginalRank = prop.getProperty("maximumOriginalRank");
 			this.recommendationPreparationTime = prop.getProperty("recommendationPreparationTime");
 			this.userModellingTime = prop.getProperty("userModellingTime");
@@ -1207,11 +1209,14 @@ public class Constants {
 	}
 
 	public String getDesiredRecommendationsInRecommendationAlgorithms() {
-		// TODO Auto-generated method stub
 		return desiredRecommendationsInRecommendationAlgorithms;
 	}
 	
 	public String getGesisBetaCollectionLink(){
 		return gesisBetaCollectionLink;
+	}
+
+	public String getRecommendationSetReceivedTime() {
+		return recommendationSetReceivedTime;
 	}
 }
