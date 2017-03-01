@@ -96,6 +96,7 @@ public class Constants {
 	private String rankDelivered;
 	private String textRelevanceScoreInRecommendations;
 	private String finalRankingScore;
+	private String relativeRelevanceScore;
 
 	// db table recommendation sets
 	private String recommendationSetsId;
@@ -341,6 +342,7 @@ public class Constants {
 			this.rankDelivered = prop.getProperty("rankDelivered");
 			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
 			this.finalRankingScore = prop.getProperty("finalRankingScore");
+			this.relativeRelevanceScore = prop.getProperty("relativeRelevanceScore");
 
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
 			this.loggingIdInRecommendationSets = prop.getProperty("loggingIdInRecommendationSets");
@@ -1257,5 +1259,9 @@ public class Constants {
 	 */
 	public String getTitleSearchId() {
 		return titleSearchId;
+	}
+
+	public String getRelativeRelevanceScore() {
+		return relativeRelevanceScore;
 	}
 }
