@@ -30,7 +30,7 @@ public class RelatedDocumentsQuery extends RelatedDocuments {
 			// the algorithmLoggingInfo hashmap
 
 			algorithmLoggingInfo = new AlgorithmDetails("RelatedDocumentsFromSolrByQuery", "cbf", false,
-					"title_abstract", "terms", "0");
+					"title_abstract_keywords_published_in", "terms", "0");
 
 		} catch (Exception e) {
 			e.printStackTrace();

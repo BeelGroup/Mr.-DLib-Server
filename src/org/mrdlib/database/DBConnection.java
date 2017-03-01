@@ -1743,32 +1743,54 @@ public class DBConnection {
 	 * return reRankingBibId; }
 	 */
 
-	private int logEvent(String documentId, RootElement rootElement, boolean clicked) throws Exception {
-		return logEvent(documentId, rootElement, clicked, (Long) null);
+	private int logEvent(String documentId, RootElement rootElement, String requestType) throws Exception {
+		return logEvent(documentId, rootElement, requestType, (Long) null);
 	}
 
 	/**
 	 * 
 	 * logs the event in the logging table
 	 * 
-	 * @param documentId,
-	 *            from the requested document
+	 * @param referenceId,
+	 *            the reference for the request: documentId for recommendation
+	 *            request, recommendationId for click_url request, titleSearchId
+	 *            for recommendation by title
 	 * @param Long,
 	 *            time, where the request was registered
 	 * @param RootElement,
 	 *            the rootElement, where everything is stored
-	 * @param boolean,
-	 *            if the recommendation was clicked
+	 * @param String,
+	 *            the type of request - request_for_recommendations,
+	 *            url_redirect, search_by_title
 	 * @return int, id of the created event
 	 * @throws Exception
 	 */
-	private int logEvent(String documentId, RootElement rootElement, Boolean clicked, Long requestTime)
+	private int logEvent(String referenceId, RootElement rootElement, String requestType, Long requestTime)
 			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
 		String statusCode = "";
 		String debugMessage = "";
+
+		String referenceColumnName = "";
+		System.out.println(requestType);
+		switch (requestType) {
+		case "related_documents": {
+			referenceColumnName = constants.getDocumentIdInLogging();
+			requestTime = rootElement.getDocumentSet().getStartTime();
+			break;
+		}
+		case "url_for_recommended_document": {
+			referenceColumnName = constants.getRecommendationIdInLogging();
+			break;
+		}
+		case "search_by_title": {
+			referenceColumnName = constants.getTitleSearchIdInLogging();
+			requestTime = rootElement.getDocumentSet().getStartTime();
+			break;
+		}
+		}			
 
 		// if there occured multiple errors error
 		if (rootElement.getStatusReportSet().getSize() > 1) {
@@ -1788,23 +1810,14 @@ public class DBConnection {
 		try {
 			// insertion query
 			String query = "INSERT INTO " + constants.getLoggings() + " (" + constants.getRequest() + ", "
-					+ constants.getDocumentIdInLogging() + ", " + constants.getRequestReceived() + ", "
+					+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
 					+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
-					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ") VALUES (";
-			// if it was clicked
-			if (clicked) {
-				query += "'url_for_recommended_document'";
-			}
-			// if there was no click
-			else {
-				query += "'related_documents'";
-				requestTime = rootElement.getDocumentSet().getStartTime();
-			}
-			// add the rest of the query
-			query += ", " + documentId + ", '" + new Timestamp(requestTime) + "', '"
+					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ") VALUES ('";
+
+			query += requestType + "', " + referenceId + ", '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
 					+ "', '" + statusCode + "', ?);";
-
+			System.out.println(query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			// if the debugMessage was empty, set database type to null
@@ -1950,7 +1963,8 @@ public class DBConnection {
 	 * @return True if access key matches, false if not
 	 * @throws SQLException
 	 */
-	public Boolean checkAccessKey(String Id, String accessKey, boolean recommendationSet) throws SQLException,NoEntryException {
+	public Boolean checkAccessKey(String Id, String accessKey, boolean recommendationSet)
+			throws SQLException, NoEntryException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String accessKeyInDb = "";
@@ -1968,11 +1982,12 @@ public class DBConnection {
 						+ constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " = " + Id
 						+ ")";
 			}
+			System.out.println(query);
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				accessKeyInDb = rs.getString(constants.getAccessKey());
 			} else {
-				throw new NoEntryException(Id,"recommendation");
+				throw new NoEntryException(Id, "recommendation");
 			}
 
 			// Compare accessKey in our database against the one which was
@@ -2012,8 +2027,8 @@ public class DBConnection {
 	 * @return true if logged successfully, exception in every other case
 	 * @throws SQLException
 	 */
-	public Boolean logRecommendationClick(String recommendationId, String documentId, Long requestTime,
-			RootElement rootElement) throws Exception {
+	public Boolean logRecommendationClick(String recommendationId, Long requestTime, RootElement rootElement)
+			throws Exception {
 		Statement stmt = null;
 		int loggingId = -1;
 		try {
@@ -2030,7 +2045,7 @@ public class DBConnection {
 			if (clickCount == 0) {
 				System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
 			}
-			loggingId = logEvent(documentId, rootElement, true, requestTime);
+			loggingId = logEvent(recommendationId, rootElement, "url_for_recommended_document", requestTime);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -2888,7 +2903,7 @@ public class DBConnection {
 	 * @return
 	 * @throws Exception
 	 */
-	public DocumentSet logRecommendationDeliveryNew(String documentId, RootElement rootElement) throws Exception {
+	public DocumentSet logRecommendationDeliveryNew(String referenceId, RootElement rootElement, Boolean requestByTitle) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationSetId = -1;
@@ -2905,7 +2920,7 @@ public class DBConnection {
 			e.printStackTrace();
 		}
 		documentset.setAccessKeyHash(accessKeyHash);
-		loggingId = logEvent(documentId, rootElement, false);
+		loggingId = logEvent(referenceId, rootElement, requestByTitle?"search_by_title":"related_documents");
 		documentset = logRecommendationAlgorithmNew(documentset);
 
 		try {
@@ -3005,6 +3020,7 @@ public class DBConnection {
 	 * @param documentset
 	 *            DocumentSet which contains the recommendations that have to be
 	 *            logged
+	 * @param requestByTitle 
 	 * @return the recommendationAlgorithm id
 	 * @throws Exception
 	 */
@@ -3934,7 +3950,8 @@ public class DBConnection {
 		return "No document in database";
 	}
 
-	public void logRecommendationSetReceivedAcknowledgement(String recommendationSetId, Long requestRecieved) throws SQLException {
+	public void logRecommendationSetReceivedAcknowledgement(String recommendationSetId, Long requestRecieved)
+			throws SQLException {
 		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
 				+ constants.getRecommendationSetReceivedTime() + "=  IF( "
 				+ constants.getRecommendationSetReceivedTime() + " IS NULL, ?, "
@@ -3949,5 +3966,44 @@ public class DBConnection {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+
+	public String getTitleStringId(DisplayDocument requestDocument) throws SQLException{
+		String titleStringId = "";
+		Statement stmt = null;
+		ResultSet rs = null;
+		
+		String query = "SELECT " + constants.getTitleSearchId() + " FROM " + constants.getDocumentTitleSearchTable() + " WHERE " + constants.getTitleSearchString() + "='"
+				+ requestDocument.getTitle()+ "'";
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				titleStringId = rs.getString(constants.getTitleSearchId());
+			} else {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				query = "INSERT INTO " + constants.getDocumentTitleSearchTable() + "(" + constants.getTitleSearchString()  + ") VALUES('"
+						+ requestDocument.getTitle() + "')";
+				stmt = con.createStatement();
+				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					titleStringId = rs.getString(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
+		}
+		return titleStringId;
 	}
 }

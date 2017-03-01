@@ -36,6 +36,7 @@ public class Constants {
 	private String externalIds;
 	private String recommendations;
 	private String recommendationSets;
+	private String titleSearch;
 	private String loggings;
 	private String reRankingBibliometrics;
 	private String bibPersons;
@@ -74,6 +75,8 @@ public class Constants {
 	private String loggingId;
 	private String request;
 	private String documentIdInLogging;
+	private String recommendationIdInLogging;
+	private String titleSearchIdInLogging;
 	private String requestReceived;
 	private String responseDelivered;
 	private String totalProcessingTime;
@@ -228,6 +231,10 @@ public class Constants {
 	private String gramity;
 	private String documentIdInKeyphrases;
 
+	// db table document_title_searches
+	private String titleSearchString;
+	private String titleSearchId;
+
 	// solr
 	private String solrWebService;
 	private String solrMrdlib;
@@ -278,6 +285,7 @@ public class Constants {
 			this.externalIds = prop.getProperty("externalIds");
 			this.recommendations = prop.getProperty("recommendations");
 			this.recommendationSets = prop.getProperty("recommendationSets");
+			this.titleSearch = prop.getProperty("titleSearch");
 			this.loggings = prop.getProperty("loggings");
 			this.reRankingBibliometrics = prop.getProperty("reRankingBibliometrics");
 			this.bibPersons = prop.getProperty("bibliometricPersons");
@@ -312,6 +320,8 @@ public class Constants {
 			this.loggingId = prop.getProperty("loggingId");
 			this.request = prop.getProperty("request");
 			this.documentIdInLogging = prop.getProperty("documentIdInLogging");
+			this.recommendationIdInLogging=prop.getProperty("recommendationIdInLogging");
+			this.titleSearchIdInLogging=prop.getProperty("titleSearchIdInLogging");
 			this.requestReceived = prop.getProperty("requestReceived");
 			this.responseDelivered = prop.getProperty("responseDelivered");
 			this.totalProcessingTime = prop.getProperty("totalProcessingTime");
@@ -359,6 +369,9 @@ public class Constants {
 			this.externalName = prop.getProperty("externalName");
 			this.externalId = prop.getProperty("externalId");
 
+			this.titleSearchString = prop.getProperty("titleSearchString");
+			this.titleSearchId = prop.getProperty("titleSearchId");
+			
 			this.bibliometricPersonsId = prop.getProperty("bibliometricPersonsId");
 			this.personIdInBibliometricPers = prop.getProperty("personIdInBibliometricPers");
 			this.bibliometricIdInBibliometricPers = prop.getProperty("bibliometricIdInBibliometricPers");
@@ -1211,12 +1224,38 @@ public class Constants {
 	public String getDesiredRecommendationsInRecommendationAlgorithms() {
 		return desiredRecommendationsInRecommendationAlgorithms;
 	}
-	
-	public String getGesisBetaCollectionLink(){
+
+	public String getGesisBetaCollectionLink() {
 		return gesisBetaCollectionLink;
 	}
 
 	public String getRecommendationSetReceivedTime() {
 		return recommendationSetReceivedTime;
+	}
+
+	public String getDocumentTitleSearchTable() {
+		return titleSearch;
+	}
+	
+	public String getRecommendationIdInLogging() {
+		return recommendationIdInLogging;
+	}
+	
+	public String getTitleSearchIdInLogging() {
+		return titleSearchIdInLogging;
+	}
+	
+	/**
+	 * @return the titleSearchString
+	 */
+	public String getTitleSearchString() {
+		return titleSearchString;
+	}
+
+	/**
+	 * @return the titleSearchId
+	 */
+	public String getTitleSearchId() {
+		return titleSearchId;
 	}
 }

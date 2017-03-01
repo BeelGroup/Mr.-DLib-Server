@@ -211,24 +211,31 @@ public class DocumentService {
 		rootElement.setStatusReportSet(statusReportSet);
 		System.out.println("added stuff to root element");
 		System.out.println("requestByTitle is: " + requestByTitle);
-		if (!requestByTitle) {
-			System.out.println("Try to do the logging stuff");
-			try {
-				// log all the statistic about this execution
-				documentset = con.logRecommendationDeliveryNew(requestDocument.getDocumentId(), rootElement);
-
-				for (DisplayDocument doc : documentset.getDocumentList()) {
-					String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
-							+ doc.getRecommendationId() + "/original_url?access_key=" + documentset.getAccessKeyHash()
-							+ "&format=direct_url_forward";
-					doc.setClickUrl(url);
-				}
-			} catch (Exception e) {
-				System.out.println("nullpointer catched");
-				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+		System.out.println("Try to do the logging stuff");
+		try {
+			// log all the statistic about this execution
+			String referenceId = "";
+			if(requestByTitle){
+				System.out.println(requestDocument.getTitle());
+				String titleStringId = con.getTitleStringId(requestDocument);
+				referenceId = titleStringId;
+			}else{
+				referenceId = requestDocument.getDocumentId();
 			}
+			documentset = con.logRecommendationDeliveryNew(referenceId, rootElement, requestByTitle);
+
+			for (DisplayDocument doc : documentset.getDocumentList()) {
+				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
+						+ doc.getRecommendationId() + "/original_url?access_key=" + documentset.getAccessKeyHash()
+						+ "&format=direct_url_forward";
+				doc.setClickUrl(url);
+			}
+		} catch (Exception e) {
+			System.out.println("nullpointer catched");
+			e.printStackTrace();
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
+		
 
 		try {
 			System.out.println("try to close the db con");

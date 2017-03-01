@@ -138,7 +138,7 @@ public class RecommendationService {
 
 			// Log recommendation Click
 			if(accessKeyCheck){
-				Boolean loggingDone = con.logRecommendationClick(recoId, docId, requestRecieved, rootElement);
+				Boolean loggingDone = con.logRecommendationClick(recoId, requestRecieved, rootElement);
 				if (loggingDone)
 	
 					// Return redirected response
