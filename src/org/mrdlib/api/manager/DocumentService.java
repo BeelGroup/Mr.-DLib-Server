@@ -113,7 +113,7 @@ public class DocumentService {
 						inputQuery = inputQuery.toLowerCase();
 						// lucene does not like these chars
 						inputQuery = inputQuery
-								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", "");
+								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", " ");
 						requestByTitle = true;
 						requestDocument = new DisplayDocument();
 						requestDocument.setTitle(inputQuery);
