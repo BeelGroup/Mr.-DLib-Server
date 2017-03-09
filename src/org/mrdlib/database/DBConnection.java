@@ -1783,6 +1783,7 @@ public class DBConnection {
 		}
 		case "url_for_recommended_document": {
 			referenceColumnName = constants.getRecommendationIdInLogging();
+			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404) referenceId = "1";
 			break;
 		}
 		case "search_by_title": {
@@ -1794,18 +1795,23 @@ public class DBConnection {
 
 		// if there occured multiple errors error
 		if (rootElement.getStatusReportSet().getSize() > 1) {
-			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++)
+			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++) {
 				// gather every message
 				debugMessage = debugMessage
 						+ rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugMessage();
+			}
 			// set status code to mutiple errors
 			statusCode = "207";
 		} else {
 			// if theres only one report (either error or 200, gather it
 			StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
 			statusCode = statusReport.getStatusCode() + "";
+			if (statusCode.equals("404") & referenceColumnName.equals("url_for_recommended_document"))
+				referenceId = "1";
 			debugMessage = statusReport.getDebugMessage();
 		}
+
+		System.out.println(debugMessage);
 
 		try {
 			// insertion query
@@ -1813,7 +1819,7 @@ public class DBConnection {
 					+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
 					+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
 					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ") VALUES ('";
-
+			System.out.println("referenceId is " + referenceId);
 			query += requestType + "', " + referenceId + ", '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
 					+ "', '" + statusCode + "', ?);";
@@ -1843,6 +1849,7 @@ public class DBConnection {
 				throw e;
 			}
 		}
+		System.out.println("logging id is : " + loggingId);
 		return loggingId;
 	}
 
@@ -2024,28 +2031,34 @@ public class DBConnection {
 	 * @param rootElement
 	 *            In order to check the status of the current request and verify
 	 *            that there were no errors upstream
+	 * @param accessKeyCheck
 	 * @return true if logged successfully, exception in every other case
 	 * @throws SQLException
 	 */
-	public Boolean logRecommendationClick(String recommendationId, Long requestTime, RootElement rootElement)
-			throws Exception {
+	public Boolean logRecommendationClick(String recommendationId, Long requestTime, RootElement rootElement,
+			Boolean accessKeyCheck) throws Exception {
 		Statement stmt = null;
 		int loggingId = -1;
 		try {
-			stmt = con.createStatement();
 
-			// Update query to set the time at which a recommendation was
-			// clicked
-			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " =  IF( "
-					+ constants.getClicked() + " IS NULL, '" + new Timestamp(requestTime) + "', "
-					+ constants.getClicked() + ") WHERE " + constants.getRecommendationId() + " = " + recommendationId;
-
-			stmt.executeUpdate(query);
-			int clickCount = updateClicksInRecommendationSet(recommendationId);
-			if (clickCount == 0) {
-				System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
-			}
 			loggingId = logEvent(recommendationId, rootElement, "url_for_recommended_document", requestTime);
+
+			if (accessKeyCheck) {
+				stmt = con.createStatement();
+
+				// Update query to set the time at which a recommendation was
+				// clicked
+				String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked()
+						+ " =  IF( " + constants.getClicked() + " IS NULL, '" + new Timestamp(requestTime) + "', "
+						+ constants.getClicked() + ") WHERE " + constants.getRecommendationId() + " = "
+						+ recommendationId;
+
+				stmt.executeUpdate(query);
+				int clickCount = updateClicksInRecommendationSet(recommendationId);
+				if (clickCount == 0) {
+					System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
+				}
+			}
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -2922,84 +2935,88 @@ public class DBConnection {
 		}
 		documentset.setAccessKeyHash(accessKeyHash);
 		loggingId = logEvent(referenceId, rootElement, requestByTitle ? "search_by_title" : "related_documents");
-		documentset = logRecommendationAlgorithmNew(documentset);
 
-		try {
-			// insertion query
-			String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
-					+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
-					+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
-					+ constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
-					+ constants.getPreparationTime() + ", " + constants.getRecFrameworkTime() + ", "
-					+ constants.getPostProcessingTime() + ", " + constants.getAccessKey() + ", "
-					+ constants.getMinimumRelevanceScoreDisplay() + ", " + constants.getMaximumRelevanceScoreDisplay()
-					+ ", " + constants.getMeanRelevanceScoreDisplay() + ", "
-					+ constants.getMedianRelevanceScoreDisplay() + ", " + constants.getModeRelevanceScoreDisplay()
-					+ ", " + constants.getMinimumFinalScoreDisplay() + ", " + constants.getMaximumFinalScoreDisplay()
-					+ ", " + constants.getMeanFinalScoreDisplay() + ", " + constants.getMedianFinalScoreDisplay() + ", "
-					+ constants.getModeFinalScoreDisplay() + ") VALUES (" + loggingId + ", "
-					+ documentset.getRecommendationAlgorithmId() + ", " + (documentset.isFallback() ? "'Y'" : "'N'")
-					+ ", " + documentset.getNumberOfReturnedResults() + ", " + documentset.getSize() + ", 'system', '"
-					+ documentset.getAfterAlgorithmChoosingTime() + "', '"
-					+ documentset.getAfterAlgorithmExecutionTime() + "', '" + documentset.getAfterRerankTime() + "', '"
-					+ accessKeyHash + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+		if (documentset.getSize() > 0) {
+			documentset = logRecommendationAlgorithmNew(documentset);
 
-			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-
-			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
-
-				if (currentStats.getType().equals("relevance")) {
-					stmt.setDouble(1, currentStats.getRankVMin());
-					stmt.setDouble(2, currentStats.getRankVMax());
-					stmt.setDouble(3, currentStats.getRankVMean());
-					stmt.setDouble(4, currentStats.getRankVMedian());
-
-					if (currentStats.getRankVMode() == -1) {
-						stmt.setNull(5, java.sql.Types.FLOAT);
-					} else
-						stmt.setDouble(5, currentStats.getRankVMode());
-
-				} else if (currentStats.getType().equals("final")) {
-					stmt.setDouble(6, currentStats.getRankVMin());
-					stmt.setDouble(7, currentStats.getRankVMax());
-					stmt.setDouble(8, currentStats.getRankVMean());
-					stmt.setDouble(9, currentStats.getRankVMedian());
-
-					if (currentStats.getRankVMode() == -1) {
-						stmt.setNull(10, java.sql.Types.FLOAT);
-					} else
-						stmt.setDouble(10, currentStats.getRankVMode());
-				}
-			}
-
-			stmt.executeUpdate();
-
-			// get the autogenerated key back
-			rs = stmt.getGeneratedKeys();
-			if (rs.next())
-				recommendationSetId = rs.getInt(1);
-
-			// set the generated key as recommendation set id
-			documentset.setRecommendationSetId(recommendationSetId + "");
-
-			for (int i = 0; i < documentset.getSize(); i++) {
-				DisplayDocument current = documentset.getDisplayDocument(i);
-				// log each single recommendation
-				current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
-			}
-
-			if (!documentset.getReRankingCombination().equals("standard_only"))
-				logRankingStatistics(documentset);
-
-		} catch (Exception e) {
-			throw e;
-		} finally {
 			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
+				// insertion query
+				String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
+						+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
+						+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
+						+ constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
+						+ constants.getPreparationTime() + ", " + constants.getRecFrameworkTime() + ", "
+						+ constants.getPostProcessingTime() + ", " + constants.getAccessKey() + ", "
+						+ constants.getMinimumRelevanceScoreDisplay() + ", "
+						+ constants.getMaximumRelevanceScoreDisplay() + ", " + constants.getMeanRelevanceScoreDisplay()
+						+ ", " + constants.getMedianRelevanceScoreDisplay() + ", "
+						+ constants.getModeRelevanceScoreDisplay() + ", " + constants.getMinimumFinalScoreDisplay()
+						+ ", " + constants.getMaximumFinalScoreDisplay() + ", " + constants.getMeanFinalScoreDisplay()
+						+ ", " + constants.getMedianFinalScoreDisplay() + ", " + constants.getModeFinalScoreDisplay()
+						+ ") VALUES (" + loggingId + ", " + documentset.getRecommendationAlgorithmId() + ", "
+						+ (documentset.isFallback() ? "'Y'" : "'N'") + ", " + documentset.getNumberOfReturnedResults()
+						+ ", " + documentset.getSize() + ", 'system', '" + documentset.getAfterAlgorithmChoosingTime()
+						+ "', '" + documentset.getAfterAlgorithmExecutionTime() + "', '"
+						+ documentset.getAfterRerankTime() + "', '" + accessKeyHash
+						+ "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+				stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
+				for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+
+					if (currentStats.getType().equals("relevance")) {
+						stmt.setDouble(1, currentStats.getRankVMin());
+						stmt.setDouble(2, currentStats.getRankVMax());
+						stmt.setDouble(3, currentStats.getRankVMean());
+						stmt.setDouble(4, currentStats.getRankVMedian());
+
+						if (currentStats.getRankVMode() == -1) {
+							stmt.setNull(5, java.sql.Types.FLOAT);
+						} else
+							stmt.setDouble(5, currentStats.getRankVMode());
+
+					} else if (currentStats.getType().equals("final")) {
+						stmt.setDouble(6, currentStats.getRankVMin());
+						stmt.setDouble(7, currentStats.getRankVMax());
+						stmt.setDouble(8, currentStats.getRankVMean());
+						stmt.setDouble(9, currentStats.getRankVMedian());
+
+						if (currentStats.getRankVMode() == -1) {
+							stmt.setNull(10, java.sql.Types.FLOAT);
+						} else
+							stmt.setDouble(10, currentStats.getRankVMode());
+					}
+				}
+
+				stmt.executeUpdate();
+
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					recommendationSetId = rs.getInt(1);
+
+				// set the generated key as recommendation set id
+				documentset.setRecommendationSetId(recommendationSetId + "");
+
+				for (int i = 0; i < documentset.getSize(); i++) {
+					DisplayDocument current = documentset.getDisplayDocument(i);
+					// log each single recommendation
+					current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
+				}
+
+				if (!documentset.getReRankingCombination().equals("standard_only"))
+					logRankingStatistics(documentset);
+
+			} catch (Exception e) {
 				throw e;
+			} finally {
+				try {
+					if (stmt != null)
+						stmt.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					throw e;
+				}
 			}
 		}
 		return documentset;
@@ -3243,7 +3260,7 @@ public class DBConnection {
 					+ document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", '"
 					+ document.getRankAfterAlgorithm() + "', ?, ?, '" + document.getRankDelivered() + "', '"
 					+ document.getRelevanceScoreFromAlgorithm() + "', '" + document.getFinalScore() + "'" + ", '"
-					+ ((double)document.getRelevanceScoreFromAlgorithm() / maxRelevanceScorePerSet) + "')";
+					+ ((double) document.getRelevanceScoreFromAlgorithm() / maxRelevanceScorePerSet) + "')";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -3257,7 +3274,7 @@ public class DBConnection {
 			} else
 				stmt.setInt(2, document.getRankAfterShuffling());
 
-			//System.out.println(query);
+			// System.out.println(query);
 			stmt.executeUpdate();
 
 			// get the autogenerated key back

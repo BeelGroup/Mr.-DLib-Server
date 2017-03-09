@@ -155,9 +155,12 @@ public class DocumentService {
 			}
 
 			if (validAlgorithmFlag) {
-				if (numberOfAttempts > 0)
+				if (numberOfAttempts > 0){
 					System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
 							numberOfAttempts);
+					documentset = new DocumentSet();
+					documentset.setRequestedDocument(requestDocument);
+				}
 			} else {
 				System.out.println("Using fallback recommender");
 				relatedDocumentGenerator = RecommenderFactory.getFallback(con);
@@ -166,17 +169,23 @@ public class DocumentService {
 			}
 			System.out.println("Do the documentset stuff");
 			Long timeAfterExecution = System.currentTimeMillis();
-			documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
-			documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
-			documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
+			
+			documentset.setStartTime(requestRecieved);
 			documentset.setAlgorithmDetails(relatedDocumentGenerator.getAlgorithmLoggingInfo());
 
-			documentset = ar.selectRandomRanking(documentset);
-			documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
-			documentset.setRankDelivered();
-			documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
-			documentset.setStartTime(requestRecieved);
+			if(documentset.getSize()>0){
+				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
+				documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
+				documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
+				
+				documentset = ar.selectRandomRanking(documentset);
+				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
+				documentset.setRankDelivered();
+				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
+			}
+			
 			System.out.println("Did the documentset stuff");
+
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
 			statusReportSet.addStatusReport(e1.getStatusReport());
@@ -244,7 +253,8 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
-
+		
+		
 		try {
 			if (statusReportSet.getSize() > 1)
 				statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
@@ -256,13 +266,21 @@ public class DocumentService {
 
 		if (!constants.getDebugModeOn()) {
 			DisplayDocument current = null;
-			rootElement.getDocumentSet().setDebugDetailsPerSet(null);
-			for (int i = 0; i < documentset.getSize(); i++) {
-				current = rootElement.getDocumentSet().getDisplayDocument(i);
-				current.setDebugDetails(null);
+			if(rootElement.getDocumentSet().getSize()>0){
+				rootElement.getDocumentSet().setDebugDetailsPerSet(null);
+				
+				for (int i = 0; i < documentset.getSize(); i++) {
+					current = rootElement.getDocumentSet().getDisplayDocument(i);
+					current.setDebugDetails(null);
+				}
+			}
+			for(StatusReport report : rootElement.getStatusReportSet().getStatusReportList()){
+				report.setDebugMessage(null);
 			}
 		}
-
+		if(documentset.getSize()==0){
+			rootElement.setDocumentSet(null);
+		}
 		return rootElement;
 	}
 

@@ -126,8 +126,7 @@ public class RecommendationService {
 			}
 
 		} catch (NoEntryException e) {
-			statusReportSet.addStatusReport(
-					new NoEntryException(recoId, "Recommendation").getStatusReport());
+			statusReportSet.addStatusReport(new NoEntryException(recoId, "Recommendation").getStatusReport());
 		}
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
@@ -137,13 +136,12 @@ public class RecommendationService {
 			url = new URI(urlString);
 
 			// Log recommendation Click
-			if(accessKeyCheck){
-				Boolean loggingDone = con.logRecommendationClick(recoId, requestRecieved, rootElement);
-				if (loggingDone)
-	
+			Boolean clickLoggingDone = con.logRecommendationClick(recoId, requestRecieved, rootElement, accessKeyCheck);
+			if (accessKeyCheck) {
+				if (clickLoggingDone)
 					// Return redirected response
 					return Response.seeOther(url).build();
-				else 
+				else
 					throw new UnknownException("Logging could not be completed for this click");
 			}
 		} catch (Exception e) {
@@ -154,6 +152,7 @@ public class RecommendationService {
 					con.close();
 			} catch (Exception e) {
 				statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+				e.printStackTrace();
 			}
 		}
 
