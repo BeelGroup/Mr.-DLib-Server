@@ -1,9 +1,11 @@
 package org.mrdlib.api.manager;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.mrdlib.api.response.DisplayDocument;
@@ -67,8 +69,9 @@ public class DocumentService {
 	 *            - id from the cooperation partner
 	 * @return a document set of related documents
 	 */
-	public RootElement getRelatedDocumentSet(@PathParam("documentId") String inputQuery) {
+	public RootElement getRelatedDocumentSet(@Context HttpServletRequest request, @PathParam("documentId") String inputQuery) {
 		System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
+		System.out.println("Some specifics:" + request.getRemoteHost() + "\n" + request.getRemotePort() + "\n" + request.getServerName());
 		DisplayDocument requestDocument = null;
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
@@ -140,6 +143,7 @@ public class DocumentService {
 					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
 							ar.getNumberOfCandidatesToReRank());
 					documentset.setRequestedDocument(requestDocument);
+					documentset.setIpAddress(request.getRemoteAddr());
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {

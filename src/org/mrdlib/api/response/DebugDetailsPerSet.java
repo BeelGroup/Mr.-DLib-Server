@@ -43,6 +43,7 @@ public class DebugDetailsPerSet {
 	private Long rerankTime;
 
 	private String accessKeyHash;
+	private String originatingIp;
 	// NEED timestamps: end?
 
 	public DebugDetailsPerSet() {
@@ -249,6 +250,14 @@ public class DebugDetailsPerSet {
 
 	public void setAlgoDetails(AlgorithmDetails details) {
 		this.algoDetails = details;
+	}
+
+	public String getOriginatingIp() {
+		return originatingIp;
+	}
+
+	public void setOriginatingIp(String originatingIp) {
+		this.originatingIp = originatingIp;
 	}
 
 }

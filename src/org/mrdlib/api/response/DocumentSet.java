@@ -705,4 +705,13 @@ public class DocumentSet {
 	public void setFallbackRanking(boolean fallbackRanking) {
 		this.debugDetailsPerSet.setFallbackRanking(fallbackRanking);
 	}
+	
+	@XmlTransient
+	public void setIpAddress(String ip){
+		this.debugDetailsPerSet.setOriginatingIp(ip);
+	}
+	
+	public String getIpAddress(){
+		return this.debugDetailsPerSet.getOriginatingIp();
+	}
 }
