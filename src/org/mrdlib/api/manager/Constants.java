@@ -235,7 +235,8 @@ public class Constants {
 	// db table document_title_searches
 	private String titleSearchString;
 	private String titleSearchId;
-
+	private String originalSearchString;
+	
 	// solr
 	private String solrWebService;
 	private String solrMrdlib;
@@ -257,6 +258,7 @@ public class Constants {
 	private String mendeleyConfigPath;
 
 	private String probabilitiesConfigPath;
+
 
 	// load the config file
 	public Constants() {
@@ -373,6 +375,7 @@ public class Constants {
 
 			this.titleSearchString = prop.getProperty("titleSearchString");
 			this.titleSearchId = prop.getProperty("titleSearchId");
+			this.originalSearchString = prop.getProperty("originalSearchString");
 			
 			this.bibliometricPersonsId = prop.getProperty("bibliometricPersonsId");
 			this.personIdInBibliometricPers = prop.getProperty("personIdInBibliometricPers");
@@ -1259,6 +1262,10 @@ public class Constants {
 	 */
 	public String getTitleSearchId() {
 		return titleSearchId;
+	}
+
+	public String getOriginalSearchString() {
+		return originalSearchString;
 	}
 
 	public String getRelativeRelevanceScore() {

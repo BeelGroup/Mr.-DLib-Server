@@ -110,13 +110,14 @@ public class DocumentService {
 					} catch (Exception e2) {
 						System.out.println("it seems there is no document in our database with this title");
 						System.out.println("lets now try if lucene find some documents for us.");
+						requestByTitle = true;
+						requestDocument = new DisplayDocument();
+						requestDocument.setTitle(inputQuery);
 						inputQuery = inputQuery.toLowerCase();
 						// lucene does not like these chars
 						inputQuery = inputQuery
 								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", " ");
-						requestByTitle = true;
-						requestDocument = new DisplayDocument();
-						requestDocument.setTitle(inputQuery);
+						requestDocument.setCleanTitle(inputQuery);
 						System.out.println("requestDocument: " + requestDocument.getTitle());
 					}
 				}
@@ -148,7 +149,7 @@ public class DocumentService {
 					numberOfAttempts++;
 					if(requestByTitle){
 						statusReportSet.addStatusReport(new StatusReport(404, "No related documents corresponding to input query:"
-								+ requestDocument.getTitle()));
+								+ requestDocument.getCleanTitle()));
 						validAlgorithmFlag=true;
 					}
 				}
@@ -225,7 +226,7 @@ public class DocumentService {
 			// log all the statistic about this execution
 			String referenceId = "";
 			if(requestByTitle){
-				System.out.println(requestDocument.getTitle());
+				System.out.println(requestDocument.getCleanTitle());
 				String titleStringId = con.getTitleStringId(requestDocument);
 				referenceId = titleStringId;
 			}else{

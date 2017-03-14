@@ -289,7 +289,7 @@ public class solrConnection {
 	public DocumentSet getDocumentsFromSolrByQuery(DisplayDocument requestedDocument, int delimitedRows,
 			AlgorithmDetails logginginfo) throws Exception {
 		System.out.println("reached solr connection class and im in method getDocumentsFromSolrByQuery");
-		String title = requestedDocument.getTitle();
+		String title = requestedDocument.getCleanTitle();
 		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
