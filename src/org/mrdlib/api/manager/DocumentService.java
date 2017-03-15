@@ -71,7 +71,12 @@ public class DocumentService {
 	 */
 	public RootElement getRelatedDocumentSet(@Context HttpServletRequest request, @PathParam("documentId") String inputQuery) {
 		System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
-		System.out.println("Some specifics:" + request.getRemoteHost() + "\n" + request.getRemotePort() + "\n" + request.getServerName());
+
+		String ipAddress = request.getHeader("X-FORWARDED-FOR");  
+		   if (ipAddress == null) {  
+		   ipAddress = request.getRemoteAddr();  
+		   }
+		System.out.println(ipAddress);
 		DisplayDocument requestDocument = null;
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
@@ -143,7 +148,7 @@ public class DocumentService {
 					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
 							ar.getNumberOfCandidatesToReRank());
 					documentset.setRequestedDocument(requestDocument);
-					documentset.setIpAddress(request.getRemoteAddr());
+					documentset.setIpAddress(ipAddress);
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
