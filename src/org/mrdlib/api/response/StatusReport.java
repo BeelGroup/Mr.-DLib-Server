@@ -37,7 +37,7 @@ public class StatusReport implements Serializable {
 	public StatusReport(int statusCode, StatusMessage statusMessage) {
 		this.statusMessage = statusMessage;
 		this.statusCode = statusCode;
-		this.debugMessage = statusMessage.getContent();
+		if(statusCode!=200)	this.debugMessage = statusMessage.getContent();
 	}
 
 	public StatusReport(int statusCode, String statusMessage, String debugMessage) {
@@ -49,7 +49,7 @@ public class StatusReport implements Serializable {
 	public StatusReport(int statusCode, String statusMessage) {
 		this.statusMessage = new StatusMessage(statusMessage);
 		this.statusCode = statusCode;
-		this.debugMessage = "![CDATA[" + statusMessage + "]";
+		if(statusCode!=200) this.debugMessage = "![CDATA[" + statusMessage + "]";
 	}
 
 	public StatusMessage getStatusMessage() {

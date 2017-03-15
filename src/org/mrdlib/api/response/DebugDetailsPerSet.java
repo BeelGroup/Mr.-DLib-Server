@@ -3,6 +3,8 @@ package org.mrdlib.api.response;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 /**
@@ -256,6 +258,7 @@ public class DebugDetailsPerSet {
 		return originatingIp;
 	}
 
+	@XmlTransient
 	public void setOriginatingIp(String originatingIp) {
 		this.originatingIp = originatingIp;
 	}

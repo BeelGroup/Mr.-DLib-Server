@@ -1743,9 +1743,7 @@ public class DBConnection {
 	 * return reRankingBibId; }
 	 */
 
-	private int logEvent(String documentId, RootElement rootElement, String requestType) throws Exception {
-		return logEvent(documentId, rootElement, requestType, (Long) null);
-	}
+
 
 	/**
 	 * 
@@ -1765,7 +1763,7 @@ public class DBConnection {
 	 * @return int, id of the created event
 	 * @throws Exception
 	 */
-	private int logEvent(String referenceId, RootElement rootElement, String requestType, Long requestTime)
+	private int logEvent(String referenceId, RootElement rootElement, String requestType)
 			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -1773,27 +1771,27 @@ public class DBConnection {
 		String statusCode = "";
 		String debugMessage = "";
 		Boolean noEntryExceptionRecorded = false;
-
+		Long requestTime = rootElement.getDocumentSet().getStartTime();
+		
 		String referenceColumnName = "";
 		switch (requestType) {
 		case "related_documents": {
 			referenceColumnName = constants.getDocumentIdInLogging();
-			requestTime = rootElement.getDocumentSet().getStartTime();
 			break;
 		}
 		case "url_for_recommended_document": {
 			referenceColumnName = constants.getRecommendationIdInLogging();
-			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404) noEntryExceptionRecorded = true;
+			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+				noEntryExceptionRecorded = true;
 
 			break;
 		}
 		case "search_by_title": {
 			referenceColumnName = constants.getTitleSearchIdInLogging();
-			requestTime = rootElement.getDocumentSet().getStartTime();
 			break;
 		}
 		}
-		
+
 		// if there occured multiple errors error
 		if (rootElement.getStatusReportSet().getSize() > 1) {
 			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++) {
@@ -1808,7 +1806,6 @@ public class DBConnection {
 			StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
 			statusCode = statusReport.getStatusCode() + "";
 
-
 			debugMessage = statusReport.getDebugMessage();
 		}
 		System.out.println(debugMessage);
@@ -1818,31 +1815,41 @@ public class DBConnection {
 			String query = "INSERT INTO " + constants.getLoggings() + " (" + constants.getRequest() + ", "
 					+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
 					+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
-					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIp() + ") VALUES ('";
+					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIpHash()
+					+ ", " + constants.getIp() + ") VALUES ('";
 			query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
-					+ "', '" + statusCode + "', ?,?);";
+					+ "', '" + statusCode + "',?, ?,?);";
 			System.out.println(query);
 
-
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-			
-			//if there was noEntryException, then set referenceId to NULL, else carry on
-			if(noEntryExceptionRecorded){
+
+			// if there was noEntryException, then set referenceId to NULL, else
+			// carry on
+			if (noEntryExceptionRecorded) {
 				stmt.setNull(1, java.sql.Types.BIGINT);
-			}else{
+			} else {
 				stmt.setString(1, referenceId);
 			}
-			
-			stmt.setString(3, rootElement.getDocumentSet().getIpAddress());
+
+			String ipAddress = rootElement.getDocumentSet().getIpAddress();
+			stmt.setString(4, ipAddress);
+			try {
+				String saltedIp = "mld" + ipAddress;
+				MessageDigest m = MessageDigest.getInstance("MD5");
+				m.update(saltedIp.getBytes(), 0, saltedIp.length());
+				String ipHash = new BigInteger(1, m.digest()).toString(16);
+				stmt.setString(3, ipHash);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			// if the debugMessage was empty, set database type to null
-			
+
 			if (debugMessage == null || debugMessage.isEmpty()) {
 				stmt.setNull(2, java.sql.Types.VARCHAR);
 			} else
 				stmt.setString(2, debugMessage);
-						
 
 			stmt.executeUpdate();
 
@@ -2038,8 +2045,6 @@ public class DBConnection {
 	 *            the recommendation_id for which the click needs to be recorded
 	 * @param documentId
 	 *            the document_id corresponding to the recommendation
-	 * @param requestTime
-	 *            the time at which the click was recorded
 	 * @param rootElement
 	 *            In order to check the status of the current request and verify
 	 *            that there were no errors upstream
@@ -2047,13 +2052,13 @@ public class DBConnection {
 	 * @return true if logged successfully, exception in every other case
 	 * @throws SQLException
 	 */
-	public Boolean logRecommendationClick(String recommendationId, Long requestTime, RootElement rootElement,
-			Boolean accessKeyCheck) throws Exception {
+	public Boolean logRecommendationClick(String recommendationId, RootElement rootElement, Boolean accessKeyCheck)
+			throws Exception {
 		Statement stmt = null;
 		int loggingId = -1;
 		try {
 
-			loggingId = logEvent(recommendationId, rootElement, "url_for_recommended_document", requestTime);
+			loggingId = logEvent(recommendationId, rootElement, "url_for_recommended_document");
 
 			if (accessKeyCheck) {
 				stmt = con.createStatement();
@@ -2061,9 +2066,9 @@ public class DBConnection {
 				// Update query to set the time at which a recommendation was
 				// clicked
 				String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked()
-						+ " =  IF( " + constants.getClicked() + " IS NULL, '" + new Timestamp(requestTime) + "', "
-						+ constants.getClicked() + ") WHERE " + constants.getRecommendationId() + " = "
-						+ recommendationId;
+						+ " =  IF( " + constants.getClicked() + " IS NULL, '"
+						+ new Timestamp(rootElement.getDocumentSet().getStartTime()) + "', " + constants.getClicked()
+						+ ") WHERE " + constants.getRecommendationId() + " = " + recommendationId;
 
 				stmt.executeUpdate(query);
 				int clickCount = updateClicksInRecommendationSet(recommendationId);
@@ -4024,8 +4029,9 @@ public class DBConnection {
 				if (rs != null)
 					rs.close();
 				query = "INSERT INTO " + constants.getDocumentTitleSearchTable() + "("
-						+ constants.getTitleSearchString() + "," + constants.getOriginalSearchString() + ") VALUES(?,?)" ;
-				stmt = con.prepareStatement(query,Statement.RETURN_GENERATED_KEYS);
+						+ constants.getTitleSearchString() + "," + constants.getOriginalSearchString()
+						+ ") VALUES(?,?)";
+				stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 				stmt.setString(1, requestDocument.getCleanTitle());
 				stmt.setString(2, requestDocument.getTitle());
 				stmt.executeUpdate();

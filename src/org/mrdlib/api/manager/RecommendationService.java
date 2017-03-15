@@ -2,15 +2,18 @@ package org.mrdlib.api.manager;
 
 import java.net.URI;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.mrdlib.api.response.DisplayDocument;
+import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.api.response.RootElement;
 import org.mrdlib.api.response.StatusMessage;
 import org.mrdlib.api.response.StatusReport;
@@ -67,9 +70,9 @@ public class RecommendationService {
 	 */
 	@GET
 	@Path("{recommendationId:[0-9]+}/original_url/")
-	public Response getRedirectedPathReversedParams(@PathParam("recommendationId") String recoId,
+	public Response getRedirectedPathReversedParams(@Context HttpServletRequest request, @PathParam("recommendationId") String recoId,
 			@QueryParam("access_key") String accessKey, @QueryParam("request_format") String format) throws Exception {
-		return getRedirectedPath(recoId, accessKey, format);
+		return getRedirectedPath(request, recoId, accessKey, format);
 	}
 
 	/**
@@ -89,12 +92,17 @@ public class RecommendationService {
 	 *         clicked
 	 * @throws Exception
 	 */
-	public Response getRedirectedPath(String recoId, String accessKey, String format) throws Exception {
+	public Response getRedirectedPath(HttpServletRequest request, String recoId, String accessKey, String format) throws Exception {
 		URI url;
 		Boolean accessKeyCheck = false;
 		DisplayDocument relDocument;
 		String docId = "";
 		String urlString = "";
+		String ipAddress = request.getHeader("X-FORWARDED-FOR");
+		if (ipAddress == null) {
+			ipAddress = request.getRemoteAddr();
+		}
+
 		try {
 
 			// Check accessKey from clickURL against the one stored in our
@@ -134,9 +142,12 @@ public class RecommendationService {
 		rootElement.setStatusReportSet(statusReportSet);
 		try {
 			url = new URI(urlString);
-
+			DocumentSet results = new DocumentSet();
+			results.setIpAddress(ipAddress);
+			results.setStartTime(requestRecieved);
+			rootElement.setDocumentSet(results);
 			// Log recommendation Click
-			Boolean clickLoggingDone = con.logRecommendationClick(recoId, requestRecieved, rootElement, accessKeyCheck);
+			Boolean clickLoggingDone = con.logRecommendationClick(recoId, rootElement, accessKeyCheck);
 			if (accessKeyCheck) {
 				if (clickLoggingDone)
 					// Return redirected response
@@ -144,6 +155,8 @@ public class RecommendationService {
 				else
 					throw new UnknownException("Logging could not be completed for this click");
 			}
+			
+			rootElement.setDocumentSet(null);
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		} finally {

@@ -69,14 +69,15 @@ public class DocumentService {
 	 *            - id from the cooperation partner
 	 * @return a document set of related documents
 	 */
-	public RootElement getRelatedDocumentSet(@Context HttpServletRequest request, @PathParam("documentId") String inputQuery) {
+	public RootElement getRelatedDocumentSet(@Context HttpServletRequest request,
+			@PathParam("documentId") String inputQuery) {
 		System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
 
-		String ipAddress = request.getHeader("X-FORWARDED-FOR");  
-		   if (ipAddress == null) {  
-		   ipAddress = request.getRemoteAddr();  
-		   }
-		System.out.println(ipAddress);
+		String ipAddress = request.getHeader("X-FORWARDED-FOR");
+		if (ipAddress == null) {
+			ipAddress = request.getRemoteAddr();
+		}
+
 		DisplayDocument requestDocument = null;
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
@@ -148,7 +149,6 @@ public class DocumentService {
 					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
 							ar.getNumberOfCandidatesToReRank());
 					documentset.setRequestedDocument(requestDocument);
-					documentset.setIpAddress(ipAddress);
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
@@ -156,16 +156,17 @@ public class DocumentService {
 							"algorithmLoggingInfo: " + relatedDocumentGenerator.algorithmLoggingInfo.toString());
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
-					if(requestByTitle){
-						statusReportSet.addStatusReport(new StatusReport(404, "No related documents corresponding to input query:"
-								+ requestDocument.getCleanTitle()));
-						validAlgorithmFlag=true;
+					if (requestByTitle) {
+						statusReportSet.addStatusReport(
+								new StatusReport(404, "No related documents corresponding to input query:"
+										+ requestDocument.getCleanTitle()));
+						validAlgorithmFlag = true;
 					}
 				}
 			}
 
 			if (validAlgorithmFlag) {
-				if (numberOfAttempts > 0){
+				if (numberOfAttempts > 0) {
 					System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
 							numberOfAttempts);
 					documentset = new DocumentSet();
@@ -179,21 +180,22 @@ public class DocumentService {
 			}
 			System.out.println("Do the documentset stuff");
 			Long timeAfterExecution = System.currentTimeMillis();
-			
+
+			documentset.setIpAddress(ipAddress);
 			documentset.setStartTime(requestRecieved);
 			documentset.setAlgorithmDetails(relatedDocumentGenerator.getAlgorithmLoggingInfo());
 
-			if(documentset.getSize()>0){
+			if (documentset.getSize() > 0) {
 				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
 				documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
 				documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
-				
+
 				documentset = ar.selectRandomRanking(documentset);
 				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
 				documentset.setRankDelivered();
 				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
 			}
-			
+
 			System.out.println("Did the documentset stuff");
 
 		} catch (NoEntryException e1) {
@@ -211,18 +213,18 @@ public class DocumentService {
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
-		else{
+		else {
 			boolean fourOFourError = false;
-			for(StatusReport statusReport: statusReportSet.getStatusReportList()){
-				if(statusReport.getStatusCode()==404){
+			for (StatusReport statusReport : statusReportSet.getStatusReportList()) {
+				if (statusReport.getStatusCode() == 404) {
 					fourOFourError = true;
 					break;
 				}
 			}
-			if(fourOFourError){
+			if (fourOFourError) {
 				statusReportSet = new StatusReportSet();
-				statusReportSet.addStatusReport(new StatusReport(404, "Documents related to query by title("
-						+ requestDocument.getTitle() +" )were not found"));
+				statusReportSet.addStatusReport(new StatusReport(404,
+						"Documents related to query by title(" + requestDocument.getTitle() + " )were not found"));
 			}
 		}
 		// add both the status message and the related document to the xml
@@ -234,11 +236,11 @@ public class DocumentService {
 		try {
 			// log all the statistic about this execution
 			String referenceId = "";
-			if(requestByTitle){
+			if (requestByTitle) {
 				System.out.println(requestDocument.getCleanTitle());
 				String titleStringId = con.getTitleStringId(requestDocument);
 				referenceId = titleStringId;
-			}else{
+			} else {
 				referenceId = requestDocument.getDocumentId();
 			}
 			documentset = con.logRecommendationDeliveryNew(referenceId, rootElement, requestByTitle);
@@ -254,7 +256,6 @@ public class DocumentService {
 			e.printStackTrace();
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
-		
 
 		try {
 			System.out.println("try to close the db con");
@@ -263,8 +264,7 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
-		
-		
+
 		try {
 			if (statusReportSet.getSize() > 1)
 				statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
@@ -276,19 +276,19 @@ public class DocumentService {
 
 		if (!constants.getDebugModeOn()) {
 			DisplayDocument current = null;
-			if(rootElement.getDocumentSet().getSize()>0){
+			if (rootElement.getDocumentSet().getSize() > 0) {
 				rootElement.getDocumentSet().setDebugDetailsPerSet(null);
-				
+
 				for (int i = 0; i < documentset.getSize(); i++) {
 					current = rootElement.getDocumentSet().getDisplayDocument(i);
 					current.setDebugDetails(null);
 				}
 			}
-			for(StatusReport report : rootElement.getStatusReportSet().getStatusReportList()){
+			for (StatusReport report : rootElement.getStatusReportSet().getStatusReportList()) {
 				report.setDebugMessage(null);
 			}
 		}
-		if(documentset.getSize()==0){
+		if (documentset.getSize() == 0) {
 			rootElement.setDocumentSet(null);
 		}
 		return rootElement;
