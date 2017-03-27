@@ -1743,8 +1743,6 @@ public class DBConnection {
 	 * return reRankingBibId; }
 	 */
 
-
-
 	/**
 	 * 
 	 * logs the event in the logging table
@@ -1763,8 +1761,7 @@ public class DBConnection {
 	 * @return int, id of the created event
 	 * @throws Exception
 	 */
-	private int logEvent(String referenceId, RootElement rootElement, String requestType)
-			throws Exception {
+	private int logEvent(String referenceId, RootElement rootElement, String requestType) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
@@ -1772,7 +1769,7 @@ public class DBConnection {
 		String debugMessage = "";
 		Boolean noEntryExceptionRecorded = false;
 		Long requestTime = rootElement.getDocumentSet().getStartTime();
-		
+
 		String referenceColumnName = "";
 		switch (requestType) {
 		case "related_documents": {
@@ -3066,6 +3063,7 @@ public class DBConnection {
 
 		// get the hashmap which has the details of the recommendation algorithm
 		AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
+		System.out.println(recommenderDetails.getQueryParser());
 
 		String recommendationClass = recommenderDetails.getRecommendationClass();
 		Boolean fallback = recommenderDetails.isFallback();
@@ -3406,18 +3404,26 @@ public class DBConnection {
 		int cbfId = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
+		boolean inputIsDocument = !recommenderDetails.getName().contains("Query");
+		String queryType = "";
+		if (!inputIsDocument)
+			queryType = recommenderDetails.getQueryParser();
 		boolean keyphrases = !recommenderDetails.getCbfFeatureType().equals("terms");
 		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE "
+				+ constants.getInputType() + " = '" + (inputIsDocument ? "document" : "query") + "' AND "
 				+ constants.getCbfFeatureType() + " = '" + (keyphrases ? "keyphrases" : "terms") + "'";
 		if (keyphrases) {
-			System.out.println(recommenderDetails);
 			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getCbfFeatureType() + "'";
+		}
+		if (!inputIsDocument) {
+			query += " AND " + constants.getSearchMode() + " = '" + queryType + "'";
 		}
 		query += " AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.getCbfFeatureCount() + "' AND "
 				+ constants.getCbfFields() + "= '" + recommenderDetails.getCbfTextFields() + "'";
 
 		try {
 			stmt = con.createStatement();
+			System.out.println(query);
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				cbfId = rs.getInt(constants.getCbfId());
@@ -3427,19 +3433,21 @@ public class DBConnection {
 					stmt.close();
 				if (rs != null)
 					rs.close();
-				String columns = constants.getCbfFeatureType();
-				String values = "'" + (keyphrases ? "keyphrases" : "terms") + "'";
+				String columns = constants.getCbfFeatureType() + "," + constants.getInputType();
+				String values = "'" + (keyphrases ? "keyphrases" : "terms") + "' , '"
+						+ (inputIsDocument ? "document" : "query") + "' ";
 				if (keyphrases) {
-					columns += ", " + constants.getCbfNgramType() + ", " + constants.getCbfFeatureCount() + ", "
-							+ constants.getCbfFields();
-					values += ", '" + recommenderDetails.getCbfFeatureType() + "', '"
-							+ recommenderDetails.getCbfFeatureCount() + "', '" + recommenderDetails.getCbfTextFields()
-							+ "'";
-				} else {
-					columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
-					values += ", '" + recommenderDetails.getCbfFeatureCount() + "', '"
-							+ recommenderDetails.getCbfTextFields() + "'";
+					columns += ", " + constants.getCbfNgramType();
+					values += ", '" + recommenderDetails.getCbfFeatureType();
 				}
+				if (!inputIsDocument) {
+					columns += ", " + constants.getSearchMode();
+					values += ", '" + queryType + "'";
+				}
+				columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
+				values += ", '" + recommenderDetails.getCbfFeatureCount() + "', '"
+						+ recommenderDetails.getCbfTextFields() + "'";
+
 				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
 
 				stmt = con.createStatement();

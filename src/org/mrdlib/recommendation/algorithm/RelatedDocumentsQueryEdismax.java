@@ -6,7 +6,7 @@ import org.mrdlib.database.DBConnection;
 import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
 import org.mrdlib.recommendation.framework.solrConnection;
 
-public class RelatedDocumentsQuery extends RelatedDocuments {
+public class RelatedDocumentsQueryEdismax extends RelatedDocuments {
 	DBConnection con = null;
 	solrConnection scon = null;
 
@@ -19,7 +19,7 @@ public class RelatedDocumentsQuery extends RelatedDocuments {
 	 * @throws Exception
 	 *             if solrConnection cannot be instantiated.
 	 */
-	public RelatedDocumentsQuery(DBConnection con) throws Exception {
+	public RelatedDocumentsQueryEdismax(DBConnection con) throws Exception {
 
 		System.out.println("yeah I'm using the RelatedDocumentsQuery");
 		try {
@@ -29,8 +29,8 @@ public class RelatedDocumentsQuery extends RelatedDocuments {
 			// Store the details of the recommender approach for future use in
 			// the algorithmLoggingInfo hashmap
 
-			algorithmLoggingInfo = new AlgorithmDetails("RelatedDocumentsFromSolrByQuery", "cbf", false,
-					"title_abstract_keywords_published_in", "terms", "0","standardQP");
+			algorithmLoggingInfo = new AlgorithmDetails("RelatedDocumentsFromSolrByQueryEdismax", "cbf", false,
+					"title_abstract_keywords_published_in", "terms", "0", "edismaxQP");
 
 		} catch (Exception e) {
 			e.printStackTrace();

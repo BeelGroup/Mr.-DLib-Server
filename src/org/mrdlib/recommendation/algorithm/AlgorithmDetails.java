@@ -12,7 +12,8 @@ public class AlgorithmDetails {
 	private String cbfTextFields;
 	private String cbfFeatureType;
 	private String cbfFeatureCount;
-
+	private String queryParser;
+	
 	private boolean humanCuratedRecommendations = false;
 	private String category;
 	
@@ -47,6 +48,20 @@ public class AlgorithmDetails {
 		this.cbfTextFields = cbfTextFields;
 		this.cbfFeatureType = cbfFeatureType;
 		this.cbfFeatureCount = cbfFeatureCount;
+		this.setContentBased(true);
+	}
+	
+	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String cbfTextFields,
+			String cbfFeatureType, String cbfFeatureCount, String queryParser) {
+		super();
+		this.name = name;
+		this.recommendationClass = recommendationClass;
+		this.languageRestriction = languageRestriction;
+		this.cbfTextFields = cbfTextFields;
+		this.cbfFeatureType = cbfFeatureType;
+		this.cbfFeatureCount = cbfFeatureCount;
+		this.setQueryParser(queryParser);
+		System.out.println(this.getQueryParser());
 		this.setContentBased(true);
 	}
 
@@ -215,9 +230,14 @@ public class AlgorithmDetails {
 		this.recommendationAlgorithmId = recommendationAlgorithmId;
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	public String getQueryParser() {
+		return queryParser;
+	}
+
+	public void setQueryParser(String queryParser) {
+		this.queryParser = queryParser;
+	}
+
 	@Override
 	public String toString() {
 		return "AlgorithmDetails [" + (name != null ? "name=" + name + ", " : "")
@@ -226,8 +246,11 @@ public class AlgorithmDetails {
 				+ (cbfTextFields != null ? "cbfTextFields=" + cbfTextFields + ", " : "")
 				+ (cbfFeatureType != null ? "cbfFeatureType=" + cbfFeatureType + ", " : "")
 				+ (cbfFeatureCount != null ? "cbfFeatureCount=" + cbfFeatureCount + ", " : "")
-				+ "humanCuratedRecommendations=" + humanCuratedRecommendations + ", "
-				+ (category != null ? "category=" + category + ", " : "") + "fallback=" + fallback
-				+ ", recommendationAlgorithmId=" + recommendationAlgorithmId + "]";
+				+ (queryParser != null ? "queryParser=" + queryParser + ", " : "") + "humanCuratedRecommendations="
+				+ humanCuratedRecommendations + ", " + (category != null ? "category=" + category + ", " : "")
+				+ "fallback=" + fallback + ", recommendationAlgorithmId=" + recommendationAlgorithmId + "]";
 	}
+
+	
+	
 }

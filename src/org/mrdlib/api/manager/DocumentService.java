@@ -95,30 +95,36 @@ public class DocumentService {
 			 */
 			try {
 				// get the requested document from the database by mdl ID
-				System.out.println("try int");
+				if (constants.getDebugModeOn()) System.out.println("try int");
 				Integer.parseInt(inputQuery);
 				requestDocument = con.getDocumentBy(constants.getDocumentId(), inputQuery);
 			} catch (NumberFormatException e) {
-				System.out.println("int failed");
+				if (constants.getDebugModeOn()) System.out.println("int failed");
 				try {
-					System.out.println("try origonal id");
+					if (constants.getDebugModeOn())
+						System.out.println("try origonal id");
 					// get the requested document from the database by its
 					// Original ID
 					requestDocument = con.getDocumentBy(constants.getIdOriginal(), inputQuery);
 				} catch (NoEntryException e1) {
-					System.out.println("original id failed");
+					if (constants.getDebugModeOn())
+						System.out.println("original id failed");
 					// The encoding does not work for / so we convert them
 					// by our own on JabRef side
 					inputQuery = inputQuery.replaceAll("convbckslsh", "/");
-					System.out.println("searching the database for a document with title");
+					if (constants.getDebugModeOn())
+						System.out.println("searching the database for a document with title");
 					try {
 						// get the requested document from the database by its
 						// title
 						requestDocument = con.getDocumentBy(constants.getTitle(), inputQuery);
-						System.out.println("The Document is in our Database!");
+						if (constants.getDebugModeOn())
+							System.out.println("The Document is in our Database!");
 					} catch (Exception e2) {
-						System.out.println("it seems there is no document in our database with this title");
-						System.out.println("lets now try if lucene find some documents for us.");
+						if (constants.getDebugModeOn())
+							System.out.println("it seems there is no document in our database with this title");
+						if (constants.getDebugModeOn())
+							System.out.println("lets now try if lucene find some documents for us.");
 						requestByTitle = true;
 						requestDocument = new DisplayDocument();
 						requestDocument.setTitle(inputQuery);
@@ -140,11 +146,14 @@ public class DocumentService {
 			// left
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
-					System.out.println("trying to get the algorithm from the factory");
+					if (constants.getDebugModeOn())
+						System.out.println("trying to get the algorithm from the factory");
 					relatedDocumentGenerator = RecommenderFactory.getRandomRDG(con, requestDocument, requestByTitle);
 					timeToPickAlgorithm = System.currentTimeMillis();
 					timeToUserModel = timeToPickAlgorithm;
-					System.out.println("chosen algorithm: " + relatedDocumentGenerator.algorithmLoggingInfo.getName());
+					if (constants.getDebugModeOn())
+						System.out.println(
+								"chosen algorithm: " + relatedDocumentGenerator.algorithmLoggingInfo.getName());
 
 					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
 							ar.getNumberOfCandidatesToReRank());
@@ -152,8 +161,9 @@ public class DocumentService {
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
-					System.out.println(
-							"algorithmLoggingInfo: " + relatedDocumentGenerator.algorithmLoggingInfo.toString());
+					if (constants.getDebugModeOn())
+						System.out.println(
+								"algorithmLoggingInfo: " + relatedDocumentGenerator.algorithmLoggingInfo.toString());
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
 					if (requestByTitle) {
@@ -167,18 +177,21 @@ public class DocumentService {
 
 			if (validAlgorithmFlag) {
 				if (numberOfAttempts > 0) {
-					System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
-							numberOfAttempts);
+					if (constants.getDebugModeOn())
+						System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
+								numberOfAttempts);
 					documentset = new DocumentSet();
 					documentset.setRequestedDocument(requestDocument);
 				}
 			} else {
-				System.out.println("Using fallback recommender");
+				if (constants.getDebugModeOn())
+					System.out.println("Using fallback recommender");
 				relatedDocumentGenerator = RecommenderFactory.getFallback(con);
 				documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
 						ar.getNumberOfCandidatesToReRank());
 			}
-			System.out.println("Do the documentset stuff");
+			if (constants.getDebugModeOn())
+				System.out.println("Do the documentset stuff");
 			Long timeAfterExecution = System.currentTimeMillis();
 
 			documentset.setIpAddress(ipAddress);
@@ -230,14 +243,16 @@ public class DocumentService {
 		// add both the status message and the related document to the xml
 		rootElement.setDocumentSet(documentset);
 		rootElement.setStatusReportSet(statusReportSet);
-		System.out.println("added stuff to root element");
-		System.out.println("requestByTitle is: " + requestByTitle);
-		System.out.println("Try to do the logging stuff");
+		if (constants.getDebugModeOn()) {
+			System.out.println("added stuff to root element");
+			System.out.println("requestByTitle is: " + requestByTitle);
+			System.out.println("Try to do the logging stuff");
+		}
+
 		try {
 			// log all the statistic about this execution
 			String referenceId = "";
 			if (requestByTitle) {
-				System.out.println(requestDocument.getCleanTitle());
 				String titleStringId = con.getTitleStringId(requestDocument);
 				referenceId = titleStringId;
 			} else {

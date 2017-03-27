@@ -75,7 +75,7 @@ public class solrConnection {
 		String filterquery = "";
 		if (document.getCollectionShortName().equals(constants.getGesis()))
 			filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
-	 
+
 		query.addFilterQuery(filterquery);
 
 		// get related documents for the given document
@@ -124,9 +124,11 @@ public class solrConnection {
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
 						if (constants.getEnvironment().equals("api"))
-							fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+							fallback_url = constants.getGesisCollectionLink()
+									.concat(relDocument.getOriginalDocumentId());
 						else
-							fallback_url = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+							fallback_url = constants.getGesisBetaCollectionLink()
+									.concat(relDocument.getOriginalDocumentId());
 					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
@@ -215,7 +217,7 @@ public class solrConnection {
 		String filterQuery = "";
 		// get only documents which are in the same collection
 		if (document.getCollectionShortName().equals(constants.getGesis()))
-			filterQuery= constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
+			filterQuery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
 		query.addFilterQuery(filterQuery);
 
 		// add second filter query if language needs to be restricted
@@ -260,13 +262,14 @@ public class solrConnection {
 					// set gesis specific link
 					if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
 						if (constants.getEnvironment().equals("api"))
-							fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+							fallback_url = constants.getGesisCollectionLink()
+									.concat(relDocument.getOriginalDocumentId());
 						else
-							fallback_url = constants.getGesisBetaCollectionLink().concat(relDocument.getOriginalDocumentId());
+							fallback_url = constants.getGesisBetaCollectionLink()
+									.concat(relDocument.getOriginalDocumentId());
 					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
-
 
 					// url = "http://api.mr-dlib.org/trial/recommendations/" +
 					// relDocument.getRecommendationId() +
@@ -288,48 +291,68 @@ public class solrConnection {
 
 	public DocumentSet getDocumentsFromSolrByQuery(DisplayDocument requestedDocument, int delimitedRows,
 			AlgorithmDetails logginginfo) throws Exception {
-		System.out.println("reached solr connection class and im in method getDocumentsFromSolrByQuery");
+
 		String title = requestedDocument.getCleanTitle();
 		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
 		DisplayDocument oneRelatedDocument = new DisplayDocument();
-		query.setRequestHandler("/select");
+		String queryParser = logginginfo.getQueryParser();
+		boolean standard;
+		String queryHandler;
+		if (queryParser.equals("standardQP")) {
+			standard = true;
+			queryHandler = "/select";
+		} else {
+			standard = false;
+			queryHandler = "/search";
+		}
+		query.setRequestHandler(queryHandler);
 		String fallback_url = "";
 
-		// get related documents for the given document title
-		String[] splitedTitle = title.split("\\s+");
-		StringBuffer queryString = new StringBuffer();
-		for (int i = 0; i < splitedTitle.length; i++) {
-			queryString.append("title:" + splitedTitle[i] + " OR ");
-			queryString.append("abstract_en:" + splitedTitle[i] + " OR ");
-			queryString.append("abstract_de:" + splitedTitle[i] + " OR ");
-			queryString.append("keywords:" + splitedTitle[i]);
-			if (i < splitedTitle.length - 1) {
-				queryString.append(" OR ");
+		// get related documents for the given document title using the standard
+		// parser
+
+		if (standard) {
+			String[] splitedTitle = title.split("\\s+");
+			StringBuffer queryString = new StringBuffer();
+			for (int i = 0; i < splitedTitle.length; i++) {
+				queryString.append("title:" + splitedTitle[i] + " OR ");
+				queryString.append("abstract_en:" + splitedTitle[i] + " OR ");
+				queryString.append("abstract_de:" + splitedTitle[i] + " OR ");
+				queryString.append("keywords:" + splitedTitle[i]);
+				if (i < splitedTitle.length - 1) {
+					queryString.append(" OR ");
+				}
+
 			}
 
-		}
-		System.out.println("set query with= " + queryString.toString());
-		query.set("q", queryString.toString());
-		System.out.println("set query with title: " + queryString.toString());
+			System.out.println("set query with= " + queryString.toString());
+			query.set("q", queryString.toString());
+			System.out.println("set query with title: " + queryString.toString());
+		} else {
+			query.setQuery(title);
 
+		}
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
 		System.out.println("max rows are: " + delimitedRows);
-
-		// if rec_approach is Keyphrases: override default mlt.fl
-		if (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases")) {
-			System.out.println("if with RelatedDocumentsFromSolrWithKeyphrases");
-			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getCbfFeatureType(),
-					logginginfo.getCbfFeatureCount());
-			query.setParam("mlt.fl", similarityParams);
-			query.setParam("mlt.df", "2");
-		}
-
 		// set display params
 		query.setParam("fl", "score,id");
 
+		// // if rec_approach is Keyphrases: override default mlt.fl
+		// if
+		// (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases"))
+		// {
+		// System.out.println("if with RelatedDocumentsFromSolrWithKeyphrases");
+		// String similarityParams = getMltFL(logginginfo.getCbfTextFields(),
+		// logginginfo.getCbfFeatureType(),
+		// logginginfo.getCbfFeatureCount());
+		// query.setParam("mlt.fl", similarityParams);
+		// query.setParam("mlt.df", "2");
+		// }
+
+	
 		try {
 			System.out.println("try to get the response from solr! The query looks like: " + query);
 			response = solr.query(query);
@@ -364,10 +387,10 @@ public class solrConnection {
 					if (oneRelatedDocument.getCollectionShortName().equals(constants.getGesis()))
 						fallback_url = constants.getGesisCollectionLink()
 								.concat(oneRelatedDocument.getOriginalDocumentId());
-					else if(oneRelatedDocument.getCollectionShortName().contains(constants.getCore()))
+					else if (oneRelatedDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(oneRelatedDocument.getOriginalDocumentId().split("-")[1]);
-					else{
+					else {
 						String titleAsUrl = URLEncoder.encode(title, "UTF-8");
 						fallback_url = "https://scholar.google.com/scholar?q=" + titleAsUrl;
 						System.out.println("the fallback url is: " + fallback_url);
@@ -378,7 +401,8 @@ public class solrConnection {
 
 					// add it to the collection
 					relatedDocuments.addDocument(oneRelatedDocument);
-					//System.out.println("added the related document with title: " + oneRelatedDocument.getTitle());
+					// System.out.println("added the related document with
+					// title: " + oneRelatedDocument.getTitle());
 				}
 				System.out.printf("Time for adding docs to list\t");
 				System.out.println(System.currentTimeMillis() - timeNow);

@@ -90,13 +90,18 @@ public class RecommenderFactory {
 	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument,
 			Boolean requestByTitle) throws Exception {
 
+		Random random = new Random();
+
 		System.out.println("reached getRandomRDG");
 		if (requestByTitle) {
 			System.out.println("will now return a RelatedDocumentsQuery");
-			return new RelatedDocumentsQuery(con);
+			if (random.nextBoolean())
+				return new RelatedDocumentsQuery(con);
+			else
+				return new RelatedDocumentsQueryEdismax(con);
+
 		}
 		// Load probabilities from the config file
-		Random random = new Random();
 		Probabilities probs = new Probabilities();
 
 		// Start cumulative with prob(RandomDocumentRecommender), then keep

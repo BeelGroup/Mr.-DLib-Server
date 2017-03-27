@@ -204,7 +204,9 @@ public class Constants {
 	private String cbfFeatureCount;
 	private String cbfFields;
 	private String cbfNgramType;
-
+	private String inputType;
+	private String searchMode;
+	
 	// db table z_recommendation_algorithms__details_stereotype
 	private String stereotypeRecommendationDetailsId;
 	private String stereotypeCategoryInStereotypeDetails;
@@ -258,7 +260,6 @@ public class Constants {
 	private String mendeleyConfigPath;
 
 	private String probabilitiesConfigPath;
-
 
 	// load the config file
 	public Constants() {
@@ -455,6 +456,8 @@ public class Constants {
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
 			this.cbfFields = prop.getProperty("cbfFields");
 			this.cbfNgramType = prop.getProperty("cbfNgramType");
+			this.searchMode = prop.getProperty("searchMode");
+			this.inputType = prop.getProperty("inputType");
 
 			this.stereotypeRecommendationDetailsId = prop.getProperty("stereotypeRecommendationDetailsId");
 			this.stereotypeCategoryInStereotypeDetails = prop.getProperty("stereotypeCategoryInStereotypeDetails");
@@ -1270,5 +1273,13 @@ public class Constants {
 
 	public String getRelativeRelevanceScore() {
 		return relativeRelevanceScore;
+	}
+
+	public String getInputType() {
+		return inputType;
+	}
+
+	public String getSearchMode() {
+		return searchMode;
 	}
 }
