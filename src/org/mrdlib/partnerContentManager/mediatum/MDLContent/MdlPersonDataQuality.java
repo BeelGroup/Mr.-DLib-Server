@@ -1,6 +1,6 @@
 package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
-public enum PersonDataQuality {
+public enum MdlPersonDataQuality {
 
 	INVALID
 	

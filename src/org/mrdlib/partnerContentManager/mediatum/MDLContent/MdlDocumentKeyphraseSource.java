@@ -1,6 +1,6 @@
 package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
-public enum DocumentKeyphraseSource {
+public enum MdlDocumentKeyphraseSource {
 
 	TITLE_AND_ABSTRACT,
 	TITLE,

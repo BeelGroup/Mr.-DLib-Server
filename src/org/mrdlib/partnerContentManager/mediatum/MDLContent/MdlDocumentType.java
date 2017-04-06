@@ -1,6 +1,6 @@
 package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
-public enum DocumentType {
+public enum MdlDocumentType {
 
 	UNKNOWN,
 	JOURNAL_ARTICLE,
