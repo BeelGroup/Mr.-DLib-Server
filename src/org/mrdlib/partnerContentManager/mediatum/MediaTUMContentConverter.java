@@ -34,18 +34,42 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return null;
 	}
 	
-	private MdlDocument MapMediaTumContentToMdlDocumentTable() {		
-		long document_id = 0;
-		String id_original = "";
+	/**
+	 * Converts one OAI DC record to MDL's document table. Checks provided data for plausibility.
+	 * 
+	 * @param oaidcRecord
+	 * @return null if data is inplausible
+	 */
+	private MdlDocument MapMediaTumContentToMdlDocumentTable(OAIDCRecord oaidcRecord) {
+		// check data for plausibility
+		// title
+		if (oaidcRecord.getTitles().size() != 1) {
+			return null;
+		}
+		// publisher
+		if (oaidcRecord.getPublishers().size() != 1) {
+			return null;
+		}
+		// language
+		if (oaidcRecord.getLanguages().size() != 1) {
+			return null;
+		}
+		// year
+		if (oaidcRecord.getDates().size() != 1) {
+			return null;
+		}
+		
+		long document_id = 0;	// no mapping
+		String id_original = "";	// TODO: get all elements of oaidcRecord.getIdentifiers() as concatenated string
 		long collection_id = 0;
-		String title = "";
-		String title_clean = "";
-		String published_in = "";
-		String language = "";
-		int publication_year = 0;
-		MdlDocumentType type = MdlDocumentType.BOOK;
-		String keywords = "";
-		Date added = new Date();
+		String title = oaidcRecord.getTitles().get(0);
+		String title_clean = "";	// TODO: create method that extracts clean title from title
+		String published_in = oaidcRecord.getPublishers().get(0);
+		String language = oaidcRecord.getLanguages().get(0);
+		int publication_year = 0;	// TODO: create method for extracting the year from OAIDC date format
+		MdlDocumentType type = MdlDocumentType.BOOK;	// TODO: create method that maps mediaTUM's type to MDL type
+		String keywords = "";	// TODO: get concatenation of elements of oaidcRecord.getSubjects() - possibly create method
+		Date added = new Date();	// no mapping
 		
 		MdlDocument mdlDocument = new MdlDocument(document_id, id_original, collection_id, title, title_clean, published_in, language, publication_year, type, keywords, added);
 		
