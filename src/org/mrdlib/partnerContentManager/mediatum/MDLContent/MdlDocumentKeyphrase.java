@@ -2,10 +2,19 @@ package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
 public class MdlDocumentKeyphrase {
 
+	// "a reference to the document to which this count of keyphrase statistic belongs to"
 	long doc_id;
+	
+	// "The extracted keyphrase"
 	String term;
+	
+	// "The score of the extracted keyphrase as per the DISTILLER tool that we used to extract the keyphrases"
 	float score;
+	
+	// "How many continuous words are in this keyphrase? 1= unigram, 2 = trigram, 3 = trigram"
 	int gramity;
+	
+	// "The fields from the document using which these keyphrases were generated"
 	MdlDocumentKeyphraseSource source;
 	
 	public MdlDocumentKeyphrase() {

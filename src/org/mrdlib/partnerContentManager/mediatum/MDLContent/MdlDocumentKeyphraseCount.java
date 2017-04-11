@@ -2,9 +2,16 @@ package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
 public class MdlDocumentKeyphraseCount {
 
+	// "a reference to the document to which this count of keyphrase statistic belongs to"
 	long doc_id;
+	
+	// "How many continuous words are in this keyphrase? 1= unigram, 2 = trigram, 3 = trigram"
 	int gramity;
+	
+	// "The fields from the document using which these keyphrases were generated"
 	MdlDocumentKeyphraseSource source;
+	
+	// "the number of keyphrases of a particular type. ex: it could represent the number of unigram keyphrases generated from title only for the document 200"
 	long count;
 	
 	public MdlDocumentKeyphraseCount() {

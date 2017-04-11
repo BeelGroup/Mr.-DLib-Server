@@ -2,8 +2,13 @@ package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
 public class MdlDocumentTitleSearches {
 
+	// "This is a unique id for the row"
 	long document_title_search_id;
+	
+	// "This is the search string processed by Mr. DLib's API stripped of all special characters"
 	String clean_search_string;
+	
+	// "This is the search string processed by Mr. DLib's API"
 	String original_search_string;
 	
 	public MdlDocumentTitleSearches() {

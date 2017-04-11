@@ -2,8 +2,13 @@ package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
 public class MdlDocumentExternalId {
 
+	// "MDL document ID"
 	long document_id;
+	
+	// "Name of the external organization the id is from"
 	MdlDocumentExternalIdExternalName external_name;
+	
+	// "external id"
 	String external_id;
 	
 	public MdlDocumentExternalId() {

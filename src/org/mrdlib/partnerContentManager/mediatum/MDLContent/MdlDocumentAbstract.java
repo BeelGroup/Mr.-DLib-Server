@@ -4,10 +4,20 @@ import java.util.Date;
 
 public class MdlDocumentAbstract {
 
+	// auto-generated
 	long document_abstract_id;
+	
+	// "reference to the document this abstract refers to"
 	long document_id;
+	
+	// "language of the abstract"
 	String language;
-	String abstract_;	// _ introduced to prevent collision with Java keyword
+	
+	// "the actual text of the abstract"
+	// _ introduced to prevent collision with Java keyword
+	String abstract_;
+	
+	// "time when the abstract was added to our database"
 	Date added;
 	
 	public MdlDocumentAbstract() {

@@ -2,11 +2,22 @@ package org.mrdlib.partnerContentManager.mediatum.MDLContent;
 
 public class MdlDocumentTranslatedField {
 
+	// "This is a reference to the document in the document table which we have translated"
 	long document_id;
+	
+	// "This is the name of the field of the document that has been translated"
 	MdlDocumentTranslatedFieldFieldType field_type;
+	
+	// "This is the translation tool that was used for the translation"
 	MdlDocumentTranslatedFieldTranslationTool translation_tool;
+	
+	// "Original language before translation"
 	String source_language;
+	
+	// "Language of the text after translation"
 	String target_language;
+	
+	// "The translated text as a whole"
 	String text;
 	
 	public MdlDocumentTranslatedField() {

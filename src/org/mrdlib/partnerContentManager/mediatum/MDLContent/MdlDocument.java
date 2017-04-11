@@ -4,16 +4,37 @@ import java.util.Date;
 
 public class MdlDocument {
 
+	// "Our Mr. DLib ID of the document"
 	long document_id;
+	
+	// "Original ID of the document given by our partner"
 	String id_original;
+	
+	// "Reference to the collection to which this document belongs"
 	long collection_id;
+	
+	// "Title of the document"
 	String title;
+	
+	// "Clean title, i.e. only ASCII characters (no spaces, all lower case); if length of clean title is smaller than half the original title, use original title"
 	String title_clean;
+	
+	// "Name of the journal, conference, etc. where the article was published"
 	String published_in;
+	
+	// "ISO 639-1 language (2 letters)"
 	String language;
+	
+	// "Year in which the document was published"
 	int publication_year;
+	
+	// "The type of the document"
 	MdlDocumentType type;
+	
+	// "keywords and categories"
 	String keywords;
+	
+	// "date when the document was added to our database"
 	Date added;
 	
 	public MdlDocument() {

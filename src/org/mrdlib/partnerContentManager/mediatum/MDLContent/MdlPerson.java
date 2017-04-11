@@ -4,12 +4,25 @@ import java.util.Date;
 
 public class MdlPerson {
 
+	// auto-generated
 	long person_id;
+	
+	// "{search_person_txtP_mv}"
 	String name_first;
+	
+	// "{search_person_txtP_mv}"
 	String name_middle;
+	
+	// "{search_person_txtP_mv}"
 	String name_last;
+	
+	// "the entire string from {search_person_txtP_mv}, but only if the strong does not follow the "normal" logic"
 	String name_unstructured;
+	
+	// probably the date when added to Mr. DLib's database
 	Date added;
+	
+	// a measure of data quality
 	MdlPersonDataQuality data_quality;
 	
 	public MdlPerson() {

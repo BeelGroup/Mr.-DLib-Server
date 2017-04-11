@@ -4,10 +4,19 @@ import java.util.Date;
 
 public class MdlDocumentPerson {
 
+	// auto-generated
 	long document_person_id;
+	
+	// "a reference to the document in the document table"
 	long document_id;
+	
+	// "a reference to a person in the person table"
 	long person_id;
+	
+	// "the rank of the author in the document. for instance, first author = 1, third author = 3"
 	int rank;
+	
+	// "time at which this relation was inserted into the database"
 	Date added;
 	
 	public MdlDocumentPerson() {
