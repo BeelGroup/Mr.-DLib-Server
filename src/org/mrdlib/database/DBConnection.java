@@ -1103,6 +1103,44 @@ public class DBConnection {
 	}
 
 	/**
+	 * get the short name of a collection by its id
+	 * 
+	 * @param id
+	 *            of the collection
+	 * @return the short name of the collection
+	 * @throws SQLException
+	 */
+	public String getCollectionShortNameById(Long id) throws SQLException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String name = "";
+
+		// query to obtain the short name of the collection by its id
+		String query = "SELECT " + constants.getCollectionShortName() + " FROM " + constants.getCollections()
+				+ " WHERE " + constants.getCollectionID() + " = '" + id + "'";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			if (rs.next())
+				name = rs.getString(constants.getCollectionShortName());
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return name;
+	}
+
+	/**
 	 * insert an abstract to the abstract table
 	 * 
 	 * @param document,
@@ -1233,44 +1271,6 @@ public class DBConnection {
 	}
 
 	/**
-	 * get the short name of a collection by its id
-	 * 
-	 * @param id
-	 *            of the collection
-	 * @return the short name of the collection
-	 * @throws SQLException
-	 */
-	public String getCollectionShortNameById(Long id) throws SQLException {
-		Statement stmt = null;
-		ResultSet rs = null;
-		String name = "";
-
-		// query to obtain the short name of the collection by its id
-		String query = "SELECT " + constants.getCollectionShortName() + " FROM " + constants.getCollections()
-				+ " WHERE " + constants.getCollectionID() + " = '" + id + "'";
-
-		try {
-			stmt = con.createStatement();
-			rs = stmt.executeQuery(query);
-
-			if (rs.next())
-				name = rs.getString(constants.getCollectionShortName());
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				throw e;
-			}
-		}
-		return name;
-	}
-
-	/**
 	 * 
 	 * Get a complete displayable Document by any customized field (returns only
 	 * first retrieved document! Please use unique coloumns to obtain like
@@ -1287,19 +1287,21 @@ public class DBConnection {
 		DisplayDocument document = null;
 		String authorNames = "";
 		StringJoiner joiner = new StringJoiner(", ");
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String title = null;
 		String publishedIn = null;
 
 		try {
-			stmt = con.createStatement();
+			
 
 			// get all information of a document stored in a database by the
 			// value of a custom coloumn
-			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = '" + id + "'";
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = ?";
+			stmt = con.prepareStatement(query);
+			stmt.setString(1, id);
 
-			rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery();
 			// if there is a document
 			if (rs.next()) {
 
@@ -1330,10 +1332,12 @@ public class DBConnection {
 			} else
 				throw new NoEntryException(id);
 		} catch (SQLException e) {
+			System.out.println("SQL Exception");
 			throw e;
 		} catch (NoEntryException e) {
 			throw e;
 		} catch (Exception e) {
+			System.out.println("Regualar exception");
 			throw e;
 		} finally {
 			try {
@@ -1586,162 +1590,6 @@ public class DBConnection {
 		}
 	}
 
-	/**
-	 * 
-	 * logs the single recommendations
-	 * 
-	 * @param DisplayDocument
-	 *            document, the recommendation to log
-	 * @param documentSet,
-	 *            needed for metadata, ids, and further processing
-	 * @return int, id of the created recommendation log
-	 * @throws Exception
-	 */
-	/*
-	 * public int logRecommendations(DisplayDocument document, DocumentSet
-	 * documentset) throws Exception { PreparedStatement stmt = null; ResultSet
-	 * rs = null; int recommendationId = -1; int bibliometricReRankingId = -1;
-	 * int recommendationAlgorithmId = -1;
-	 * 
-	 * // logs the reranking data and get back id bibliometricReRankingId =
-	 * logReRankingBibliometrics(documentset, documentset.getBibliometricId());
-	 * 
-	 * // logs the algorithm data and get back id recommendationAlgorithmId =
-	 * logRecommendationAlgorithm(documentset);
-	 * 
-	 * try { // insertion query String query = "INSERT INTO " +
-	 * constants.getRecommendations() + " (" +
-	 * constants.getDocumentIdInRecommendations() + ", " +
-	 * constants.getRecommendationSetIdInRecommendations() // + // ", // " // +
-	 * // constants.getBibliometricReRankId() + ", " + constants.getRankReal() +
-	 * ", " + constants.getRankCurrent() + ", " + constants.getAlgorithmId() +
-	 * ", " + constants.getTextRelevanceScoreInRecommendations() + ") VALUES ("
-	 * + document.getDocumentId() + ", " + documentset.getRecommendationSetId()
-	 * + ", ? , '" + document.getSuggestedRank() + "', '" +
-	 * document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "', '"
-	 * + document.getRelevanceScoreFromAlgorithm() + "');";
-	 * 
-	 * stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-	 * 
-	 * // insert 0 if no bibliometric is present if (bibliometricReRankingId !=
-	 * -1) { stmt.setInt(1, bibliometricReRankingId); } else stmt.setNull(1,
-	 * java.sql.Types.INTEGER);
-	 * 
-	 * stmt.executeUpdate();
-	 * 
-	 * // get the autogenerated key back rs = stmt.getGeneratedKeys(); if
-	 * (rs.next()) recommendationId = rs.getInt(1);
-	 * 
-	 * } catch (Exception e) { throw e; } finally { try { if (stmt != null)
-	 * stmt.close(); if (rs != null) rs.close(); } catch (SQLException e) {
-	 * throw e; } } return recommendationId; }
-	 * 
-	 * /** Helper function to log the recommendationAlgorithmId in the
-	 * recommendations table Searches using the fields in the
-	 * algorithmLoggingInfo hashmap for an exact match for an algorithm in the
-	 * recommendationAlgorithms table in the database, and returns the id if
-	 * present.
-	 * 
-	 * If not, adds the entry into the table and returns the newly created row's
-	 * id
-	 * 
-	 * This method is for the case where all the documents in a document set all
-	 * have been chosen using the same recommendation algorithm
-	 * 
-	 * @param documentset DocumentSet which contains the recommendations that
-	 * have to be logged
-	 * 
-	 * @return the recommendationAlgorithm id
-	 * 
-	 * @throws Exception
-	 */
-	/*
-	 * private int logRecommendationAlgorithm(DocumentSet documentset) throws
-	 * Exception { Statement stmt = null; ResultSet rs = null;
-	 * 
-	 * // get the hashmap which has the details of the recommendation algorithm
-	 * HashMap<String, String> recommenderDetails =
-	 * documentset.getRDG().algorithmLoggingInfo;
-	 * 
-	 * int recommendationAlgorithmId = -1; try {
-	 * 
-	 * // search for an exact match of the algorithm in the table String query =
-	 * "SELECT " + constants.getRecommendationAlgorithmId() + " FROM " +
-	 * constants.getRecommendationAlgorithm() + " WHERE "; for (String key :
-	 * recommenderDetails.keySet()) { if (key != "name" && key != "typeOfGram")
-	 * { query += (key + "='" + recommenderDetails.get(key) + "' AND "); } }
-	 * query = query.replaceAll(" AND $", "");
-	 * 
-	 * stmt = con.createStatement(); rs = stmt.executeQuery(query);
-	 * 
-	 * // if found, get the id of the exact match if (rs.next()) {
-	 * recommendationAlgorithmId =
-	 * rs.getInt(constants.getRecommendationAlgorithmId()); } else { if (stmt !=
-	 * null) stmt.close(); if (rs != null) rs.close();
-	 * 
-	 * // Insert the row into the table query = "INSERT INTO " +
-	 * constants.getRecommendationAlgorithm() + "("; String columns = ""; String
-	 * values = ""; for (String key : recommenderDetails.keySet()) { if (key !=
-	 * "name") { columns += (key + ", "); values += ("'" +
-	 * recommenderDetails.get(key) + "', "); } } columns = columns.replaceAll(
-	 * ", $", " "); values = values.replaceAll(", $", " "); query += (columns +
-	 * ") VALUES(" + values + ")");
-	 * 
-	 * stmt = con.createStatement(); stmt.executeUpdate(query,
-	 * Statement.RETURN_GENERATED_KEYS); rs = stmt.getGeneratedKeys();
-	 * 
-	 * // Get back the generated keys if (rs.next()) recommendationAlgorithmId =
-	 * rs.getInt(1); }
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); throw e; } finally { try {
-	 * if (stmt != null) stmt.close(); if (rs != null) rs.close(); } catch
-	 * (SQLException e) { throw e; } }
-	 * 
-	 * // return the algorithm Id return recommendationAlgorithmId; }
-	 */
-
-	/**
-	 * 
-	 * logs the bibliometric data
-	 * 
-	 * @param DisplayDocument
-	 *            document, the recommendation where the bibliometric to log
-	 *            belongs to
-	 * 
-	 * @param int,
-	 *            the BibId
-	 * 
-	 * @return int, the created logging rerank bibliometric id
-	 * 
-	 * @throws Exception
-	 */
-	/*
-	 * public int logReRankingBibliometrics(DocumentSet documentset, int bibId)
-	 * throws Exception { PreparedStatement stmt = null; ResultSet rs = null;
-	 * int reRankingBibId = -1;
-	 * 
-	 * try { // insertion query String query = "INSERT INTO " +
-	 * constants.getReRankingBibliometrics() + " (" +
-	 * constants.getNumberFromSolr() + ", " + constants.getReRankingMethod() +
-	 * ", " + constants.getPercentageWithBibliometrics() + ", " +
-	 * constants.getBibIdInReRank() + ") VALUES ('" +
-	 * documentset.getNumberOfCandidatesToReRank() + "', '" +
-	 * documentset.getReRankingCombination() + "', '" +
-	 * documentset.getPercentageRankingValue() + "', ?);";
-	 * 
-	 * stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS); //
-	 * if no bibId is present, set null if (bibId > 0) stmt.setInt(1, bibId);
-	 * else stmt.setNull(1, java.sql.Types.INTEGER);
-	 * 
-	 * stmt.executeUpdate();
-	 * 
-	 * // get the autogenerated key back rs = stmt.getGeneratedKeys(); if
-	 * (rs.next()) reRankingBibId = rs.getInt(1);
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); throw e; } finally { try {
-	 * if (stmt != null) stmt.close(); } catch (SQLException e) { throw e; } }
-	 * return reRankingBibId; }
-	 */
 
 	/**
 	 * 
@@ -1768,7 +1616,8 @@ public class DBConnection {
 		String statusCode = "";
 		String debugMessage = "";
 		Boolean noEntryExceptionRecorded = false;
-		Long requestTime = rootElement.getDocumentSet().getStartTime();
+		DocumentSet documentSet = rootElement.getDocumentSet();
+		Long requestTime = documentSet.getStartTime();
 
 		String referenceColumnName = "";
 		switch (requestType) {
@@ -1813,10 +1662,11 @@ public class DBConnection {
 					+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
 					+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
 					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIpHash()
-					+ ", " + constants.getIp() + ") VALUES ('";
+					+ ", " + constants.getIp() + ", " + constants.getAppId() + ", " + constants.getPartnerId() + ", "
+					+ constants.getAppVersion() + ", " + constants.getAppLang() + ") VALUES ('";
 			query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
-					+ "', '" + statusCode + "',?, ?,?);";
+					+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
 			System.out.println(query);
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -1829,8 +1679,14 @@ public class DBConnection {
 				stmt.setString(1, referenceId);
 			}
 
-			String ipAddress = rootElement.getDocumentSet().getIpAddress();
+			String ipAddress = documentSet.getIpAddress();
+			
 			stmt.setString(4, ipAddress);
+			stmt.setString(5, documentSet.getAppId());
+			stmt.setString(6, documentSet.getPartnerId());
+			stmt.setString(7, documentSet.getAppVersion());
+			stmt.setString(8, documentSet.getAppLang());
+
 			try {
 				String saltedIp = "mld" + ipAddress;
 				MessageDigest m = MessageDigest.getInstance("MD5");
@@ -4059,5 +3915,67 @@ public class DBConnection {
 				rs.close();
 		}
 		return titleStringId;
+	}
+
+	public String getApplicationId(String appName) throws NoEntryException {
+		String query = "SELECT " + constants.getApplicationId() + " FROM " + constants.getApplication() + " WHERE "
+				+ constants.getApplicationPublicName() + "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, appName);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(constants.getApplicationId());
+			} else {
+				throw new NoEntryException(appName);
+			}
+
+		} catch (SQLException e) {
+			System.out.println("SQL Exception in getApplicationId");
+			System.out.println("Query: " + query);
+			System.out.println("Argument: " + appName);
+			throw new NoEntryException(appName, "Application");
+		}
+	}
+
+	public String getOrganizationId(String orgName) throws NoEntryException {
+		String query = "SELECT " + constants.getOrganizationId() + " FROM " + constants.getOrganization() + " WHERE "
+				+ constants.getOrganizationPublicName() + "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, orgName);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(constants.getOrganizationId());
+			} else {
+				throw new NoEntryException(orgName);
+			}
+
+		} catch (SQLException e) {
+			System.out.println("SQL Exception in getApplicationId");
+			System.out.println("Query: " + query);
+			System.out.println("Argument: " + orgName);
+			throw new NoEntryException(orgName, "Organization");
+		}
+	}
+
+	public Boolean verifyLinkAppOrg(String applicationId, String organizationId) {
+		String query = "SELECT " + constants.getOrganizationInApplication() + " FROM " + constants.getApplication()
+				+ " WHERE " + constants.getApplicationId() + "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, applicationId);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(constants.getOrganizationInApplication()).equals(organizationId);
+			} else {
+				throw new NoEntryException(applicationId, "Application");
+			}
+		} catch (SQLException e) {
+			System.out.println("SQL Exception in getApplicationId");
+			System.out.println("Query: " + query);
+			System.out.println("Argument: " + applicationId);
+			throw new NoEntryException(applicationId, "Application");
+		}
 	}
 }

@@ -46,6 +46,12 @@ public class DebugDetailsPerSet {
 
 	private String accessKeyHash;
 	private String originatingIp;
+	
+	private String partnerId;
+	private String appId;
+	private String appVersion;
+	private String appLang;
+	
 	// NEED timestamps: end?
 
 	public DebugDetailsPerSet() {
@@ -261,6 +267,42 @@ public class DebugDetailsPerSet {
 	@XmlTransient
 	public void setOriginatingIp(String originatingIp) {
 		this.originatingIp = originatingIp;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	@XmlTransient
+	public void setPartnerId(String partnerId) {
+		this.partnerId = partnerId;
+	}
+
+	public String getAppId() {
+		return appId;
+	}
+
+	@XmlTransient
+	public void setAppId(String appId) {
+		this.appId = appId;
+	}
+
+	public String getAppVersion() {
+		return appVersion;
+	}
+
+	@XmlTransient
+	public void setAppVersion(String appVersion) {
+		this.appVersion = appVersion;
+	}
+
+	public String getAppLang() {
+		return appLang;
+	}
+
+	@XmlTransient
+	public void setAppLang(String appLang) {
+		this.appLang = appLang;
 	}
 
 }

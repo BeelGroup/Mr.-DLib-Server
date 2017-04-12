@@ -5,6 +5,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -70,8 +71,11 @@ public class DocumentService {
 	 * @return a document set of related documents
 	 */
 	public RootElement getRelatedDocumentSet(@Context HttpServletRequest request,
-			@PathParam("documentId") String inputQuery) {
-		System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
+			@PathParam("documentId") String inputQuery, @QueryParam("partner_id") String partnerName,
+			@QueryParam("app_id") String appName, @QueryParam("app_version") String appVersion,
+			@QueryParam("app_lang") String appLang) {
+		if (constants.getDebugModeOn())
+			System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
 
 		String ipAddress = request.getHeader("X-FORWARDED-FOR");
 		if (ipAddress == null) {
@@ -83,9 +87,36 @@ public class DocumentService {
 		Long timeToPickAlgorithm = null;
 		Long timeToUserModel = null;
 		Boolean requestByTitle = false;
-		// could lead to inconsistency. Identifyer would be better
+		// could lead to inconsistency. Identifier would be better
+		String applicationId = "";
+		String partnerId = "";
 		try {
+			/*
+			 * Do some checks based on the Query parameters. Add 401 status code
+			 * if anything is amiss Example: 401 if application_id is wrong or
+			 * if organization_id (partner_id) is wrong or if link b/w app id
+			 * and organization_id is incorrect
+			 * 
+			 */
+			if (partnerName != null && appName != null) {
+				try {
 
+					applicationId = con.getApplicationId(appName);
+					partnerId = con.getOrganizationId(partnerName);
+
+					Boolean appVerified = con.verifyLinkAppOrg(applicationId, partnerId);
+					if (!appVerified)
+						statusReportSet.addStatusReport(new StatusReport(401,
+								"Application_id " + appName + " is not linked with organization_id: " + partnerName));
+				} catch (NoEntryException e) {
+					statusReportSet.addStatusReport(new StatusReport(401,
+							"Authenticity check is invalid. There is no link between app_id and org_id that has been provided in the query URL",
+							"Application_id: " + appName + " organization_id: " + partnerName));
+				}
+			} else {
+				applicationId = null;
+				partnerId = null;
+			}
 			/*
 			 * First we have a look if it is an integer. if the conversion
 			 * fails, e.g. there are some letters in it, we go on and try to get
@@ -95,11 +126,13 @@ public class DocumentService {
 			 */
 			try {
 				// get the requested document from the database by mdl ID
-				if (constants.getDebugModeOn()) System.out.println("try int");
+				if (constants.getDebugModeOn())
+					System.out.println("try int");
 				Integer.parseInt(inputQuery);
 				requestDocument = con.getDocumentBy(constants.getDocumentId(), inputQuery);
 			} catch (NumberFormatException e) {
-				if (constants.getDebugModeOn()) System.out.println("int failed");
+				if (constants.getDebugModeOn())
+					System.out.println("int failed");
 				try {
 					if (constants.getDebugModeOn())
 						System.out.println("try origonal id");
@@ -187,8 +220,15 @@ public class DocumentService {
 				if (constants.getDebugModeOn())
 					System.out.println("Using fallback recommender");
 				relatedDocumentGenerator = RecommenderFactory.getFallback(con);
-				documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
-						ar.getNumberOfCandidatesToReRank());
+				try {
+					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
+							ar.getNumberOfCandidatesToReRank());
+				} catch (NoRelatedDocumentsException e) {
+					if (constants.getDebugModeOn())
+						System.out.println("No related documents in fallback either");
+					documentset = new DocumentSet();
+					documentset.setRequestedDocument(requestDocument);
+				}
 			}
 			if (constants.getDebugModeOn())
 				System.out.println("Do the documentset stuff");
@@ -197,6 +237,15 @@ public class DocumentService {
 			documentset.setIpAddress(ipAddress);
 			documentset.setStartTime(requestRecieved);
 			documentset.setAlgorithmDetails(relatedDocumentGenerator.getAlgorithmLoggingInfo());
+
+			if (applicationId != null)
+				documentset.setAppId(applicationId);
+			if (partnerId != null)
+				documentset.setPartnerId(partnerId);
+			if (appVersion != null)
+				documentset.setAppVersion(appVersion);
+			if (appVersion != null)
+				documentset.setAppLang(appLang.substring(0, 2));
 
 			if (documentset.getSize() > 0) {
 				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
@@ -207,9 +256,11 @@ public class DocumentService {
 				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
 				documentset.setRankDelivered();
 				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
-			}
 
-			System.out.println("Did the documentset stuff");
+			} else
+				throw new NoRelatedDocumentsException(documentset.getRequestedDocument().getOriginalDocumentId(),
+						documentset.getRequestedDocument().getDocumentId());
+
 
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
@@ -222,6 +273,7 @@ public class DocumentService {
 			// if something else happened there
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+			e.printStackTrace();
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
@@ -240,6 +292,8 @@ public class DocumentService {
 						"Documents related to query by title(" + requestDocument.getTitle() + " )were not found"));
 			}
 		}
+		System.out.println("Did the documentset stuff");
+
 		// add both the status message and the related document to the xml
 		rootElement.setDocumentSet(documentset);
 		rootElement.setStatusReportSet(statusReportSet);
@@ -284,9 +338,9 @@ public class DocumentService {
 			if (statusReportSet.getSize() > 1)
 				statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
 		} catch (NullPointerException e) {
-			throw new NullPointerException("It seems we don't have access to the database or solr index."
-					+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
-			// e.printStackTrace();
+			//throw new NullPointerException("It seems we don't have access to the database or solr index."
+			//		+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
+			 e.printStackTrace();
 		}
 
 		if (!constants.getDebugModeOn()) {
@@ -309,10 +363,10 @@ public class DocumentService {
 		return rootElement;
 	}
 
-	@GET
+/*	@GET
 	@Produces("text/plain")
 	public String getOriginalDoc() {
 		return "Hello World ";
-	}
+	}*/
 
 }

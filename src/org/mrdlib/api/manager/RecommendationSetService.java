@@ -2,6 +2,7 @@ package org.mrdlib.api.manager;
 
 import java.sql.SQLException;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -65,7 +66,8 @@ public class RecommendationSetService {
 	 */
 	@POST
 	@Path("{recommendationSetId:[0-9]+}/confirmation_of_receipt")
-	public Response postAcknowledgeRecommendationReceipt(@PathParam("recommendationSetId") String recommendationSetId,
+	@Consumes("text/plain")
+	public Response dopostAcknowledgeRecommendationReceipt(@PathParam("recommendationSetId") String recommendationSetId,
 			@QueryParam("access_key") String accessKey) throws Exception {
 		Boolean accessKeyCheck = false;
 		if (!accessKey.matches("[0-9a-z]+"))
@@ -102,7 +104,13 @@ public class RecommendationSetService {
 	@POST
 	@Path("{recommendationSetId:[0-9]+}/spoof")
 	@Produces("text/plain")
-	public String foo(){
+	public String doFoo(){
 		return "Gotcha fam";
+	}
+	
+	@POST
+	@Produces("text/plain")
+	public String doOriginalDoc() {
+		return "Hello World ";
 	}
 }

@@ -714,4 +714,41 @@ public class DocumentSet {
 	public String getIpAddress(){
 		return this.debugDetailsPerSet.getOriginatingIp();
 	}
+	
+	public String getPartnerId() {
+		return this.debugDetailsPerSet.getPartnerId();
+	}
+
+	@XmlTransient
+	public void setPartnerId(String partnerId) {
+		this.debugDetailsPerSet.setPartnerId(partnerId);
+	}
+
+	public String getAppId() {
+		return this.debugDetailsPerSet.getAppId();
+	}
+
+	@XmlTransient
+	public void setAppId(String appId) {
+		this.debugDetailsPerSet.setAppId(appId);
+	}
+
+	public String getAppVersion() {
+		return this.debugDetailsPerSet.getAppVersion();
+	}
+
+	@XmlTransient
+	public void setAppVersion(String appVersion) {
+		this.debugDetailsPerSet.setAppVersion(appVersion);
+	}
+
+	public String getAppLang() {
+		return this.debugDetailsPerSet.getAppLang();
+	}
+
+	@XmlTransient
+	public void setAppLang(String appLang) {
+		this.debugDetailsPerSet.setAppLang(appLang);
+	}
+
 }

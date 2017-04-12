@@ -76,6 +76,7 @@ public class DisplayDocument implements Serializable {
 		this.authorNames = authorNames;
 		this.publishedIn = publishedIn;
 		this.year = year;
+		System.out.println(clickUrl);
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_plain"));
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_fully_formatted"));
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_and_css"));

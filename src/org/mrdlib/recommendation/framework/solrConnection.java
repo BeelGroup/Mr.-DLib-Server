@@ -397,7 +397,7 @@ public class solrConnection {
 					}
 
 					oneRelatedDocument.setFallbackUrl(fallback_url);
-					oneRelatedDocument.setClickUrl(fallback_url);
+					//oneRelatedDocument.setClickUrl(fallback_url);
 
 					// add it to the collection
 					relatedDocuments.addDocument(oneRelatedDocument);
