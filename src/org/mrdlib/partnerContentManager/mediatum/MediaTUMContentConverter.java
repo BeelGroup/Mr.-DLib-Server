@@ -1,5 +1,6 @@
 package org.mrdlib.partnerContentManager.mediatum;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,13 +35,49 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return null;
 	}
 	
+	private String stringArrayListToString(ArrayList<String> arrayList) {
+		StringBuilder builder = new StringBuilder();
+		
+		for(String currentString : arrayList) {
+		    builder.append(currentString);
+		}
+		
+		return builder.toString();
+	}
+	
+	/**
+	 * Cleans a title according to the description of a clean title in the MDL database.
+	 * This reads: "Clean title, i.e. only ASCII characters (no spaces, all lower case); if length of clean title is smaller than half the original title, use original title"
+	 * 
+	 * @param title Title to clean
+	 * @return cleaned title
+	 */
+	private String getCleanTitleFromTitle(String title) {
+		String result = title;
+		
+		// TODO: convert to ASCII
+		
+		// convert to lower case
+		result = result.toLowerCase();
+		
+		// remove spaces
+		result = result.replace(" ", "");
+		
+		// check whether clean title is shorter than half of the original title or not, return result accordingly
+		if (result.length() < (title.length() / 2)) {
+			return title;
+		} else {
+			return result;
+		}
+	}
+	
 	/**
 	 * Converts one OAI DC record to MDL's document table. Checks provided data for plausibility.
 	 * 
 	 * @param oaidcRecord
 	 * @return null if data is inplausible
 	 */
-	private MdlDocument MapMediaTumContentToMdlDocumentTable(OAIDCRecord oaidcRecord) {
+	private MdlDocument mapMediaTumContentToMdlDocumentTable(OAIDCRecord oaidcRecord) {
 		// check data for plausibility
 		// title
 		if (oaidcRecord.getTitles().size() != 1) {
@@ -59,11 +96,15 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 			return null;
 		}
 		
-		long document_id = 0;	// no mapping
-		String id_original = "";	// TODO: get all elements of oaidcRecord.getIdentifiers() as concatenated string
+		// no mapping
+		long document_id = 0;
+		
+		// get all elements of oaidcRecord.getIdentifiers() as concatenated string, prefix with "mt"
+		String id_original = "mt" + stringArrayListToString(oaidcRecord.getIdentifiers());
+		
 		long collection_id = 0;
 		String title = oaidcRecord.getTitles().get(0);
-		String title_clean = "";	// TODO: create method that extracts clean title from title
+		String title_clean = getCleanTitleFromTitle(title);
 		String published_in = oaidcRecord.getPublishers().get(0);
 		String language = oaidcRecord.getLanguages().get(0);
 		int publication_year = 0;	// TODO: create method for extracting the year from OAIDC date format
@@ -76,7 +117,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocument;
 	}
 	
-	private MdlDocumentAbstract MapMediaTumContentToMdlDocumentAbstractTable() {
+	private MdlDocumentAbstract mapMediaTumContentToMdlDocumentAbstractTable() {
 		long document_abstract_id = 0;
 		long document_id = 0;
 		String language = "";
@@ -88,7 +129,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocumentAbstract;
 	}
 
-	private MdlDocumentExternalId MapMediaTumContentToMdlDocumentExternalIdTable() {
+	private MdlDocumentExternalId mapMediaTumContentToMdlDocumentExternalIdTable() {
 		long document_id = 0;
 		MdlDocumentExternalIdExternalName external_name = MdlDocumentExternalIdExternalName.ARXIV;
 		String external_id = "";
@@ -98,7 +139,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocumentExternalId;
 	}
 	
-	private MdlDocumentKeyphrase MapMediaTumContentToMdlDocumentKeyphraseTable() {
+	private MdlDocumentKeyphrase mapMediaTumContentToMdlDocumentKeyphraseTable() {
 		long doc_id = 0;
 		String term = "";
 		float score = 0;
@@ -110,7 +151,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocumentKeyphrase;
 	}
 	
-	private MdlDocumentKeyphraseCount MapMediaTumContentToMdlDocumentKeyphraseCountTable() {
+	private MdlDocumentKeyphraseCount mapMediaTumContentToMdlDocumentKeyphraseCountTable() {
 		long doc_id = 0;
 		int gramity = 0;
 		MdlDocumentKeyphraseSource source = MdlDocumentKeyphraseSource.ABSTRACT;
@@ -121,7 +162,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocumentKeyphraseCount;
 	}
 	
-	private MdlDocumentPerson MapMediaTumContentToMdlDocumentPersonTable() {
+	private MdlDocumentPerson mapMediaTumContentToMdlDocumentPersonTable() {
 		long document_person_id = 0;
 		long document_id = 0;
 		long person_id = 0;
@@ -133,7 +174,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocumentPerson;
 	}
 	
-	private MdlDocumentTitleSearches MapMediaTumContentToMdlDocumentTitleSearchesTable() {
+	private MdlDocumentTitleSearches mapMediaTumContentToMdlDocumentTitleSearchesTable() {
 		long document_title_search_id = 0;
 		String clean_search_string = "";
 		String original_search_string = "";
@@ -143,7 +184,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocumentTitleSearches;
 	}
 	
-	private MdlDocumentTranslatedField MapMediaTumContentToDocumentTranslatedFieldTable() {
+	private MdlDocumentTranslatedField mapMediaTumContentToDocumentTranslatedFieldTable() {
 		long document_id = 0;
 		MdlDocumentTranslatedFieldFieldType field_type = MdlDocumentTranslatedFieldFieldType.ABSTRACT;
 		MdlDocumentTranslatedFieldTranslationTool translation_tool = MdlDocumentTranslatedFieldTranslationTool.JOSHUA;
@@ -156,7 +197,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		return mdlDocumentTranslatedField;
 	}
 	
-	private MdlPerson MapMediaTumContentToMdlPersonTable() {
+	private MdlPerson mapMediaTumContentToMdlPersonTable() {
 		long person_id = 0;
 		String name_first = "";
 		String name_middle = "";
