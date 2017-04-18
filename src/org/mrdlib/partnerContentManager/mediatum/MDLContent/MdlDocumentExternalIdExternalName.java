@@ -12,6 +12,7 @@ public enum MdlDocumentExternalIdExternalName {
 	SCOPUS,
 	ARXIV,
 	PUI,
-	PII
+	PII,
+	MEDIATUM
 	
 }
