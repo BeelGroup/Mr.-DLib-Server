@@ -2,6 +2,8 @@ package org.mrdlib.partnerContentManager.mediatum;
 
 import java.util.List;
 
+import org.mrdlib.database.DBConnection;
+
 /**
  * Implementation of ContentStorer for partner mediaTUM.
  * 
@@ -12,7 +14,25 @@ public class MediaTUMContentStorer implements IContentStorer<OAIDCRecordConverte
 
 	@Override
 	public void store(List<OAIDCRecordConverted> storableContent) {
-		// TODO Auto-generated method stub
+		// establish database connection
+		DBConnection connection = null;
+		
+		try {
+			// TODO: establish database connection to MDL_mediatum database
+			// connection = new DBConnection("jar");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if (connection == null) {
+			return;
+		}
+		
+		// iterate over data to store
+		for (OAIDCRecordConverted oaidcRecordConverted : storableContent) {
+			// TODO: store data
+			
+		}
 	}
 
 }
