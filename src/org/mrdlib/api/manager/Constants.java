@@ -51,6 +51,7 @@ public class Constants {
 	private String recommendationStatisticsReRankingBibliometric;
 	private String application;
 	private String organization;
+	private String partnerPrefixes;
 
 	// db table log rank stats
 	private String recommendationStatisticsRecommendationSetId;
@@ -190,6 +191,10 @@ public class Constants {
 	private String organizationName;
 	private String organizationPublicName;
 
+	// table partnerPrefixes
+	private String organizationIdInPartnerPrefixes;
+	private String prefix;
+	
 	// db table person
 	private String personID;
 	private String firstname;
@@ -278,12 +283,14 @@ public class Constants {
 
 	private String probabilitiesConfigPath;
 
+
+
 	// load the config file
 	public Constants() {
 
 		Properties prop = new Properties();
 		InputStream input = null;
-
+	
 		try {
 			input = getClass().getClassLoader().getResourceAsStream(tomcatConfigPath);
 			prop.load(input);
@@ -322,6 +329,7 @@ public class Constants {
 					.getProperty("recommendationStatisticsReRankingBibliometric");
 			this.application = prop.getProperty("application");
 			this.organization = prop.getProperty("organization");
+			this.partnerPrefixes = prop.getProperty("partnerPrefixes");
 
 			this.recommendationStatisticsRecommendationSetId = prop
 					.getProperty("recommendationStatisticsRecommendationSetId");
@@ -460,6 +468,9 @@ public class Constants {
 			this.collectionName = prop.getProperty("collectionName");
 			this.organizationInCollection = prop.getProperty("organizationInCollection");
 
+			this.prefix = prop.getProperty("prefix");
+			this.organizationIdInPartnerPrefixes = prop.getProperty("organizationIdInPartnerPrefixes");
+			
 			this.personID = prop.getProperty("personId");
 			this.firstname = prop.getProperty("firstname");
 			this.middlename = prop.getProperty("middlename");
@@ -1360,5 +1371,17 @@ public class Constants {
 
 	public String getAppLang() {
 		return appLang;
+	}
+
+	public String getPartnerPrefixes() {
+		return partnerPrefixes;
+	}
+
+	public String getOrganizationIdInPartnerPrefixes() {
+		return organizationIdInPartnerPrefixes;
+	}
+
+	public String getPrefix() {
+		return prefix;
 	}
 }

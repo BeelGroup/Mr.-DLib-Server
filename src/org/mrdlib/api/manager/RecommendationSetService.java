@@ -66,7 +66,7 @@ public class RecommendationSetService {
 	 */
 	@POST
 	@Path("{recommendationSetId:[0-9]+}/confirmation_of_receipt")
-	@Consumes("text/plain")
+	@Consumes("text/string")
 	public Response dopostAcknowledgeRecommendationReceipt(@PathParam("recommendationSetId") String recommendationSetId,
 			@QueryParam("access_key") String accessKey) throws Exception {
 		Boolean accessKeyCheck = false;

@@ -28,7 +28,7 @@ import org.mrdlib.recommendation.ranking.ApplyRanking;
  *         This class is called by Tomcat and the start of the webapp
  */
 // yxc get the name here
-@Path("documents/{documentId : [a-zA-Z0-9-_.,%:;!?+*()$]+}")
+@Path("documents/{documentId : [a-zA-Z0-9-_.,%:;!'&@?+*#()$]+}")
 // set Path and allow numbers, letters and -_., Save Path as document_id
 public class DocumentService {
 
@@ -86,6 +86,7 @@ public class DocumentService {
 		DocumentSet documentset = null;
 		Long timeToPickAlgorithm = null;
 		Long timeToUserModel = null;
+		Long timeAfterExecution = null;
 		Boolean requestByTitle = false;
 		// could lead to inconsistency. Identifier would be better
 		String applicationId = "";
@@ -157,16 +158,24 @@ public class DocumentService {
 						if (constants.getDebugModeOn())
 							System.out.println("it seems there is no document in our database with this title");
 						if (constants.getDebugModeOn())
-							System.out.println("lets now try if lucene find some documents for us.");
-						requestByTitle = true;
+							System.out.println(
+									"lets now try if this matches a pattern in our database. In that case, we have a 404 error");
+
+						Boolean prefixMatch = con.matchCollectionPattern(inputQuery, partnerId);
 						requestDocument = new DisplayDocument();
 						requestDocument.setTitle(inputQuery);
-						inputQuery = inputQuery.toLowerCase();
-						// lucene does not like these chars
 						inputQuery = inputQuery
 								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", " ");
 						requestDocument.setCleanTitle(inputQuery);
-						System.out.println("requestDocument: " + requestDocument.getTitle());
+						if (!prefixMatch) {
+							requestByTitle = true;
+							inputQuery = inputQuery.toLowerCase();
+							// lucene does not like these chars
+							System.out.println("requestDocument: " + requestDocument.getTitle());
+						} else {
+							documentset = new DocumentSet();
+							throw new NoEntryException(inputQuery);
+						}
 					}
 				}
 			}
@@ -232,11 +241,40 @@ public class DocumentService {
 			}
 			if (constants.getDebugModeOn())
 				System.out.println("Do the documentset stuff");
-			Long timeAfterExecution = System.currentTimeMillis();
+
+			timeAfterExecution = System.currentTimeMillis();
+			documentset.setAlgorithmDetails(relatedDocumentGenerator.getAlgorithmLoggingInfo());
+			documentset = ar.selectRandomRanking(documentset);
+			if (documentset.getSize() > 0) {
+				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
+				documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
+				documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
+
+				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
+				documentset.setRankDelivered();
+				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
+
+			} else
+				throw new NoRelatedDocumentsException(documentset.getRequestedDocument().getOriginalDocumentId(),
+						documentset.getRequestedDocument().getDocumentId());
+
+		} catch (NoEntryException e1) {
+			// if there is no such document in the database
+			statusReportSet.addStatusReport(e1.getStatusReport());
+
+			// if retry limit has been reached and no related documents still
+			// have been extracted
+		} catch (NoRelatedDocumentsException e) {
+			statusReportSet.addStatusReport(e.getStatusReport());
+
+			// if something else happened there
+		} catch (Exception e) {
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+			e.printStackTrace();
+		} finally {
 
 			documentset.setIpAddress(ipAddress);
 			documentset.setStartTime(requestRecieved);
-			documentset.setAlgorithmDetails(relatedDocumentGenerator.getAlgorithmLoggingInfo());
 
 			if (applicationId != null)
 				documentset.setAppId(applicationId);
@@ -247,33 +285,6 @@ public class DocumentService {
 			if (appVersion != null)
 				documentset.setAppLang(appLang.substring(0, 2));
 
-			if (documentset.getSize() > 0) {
-				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
-				documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
-				documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
-
-				documentset = ar.selectRandomRanking(documentset);
-				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
-				documentset.setRankDelivered();
-				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
-
-			} else
-				throw new NoRelatedDocumentsException(documentset.getRequestedDocument().getOriginalDocumentId(),
-						documentset.getRequestedDocument().getDocumentId());
-
-
-		} catch (NoEntryException e1) {
-			// if there is no such document in the database
-			statusReportSet.addStatusReport(e1.getStatusReport());
-
-			// if retry limit has been reached and no related documents still
-			// have been extracted
-		} catch (NoRelatedDocumentsException e) {
-			statusReportSet.addStatusReport(e.getStatusReport());
-			// if something else happened there
-		} catch (Exception e) {
-			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
-			e.printStackTrace();
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
@@ -288,8 +299,12 @@ public class DocumentService {
 			}
 			if (fourOFourError) {
 				statusReportSet = new StatusReportSet();
-				statusReportSet.addStatusReport(new StatusReport(404,
-						"Documents related to query by title(" + requestDocument.getTitle() + " )were not found"));
+				if (requestByTitle) {
+					statusReportSet.addStatusReport(new StatusReport(404,
+							"Documents related to query by title(" + requestDocument.getTitle() + " )were not found"));
+				} else{
+					statusReportSet.addStatusReport(new StatusReport(404,
+							"No such document with document id " + requestDocument.getTitle() + " exists in our database"));}
 			}
 		}
 		System.out.println("Did the documentset stuff");
@@ -338,9 +353,11 @@ public class DocumentService {
 			if (statusReportSet.getSize() > 1)
 				statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
 		} catch (NullPointerException e) {
-			//throw new NullPointerException("It seems we don't have access to the database or solr index."
-			//		+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
-			 e.printStackTrace();
+			// throw new NullPointerException("It seems we don't have access to
+			// the database or solr index."
+			// + " This is happening most likely because you didn't changed the
+			// config file properly, mysql or solr could also be down.");
+			e.printStackTrace();
 		}
 
 		if (!constants.getDebugModeOn()) {
@@ -363,10 +380,11 @@ public class DocumentService {
 		return rootElement;
 	}
 
-/*	@GET
-	@Produces("text/plain")
-	public String getOriginalDoc() {
-		return "Hello World ";
-	}*/
+	/*
+	 * @GET
+	 * 
+	 * @Produces("text/plain") public String getOriginalDoc() { return
+	 * "Hello World "; }
+	 */
 
 }
