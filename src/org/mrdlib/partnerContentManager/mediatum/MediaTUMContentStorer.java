@@ -3,6 +3,7 @@ package org.mrdlib.partnerContentManager.mediatum;
 import java.util.List;
 
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.partnerContentManager.IContentStorer;
 
 /**
  * Implementation of ContentStorer for partner mediaTUM.

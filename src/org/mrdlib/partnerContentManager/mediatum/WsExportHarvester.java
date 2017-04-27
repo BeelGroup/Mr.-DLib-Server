@@ -1,4 +1,4 @@
-package org.mrdlib.partnerContentManager.mediatum.downloader;
+package org.mrdlib.partnerContentManager.mediatum;
 
 import java.io.InputStream;
 import java.util.Date;

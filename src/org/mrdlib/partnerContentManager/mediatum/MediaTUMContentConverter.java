@@ -5,21 +5,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentExternalIdExternalName;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentKeyphraseSource;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTranslatedFieldFieldType;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTranslatedFieldTranslationTool;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentType;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocument;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentAbstract;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentExternalId;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentKeyphrase;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentKeyphraseCount;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentPerson;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTitleSearches;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTranslatedField;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlPerson;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlPersonDataQuality;
+import org.mrdlib.partnerContentManager.IContentConverter;
+import org.mrdlib.partnerContentManager.MdlDocument;
+import org.mrdlib.partnerContentManager.MdlDocumentAbstract;
+import org.mrdlib.partnerContentManager.MdlDocumentExternalId;
+import org.mrdlib.partnerContentManager.MdlDocumentExternalIdExternalName;
+import org.mrdlib.partnerContentManager.MdlDocumentKeyphrase;
+import org.mrdlib.partnerContentManager.MdlDocumentKeyphraseCount;
+import org.mrdlib.partnerContentManager.MdlDocumentKeyphraseSource;
+import org.mrdlib.partnerContentManager.MdlDocumentPerson;
+import org.mrdlib.partnerContentManager.MdlDocumentTitleSearches;
+import org.mrdlib.partnerContentManager.MdlDocumentTranslatedField;
+import org.mrdlib.partnerContentManager.MdlDocumentTranslatedFieldFieldType;
+import org.mrdlib.partnerContentManager.MdlDocumentTranslatedFieldTranslationTool;
+import org.mrdlib.partnerContentManager.MdlDocumentType;
+import org.mrdlib.partnerContentManager.MdlPerson;
+import org.mrdlib.partnerContentManager.MdlPersonDataQuality;
 
 /**
  * Implementation of ContentConverter for partner mediaTUM.

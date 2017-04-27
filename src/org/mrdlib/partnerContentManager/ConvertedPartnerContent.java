@@ -1,16 +1,6 @@
-package org.mrdlib.partnerContentManager.mediatum;
+package org.mrdlib.partnerContentManager;
 
 import java.util.List;
-
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocument;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentAbstract;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentExternalId;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentKeyphrase;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentKeyphraseCount;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentPerson;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTitleSearches;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTranslatedField;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlPerson;
 
 /**
  * Abstract class resembling Mr. DLibs database. Classes for holding converted partner content must extend it.

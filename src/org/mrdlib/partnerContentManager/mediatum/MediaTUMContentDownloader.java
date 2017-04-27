@@ -2,6 +2,8 @@ package org.mrdlib.partnerContentManager.mediatum;
 
 import java.util.Date;
 
+import org.mrdlib.partnerContentManager.IContentDownloader;
+
 /**
  * Implementation of ContentDownloader for partner mediaTUM.
  * 

@@ -2,15 +2,16 @@ package org.mrdlib.partnerContentManager.mediatum;
 
 import java.util.List;
 
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocument;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentAbstract;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentExternalId;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentKeyphrase;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentKeyphraseCount;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentPerson;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTitleSearches;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlDocumentTranslatedField;
-import org.mrdlib.partnerContentManager.mediatum.MDLContent.MdlPerson;
+import org.mrdlib.partnerContentManager.ConvertedPartnerContent;
+import org.mrdlib.partnerContentManager.MdlDocument;
+import org.mrdlib.partnerContentManager.MdlDocumentAbstract;
+import org.mrdlib.partnerContentManager.MdlDocumentExternalId;
+import org.mrdlib.partnerContentManager.MdlDocumentKeyphrase;
+import org.mrdlib.partnerContentManager.MdlDocumentKeyphraseCount;
+import org.mrdlib.partnerContentManager.MdlDocumentPerson;
+import org.mrdlib.partnerContentManager.MdlDocumentTitleSearches;
+import org.mrdlib.partnerContentManager.MdlDocumentTranslatedField;
+import org.mrdlib.partnerContentManager.MdlPerson;
 
 /**
  * 

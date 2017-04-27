@@ -1,4 +1,4 @@
-package org.mrdlib.partnerContentManager.mediatum;
+package org.mrdlib.partnerContentManager;
 
 import java.util.List;
 
