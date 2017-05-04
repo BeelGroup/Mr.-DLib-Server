@@ -21,6 +21,8 @@ public class MediaTUMContentStorer implements IContentStorer<OAIDCRecordConverte
 		try {
 			// TODO: establish database connection to MDL_mediatum database
 			// connection = new DBConnection("jar");
+			
+			// TODO: understand and modify Database connection, do not introduce breaking changes
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
