@@ -57,5 +57,11 @@ public class MdlDocumentKeyphraseCount {
 	public void setCount(long count) {
 		this.count = count;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocumentKeyphraseCount [doc_id=" + doc_id + ", gramity=" + gramity + ", source=" + source
+				+ ", count=" + count + "]";
+	}
 	
 }

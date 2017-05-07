@@ -22,6 +22,6 @@ public interface IContentConverter<T> {
 	 * @param pathOfFileToConvert path of file to convert
 	 * @return a list of converted records, possibly containing solely one entry
 	 */
-	public List<T> convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert);
+	public T convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert);
 	
 }

@@ -1,9 +1,13 @@
 package org.mrdlib.partnerContentManager.mediatum;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Pattern;
 
 import org.mrdlib.partnerContentManager.IContentConverter;
 import org.mrdlib.partnerContentManager.MdlDocument;
@@ -32,13 +36,15 @@ import org.mrdlib.partnerContentManager.MdlPersonDataQuality;
 public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordConverted> {
 
 	@Override
-	public List<OAIDCRecordConverted> convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert) {
-		List<OAIDCRecordConverted> oaidcRecordsConverted = new ArrayList<OAIDCRecordConverted>();
+	public OAIDCRecordConverted convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert) {
+		OAIDCRecord oaidcRecord = readOAIDCRecordFromFile(pathOfFileToConvert);
 		
-		// TODO get OAIDCRecords from file, iterate over records in file
-		OAIDCRecord oaidcRecord = null;
+		System.out.println(oaidcRecord.toString());
 		
 		MdlDocument mdlDocument = mapMediaTumContentToMdlDocumentTable(oaidcRecord);
+		
+		System.out.println(mdlDocument);
+		
 		MdlDocumentAbstract mdlDocumentAbstract = mapMediaTumContentToMdlDocumentAbstractTable(oaidcRecord);
 		MdlDocumentExternalId mdlDocumentExternalId = mapMediaTumContentToMdlDocumentExternalIdTable(oaidcRecord);
 		MdlDocumentKeyphrase mdlDocumentKeyphrase = mapMediaTumContentToMdlDocumentKeyphraseTable(oaidcRecord);
@@ -51,10 +57,97 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		OAIDCRecordConverted oaidcRecordConverted = new OAIDCRecordConverted(mdlDocument, mdlDocumentAbstract, mdlDocumentExternalId,
 				mdlDocumentKeyphrase, mdlDocumentKeyphraseCount, mdlDocumentPerson, mdlDocumentTitleSearches, mdlDocumentTranslatedField,
 				mdlPerson);
+
+		return oaidcRecordConverted;
+	}
+	
+	private OAIDCRecord readOAIDCRecordFromFile(String pathOfFile) {
+		OAIDCRecord oaidcRecord = new OAIDCRecord();
 		
-		oaidcRecordsConverted.add(oaidcRecordConverted);
+		File file = new File(pathOfFile);
 		
-		return oaidcRecordsConverted;
+		try {
+            Scanner scanner = new Scanner(file);
+            
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+
+                // attribute found
+                if (line.contains("<dc:")) {
+                	String attributeName = line.split("<dc:")[1].split(">")[0].split(" ")[0];
+                	String attributeValue = line.split(">")[1].split("</")[0];
+                	if (attributeValue.contains("<![CDATA[]]")) {
+                		attributeValue = "";
+                	}
+                	if (attributeValue.contains("<![CDATA[")) {
+                		attributeValue = attributeValue.split(Pattern.quote("![CDATA["))[1].split(Pattern.quote("]]"))[0];
+                	}
+                	
+                	if (!attributeValue.equals("")) {
+                		System.out.println(attributeName + " = " + attributeValue);
+                		
+                		switch (attributeName) {
+						case "title":
+							oaidcRecord.addTitle(attributeValue);
+							break;
+						case "creator":
+							oaidcRecord.addCreator(attributeValue);
+							break;
+						case "subject":
+							for (String subject : attributeValue.split(", ")) {
+								oaidcRecord.addSubject(subject);
+							}
+							break;
+						case "description":
+							oaidcRecord.addDescription(attributeValue);
+							break;
+						case "publisher":
+							oaidcRecord.addPublisher(attributeValue);
+							break;
+						case "contributor":
+							oaidcRecord.addContributor(attributeValue);
+							break;
+						case "date":
+							oaidcRecord.addDate(attributeValue);
+							break;
+						case "type":
+							oaidcRecord.addType(attributeValue);
+							break;
+						case "format":
+							oaidcRecord.addFormat(attributeValue);
+							break;
+						case "identifier":
+							oaidcRecord.addIdentifier(attributeValue);
+							break;
+						case "source":
+							oaidcRecord.addSource(attributeValue);
+							break;
+						case "language":
+							oaidcRecord.addLanguage(attributeValue);
+							break;
+						case "relation":
+							oaidcRecord.addRelation(attributeValue);
+							break;
+						case "coverage":
+							oaidcRecord.addCoverage(attributeValue);
+							break;
+						case "right":
+							oaidcRecord.addRight(attributeValue);
+							break;
+
+						default:
+							break;
+						}
+                	}
+                }
+            }
+            
+            scanner.close();
+            
+            return oaidcRecord;
+        } catch (FileNotFoundException e) {
+            return null;
+        }
 	}
 	
 	/**
@@ -68,22 +161,17 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		
 		// title
 		if (oaidcRecord.getTitles().size() != 1) {
-			return null;
-		}
-		// publisher
-		if (oaidcRecord.getPublishers().size() != 1) {
+			System.out.println("title != 1");
 			return null;
 		}
 		// language
 		if (oaidcRecord.getLanguages().size() != 1) {
+			System.out.println("language != 1");
 			return null;
 		}
 		// year
 		if (oaidcRecord.getDates().size() != 1) {
-			return null;
-		}
-		// type
-		if (oaidcRecord.getTypes().size() != 1) {
+			System.out.println("date != 1");
 			return null;
 		}
 		
@@ -99,7 +187,18 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		String published_in = oaidcRecord.getPublishers().get(0);
 		String language = oaidcRecord.getLanguages().get(0);
 		int publication_year = getPublicationYearFromOAIDCDateFormat(oaidcRecord.getDates().get(0));
-		MdlDocumentType type = getMdlDocumentTypeFromOAIDCType(oaidcRecord.getTypes().get(0));
+		// choose type to convert
+		int type_index = 0;
+		if (oaidcRecord.getTypes().size() > 1) {
+			int i = 0;
+			for (String type : oaidcRecord.getTypes()) {
+				if (type.contains("doc-type:")) {
+					type_index = i;
+				}
+				i++;
+			}
+		}
+		MdlDocumentType type = getMdlDocumentTypeFromOAIDCType(oaidcRecord.getTypes().get(type_index));
 		String keywords = stringArrayListToString(oaidcRecord.getSubjects(), ", ");
 		// use current system date
 		Date added = new Date();
@@ -227,7 +326,6 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		long document_abstract_id = 0;
 		// no mapping
 		long document_id = 0;
-		// TODO: write method that maps mediaTUM language to MDL language
 		String language = getMdlLanguageCodeFromOAIDCCode(oaidcRecord.getLanguages().get(0));
 		String abstract_ = oaidcRecord.getDescriptions().get(0);
 		Date added = new Date();

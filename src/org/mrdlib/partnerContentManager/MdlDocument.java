@@ -145,5 +145,13 @@ public class MdlDocument {
 	public void setAdded(Date added) {
 		this.added = added;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocument [document_id=" + document_id + ", id_original=" + id_original + ", collection_id="
+				+ collection_id + ", title=" + title + ", title_clean=" + title_clean + ", published_in=" + published_in
+				+ ", language=" + language + ", publication_year=" + publication_year + ", type=" + type + ", keywords="
+				+ keywords + ", added=" + added + "]";
+	}
 	
 }

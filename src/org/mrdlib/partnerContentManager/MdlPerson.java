@@ -96,5 +96,12 @@ public class MdlPerson {
 	public void setData_quality(MdlPersonDataQuality data_quality) {
 		this.data_quality = data_quality;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlPerson [person_id=" + person_id + ", name_first=" + name_first + ", name_middle=" + name_middle
+				+ ", name_last=" + name_last + ", name_unstructured=" + name_unstructured + ", added=" + added
+				+ ", data_quality=" + data_quality + "]";
+	}
 	
 }

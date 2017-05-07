@@ -69,5 +69,11 @@ public class MdlDocumentKeyphrase {
 	public void setSource(MdlDocumentKeyphraseSource source) {
 		this.source = source;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocumentKeyphrase [doc_id=" + doc_id + ", term=" + term + ", score=" + score + ", gramity=" + gramity
+				+ ", source=" + source + "]";
+	}
 	
 }

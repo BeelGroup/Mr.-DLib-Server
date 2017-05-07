@@ -73,5 +73,11 @@ public class MdlDocumentAbstract {
 	public void setAdded(Date added) {
 		this.added = added;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocumentAbstract [document_abstract_id=" + document_abstract_id + ", document_id=" + document_id
+				+ ", language=" + language + ", abstract_=" + abstract_ + ", added=" + added + "]";
+	}
 	
 }

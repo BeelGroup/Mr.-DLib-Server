@@ -71,5 +71,11 @@ public class MdlDocumentPerson {
 	public void setAdded(Date added) {
 		this.added = added;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocumentPerson [document_person_id=" + document_person_id + ", document_id=" + document_id
+				+ ", person_id=" + person_id + ", rank=" + rank + ", added=" + added + "]";
+	}
 	
 }

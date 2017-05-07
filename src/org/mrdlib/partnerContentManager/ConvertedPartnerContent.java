@@ -113,5 +113,25 @@ public abstract class ConvertedPartnerContent {
 	public void setMdlPerson(List<MdlPerson> mdlPerson) {
 		this.mdlPerson = mdlPerson;
 	}
+
+	@Override
+	public String toString() {
+		return "ConvertedPartnerContent [mdlDocument=" + mdlDocument + ", mdlDocumentAbstract=" + mdlDocumentAbstract
+				+ ", mdlDocumentExternalId=" + mdlDocumentExternalId + ", mdlDocumentKeyphrase=" + mdlDocumentKeyphrase
+				+ ", mdlDocumentKeyphraseCount=" + mdlDocumentKeyphraseCount + ", mdlDocumentPerson="
+				+ mdlDocumentPerson + ", mdlDocumentTitleSearches=" + mdlDocumentTitleSearches
+				+ ", mdlDocumentTranslatedField=" + mdlDocumentTranslatedField + ", mdlPerson=" + mdlPerson + "]";
+	}
+	
+	/**
+	 * Checks whether a field of the converted partner content is null. Returns false if so.
+	 * 
+	 * @return true if the partner content may be stored into the database, false otherwise
+	 */
+	public boolean isContentValid() {
+		return (mdlDocument != null) && (mdlDocumentAbstract != null) && (mdlDocumentExternalId != null) &&
+				(mdlDocumentKeyphrase != null) && (mdlDocumentPerson != null) && (mdlDocumentTitleSearches != null) &&
+				(mdlDocumentTranslatedField != null) && (mdlPerson != null);
+	}
 	
 }

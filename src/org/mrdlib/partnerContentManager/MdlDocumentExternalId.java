@@ -45,5 +45,11 @@ public class MdlDocumentExternalId {
 	public void setExternal_id(String external_id) {
 		this.external_id = external_id;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocumentExternalId [document_id=" + document_id + ", external_name=" + external_name
+				+ ", external_id=" + external_id + "]";
+	}
 	
 }

@@ -83,5 +83,12 @@ public class MdlDocumentTranslatedField {
 	public void setText(String text) {
 		this.text = text;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocumentTranslatedField [document_id=" + document_id + ", field_type=" + field_type
+				+ ", translation_tool=" + translation_tool + ", source_language=" + source_language
+				+ ", target_language=" + target_language + ", text=" + text + "]";
+	}
 	
 }

@@ -46,5 +46,12 @@ public class MdlDocumentTitleSearches {
 	public void setOriginal_search_string(String original_search_string) {
 		this.original_search_string = original_search_string;
 	}
+
+	@Override
+	public String toString() {
+		return "MdlDocumentTitleSearches [document_title_search_id=" + document_title_search_id
+				+ ", clean_search_string=" + clean_search_string + ", original_search_string=" + original_search_string
+				+ "]";
+	}
 	
 }
