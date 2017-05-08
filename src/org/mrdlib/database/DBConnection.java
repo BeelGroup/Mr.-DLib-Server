@@ -1196,8 +1196,8 @@ public class DBConnection {
 		Person person = null;
 
 		// query to select all author of a given document
-		String query = "SELECT " + constants.getPersonIDInDocPers() + ", " + constants.getRank() + " FROM " + constants.getDocPers() + " WHERE "
-				+ constants.getDocumentIDInDocPers() + " = '" + i + "'";
+		String query = "SELECT " + constants.getPersonIDInDocPers() + ", " + constants.getRank() + " FROM "
+				+ constants.getDocPers() + " WHERE " + constants.getDocumentIDInDocPers() + " = '" + i + "'";
 
 		try {
 			stmt = con.createStatement();
@@ -1213,9 +1213,10 @@ public class DBConnection {
 				if (person != null)
 					persons.add(person);
 			}
-			
-			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition())).collect(Collectors.toList());
-			
+
+			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
+					.collect(Collectors.toList());
+
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -2398,7 +2399,7 @@ public class DBConnection {
 	/**
 	 * 
 	 * get the author ids in batch-sized chunks, who have a document which has a
-	 * specified bibliometric
+	 * specified bibliometric and have the necessary data quality
 	 * 
 	 * @param int,
 	 *            start id
@@ -2415,13 +2416,16 @@ public class DBConnection {
 		ResultSet rs = null;
 
 		// the query to get the persons
-		String query = "SELECT " + constants.getPersonIDInDocPers() + " FROM " + constants.getDocPers() + " DP JOIN "
+		String query = "SELECT DP." + constants.getPersonIDInDocPers() + " FROM " + constants.getDocPers() + " DP JOIN "
 				+ constants.getBibDocuments() + " BD ON DP." + constants.getDocumentIDInDocPers() + "= BD."
-				+ constants.getDocumentIdInBibliometricDoc() + " WHERE "
-				+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND "
-				+ constants.getPersonIDInDocPers() + " >= " + start + " AND " + constants.getPersonIDInDocPers() + " < "
-				+ (start + batchsize) + " GROUP BY DP." + constants.getPersonIDInDocPers() + ";";
+				+ constants.getDocumentIdInBibliometricDoc() + " JOIN " + constants.getPersons() + " P ON P."
+				+ constants.getPersonID() + "= DP." + constants.getPersonIDInDocPers() + " WHERE "
+				+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND DP."
+				+ constants.getPersonIDInDocPers() + " >= " + start + " AND DP." + constants.getPersonIDInDocPers()
+				+ " < " + (start + batchsize) + " AND P.data_quality IS NULL GROUP BY DP."
+				+ constants.getPersonIDInDocPers() + ";";
 
+		System.out.println(query);
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
@@ -2494,6 +2498,157 @@ public class DBConnection {
 			}
 		}
 		return personList;
+	}
+
+	public List<Integer> getAllDocumentsWithBadAuthorsAndSpecificBibliometric(int bibliometricId) {
+		List<Integer> docIds = new ArrayList<Integer>();
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		String query = "SELECT BD." + constants.getDocumentIdInBibliometricDoc() + " FROM " + constants.getPersons()
+				+ " P JOIN " + constants.getDocPers() + " DP ON P." + constants.getPersonID() + " = DP."
+				+ constants.getPersonIDInDocPers() + " JOIN " + constants.getBibDocuments() + " BD on BD."
+				+ constants.getDocumentIdInBibliometricDoc() + " = DP." + constants.getDocumentIDInDocPers()
+				+ " WHERE data_quality = 'invalid' AND BD." + constants.getBibliometricIdInBibliometricDocument()
+				+ " = " + bibliometricId;
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			while (rs.next()) {
+				docIds.add(rs.getInt(constants.getDocumentIdInBibliometricDoc()));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return docIds;
+	}
+
+	public int getBibDocId(int docId, int bibliometricId) {
+		int bibDocId = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		String query = "SELECT " + constants.getBibliometricDocumentsId() + " FROM " + constants.getBibDocuments()
+				+ " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = " + docId + " AND "
+				+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId;
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			if (rs.next()) {
+				bibDocId = rs.getInt(constants.getBibliometricDocumentsId());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return bibDocId;
+	}
+
+	public int getBibDocSum(int docId, int bibliometricId) {
+		int value = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		String query = "SELECT sum(BP.value) as sumOfvalue FROM document D JOIN document_person PD ON PD.document_id = D."
+				+ constants.getDocumentId() + " JOIN bibliometric_person BP ON BP.person_id = PD.person_id "
+				+ "WHERE D." + constants.getDocumentId() + " = " + docId + " and BP.bibliometric_id= "
+				+ bibliometricId + " GROUP BY D." + constants.getDocumentId();
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			if (rs.next()) {
+				value = rs.getInt("sumOfvalue");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return value;
+	}
+	
+	public void executeUpdate(String query) {
+		Statement stmt = null;
+		
+		try {
+			stmt = con.createStatement();
+			stmt.executeUpdate(query);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public double getBibDocAvg(int docId, int bibliometricId) {
+		double value = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		String query = "SELECT avg(value)/count(DP.person_id) as avgOfvalue FROM bibliometric_document BD JOIN document_person DP ON "
+				+ "DP.document_id = BD.document_id WHERE BD.document_id = " + docId + " and BD.bibliometric_id= "
+				+ bibliometricId + " GROUP BY BD.document_id";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			if (rs.next()) {
+				value = rs.getFloat("avgOfvalue");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return value;
 	}
 
 	/**
@@ -3860,19 +4015,19 @@ public class DBConnection {
 	}
 
 	public boolean updateStereotypes(ArrayList<SimpleEntry<String, String>> updates) {
-		
+
 		PreparedStatement stmt = null;
 		String query = "INSERT INTO " + constants.getStereotypeRecommendations() + " ( "
 				+ constants.getDocumentIdinStereotypeRecommendations() + ", " + constants.getStereotypeCategory()
 				+ ") VALUES (?,?)";
-		try{
-			stmt= con.prepareStatement(query);
-			for(SimpleEntry<String,String> entry: updates){
-				try{
+		try {
+			stmt = con.prepareStatement(query);
+			for (SimpleEntry<String, String> entry : updates) {
+				try {
 					stmt.setInt(1, Integer.parseInt(entry.getKey()));
-				} catch(NumberFormatException f){
+				} catch (NumberFormatException f) {
 					String documentId = getDocumentIdFromURL(entry.getKey());
-					if(documentId.equals("No such document in database")){
+					if (documentId.equals("No such document in database")) {
 						System.out.println("This URL has no assosciated document in our database:");
 						System.out.println(entry.getKey());
 						continue;
@@ -3882,20 +4037,19 @@ public class DBConnection {
 				stmt.setString(2, entry.getValue());
 				stmt.executeUpdate();
 			}
-		} catch(SQLException e){
+		} catch (SQLException e) {
 			System.out.println(query);
 			e.printStackTrace();
 			return false;
 		}
-		
 
 		return true;
 	}
 
 	private String getDocumentIdFromURL(String key) {
-		if(key.contains("sowiport")){
+		if (key.contains("sowiport")) {
 			String[] parts = key.split("/");
-			String originalId = parts[parts.length-1];
+			String originalId = parts[parts.length - 1];
 			DisplayDocument document;
 			try {
 				document = getDocumentBy("id_original", originalId);
@@ -3903,10 +4057,10 @@ public class DBConnection {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
-		}else if(key.contains("core")){
+
+		} else if (key.contains("core")) {
 			String[] parts = key.split("/");
-			String originalId = parts[parts.length-1];
+			String originalId = parts[parts.length - 1];
 			DisplayDocument document;
 			try {
 				document = getDocumentBy("id_original", "core-" + originalId);

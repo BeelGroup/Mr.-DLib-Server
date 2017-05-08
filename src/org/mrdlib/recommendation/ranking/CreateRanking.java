@@ -167,13 +167,14 @@ public class CreateRanking {
 		}
 
 		int numberOfAuthors = 3510000;
+		int batchsize = 1000000;
 		// con.getBiggestIdFromAuthors();
 
-		for (int k = 0; k < numberOfAuthors; k = k + 500000) {
+		for (int k = 0; k < numberOfAuthors; k = k + batchsize) {
 
 			System.out.println(k + "/" + numberOfAuthors);
 			System.out.println(numberOfBib);
-			personIds = con.getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(k, 500000, bibliometricId);
+			personIds = con.getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(k, batchsize, bibliometricId);
 
 			for (int i = 0; i < personIds.size(); i++) {
 				currentId = personIds.get(i);
@@ -237,7 +238,7 @@ public class CreateRanking {
 		for (int k = range[0]; k <= range[1]; k = k + 2000) {
 			personList = con.getAllPersonsInBatchesIfBibliometricId(bibliometricIdSimple, k, 2000);
 
-			System.out.println((k-range[0]) + "/" + (range[1]-range[0]));
+			System.out.println((k - range[0]) + "/" + (range[1] - range[0]));
 
 			for (int i = 0; i < personList.size(); i++) {
 				documentList.clear();
@@ -267,6 +268,35 @@ public class CreateRanking {
 			}
 		}
 		System.out.println("inserted:" + hadHIndex);
+	}
+
+	public void fixMetric(int bibliometricIdToFix, int bibliometricIdToCalc) {
+		List<Integer> docIds = new ArrayList<Integer>();
+		int bibDocId;
+		String query = "";
+		double value;
+		int count = 0;
+
+		docIds = con.getAllDocumentsWithBadAuthorsAndSpecificBibliometric(bibliometricIdToFix);
+
+		for (int i = 0; i < docIds.size(); i++) {
+			bibDocId = con.getBibDocId(docIds.get(i), bibliometricIdToFix);
+
+			value = con.getBibDocAvg(docIds.get(i), bibliometricIdToCalc);
+
+			if (value <= 0) {
+				query = "DELETE FROM " + constants.getBibDocuments() + " WHERE "
+						+ constants.getBibliometricDocumentsId() + " = " + bibDocId;
+				count++;
+			} else {
+				query = "UPDATE " + constants.getBibDocuments() + " SET " + constants.getMetricValue() + " = " + value
+						+ " WHERE " + constants.getBibliometricDocumentsId() + " = " + bibDocId;
+
+			}
+			//System.out.println(query);
+			con.executeUpdate(query);
+		}
+		System.out.println("Deleted: " + count + "/" + docIds.size());
 	}
 
 	public double hIndex(Double[] citations) {
@@ -321,7 +351,7 @@ public class CreateRanking {
 
 	public static void main(String[] args) {
 		CreateRanking cr = new CreateRanking();
-		cr.createHIndexByAuthor();
+		cr.fixMetric(16, 14);
 	}
 
 }

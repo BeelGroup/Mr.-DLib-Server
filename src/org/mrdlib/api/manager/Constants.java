@@ -179,6 +179,7 @@ public class Constants {
 	private String documentIDInDocPers;
 	private String personIDInDocPers;
 	private String rank;
+	private String dataQualityPerson;
 
 	// db table stereotype_recommendations
 	private String documentIdInStereotype;
@@ -416,6 +417,7 @@ public class Constants {
 			this.documentIDInDocPers = prop.getProperty("documentIdInDocPers");
 			this.personIDInDocPers = prop.getProperty("personIdInDocPers");
 			this.rank = prop.getProperty("authorRank");
+			this.dataQualityPerson = prop.getProperty("dataQuality");
 
 			this.documentIdInStereotype = prop.getProperty("documentIdInStereotype");
 			this.collectionIdInStereotype = prop.getProperty("collectionIdInStereotype");
@@ -486,6 +488,10 @@ public class Constants {
 				}
 			}
 		}
+	}
+
+	public String getDataQualityPerson() {
+		return dataQualityPerson;
 	}
 
 	public String getFallbackReranking() {
