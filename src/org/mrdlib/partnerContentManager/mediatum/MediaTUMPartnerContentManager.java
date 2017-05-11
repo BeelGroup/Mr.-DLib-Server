@@ -18,31 +18,20 @@ import org.mrdlib.database.DBConnection;
  */
 public class MediaTUMPartnerContentManager {
 	
-	private static void testDatabaseConnection() {
-		// TODO: alter DB mediaTUM, perform read of that alteration => see if everything works
-		DBConnection con;
-		
-		try {
-			con = new DBConnection("jar");
-			
-			System.out.println("database connection successfully established");
-			
-			con.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private static void executeActualLogic(String[] args) {
+	/**
+	 * Runnable main function that retrieves content from mediaTUM and stores it in MDL's database.
+	 * 
+	 * @param args 1) path of folder to download the content of the partner to
+	 * @throws IOException thrown if saving intermediate data on the hard drive fails
+	 */
+	public static void main(String[] args) throws IOException {
 		// retrieve arguments
 		int numArguments = args.length;
 		
 		// check if the correct number of arguments has been passed to the program
-        if (numArguments != 2) {
+        if (numArguments != 1) {
             System.out.print("Error: Incorrect arguments passed to program. You need to pass: " +
-                    "1) path of folder to download the content of the partner to, 2) 'update' if "
-                    + "new data should be downloaded from mediaTUM or 'populate' if all data should "
-                    + "be downloaded.");
+                    "1) path of folder to download the content of the partner to,");
 
             // end program
             System.exit(1);
@@ -56,61 +45,34 @@ public class MediaTUMPartnerContentManager {
         	System.exit(1);
         }
         
-        String partnerContentManagerTask = args[1];
-        if (!(partnerContentManagerTask.equals("update") || partnerContentManagerTask.equals("populate"))) {
-        	System.out.println("Error: Value of argument 2 is invalid. It must be: 'update' if "
-                    + "new data should be downloaded from mediaTUM or 'populate' if all data should "
-                    + "be downloaded.");
-        	System.exit(1);
-        }
-        
-        // TODO: remove output for testing
-//        System.out.println(contentFolderPath);
-        
-        // "/home/admin/scripts/scripts/mediaTUM"
-        
-//        testFileSystem(contentFolderPath);
-        
-		// download content to given folder
-        MediaTUMContentDownloader mediaTUMContentDownloader = new MediaTUMContentDownloader();
-        
-        // TODO: change second argument to a date stamp if data should be downloaded
-        // TODO: call methods of downloader accordingly
-        
-//		mediaTUMContentDownloader.downloadAllContent(contentFolderPath);
+        // TODO: add logic for downloading content from mediaTUM
 		
 		// convert and store content of each downloaded file
 		MediaTUMContentConverter mediaTUMContentConverter = new MediaTUMContentConverter();
-//		MediaTUMContentStorer mediaTUMContentStorer = new MediaTUMContentStorer();
+		MediaTUMContentStorer mediaTUMContentStorer = new MediaTUMContentStorer();
 		
-		// TODO: store content of files
-		for (File file : contentFolder.listFiles()) {
-			String filePath = file.getAbsolutePath();
-			
-			if (filePath.endsWith(".xml")) {
-				System.out.println(filePath);
+		DBConnection dbConnection;
+		
+		try {
+			dbConnection = new DBConnection("jar");
+					
+			for (File file : contentFolder.listFiles()) {
+				String filePath = file.getAbsolutePath();
 				
-				OAIDCRecordConverted oaidcRecordConverted = mediaTUMContentConverter.convertPartnerContentToStorablePartnerContent(filePath);
-			
-				System.out.println(oaidcRecordConverted.toString());
-				if (oaidcRecordConverted.isContentValid()) {
-					System.out.println("conversion completed successfully");
-				} else {
-					// TODO: handle failed conversions
+				if (filePath.endsWith(".xml")) {
+					OAIDCRecordConverted oaidcRecordConverted = mediaTUMContentConverter.convertPartnerContentToStorablePartnerContent(filePath);
+				
+					if (oaidcRecordConverted.isContentValid()) {
+						mediaTUMContentStorer.store(dbConnection, oaidcRecordConverted);
+					} else {
+						// TODO: handle failed conversions
+					}
 				}
 			}
-		}
-	}
-	
-	/**
-	 * Runnable main function that retrieves content from mediaTUM and stores it in MDL's database.
-	 * 
-	 * @param args 1) path of folder to download the content of the partner to
-	 * @throws IOException thrown if saving intermediate data on the hard drive fails
-	 */
-	public static void main(String[] args) throws IOException {
-//		testDatabaseConnection();
 		
-		executeActualLogic(args);
+			dbConnection.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

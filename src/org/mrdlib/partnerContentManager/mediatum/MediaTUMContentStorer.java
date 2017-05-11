@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.partnerContentManager.IContentStorer;
+import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 
 /**
  * Implementation of ContentStorer for partner mediaTUM.
@@ -14,28 +15,16 @@ import org.mrdlib.partnerContentManager.IContentStorer;
 public class MediaTUMContentStorer implements IContentStorer<OAIDCRecordConverted> {
 
 	@Override
-	public void store(List<OAIDCRecordConverted> storableContent) {
-		// establish database connection
-		DBConnection connection = null;
+	public void store(DBConnection dbConnection, OAIDCRecordConverted storableContent) {
 		
-		try {
-			// TODO: establish database connection to MDL_mediatum database
-			// connection = new DBConnection("jar");
-			
-			// TODO: understand and modify Database connection, do not introduce breaking changes
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		System.out.println("LET'S STORE!");
 		
-		if (connection == null) {
-			return;
-		}
+//		XMLDocument xmlDocument = new XMLDocument(typeMap, languageMap, typeResolveMap);
+//		
+//		xmlDocument.
+//		
+//		dbConnection.insertDocument(xmlDocument);
 		
-		// iterate over data to store
-		for (OAIDCRecordConverted oaidcRecordConverted : storableContent) {
-			// TODO: store data
-			
-		}
 	}
 
 }

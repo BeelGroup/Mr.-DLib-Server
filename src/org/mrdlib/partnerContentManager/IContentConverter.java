@@ -17,10 +17,9 @@ public interface IContentConverter<T> {
 
 	/**
 	 * Converts the data in a given file containing from the partner's content format to the format <T> for the purpose of easier persistence in the MDL database.
-	 * Possibly the given file contains data of one record.
 	 * 
 	 * @param pathOfFileToConvert path of file to convert
-	 * @return a list of converted records, possibly containing solely one entry
+	 * @return converted content
 	 */
 	public T convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert);
 	

@@ -2,6 +2,8 @@ package org.mrdlib.partnerContentManager;
 
 import java.util.List;
 
+import org.mrdlib.database.DBConnection;
+
 /**
  * Interface specifying methods for storing converted partner's content in the MDL database.
  * 
@@ -16,10 +18,11 @@ import java.util.List;
 public interface IContentStorer<T> {
 
 	/**
-	 * Stores the list of records in the intermediate data format <T>, possibly converted from the partner's content format by the ContentConverter, in the MDL database.
+	 * Stores a record in the intermediate data format <T>, possibly converted from the partner's content format by the ContentConverter, in the MDL database.
 	 * 
+	 * @param dbConnection MDL specific connection to the database
 	 * @param storableContent content in intermediate data format <T> to store in the MDL database
 	 */
-	public void store(List<T> storableContent);
+	public void store(DBConnection dbConnection, T storableContent);
 	
 }
