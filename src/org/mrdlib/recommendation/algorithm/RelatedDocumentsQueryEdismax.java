@@ -40,27 +40,17 @@ public class RelatedDocumentsQueryEdismax extends RelatedDocuments {
 
 	@Override
 	/**
-	 * Calls the <code>getRelatedDocumentSet(DisplayDocument, int)</code> which
-	 * returns default number of related documents using Lucene's MoreLikeThis
-	 * function
-	 * 
-	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception {
-		return getRelatedDocumentSet(requestDoc, 10);
-	}
-
-	@Override
-	/**
 	 * returns related documents using Lucene's Query function
 	 * 
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
+	public DocumentSet getRelatedDocumentSet(DocumentSet requestDoc) throws Exception {
 		try {
-			System.out.println("No im trying to getRelatedDocumentSet with a normal query");
+
 			// Query solr using the defaults set in solrConfig.xml
-			return scon.getDocumentsFromSolrByQuery(requestDoc, numberOfRelatedDocs, algorithmLoggingInfo);
+			requestDoc.setAlgorithmDetails(algorithmLoggingInfo);
+			return scon.getDocumentsFromSolrByQuery(requestDoc);
 		} catch (NoRelatedDocumentsException f) {
-			System.out.println("No related documents for document with title: " + requestDoc.getTitle());
+			System.out.println("No related documents for document with title: " + requestDoc.getRequestedDocument().getTitle());
 			throw f;
 		} catch (Exception e) {
 			e.printStackTrace();

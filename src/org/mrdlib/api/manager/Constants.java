@@ -52,6 +52,7 @@ public class Constants {
 	private String application;
 	private String organization;
 	private String partnerPrefixes;
+	private String accessRightsTable;
 
 	// db table log rank stats
 	private String recommendationStatisticsRecommendationSetId;
@@ -96,6 +97,7 @@ public class Constants {
 	// db table recommendations
 	private String recommendationId;
 	private String documentIdInRecommendations;
+	private String externalOriginalDocumentId;
 	private String recommendationSetIdInRecommendations;
 	private String clicked;
 	private String rankAfterAlgorithm;
@@ -220,6 +222,11 @@ public class Constants {
 	private String shuffled;
 	private String desiredRecommendationsInRecommendationAlgorithms;
 
+	
+	//db table access rights
+	private String accessingOrganization;
+	private String accessedOrganization;
+
 	// db table z_recommendation_algorithms__details_cbf
 	private String cbfId;
 	private String cbfFeatureType;
@@ -283,8 +290,6 @@ public class Constants {
 
 	private String probabilitiesConfigPath;
 
-
-
 	// load the config file
 	public Constants() {
 
@@ -330,6 +335,7 @@ public class Constants {
 			this.application = prop.getProperty("application");
 			this.organization = prop.getProperty("organization");
 			this.partnerPrefixes = prop.getProperty("partnerPrefixes");
+			this.accessRightsTable = prop.getProperty("accessRightsTable");
 
 			this.recommendationStatisticsRecommendationSetId = prop
 					.getProperty("recommendationStatisticsRecommendationSetId");
@@ -367,6 +373,7 @@ public class Constants {
 
 			this.recommendationId = prop.getProperty("recommendationId");
 			this.documentIdInRecommendations = prop.getProperty("documentIdInRecommendations");
+			this.externalOriginalDocumentId = prop.getProperty("externalOriginalDocumentId");
 			this.recommendationSetIdInRecommendations = prop.getProperty("recommendationSetIdInRecommendations");
 			this.algorithmId = prop.getProperty("algorithmId");
 			this.clicked = prop.getProperty("clicked");
@@ -463,6 +470,9 @@ public class Constants {
 			this.type = prop.getProperty("type");
 			this.keywords = prop.getProperty("keywords");
 
+			this.accessingOrganization = prop.getProperty("accessingOrganization");
+			this.accessedOrganization = prop.getProperty("accessedOrganization");
+			
 			this.collectionID = prop.getProperty("collectionId");
 			this.collectionShortName = prop.getProperty("collectionShortName");
 			this.collectionName = prop.getProperty("collectionName");
@@ -1383,5 +1393,21 @@ public class Constants {
 
 	public String getPrefix() {
 		return prefix;
+	}
+
+	public String getAccessingOrganization() {
+		return accessingOrganization;
+	}
+
+	public String getAccessedOrganization() {
+		return accessedOrganization;
+	}
+
+	public String getAccessRightsTable() {
+		return accessRightsTable;
+	}
+
+	public String getExternalOriginalDocumentId() {
+		return externalOriginalDocumentId;
 	}
 }

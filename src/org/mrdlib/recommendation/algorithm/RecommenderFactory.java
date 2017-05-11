@@ -10,54 +10,6 @@ public class RecommenderFactory {
 	static RelatedDocuments rdg;
 
 	/**
-	 * Initializes a new recommender object according to the probabilities
-	 * described in the probabilities.properties file Unoptimized -- Better not
-	 * use this
-	 * 
-	 * @param con
-	 *            DBConnection object to pass onto the recommender object
-	 * @return A <code>RelatedDocuments</code> recommender object
-	 * @throws Exception
-	 */
-	public static RelatedDocuments getRandomRDG(DBConnection con) throws Exception {
-
-		// Load probabilities from the config file
-		Random random = new Random();
-		Probabilities probs = new Probabilities();
-
-		// Start cumulative with prob(RandomDocumentRecommender), then keep
-		// incrementing by the probability value for the next recommender in the
-		// file
-		int cumulative = probs.getRandomDocumentRecommender();
-
-		// draw a random number
-		int randomRecommendationApproach = random.nextInt(10000);
-		if (randomRecommendationApproach < cumulative)
-			rdg = new RandomDocumentRecommender(con);
-		else {
-			cumulative += probs.getRandomDocumentRecommenderLanguageRestricted();
-			if (randomRecommendationApproach < cumulative)
-				rdg = new RandomDocumentRecommenderLanguageRestricted(con);
-			else {
-				cumulative += probs.getRelatedDocumentsFromSolr();
-				if (randomRecommendationApproach < cumulative)
-					rdg = new RelatedDocumentsMLT(con);
-				else {
-					cumulative += probs.getRelatedDocumentsFromSolrWithKeyphrases();
-					if (randomRecommendationApproach < cumulative)
-						rdg = new RelatedDocumentsKeyphrases(con);
-					else
-						rdg = new StereotypeRecommender(con);
-				}
-			}
-		}
-
-		// for testing individually:
-		// return new RandomDocumentRecommenderLanguageRestricted(con);
-		return rdg;
-	}
-
-	/**
 	 * Initializes a fallback recommender
 	 * 
 	 * Fallback recommender is currently hardcoded to Lucene-MLT
@@ -92,9 +44,9 @@ public class RecommenderFactory {
 
 		Random random = new Random();
 
-		System.out.println("reached getRandomRDG");
 		if (requestByTitle) {
-			System.out.println("will now return a RelatedDocumentsQuery");
+			if (random.nextBoolean())
+				return new CoreSearch(con);
 			if (random.nextBoolean())
 				return new RelatedDocumentsQuery(con);
 			else
@@ -102,17 +54,30 @@ public class RecommenderFactory {
 
 		}
 		// Load probabilities from the config file
-		Probabilities probs = new Probabilities();
 
 		// Start cumulative with prob(RandomDocumentRecommender), then keep
 		// incrementing by the probability value for the next recommender in the
 		// file
-		int cumulative = probs.getRandomDocumentRecommender();
-
+		if(Integer.parseInt(requestDocument.getDocumentId())>9505925){
+			Integer coreRecommenderAPI = random.nextInt(10000);
+			if(coreRecommenderAPI<2000){
+				return random.nextBoolean()? new CoreSearch(con) : new CoreRecommender(con);
+			}else return RecommenderFactory.returnStandardDistributionRDG(con, requestDocument);
+		}
 		// draw a random number
+
+		return RecommenderFactory.returnStandardDistributionRDG(con, requestDocument);
+		// return rdg;
+	}
+
+	public static RelatedDocuments returnStandardDistributionRDG(DBConnection con, DisplayDocument requestDocument) {
+		Random random = new Random();
+
 		int randomRecommendationApproach = random.nextInt(10000);
 
-		// what the hell is this doing?
+		Probabilities probs = new Probabilities();
+		int cumulative = probs.getRandomDocumentRecommender();
+
 		try {
 			// CASE: Completely random
 			if (randomRecommendationApproach < cumulative)
@@ -176,7 +141,7 @@ public class RecommenderFactory {
 			}
 			throw new UnknownException(e, true);
 		}
-
 		return rdg;
 	}
+
 }

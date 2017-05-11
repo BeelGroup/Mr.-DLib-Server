@@ -23,32 +23,18 @@ public class RandomDocumentRecommenderLanguageRestricted extends RandomDocumentR
 		algorithmLoggingInfo.setLanguageRestriction(true);
 	}
 
-	@Override
-	/**
-	 * calls the <code>getRelatedDocumentSet(DisplayDocument, int)</code>
-	 * requesting the default number of documents.
-	 * 
-	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception {
-		return getRelatedDocumentSet(requestDoc, 10);
-	}
 
-	/**
-	 * Returns <code>numberOfRelatedDocs</code> number which share the same
-	 * language as <code>requestDoc</code> of documents randomly selected from
-	 * the collection. Addresses the Simplest case that all documents of same
-	 * collection are consecutive in the database
-	 * 
-	 */
 	@Override
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
+	public DocumentSet getRelatedDocumentSet(DocumentSet requestDocSet) throws Exception {
 		Random random = new Random();
 		long randomSeed = random.nextLong();
 		random.setSeed(randomSeed);
 		String seed = Integer.toString(random.nextInt());
 
+		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo);
+
 		try {
-			return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, true, seed);
+			return scon.getRandomDocumentSet(requestDocSet, true, seed);
 		} catch (Exception e) {
 			throw e;
 		} /*finally {

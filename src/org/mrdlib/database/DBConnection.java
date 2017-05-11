@@ -71,14 +71,14 @@ public class DBConnection {
 			stmt.executeQuery("SET NAMES 'latin1'");
 
 			// get all the lengths of the database fields and store it in a map
-			System.out.println(constants.getDocuments());
 			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
 			fillMap(rs);
 			rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getAbstracts());
 			fillMap(rs2);
-			rs3 = stmt.executeQuery("SHOW VARIABLES LIKE '%collation%'");
-			while (rs3.next())
-				System.out.println(rs3.getString("Variable_name") + " : " + rs3.getString("Value"));
+			// rs3 = stmt.executeQuery("SHOW VARIABLES LIKE '%collation%'");
+			// while (rs3.next())
+			// System.out.println(rs3.getString("Variable_name") + " : " +
+			// rs3.getString("Value"));
 			// rs3 = stmt.executeQuery("SHOW COLUMNS FROM " +
 			// constants.getPersons());
 			// fillMap(rs3);
@@ -1625,6 +1625,8 @@ public class DBConnection {
 		switch (requestType) {
 		case "related_documents": {
 			referenceColumnName = constants.getDocumentIdInLogging();
+			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+				noEntryExceptionRecorded = true;
 			break;
 		}
 		case "url_for_recommended_document": {
@@ -1669,7 +1671,6 @@ public class DBConnection {
 			query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
 					+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
-			System.out.println(query);
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1677,6 +1678,7 @@ public class DBConnection {
 			// carry on
 			if (noEntryExceptionRecorded) {
 				stmt.setNull(1, java.sql.Types.BIGINT);
+				System.out.println("No entry exception woohoo");
 			} else {
 				stmt.setString(1, referenceId);
 			}
@@ -1723,7 +1725,6 @@ public class DBConnection {
 				throw e;
 			}
 		}
-		System.out.println("logging id is : " + loggingId);
 		return loggingId;
 	}
 
@@ -1795,8 +1796,10 @@ public class DBConnection {
 	 * @throws Exception
 	 *             if SQL errors occur
 	 */
-	public String getDocIdFromRecommendation(String recommendationId) throws Exception {
+	public List<String> getReferencesFromRecommendation(String recommendationId, Boolean needDocumentId) throws Exception {
 		String docId = "dummy";
+		String referenceId = "dummy";
+		List<String> references =  new ArrayList<String>();
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -1807,6 +1810,7 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				docId = rs.getString(constants.getDocumentIdInRecommendations());
+				referenceId = rs.getString(constants.getExternalOriginalDocumentId());
 			} else {
 				throw new NoEntryException(recommendationId);
 			}
@@ -1824,7 +1828,9 @@ public class DBConnection {
 				throw e;
 			}
 		}
-		return docId;
+		references.add(docId);
+		references.add(referenceId);
+		return references;
 	}
 
 	/**
@@ -1863,7 +1869,6 @@ public class DBConnection {
 						+ constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " = " + Id
 						+ ")";
 			}
-			System.out.println(query);
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				accessKeyInDb = rs.getString(constants.getAccessKey());
@@ -2545,10 +2550,13 @@ public class DBConnection {
 	 *         randomly chosen stereotype documents
 	 * @throws Exception
 	 */
-	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs,
-			AlgorithmDetails algorithmLoggingInfo) throws Exception {
+	public DocumentSet getStereotypeRecommendations(DocumentSet documentSet) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
+
+		int numberOfRelatedDocs = documentSet.getDesiredNumberFromAlgorithm();
+		AlgorithmDetails algorithmLoggingInfo = documentSet.getAlgorithmDetails();
+
 		String query = "";
 		try {
 			stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -2563,9 +2571,8 @@ public class DBConnection {
 			query += " ORDER BY RAND()";
 			// System.out.println(query);
 			rs = stmt.executeQuery(query);
-			DocumentSet documentSet = new DocumentSet();
+
 			documentSet.setSuggested_label("Related Articles");
-			documentSet.setRequestedDocument(requestDoc);
 
 			if (rs.last()) {
 				int rows = rs.getRow();
@@ -2921,7 +2928,7 @@ public class DBConnection {
 
 		// get the hashmap which has the details of the recommendation algorithm
 		AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
-		System.out.println(recommenderDetails.getQueryParser());
+		// System.out.println(recommenderDetails.getQueryParser());
 
 		String recommendationClass = recommenderDetails.getRecommendationClass();
 		Boolean fallback = recommenderDetails.isFallback();
@@ -3125,27 +3132,33 @@ public class DBConnection {
 		try {
 			// insertion query
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
-					+ constants.getDocumentIdInRecommendations() + ", "
-					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getRankAfterAlgorithm()
-					+ ", " + constants.getRankAfterReRanking() + ", " + constants.getRankAfterShuffling() + ", "
-					+ constants.getRankDelivered() + ", " + constants.getTextRelevanceScoreInRecommendations() + ", "
-					+ constants.getFinalRankingScore() + ", " + constants.getRelativeRelevanceScore() + ") VALUES ("
-					+ document.getDocumentId() + ", " + documentset.getRecommendationSetId() + ", '"
-					+ document.getRankAfterAlgorithm() + "', ?, ?, '" + document.getRankDelivered() + "', '"
-					+ document.getRelevanceScoreFromAlgorithm() + "', '" + document.getFinalScore() + "'" + ", '"
+					+ constants.getDocumentIdInRecommendations() + ", " + constants.getExternalOriginalDocumentId()
+					+ ", " + constants.getRecommendationSetIdInRecommendations() + ", "
+					+ constants.getRankAfterAlgorithm() + ", " + constants.getRankAfterReRanking() + ", "
+					+ constants.getRankAfterShuffling() + ", " + constants.getRankDelivered() + ", "
+					+ constants.getTextRelevanceScoreInRecommendations() + ", " + constants.getFinalRankingScore()
+					+ ", " + constants.getRelativeRelevanceScore() + ") VALUES (" + "?,?, "
+					+ documentset.getRecommendationSetId() + ", '" + document.getRankAfterAlgorithm() + "', ?, ?, '"
+					+ document.getRankDelivered() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
+					+ document.getFinalScore() + "'" + ", '"
 					+ ((double) document.getRelevanceScoreFromAlgorithm() / maxRelevanceScorePerSet) + "')";
-
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-
+			if(document.getDocumentId()==null){
+				stmt.setString(1, null);
+				stmt.setString(2, document.getOriginalDocumentId());
+			}else{
+				stmt.setString(1, document.getDocumentId());
+				stmt.setString(2, null);
+			}
 			if (document.getRankAfterReRanking() == -1) {
-				stmt.setNull(1, java.sql.Types.SMALLINT);
+				stmt.setNull(3, java.sql.Types.SMALLINT);
 			} else
-				stmt.setInt(1, document.getRankAfterReRanking());
+				stmt.setInt(3, document.getRankAfterReRanking());
 
 			if (document.getRankAfterShuffling() == -1) {
-				stmt.setNull(2, java.sql.Types.SMALLINT);
+				stmt.setNull(4, java.sql.Types.SMALLINT);
 			} else
-				stmt.setInt(2, document.getRankAfterShuffling());
+				stmt.setInt(4, document.getRankAfterShuffling());
 
 			// System.out.println(query);
 			stmt.executeUpdate();
@@ -3260,29 +3273,48 @@ public class DBConnection {
 	 */
 	private int getCbfId(AlgorithmDetails recommenderDetails) throws SQLException {
 		int cbfId = -1;
-		Statement stmt = null;
 		ResultSet rs = null;
 		boolean inputIsDocument = !recommenderDetails.getName().contains("Query");
 		String queryType = "";
 		if (!inputIsDocument)
 			queryType = recommenderDetails.getQueryParser();
-		boolean keyphrases = !recommenderDetails.getCbfFeatureType().equals("terms");
-		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE "
-				+ constants.getInputType() + " = '" + (inputIsDocument ? "document" : "query") + "' AND "
-				+ constants.getCbfFeatureType() + " = '" + (keyphrases ? "keyphrases" : "terms") + "'";
+		boolean keyphrases = !(recommenderDetails.getCbfFeatureCount() == null)
+				&& !recommenderDetails.getCbfFeatureType().equals("terms");
+
+		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE ("
+				+ constants.getInputType() + " =? OR ( " + constants.getInputType() + " IS NULL AND ? IS NULL)) AND ("
+				+ constants.getCbfFeatureType() + "=? OR ( " + constants.getCbfFeatureType()
+				+ " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFeatureCount() + "=? OR ( "
+				+ constants.getCbfFeatureCount() + " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFields()
+				+ "= ? OR ( " + constants.getCbfFields() + " IS NULL AND ? IS NULL))";
+
 		if (keyphrases) {
 			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getCbfFeatureType() + "'";
 		}
-		if (!inputIsDocument) {
+		if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
 			query += " AND " + constants.getSearchMode() + " = '" + queryType + "'";
 		}
-		query += " AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.getCbfFeatureCount() + "' AND "
-				+ constants.getCbfFields() + "= '" + recommenderDetails.getCbfTextFields() + "'";
 
-		try {
-			stmt = con.createStatement();
-			System.out.println(query);
-			rs = stmt.executeQuery(query);
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, (inputIsDocument ? "document" : "query"));
+			stmt.setString(2, (inputIsDocument ? "document" : "query"));
+
+			if ((recommenderDetails.getCbfFeatureCount() == null))
+				stmt.setString(3, null);
+			else
+				stmt.setString(3, (keyphrases ? "keyphrases" : "terms"));
+			if ((recommenderDetails.getCbfFeatureCount() == null))
+				stmt.setString(4, null);
+			else
+				stmt.setString(4, (keyphrases ? "keyphrases" : "terms"));
+
+			stmt.setString(5, recommenderDetails.getCbfFeatureCount());
+			stmt.setString(6, recommenderDetails.getCbfFeatureCount());
+
+			stmt.setString(7, recommenderDetails.getCbfTextFields());
+			stmt.setString(8, recommenderDetails.getCbfTextFields());
+
+			rs = stmt.executeQuery();
 			if (rs.next()) {
 				cbfId = rs.getInt(constants.getCbfId());
 				// System.out.printf("cbfId:%d\n", cbfId);
@@ -3292,38 +3324,40 @@ public class DBConnection {
 				if (rs != null)
 					rs.close();
 				String columns = constants.getCbfFeatureType() + "," + constants.getInputType();
-				String values = "'" + (keyphrases ? "keyphrases" : "terms") + "' , '"
-						+ (inputIsDocument ? "document" : "query") + "' ";
+				columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
+				String values = "?,?,?,?";
 				if (keyphrases) {
 					columns += ", " + constants.getCbfNgramType();
 					values += ", '" + recommenderDetails.getCbfFeatureType();
 				}
-				if (!inputIsDocument) {
+				if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
 					columns += ", " + constants.getSearchMode();
 					values += ", '" + queryType + "'";
 				}
-				columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
-				values += ", '" + recommenderDetails.getCbfFeatureCount() + "', '"
-						+ recommenderDetails.getCbfTextFields() + "'";
 
 				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
 
-				stmt = con.createStatement();
+				try (PreparedStatement stmtInsert = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+					if ((recommenderDetails.getCbfFeatureCount() == null))
+						stmtInsert.setString(1, null);
+					else
+						stmtInsert.setString(1, (keyphrases ? "keyphrases" : "terms"));
+					stmtInsert.setString(2, (inputIsDocument ? "document" : "query"));
+					stmtInsert.setString(3, recommenderDetails.getCbfFeatureCount());
+					stmtInsert.setString(4, recommenderDetails.getCbfTextFields());
+					stmtInsert.executeUpdate();
 
-				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
-
-				// get the autogenerated key back
-				rs = stmt.getGeneratedKeys();
-				if (rs.next())
-					cbfId = rs.getInt(1);
+					// get the autogenerated key back
+					rs = stmtInsert.getGeneratedKeys();
+					if (rs.next())
+						cbfId = rs.getInt(1);
+				}
 				// System.out.println(cbfId);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw e;
 		} finally {
-			if (stmt != null)
-				stmt.close();
 			if (rs != null)
 				rs.close();
 		}
@@ -3876,19 +3910,16 @@ public class DBConnection {
 
 	public String getTitleStringId(DisplayDocument requestDocument) throws SQLException {
 		String titleStringId = "";
-		Statement stmt = null;
 		ResultSet rs = null;
 
 		String query = "SELECT " + constants.getTitleSearchId() + " FROM " + constants.getDocumentTitleSearchTable()
-				+ " WHERE " + constants.getTitleSearchString() + "= '" + requestDocument.getCleanTitle() + "' AND "
-				+ constants.getOriginalSearchString() + "='" + requestDocument.getTitle() + "'";
-		try {
-			stmt = con.createStatement();
-			// stmt.setString(1, "'" + requestDocument.getCleanTitle() + "'");
-			// stmt.setString(2, "'" + requestDocument.getTitle() + "'");
+				+ " WHERE " + constants.getTitleSearchString() + "= ? AND " + constants.getOriginalSearchString()
+				+ "=?";
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, requestDocument.getCleanTitle());
+			stmt.setString(2, requestDocument.getTitle());
 			System.out.println(query);
-			stmt.setEscapeProcessing(false);
-			rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery();
 			if (rs.next()) {
 				titleStringId = rs.getString(constants.getTitleSearchId());
 			} else {
@@ -3897,24 +3928,25 @@ public class DBConnection {
 				if (rs != null)
 					rs.close();
 				query = "INSERT INTO " + constants.getDocumentTitleSearchTable() + "("
-						+ constants.getTitleSearchString() + "," + constants.getOriginalSearchString() + ") VALUES('"
-						+ requestDocument.getCleanTitle() + "','" + requestDocument.getTitle() + "')";
-				stmt = con.createStatement();
-				// stmt.setString(1, requestDocument.getCleanTitle());
-				// stmt.setString(2, requestDocument.getTitle());
-				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+						+ constants.getTitleSearchString() + "," + constants.getOriginalSearchString()
+						+ ") VALUES(	?,?)";
+				try (PreparedStatement stmtAlternate = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+					stmtAlternate.setString(1, requestDocument.getCleanTitle());
+					stmtAlternate.setString(2, requestDocument.getTitle());
+					stmtAlternate.executeUpdate();
 
-				// get the autogenerated key back
-				rs = stmt.getGeneratedKeys();
-				if (rs.next())
-					titleStringId = rs.getString(1);
+					// get the autogenerated key back
+					rs = stmtAlternate.getGeneratedKeys();
+					if (rs.next())
+						titleStringId = rs.getString(1);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw e;
 		} finally {
-			if (stmt != null)
-				stmt.close();
 			if (rs != null)
 				rs.close();
 		}
@@ -3993,7 +4025,8 @@ public class DBConnection {
 		}
 		List<String> prefixes = new ArrayList<String>();
 		try (PreparedStatement stmt = con.prepareStatement(query)) {
-			if(organizationId!=null) stmt.setString(1, organizationId);
+			if (organizationId != null)
+				stmt.setString(1, organizationId);
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				prefixes.add(rs.getString(constants.getPrefix()));
@@ -4012,4 +4045,33 @@ public class DBConnection {
 		}
 		return match;
 	}
+
+	public List<String> getAccessableCollections(String accessingOrganization) {
+		List<String> allowedCollections = new ArrayList<String>();
+		if (accessingOrganization == null) {
+			allowedCollections.add("2");
+		} else {
+			String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
+					+ constants.getOrganizationInCollection() + " IN (SELECT " + constants.getAccessedOrganization()
+					+ " FROM " + constants.getAccessRightsTable() + " WHERE " + constants.getAccessingOrganization()
+					+ " = ?)";
+			try (PreparedStatement stmt = con.prepareStatement(query)) {
+				stmt.setString(1, accessingOrganization);
+				ResultSet rs = stmt.executeQuery();
+				while (rs.next()) {
+					allowedCollections.add(rs.getString(constants.getCollectionID()));
+				}
+				if (allowedCollections.isEmpty())
+					allowedCollections.add("2");
+			} catch (SQLException e) {
+				System.out.println("Error in SQL query execution in getAccessableCollections method. Details:");
+				System.out.println(query + "\n " + "?=" + accessingOrganization);
+				allowedCollections = new ArrayList<String>();
+				allowedCollections.add("2");
+			}
+		}
+		return allowedCollections;
+	}
+
+
 }

@@ -35,7 +35,6 @@ public class RecommendationSetService {
 		rootElement = new RootElement();
 		statusReportSet = new StatusReportSet();
 		constants = new Constants();
-		System.out.println("In here");
 		try {
 			con = new DBConnection("tomcat");
 		} catch (Exception e) {
@@ -66,7 +65,6 @@ public class RecommendationSetService {
 	 */
 	@POST
 	@Path("{recommendationSetId:[0-9]+}/confirmation_of_receipt")
-	@Consumes("text/string")
 	public Response dopostAcknowledgeRecommendationReceipt(@PathParam("recommendationSetId") String recommendationSetId,
 			@QueryParam("access_key") String accessKey) throws Exception {
 		Boolean accessKeyCheck = false;
@@ -82,6 +80,8 @@ public class RecommendationSetService {
 				throw new InvalidAccessKeyException();
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
+		} catch (InvalidAccessKeyException g) {
+			statusReportSet.addStatusReport(g.getStatusReport());
 		} catch (SQLException e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		} finally {
@@ -100,17 +100,6 @@ public class RecommendationSetService {
 
 		return Response.ok(rootElement, MediaType.APPLICATION_XML).build();
 	}
-	
-	@POST
-	@Path("{recommendationSetId:[0-9]+}/spoof")
-	@Produces("text/plain")
-	public String doFoo(){
-		return "Gotcha fam";
-	}
-	
-	@POST
-	@Produces("text/plain")
-	public String doOriginalDoc() {
-		return "Hello World ";
-	}
+
+
 }

@@ -42,14 +42,14 @@ public class StatusReport implements Serializable {
 
 	public StatusReport(int statusCode, String statusMessage, String debugMessage) {
 		this.statusMessage = new StatusMessage(statusMessage);
-		this.debugMessage = "![CDATA[" + debugMessage + "]";
+		this.debugMessage = debugMessage;
 		this.statusCode = statusCode;
 	}
 
-	public StatusReport(int statusCode, String statusMessage) {
-		this.statusMessage = new StatusMessage(statusMessage);
+	public StatusReport(int statusCode, String debugMessage) {
+		this.statusMessage = new StatusMessage("![CDATA[" + debugMessage + "]]");
 		this.statusCode = statusCode;
-		if(statusCode!=200) this.debugMessage = "![CDATA[" + statusMessage + "]";
+		if(statusCode!=200) this.debugMessage = debugMessage;
 	}
 
 	public StatusMessage getStatusMessage() {

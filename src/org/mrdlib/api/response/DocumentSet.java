@@ -384,10 +384,8 @@ public class DocumentSet {
 
 			// if the document is the same, do not add as duplicate
 			if (equalDocuments(document, current)) {
-				if (Integer.parseInt(current.getDocumentId()) < Integer.parseInt(document.getDocumentId())) {
 					this.documentList.remove(i);
 					this.documentList.add(document);
-				}
 				return;
 			}
 		}

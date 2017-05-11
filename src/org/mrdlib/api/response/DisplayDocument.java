@@ -76,7 +76,6 @@ public class DisplayDocument implements Serializable {
 		this.authorNames = authorNames;
 		this.publishedIn = publishedIn;
 		this.year = year;
-		System.out.println(clickUrl);
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_plain"));
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_fully_formatted"));
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_and_css"));
@@ -100,6 +99,14 @@ public class DisplayDocument implements Serializable {
 	
 	public String getCleanTitle() {
 		return this.cleanTitle;
+	}
+	
+	public void reCalculateSnippets(){
+		List<Snippet> temp = new ArrayList<Snippet>();
+		temp.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_plain"));
+		temp.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_fully_formatted"));
+		temp.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_and_css"));
+		this.setSnippetList(temp);
 	}
 	
 	@XmlTransient

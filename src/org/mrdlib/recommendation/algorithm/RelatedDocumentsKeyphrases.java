@@ -72,18 +72,18 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 	 * the document, then queries Solr for the related documents
 	 * 
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
+	public DocumentSet getRelatedDocumentSet(DocumentSet requestDoc) throws Exception {
 		try {
 
 			// Get the minimum basis for the keyphrase comparison based on the
 			// fields that we compare on
-			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getDocumentId(),
+			int maxNumber = con.getMinimumNumberOfKeyphrases(requestDoc.getRequestedDocument().getDocumentId(),
 					algorithmLoggingInfo.getCbfFeatureType(), algorithmLoggingInfo.getCbfTextFields());
 
 			// If no comparison is possible because, say, there are no trigrams,
 			// which are needed for a bitri comparison, throw Exception
 			if (maxNumber < 1)
-				throw new NoRelatedDocumentsException(requestDoc.getOriginalDocumentId(), requestDoc.getDocumentId());
+				throw new NoRelatedDocumentsException(requestDoc.getRequestedDocument().getOriginalDocumentId(), requestDoc.getRequestedDocument().getDocumentId());
 
 			// Else pick random number of features <= minimum basis
 			Random random = new Random();
@@ -91,11 +91,11 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 
 			// Set algorithmLoggingInfo with the feature count that is used
 			algorithmLoggingInfo.setCbfFeatureCount(Integer.toString(cbf_feature_count));
-
+			requestDoc.setAlgorithmDetails(algorithmLoggingInfo);
 			// Query solr for the related documents
-			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, algorithmLoggingInfo);
+			return scon.getRelatedDocumentSetByDocument(requestDoc);
 		} catch (NoRelatedDocumentsException f) {
-			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
+			System.out.println("No related documents for doc_id " + requestDoc.getRequestedDocument().getDocumentId());
 			throw f;
 		} catch (Exception e) {
 			e.printStackTrace();

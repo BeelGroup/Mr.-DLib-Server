@@ -1,6 +1,5 @@
 package org.mrdlib.recommendation.algorithm;
 
-import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
@@ -30,7 +29,6 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 
 			algorithmLoggingInfo = new AlgorithmDetails("RelatedDocumentsFromSolr", "cbf", false,
 					"title_abstract_keywords_published_in", "terms", "0");
-			// algorithmLoggingInfo.put("recommendation_framework", "lucene");
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -38,29 +36,20 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 		}
 	}
 
-	@Override
-	/**
-	 * Calls the <code>getRelatedDocumentSet(DisplayDocument, int)</code> which
-	 * returns default number of related documents using Lucene's MoreLikeThis
-	 * function
-	 * 
-	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception {
-		return getRelatedDocumentSet(requestDoc, 10);
-	}
 
 	@Override
 	/**
 	 * returns related documents using Lucene's MoreLikeThis function
 	 * 
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
+	public DocumentSet getRelatedDocumentSet(DocumentSet requestDoc) throws Exception {
 		try {
 
 			// Query solr using the defaults set in solrConfig.xml
-			return scon.getRelatedDocumentSetByDocument(requestDoc, numberOfRelatedDocs, algorithmLoggingInfo);
+			requestDoc.setAlgorithmDetails(algorithmLoggingInfo);
+			return scon.getRelatedDocumentSetByDocument(requestDoc);
 		} catch (NoRelatedDocumentsException f) {
-			System.out.println("No related documents for doc_id " + requestDoc.getDocumentId());
+			System.out.println("No related documents for doc_id " + requestDoc.getRequestedDocument().getDocumentId());
 			throw f;
 		} catch (Exception e) {
 			e.printStackTrace();

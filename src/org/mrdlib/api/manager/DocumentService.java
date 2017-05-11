@@ -71,7 +71,7 @@ public class DocumentService {
 	 * @return a document set of related documents
 	 */
 	public RootElement getRelatedDocumentSet(@Context HttpServletRequest request,
-			@PathParam("documentId") String inputQuery, @QueryParam("partner_id") String partnerName,
+			@PathParam("documentId") String inputQuery, @QueryParam("org_id") String partnerName,
 			@QueryParam("app_id") String appName, @QueryParam("app_version") String appVersion,
 			@QueryParam("app_lang") String appLang) {
 		if (constants.getDebugModeOn())
@@ -83,11 +83,13 @@ public class DocumentService {
 		}
 
 		DisplayDocument requestDocument = null;
-		DocumentSet documentset = null;
+		DocumentSet documentset = new DocumentSet();
 		Long timeToPickAlgorithm = null;
 		Long timeToUserModel = null;
 		Long timeAfterExecution = null;
 		Boolean requestByTitle = false;
+		boolean fourOFourError = false;
+
 		// could lead to inconsistency. Identifier would be better
 		String applicationId = "";
 		String partnerId = "";
@@ -118,6 +120,20 @@ public class DocumentService {
 				applicationId = null;
 				partnerId = null;
 			}
+
+			{
+				documentset.setIpAddress(ipAddress);
+				documentset.setStartTime(requestRecieved);
+
+				if (applicationId != null)
+					documentset.setAppId(applicationId);
+				if (partnerId != null)
+					documentset.setPartnerId(partnerId);
+				if (appVersion != null)
+					documentset.setAppVersion(appVersion);
+				if (appVersion != null)
+					documentset.setAppLang(appLang.substring(0, 2));
+			}
 			/*
 			 * First we have a look if it is an integer. if the conversion
 			 * fails, e.g. there are some letters in it, we go on and try to get
@@ -131,6 +147,11 @@ public class DocumentService {
 					System.out.println("try int");
 				Integer.parseInt(inputQuery);
 				requestDocument = con.getDocumentBy(constants.getDocumentId(), inputQuery);
+			}catch(NoEntryException e){
+				requestDocument = new DisplayDocument();
+				requestDocument.setDocumentId(inputQuery);
+				requestByTitle = false;
+				throw e;
 			} catch (NumberFormatException e) {
 				if (constants.getDebugModeOn())
 					System.out.println("int failed");
@@ -197,9 +218,10 @@ public class DocumentService {
 						System.out.println(
 								"chosen algorithm: " + relatedDocumentGenerator.algorithmLoggingInfo.getName());
 
-					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
-							ar.getNumberOfCandidatesToReRank());
 					documentset.setRequestedDocument(requestDocument);
+					documentset.setDesiredNumberFromAlgorithm(ar.getNumberOfCandidatesToReRank());
+
+					documentset = relatedDocumentGenerator.getRelatedDocumentSet(documentset);
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
@@ -230,8 +252,7 @@ public class DocumentService {
 					System.out.println("Using fallback recommender");
 				relatedDocumentGenerator = RecommenderFactory.getFallback(con);
 				try {
-					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
-							ar.getNumberOfCandidatesToReRank());
+					documentset = relatedDocumentGenerator.getRelatedDocumentSet(documentset);
 				} catch (NoRelatedDocumentsException e) {
 					if (constants.getDebugModeOn())
 						System.out.println("No related documents in fallback either");
@@ -243,9 +264,10 @@ public class DocumentService {
 				System.out.println("Do the documentset stuff");
 
 			timeAfterExecution = System.currentTimeMillis();
-			documentset.setAlgorithmDetails(relatedDocumentGenerator.getAlgorithmLoggingInfo());
-			documentset = ar.selectRandomRanking(documentset);
+
+
 			if (documentset.getSize() > 0) {
+				documentset = ar.selectRandomRanking(documentset);
 				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
 				documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
 				documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
@@ -260,8 +282,8 @@ public class DocumentService {
 
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
+			fourOFourError = true;
 			statusReportSet.addStatusReport(e1.getStatusReport());
-
 			// if retry limit has been reached and no related documents still
 			// have been extracted
 		} catch (NoRelatedDocumentsException e) {
@@ -271,26 +293,11 @@ public class DocumentService {
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 			e.printStackTrace();
-		} finally {
-
-			documentset.setIpAddress(ipAddress);
-			documentset.setStartTime(requestRecieved);
-
-			if (applicationId != null)
-				documentset.setAppId(applicationId);
-			if (partnerId != null)
-				documentset.setPartnerId(partnerId);
-			if (appVersion != null)
-				documentset.setAppVersion(appVersion);
-			if (appVersion != null)
-				documentset.setAppLang(appLang.substring(0, 2));
-
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
 		else {
-			boolean fourOFourError = false;
 			for (StatusReport statusReport : statusReportSet.getStatusReportList()) {
 				if (statusReport.getStatusCode() == 404) {
 					fourOFourError = true;
@@ -298,13 +305,15 @@ public class DocumentService {
 				}
 			}
 			if (fourOFourError) {
+				System.out.println("Got here");
 				statusReportSet = new StatusReportSet();
 				if (requestByTitle) {
 					statusReportSet.addStatusReport(new StatusReport(404,
 							"Documents related to query by title(" + requestDocument.getTitle() + " )were not found"));
-				} else{
-					statusReportSet.addStatusReport(new StatusReport(404,
-							"No such document with document id " + requestDocument.getTitle() + " exists in our database"));}
+				} else {
+					statusReportSet.addStatusReport(new StatusReport(404, "No such document with document id "
+							+ requestDocument.getDocumentId() + " exists in our database"));
+				}
 			}
 		}
 		System.out.println("Did the documentset stuff");

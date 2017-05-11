@@ -1,6 +1,7 @@
 package org.mrdlib.recommendation.framework;
 
 import java.net.URLEncoder;
+import java.util.List;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -62,9 +63,13 @@ public class solrConnection {
 	 *         set
 	 * @throws Exception
 	 */
-	public DocumentSet getRelatedDocumentSetByDocument(DisplayDocument document, int delimitedRows,
-			AlgorithmDetails logginginfo) throws Exception {
-		DocumentSet relatedDocuments = new DocumentSet();
+	public DocumentSet getRelatedDocumentSetByDocument(DocumentSet relatedDocuments) throws Exception {
+
+		DisplayDocument document = relatedDocuments.getRequestedDocument();
+		AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
+		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
+		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getPartnerId());
+
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
 		DisplayDocument relDocument = new DisplayDocument();
@@ -72,10 +77,7 @@ public class solrConnection {
 		String fallback_url = "";
 
 		// get only documents which are in the same collection
-		String filterquery = "";
-		if (document.getCollectionShortName().equals(constants.getGesis()))
-			filterquery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
-
+		String filterquery = constants.getCollectionID() + ":(" + String.join(" ", allowedCollections) + ")";
 		query.addFilterQuery(filterquery);
 
 		// get related documents for the given document
@@ -98,15 +100,12 @@ public class solrConnection {
 			response = solr.query(query);
 
 			SolrDocumentList docs = response.getResults();
-			System.out.println("Query Time: " + Integer.toString(response.getQTime()));
 			// no related documents found
 			if (docs.isEmpty()) {
 				// System.out.println("In here");
 				throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
 			} else {
-				long timeNow = System.currentTimeMillis();
 				relatedDocuments.setSuggested_label("Related Articles");
-				relatedDocuments.setRequestedDocument(document);
 				relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
 				// for each document add it to documentSet
 				for (int i = 0; i < docs.size(); i++) {
@@ -142,8 +141,6 @@ public class solrConnection {
 					// add it to the collection
 					relatedDocuments.addDocument(relDocument);
 				}
-				System.out.printf("Time for adding docs to list\t");
-				System.out.println(System.currentTimeMillis() - timeNow);
 			}
 		} catch (Exception e) {
 			System.out.println("test: " + e.getStackTrace());
@@ -202,10 +199,13 @@ public class solrConnection {
 	 * @throws Exception
 	 *             if solr connection fails
 	 */
-	public DocumentSet getRandomDocumentSet(DisplayDocument document, int delimitedRows, Boolean restrictLanguage,
-			String seed) throws Exception {
+	public DocumentSet getRandomDocumentSet(DocumentSet relatedDocuments, Boolean restrictLanguage, String seed)
+			throws Exception {
+		
+		DisplayDocument document = relatedDocuments.getRequestedDocument();
+		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
+		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getPartnerId());
 
-		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
 		DisplayDocument relDocument = new DisplayDocument();
@@ -214,10 +214,8 @@ public class solrConnection {
 		query.setRequestHandler("/select");
 		String fallback_url = "";
 		query.setQuery("*:*");
-		String filterQuery = "";
 		// get only documents which are in the same collection
-		if (document.getCollectionShortName().equals(constants.getGesis()))
-			filterQuery = constants.getSolrCollectionShortName() + ":" + document.getCollectionShortName();
+		String filterQuery = constants.getCollectionID() + ":(" + String.join(" ", allowedCollections) + ")";
 		query.addFilterQuery(filterQuery);
 
 		// add second filter query if language needs to be restricted
@@ -289,11 +287,15 @@ public class solrConnection {
 		return relatedDocuments;
 	}
 
-	public DocumentSet getDocumentsFromSolrByQuery(DisplayDocument requestedDocument, int delimitedRows,
-			AlgorithmDetails logginginfo) throws Exception {
+	public DocumentSet getDocumentsFromSolrByQuery(DocumentSet relatedDocuments) throws Exception {
 
+		DisplayDocument requestedDocument = relatedDocuments.getRequestedDocument();
+		AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
+		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
+		
+		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getPartnerId());
+		
 		String title = requestedDocument.getCleanTitle();
-		DocumentSet relatedDocuments = new DocumentSet();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
 		DisplayDocument oneRelatedDocument = new DisplayDocument();
@@ -308,6 +310,7 @@ public class solrConnection {
 			queryHandler = "/search";
 		}
 		query.setRequestHandler(queryHandler);
+		query.setFilterQueries(constants.getCollectionID() + ":(" + String.join(" ", allowedCollections) +")");
 		String fallback_url = "";
 
 		// get related documents for the given document title using the standard
@@ -340,19 +343,6 @@ public class solrConnection {
 		// set display params
 		query.setParam("fl", "score,id");
 
-		// // if rec_approach is Keyphrases: override default mlt.fl
-		// if
-		// (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases"))
-		// {
-		// System.out.println("if with RelatedDocumentsFromSolrWithKeyphrases");
-		// String similarityParams = getMltFL(logginginfo.getCbfTextFields(),
-		// logginginfo.getCbfFeatureType(),
-		// logginginfo.getCbfFeatureCount());
-		// query.setParam("mlt.fl", similarityParams);
-		// query.setParam("mlt.df", "2");
-		// }
-
-	
 		try {
 			System.out.println("try to get the response from solr! The query looks like: " + query);
 			response = solr.query(query);
@@ -397,7 +387,7 @@ public class solrConnection {
 					}
 
 					oneRelatedDocument.setFallbackUrl(fallback_url);
-					//oneRelatedDocument.setClickUrl(fallback_url);
+					// oneRelatedDocument.setClickUrl(fallback_url);
 
 					// add it to the collection
 					relatedDocuments.addDocument(oneRelatedDocument);

@@ -1,6 +1,7 @@
 package org.mrdlib.api.manager;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -70,8 +71,9 @@ public class RecommendationService {
 	 */
 	@GET
 	@Path("{recommendationId:[0-9]+}/original_url/")
-	public Response getRedirectedPathReversedParams(@Context HttpServletRequest request, @PathParam("recommendationId") String recoId,
-			@QueryParam("access_key") String accessKey, @QueryParam("request_format") String format) throws Exception {
+	public Response getRedirectedPathReversedParams(@Context HttpServletRequest request,
+			@PathParam("recommendationId") String recoId, @QueryParam("access_key") String accessKey,
+			@QueryParam("request_format") String format) throws Exception {
 		return getRedirectedPath(request, recoId, accessKey, format);
 	}
 
@@ -92,55 +94,70 @@ public class RecommendationService {
 	 *         clicked
 	 * @throws Exception
 	 */
-	public Response getRedirectedPath(HttpServletRequest request, String recoId, String accessKey, String format) throws Exception {
+	public Response getRedirectedPath(HttpServletRequest request, String recoId, String accessKey, String format)
+			throws Exception {
 		URI url;
 		Boolean accessKeyCheck = false;
 		DisplayDocument relDocument;
-		String docId = "";
+		String reference = "";
+		Boolean useExternalDocumentId = false;
 		String urlString = "";
 		String ipAddress = request.getHeader("X-FORWARDED-FOR");
 		if (ipAddress == null) {
 			ipAddress = request.getRemoteAddr();
 		}
 
-		try {
-
-			// Check accessKey from clickURL against the one stored in our
-			// database
+		// Check accessKey from clickURL against the one stored in our
+		// database
+		try{
 			accessKeyCheck = con.checkAccessKey(recoId, accessKey, false);
 			if (accessKeyCheck) {
 				try {
 					// Get document related to recommendation
-					docId = con.getDocIdFromRecommendation(recoId);
-					relDocument = con.getDocumentBy(constants.getDocumentId(), docId);
+					List<String> references = con.getReferencesFromRecommendation(recoId, true);
+					if (references.get(0) == null) {
+						useExternalDocumentId = true;
+						reference = references.get(1);
+					} else {
+						reference = references.get(0);
+					}
 
-					// Generate the redirection Path
-					if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
-						if (constants.getEnvironment().equals("api"))
-							urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-						else
-							urlString = constants.getGesisBetaCollectionLink()
-									.concat(relDocument.getOriginalDocumentId());
-					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
-						urlString = constants.getCoreCollectionLink()
-								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+					if (!useExternalDocumentId) {
+						relDocument = con.getDocumentBy(constants.getDocumentId(), reference);
 
-				} catch (Exception e) {
-					statusReportSet
-							.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+						// Generate the redirection Path
+						if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+							if (constants.getEnvironment().equals("api"))
+								urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+							else
+								urlString = constants.getGesisBetaCollectionLink()
+										.concat(relDocument.getOriginalDocumentId());
+						} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+							urlString = constants.getCoreCollectionLink()
+									.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+					} else {
+						if (reference.contains(constants.getCore()))
+							urlString = constants.getCoreCollectionLink().concat(reference.split("-")[1]);
+					}
+				} catch (NoEntryException e) {
+					statusReportSet.addStatusReport(new NoEntryException(reference, "Document").getStatusReport());
 				}
+
 			} else {
 				statusReportSet.addStatusReport(new InvalidAccessKeyException().getStatusReport());
 			}
-
-		} catch (NoEntryException e) {
+		}catch(NoEntryException e){
 			statusReportSet.addStatusReport(new NoEntryException(recoId, "Recommendation").getStatusReport());
 		}
+		
+
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
 
 		rootElement.setStatusReportSet(statusReportSet);
 		try {
+			System.out.println("In here");
+
 			url = new URI(urlString);
 			DocumentSet results = new DocumentSet();
 			results.setIpAddress(ipAddress);
@@ -155,9 +172,10 @@ public class RecommendationService {
 				else
 					throw new UnknownException("Logging could not be completed for this click");
 			}
-			
+
 			rootElement.setDocumentSet(null);
 		} catch (Exception e) {
+			System.out.println("In here");
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		} finally {
 			try {
