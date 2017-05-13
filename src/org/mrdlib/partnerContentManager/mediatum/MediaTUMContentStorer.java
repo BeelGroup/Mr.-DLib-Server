@@ -39,13 +39,15 @@ public class MediaTUMContentStorer implements IContentStorer<OAIDCRecordConverte
 	private Map<String, String> createLanguageMap() {
 		Map<String, String> languageMap = new HashMap<String, String>();
 		
-		languageMap.put("en", "en");
-		languageMap.put("de", "de");
-		languageMap.put("es", "es");
-		languageMap.put("fr", "fr");
-		languageMap.put("zh", "zh");
-		languageMap.put("ja", "ja");
-		languageMap.put("ru", "ru");
+		languageMap.put("eng", "(en)");
+		languageMap.put("de", "(de)");
+		languageMap.put("ger", "(de)");
+		languageMap.put("(ger)", "(de)");
+		languageMap.put("spa", "(es)");
+		languageMap.put("fra", "(fr)");
+		languageMap.put("zho", "(zh)");
+		languageMap.put("jpn", "(ja)");
+		languageMap.put("rus", "(ru)");
 		
 		return languageMap;
 	}
@@ -77,8 +79,10 @@ public class MediaTUMContentStorer implements IContentStorer<OAIDCRecordConverte
 		// TODO: set up XML document
 		xmlDocument.addAbstract(storableContent.getMdlDocumentAbstract().getAbstract_(), storableContent.getMdlDocument().getLanguage());
 		xmlDocument.setId(storableContent.getMdlDocument().getId_original());
-		xmlDocument.setTitle(storableContent.getMdlDocument().getTitle_clean());
+		
+		xmlDocument.setTitle(storableContent.getMdlDocument().getTitle());
 		xmlDocument.setFulltitle(storableContent.getMdlDocument().getTitle());
+		
 		xmlDocument.setLanguage(storableContent.getMdlDocument().getLanguage());
 		xmlDocument.setYear(Integer.toString(storableContent.getMdlDocument().getAdded().getYear()));
 		xmlDocument.setFacetYear(Integer.toString(storableContent.getMdlDocument().getAdded().getYear()));
@@ -90,7 +94,7 @@ public class MediaTUMContentStorer implements IContentStorer<OAIDCRecordConverte
 		xmlDocument.addKeyWord("temp");
 		
 		// TODO: cast from Enum to String or cut out ContentConverter completely
-		xmlDocument.addType("temp");
+		xmlDocument.addType("unknown");
 		
 		// TODO: set publisher correctly
 		xmlDocument.setPublishedIn("temp", "unknown");

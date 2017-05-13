@@ -112,10 +112,9 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 							oaidcRecord.addFormat(attributeValue);
 							break;
 						case "identifier":
-							oaidcRecord.addIdentifier(attributeValue);
-							break;
-						case "id":
-							oaidcRecord.addIdentifier(attributeValue);
+							if (oaidcRecord.getIdentifiers().size() == 0) {
+								oaidcRecord.addIdentifier(attributeValue.split("id=")[1]);
+							}
 							break;
 						case "source":
 							oaidcRecord.addSource(attributeValue);

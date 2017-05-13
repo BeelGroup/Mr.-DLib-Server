@@ -166,6 +166,8 @@ public class DBConnection {
 	 */
 	public Connection createConnectionJar() throws Exception {
 		try {
+			System.out.println("DB: " + constants.getDb());
+			
 			Class.forName(constants.getDbClass());
 			con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
 					constants.getPassword());
@@ -921,6 +923,9 @@ public class DBConnection {
 			// checks for null values etc
 			SetIfNull(document, stateQueryDoc, document.getId(), 1, "string", constants.getIdOriginal());
 			SetIfNull(document, stateQueryDoc, collectionId, 2, "long", constants.getDocumentCollectionID());
+			
+			System.out.println("TITLE = " + document.getTitle());
+			
 			SetIfNull(document, stateQueryDoc, document.getTitle(), 3, "string", constants.getTitle());
 			SetIfNull(document, stateQueryDoc, document.getCleanTitle(), 4, "string", constants.getTitleClean());
 			SetIfNull(document, stateQueryDoc, document.getPublishedIn(), 5, "string", constants.getPublishedId());

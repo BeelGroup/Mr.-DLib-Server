@@ -347,6 +347,7 @@ public class XMLDocument {
 
 			//look up the language in the language Map (which has its information from a xml config file)
 			tempLan = languageMap.get(language.toLowerCase());
+			
 			if (!(tempLan == null))
 				language = tempLan;
 

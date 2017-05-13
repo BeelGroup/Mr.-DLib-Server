@@ -60,6 +60,8 @@ public class MediaTUMPartnerContentManager {
 				String filePath = file.getAbsolutePath();
 				
 				if (filePath.endsWith(".xml")) {
+					System.out.println(filePath);
+					
 					OAIDCRecordConverted oaidcRecordConverted = mediaTUMContentConverter.convertPartnerContentToStorablePartnerContent(filePath);
 				
 					if (oaidcRecordConverted.isContentValid()) {
