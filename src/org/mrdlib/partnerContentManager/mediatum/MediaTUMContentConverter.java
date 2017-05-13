@@ -39,12 +39,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 	public OAIDCRecordConverted convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert) {
 		OAIDCRecord oaidcRecord = readOAIDCRecordFromFile(pathOfFileToConvert);
 		
-		System.out.println(oaidcRecord.toString());
-		
 		MdlDocument mdlDocument = mapMediaTumContentToMdlDocumentTable(oaidcRecord);
-		
-		System.out.println(mdlDocument);
-		
 		MdlDocumentAbstract mdlDocumentAbstract = mapMediaTumContentToMdlDocumentAbstractTable(oaidcRecord);
 		MdlDocumentExternalId mdlDocumentExternalId = mapMediaTumContentToMdlDocumentExternalIdTable(oaidcRecord);
 		MdlDocumentKeyphrase mdlDocumentKeyphrase = mapMediaTumContentToMdlDocumentKeyphraseTable(oaidcRecord);
@@ -117,6 +112,9 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 							oaidcRecord.addFormat(attributeValue);
 							break;
 						case "identifier":
+							oaidcRecord.addIdentifier(attributeValue);
+							break;
+						case "id":
 							oaidcRecord.addIdentifier(attributeValue);
 							break;
 						case "source":
@@ -358,11 +356,9 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 		case "fra":
 			return "fr";
 		case "zho":
-			// TODO: possibly introduce Chinese language code to MDL 
-			return null;
+			return "zh";
 		case "jpn":
-			// TODO: possibly introduce Japanese language code to MDL
-			return null;
+			return "ja";
 		case "rus":
 			return "ru";
 		default:
