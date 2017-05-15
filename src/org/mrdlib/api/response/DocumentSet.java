@@ -713,22 +713,22 @@ public class DocumentSet {
 		return this.debugDetailsPerSet.getOriginatingIp();
 	}
 	
-	public String getPartnerId() {
-		return this.debugDetailsPerSet.getPartnerId();
+	public String getRequestingPartnerId() {
+		return this.debugDetailsPerSet.getRequestingPartnerId();
 	}
 
 	@XmlTransient
-	public void setPartnerId(String partnerId) {
-		this.debugDetailsPerSet.setPartnerId(partnerId);
+	public void setRequestingPartnerId(String partnerId) {
+		this.debugDetailsPerSet.setRequestingPartnerId(partnerId);
 	}
 
-	public String getAppId() {
-		return this.debugDetailsPerSet.getAppId();
+	public String getRequestingAppId() {
+		return this.debugDetailsPerSet.getRequestingAppId();
 	}
 
 	@XmlTransient
-	public void setAppId(String appId) {
-		this.debugDetailsPerSet.setAppId(appId);
+	public void setRequestingAppId(String appId) {
+		this.debugDetailsPerSet.setRequestingAppId(appId);
 	}
 
 	public String getAppVersion() {

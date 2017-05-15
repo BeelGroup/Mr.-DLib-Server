@@ -68,7 +68,7 @@ public class solrConnection {
 		DisplayDocument document = relatedDocuments.getRequestedDocument();
 		AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
 		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
-		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getPartnerId());
+		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
 
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
@@ -204,7 +204,7 @@ public class solrConnection {
 		
 		DisplayDocument document = relatedDocuments.getRequestedDocument();
 		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
-		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getPartnerId());
+		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
 
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
@@ -293,7 +293,7 @@ public class solrConnection {
 		AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
 		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
 		
-		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getPartnerId());
+		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
 		
 		String title = requestedDocument.getCleanTitle();
 		SolrQuery query = new SolrQuery();

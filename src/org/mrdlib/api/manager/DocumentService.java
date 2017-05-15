@@ -126,9 +126,9 @@ public class DocumentService {
 				documentset.setStartTime(requestRecieved);
 
 				if (applicationId != null)
-					documentset.setAppId(applicationId);
+					documentset.setRequestingAppId(applicationId);
 				if (partnerId != null)
-					documentset.setPartnerId(partnerId);
+					documentset.setRequestingPartnerId(partnerId);
 				if (appVersion != null)
 					documentset.setAppVersion(appVersion);
 				if (appVersion != null)

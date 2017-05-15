@@ -30,7 +30,6 @@ public class CoreRecommender extends RelatedDocuments {
 		String documentIdInCore = originalDocumentId.split("-")[1];
 		String json = sacon.getSimilarArticles(documentIdInCore);
 		List<SimilarDocument> docs = sacon.parseJSONFromGetArticle(json);
-
 		DocumentSet returnable = sacon.convertToMDLSet(docs, requestDocSet);
 		if(returnable.getSize()==0) throw new NoRelatedDocumentsException(documentIdInCore, requestDocument.getDocumentId());
 		return mergeWithMDLDatabase(returnable);

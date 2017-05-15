@@ -89,7 +89,8 @@ public class Constants {
 	private String ipHash;
 	private String ip;
 	private String partnerId;
-	private String appId;
+	private String requestingAppId;
+	private String processingAppId;
 	private String appVersion;
 	private String appLang;
 
@@ -367,7 +368,8 @@ public class Constants {
 			this.ipHash = prop.getProperty("ipHash");
 			this.ip = prop.getProperty("ip");
 			this.partnerId = prop.getProperty("partnerId");
-			this.appId = prop.getProperty("appId");
+			this.requestingAppId = prop.getProperty("requestingAppId");
+			this.processingAppId = prop.getProperty("processingAppId");
 			this.appVersion = prop.getProperty("appVersion");
 			this.appLang = prop.getProperty("appLang");
 
@@ -1371,8 +1373,8 @@ public class Constants {
 		return partnerId;
 	}
 
-	public String getAppId() {
-		return appId;
+	public String getRequestingAppId() {
+		return requestingAppId;
 	}
 
 	public String getAppVersion() {
@@ -1410,4 +1412,9 @@ public class Constants {
 	public String getExternalOriginalDocumentId() {
 		return externalOriginalDocumentId;
 	}
+
+	public String getProcessingAppId() {
+		return processingAppId;
+	}
+
 }

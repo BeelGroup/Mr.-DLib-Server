@@ -1658,7 +1658,6 @@ public class DBConnection {
 
 			debugMessage = statusReport.getDebugMessage();
 		}
-		System.out.println(debugMessage);
 
 		try {
 			// insertion query
@@ -1666,11 +1665,12 @@ public class DBConnection {
 					+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
 					+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
 					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIpHash()
-					+ ", " + constants.getIp() + ", " + constants.getAppId() + ", " + constants.getPartnerId() + ", "
+					+ ", " + constants.getIp() + ", " + constants.getRequestingAppId() + ", "
+					+ constants.getProcessingAppId() + ", " + constants.getPartnerId() + ", "
 					+ constants.getAppVersion() + ", " + constants.getAppLang() + ") VALUES ('";
 			query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
-					+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
+					+ "', '" + statusCode + "',?, ?,?,?,?,?,?,?);";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1686,10 +1686,17 @@ public class DBConnection {
 			String ipAddress = documentSet.getIpAddress();
 
 			stmt.setString(4, ipAddress);
-			stmt.setString(5, documentSet.getAppId());
-			stmt.setString(6, documentSet.getPartnerId());
-			stmt.setString(7, documentSet.getAppVersion());
-			stmt.setString(8, documentSet.getAppLang());
+			stmt.setString(5, documentSet.getRequestingAppId());
+			String processingAppId;
+			try{
+				processingAppId = documentSet.getAlgorithmDetails().getProcessingAppId();
+			} catch( NullPointerException e){
+				processingAppId = null;
+			}
+			stmt.setString(6, processingAppId);
+			stmt.setString(7, documentSet.getRequestingPartnerId());
+			stmt.setString(8, documentSet.getAppVersion());
+			stmt.setString(9, documentSet.getAppLang());
 
 			try {
 				String saltedIp = "mld" + ipAddress;
@@ -1796,10 +1803,11 @@ public class DBConnection {
 	 * @throws Exception
 	 *             if SQL errors occur
 	 */
-	public List<String> getReferencesFromRecommendation(String recommendationId, Boolean needDocumentId) throws Exception {
+	public List<String> getReferencesFromRecommendation(String recommendationId, Boolean needDocumentId)
+			throws Exception {
 		String docId = "dummy";
 		String referenceId = "dummy";
-		List<String> references =  new ArrayList<String>();
+		List<String> references = new ArrayList<String>();
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -3143,10 +3151,10 @@ public class DBConnection {
 					+ document.getFinalScore() + "'" + ", '"
 					+ ((double) document.getRelevanceScoreFromAlgorithm() / maxRelevanceScorePerSet) + "')";
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-			if(document.getDocumentId()==null){
+			if (document.getDocumentId() == null) {
 				stmt.setString(1, null);
 				stmt.setString(2, document.getOriginalDocumentId());
-			}else{
+			} else {
 				stmt.setString(1, document.getDocumentId());
 				stmt.setString(2, null);
 			}
@@ -4072,6 +4080,5 @@ public class DBConnection {
 		}
 		return allowedCollections;
 	}
-
 
 }

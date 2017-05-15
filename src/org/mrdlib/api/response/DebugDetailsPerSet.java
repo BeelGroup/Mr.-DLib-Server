@@ -47,8 +47,8 @@ public class DebugDetailsPerSet {
 	private String accessKeyHash;
 	private String originatingIp;
 	
-	private String partnerId;
-	private String appId;
+	private String requestingPartnerId;
+	private String requestingAppId;
 	private String appVersion;
 	private String appLang;
 	
@@ -269,22 +269,22 @@ public class DebugDetailsPerSet {
 		this.originatingIp = originatingIp;
 	}
 
-	public String getPartnerId() {
-		return partnerId;
+	public String getRequestingPartnerId() {
+		return requestingPartnerId;
 	}
 
 	@XmlTransient
-	public void setPartnerId(String partnerId) {
-		this.partnerId = partnerId;
+	public void setRequestingPartnerId(String partnerId) {
+		this.requestingPartnerId = partnerId;
 	}
 
-	public String getAppId() {
-		return appId;
+	public String getRequestingAppId() {
+		return requestingAppId;
 	}
 
 	@XmlTransient
-	public void setAppId(String appId) {
-		this.appId = appId;
+	public void setRequestingAppId(String appId) {
+		this.requestingAppId = appId;
 	}
 
 	public String getAppVersion() {

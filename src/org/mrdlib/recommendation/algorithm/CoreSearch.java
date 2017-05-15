@@ -30,7 +30,6 @@ public class CoreSearch extends RelatedDocuments {
 		String title = requestDocument.getTitle();
 		String json = sacon.searchByTitle(title);
 		List<PostTitleData> docs = sacon.parseJSONFromPostTitle(json);
-
 		DocumentSet returnable = sacon.convertToMDLSet(docs, requestDocSet);
 		if(returnable.getSize()==0) throw new NoRelatedDocumentsException(title, title);
 		return mergeWithMDLDatabase(returnable);

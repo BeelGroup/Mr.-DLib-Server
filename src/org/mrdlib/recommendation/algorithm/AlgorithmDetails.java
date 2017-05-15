@@ -13,25 +13,36 @@ public class AlgorithmDetails {
 	private String cbfFeatureType;
 	private String cbfFeatureCount;
 	private String queryParser;
-	
+
 	private boolean humanCuratedRecommendations = false;
 	private String category;
-	
+
 	private boolean fallback = false;
 	private int recommendationAlgorithmId;
-	
-	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction) {
+
+	private String processingAppId;
+
+	public AlgorithmDetails(String name) {
+		if (name.toLowerCase().contains("core"))
+			this.setProcessingAppId("8");
+		else
+			this.setProcessingAppId("6");
 		this.name = name;
+	}
+
+	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction) {
+		this(name);
 		this.recommendationClass = recommendationClass;
 		this.languageRestriction = languageRestriction;
 	}
 
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String category) {
+		this(name);
 		if (recommendationClass.equals("stereotype") && recommendationClass.equals("most_popular")) {
 			throw new UnknownException(
 					"This Algorithm Details constructor can only be used for Stereotype or Most Popular Recommendation approaches");
 		} else {
-			this.name = name;
+
 			this.recommendationClass = recommendationClass;
 			this.languageRestriction = languageRestriction;
 			this.category = category;
@@ -41,8 +52,7 @@ public class AlgorithmDetails {
 
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String cbfTextFields,
 			String cbfFeatureType, String cbfFeatureCount) {
-		super();
-		this.name = name;
+		this(name);
 		this.recommendationClass = recommendationClass;
 		this.languageRestriction = languageRestriction;
 		this.cbfTextFields = cbfTextFields;
@@ -50,19 +60,11 @@ public class AlgorithmDetails {
 		this.cbfFeatureCount = cbfFeatureCount;
 		this.setContentBased(true);
 	}
-	
+
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String cbfTextFields,
 			String cbfFeatureType, String cbfFeatureCount, String queryParser) {
-		super();
-		this.name = name;
-		this.recommendationClass = recommendationClass;
-		this.languageRestriction = languageRestriction;
-		this.cbfTextFields = cbfTextFields;
-		this.cbfFeatureType = cbfFeatureType;
-		this.cbfFeatureCount = cbfFeatureCount;
+		this(name, recommendationClass, languageRestriction, cbfTextFields, cbfFeatureType, cbfFeatureCount);
 		this.setQueryParser(queryParser);
-		System.out.println(this.getQueryParser());
-		this.setContentBased(true);
 	}
 
 	/**
@@ -177,8 +179,6 @@ public class AlgorithmDetails {
 		this.cbfFeatureCount = cbfFeatureCount;
 	}
 
-	
-
 	/**
 	 * @param category
 	 *            the category to set
@@ -210,7 +210,8 @@ public class AlgorithmDetails {
 	}
 
 	/**
-	 * @param fallback the fallback to set
+	 * @param fallback
+	 *            the fallback to set
 	 */
 	public void setFallback(boolean fallback) {
 		this.fallback = fallback;
@@ -224,18 +225,27 @@ public class AlgorithmDetails {
 	}
 
 	/**
-	 * @param recommendationAlgorithmId the recommendationAlgorithmId to set
+	 * @param recommendationAlgorithmId
+	 *            the recommendationAlgorithmId to set
 	 */
 	public void setRecommendationAlgorithmId(int recommendationAlgorithmId) {
 		this.recommendationAlgorithmId = recommendationAlgorithmId;
 	}
-	
+
 	public String getQueryParser() {
 		return queryParser;
 	}
 
 	public void setQueryParser(String queryParser) {
 		this.queryParser = queryParser;
+	}
+
+	public String getProcessingAppId() {
+		return processingAppId;
+	}
+
+	public void setProcessingAppId(String processingAppId) {
+		this.processingAppId = processingAppId;
 	}
 
 	@Override
@@ -251,6 +261,4 @@ public class AlgorithmDetails {
 				+ "fallback=" + fallback + ", recommendationAlgorithmId=" + recommendationAlgorithmId + "]";
 	}
 
-	
-	
 }
