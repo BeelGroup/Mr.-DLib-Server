@@ -120,6 +120,25 @@ public class SimilarArticleConnection {
 		for (ExternalDocumentRepresentation item : externalRepresentationSet) {
 			containerSet.addDocument(item.convertToMDLDocument());
 		}
+		if (containerSet.getSize() > 0) {
+			String url = containerSet.getDisplayDocument(0).getClickUrl();
+			if (url != null) {
+				String recommendationSetId;
+				String algorithmId;
+				try {
+					algorithmId = url.split("algorithmId=")[1].split("&")[0];
+				} catch (NullPointerException e) {
+					algorithmId = null;
+				}
+				try {
+					recommendationSetId = url.split("recSetID=")[1].split("&")[0];
+				} catch (NullPointerException e) {
+					recommendationSetId = null;
+				}
+				containerSet.setExternalAlgorithmId(algorithmId);
+				containerSet.setExternalRecommendationSetId(recommendationSetId);
+			}
+		}
 
 		return containerSet;
 	}

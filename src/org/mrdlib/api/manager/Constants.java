@@ -133,6 +133,8 @@ public class Constants {
 	private String meanFinalScoreDisplay;
 	private String medianFinalScoreDisplay;
 	private String modeFinalScoreDisplay;
+	private String externalRecommendationSetId;
+	private String externalAlgorithmId;
 
 	// db table external id
 	private String documentIdInExternalIds;
@@ -409,6 +411,8 @@ public class Constants {
 			this.meanFinalScoreDisplay = prop.getProperty("meanFinalScoreDisplay");
 			this.medianFinalScoreDisplay = prop.getProperty("medianFinalScoreDisplay");
 			this.modeFinalScoreDisplay = prop.getProperty("modeFinalScoreDisplay");
+			this.externalRecommendationSetId = prop.getProperty("externalRecommendationSetId");
+			this.externalAlgorithmId = prop.getProperty("externalAlgorithmId");
 
 			this.documentIdInExternalIds = prop.getProperty("documentIdInExternalIds");
 			this.externalName = prop.getProperty("externalName");
@@ -1411,6 +1415,14 @@ public class Constants {
 
 	public String getExternalOriginalDocumentId() {
 		return externalOriginalDocumentId;
+	}
+
+	public String getExternalRecommendationSetId() {
+		return externalRecommendationSetId;
+	}
+
+	public String getExternalAlgorithmId() {
+		return externalAlgorithmId;
 	}
 
 	public String getProcessingAppId() {

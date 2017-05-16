@@ -17,7 +17,7 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
  */
 public class DebugDetailsPerSet {
 	private String recommendationApproach;
-	
+
 	private List<Statistics> rankStats = new ArrayList<Statistics>();
 
 	private boolean bibliometricReRanking = true;
@@ -31,13 +31,13 @@ public class DebugDetailsPerSet {
 	private String bibSource;
 	private boolean fallbackRanking = false;
 
-	private AlgorithmDetails algoDetails; 
+	private AlgorithmDetails algoDetails;
 	private long numberOfReturnedResults;
 	private int desiredNumberFromAlgorithm;
 	private int numberOfDisplayedRecommendations = 1;
-	
+
 	private boolean shuffled = false;
-	
+
 	private Long startTime;
 	private Long algorithmChoosingTime;
 	private Long userModelTime;
@@ -46,12 +46,15 @@ public class DebugDetailsPerSet {
 
 	private String accessKeyHash;
 	private String originatingIp;
-	
+
+	private String externalRecommendationSetId;
+	private String externalAlgorithmId;
+
 	private String requestingPartnerId;
 	private String requestingAppId;
 	private String appVersion;
 	private String appLang;
-	
+
 	// NEED timestamps: end?
 
 	public DebugDetailsPerSet() {
@@ -68,7 +71,7 @@ public class DebugDetailsPerSet {
 	public void addRankingStats(Statistics stats) {
 		this.rankStats.add(stats);
 	}
-	
+
 	public List<Statistics> getRankStats() {
 		return rankStats;
 	}
@@ -202,7 +205,8 @@ public class DebugDetailsPerSet {
 	}
 
 	public void setFallback(boolean fallback) {
-		this.algoDetails.setFallback(fallback);;
+		this.algoDetails.setFallback(fallback);
+		;
 	}
 
 	public String getRecommendationAlgorithmId() {
@@ -303,6 +307,24 @@ public class DebugDetailsPerSet {
 	@XmlTransient
 	public void setAppLang(String appLang) {
 		this.appLang = appLang;
+	}
+
+	public String getExternalRecommendationSetId() {
+		return externalRecommendationSetId;
+	}
+
+	@XmlTransient
+	public void setExternalRecommendationSetId(String externalRecommendationSetId) {
+		this.externalRecommendationSetId = externalRecommendationSetId;
+	}
+
+	public String getExternalAlgorithmId() {
+		return externalAlgorithmId;
+	}
+
+	@XmlTransient
+	public void setExternalAlgorithmId(String externalAlgorithmId) {
+		this.externalAlgorithmId = externalAlgorithmId;
 	}
 
 }

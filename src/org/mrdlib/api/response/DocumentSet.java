@@ -749,4 +749,21 @@ public class DocumentSet {
 		this.debugDetailsPerSet.setAppLang(appLang);
 	}
 
+	public String getExternalAlgorithmId() {
+		return this.debugDetailsPerSet.getExternalAlgorithmId();
+	}
+
+	public String getExternalRecommendationSetId() {
+		return this.debugDetailsPerSet.getExternalRecommendationSetId();
+	}
+
+	@XmlTransient
+	public void setExternalAlgorithmId(String externalAlgorithmId) {
+		this.debugDetailsPerSet.setExternalAlgorithmId(externalAlgorithmId);
+	}
+	@XmlTransient
+	public void setExternalRecommendationSetId(String externalRecommendationSetId) {
+		this.debugDetailsPerSet.setExternalRecommendationSetId(externalRecommendationSetId);
+	}
+
 }

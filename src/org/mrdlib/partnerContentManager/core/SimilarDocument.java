@@ -144,7 +144,7 @@ public DisplayDocument convertToMDLDocument() {
 		
 	}
 	if(this.getPublisher()!=null) mdlDoc.setPublishedIn(this.getPublisher());
-	
+	mdlDoc.setClickUrl(this.getUrl());
 	return mdlDoc;
 	
 }
