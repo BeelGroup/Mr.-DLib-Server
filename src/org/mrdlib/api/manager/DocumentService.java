@@ -194,7 +194,6 @@ public class DocumentService {
 							// lucene does not like these chars
 							System.out.println("requestDocument: " + requestDocument.getTitle());
 						} else {
-							documentset = new DocumentSet();
 							throw new NoEntryException(inputQuery);
 						}
 					}
@@ -244,7 +243,6 @@ public class DocumentService {
 					if (constants.getDebugModeOn())
 						System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
 								numberOfAttempts);
-					documentset = new DocumentSet();
 					documentset.setRequestedDocument(requestDocument);
 				}
 			} else {
@@ -256,7 +254,6 @@ public class DocumentService {
 				} catch (NoRelatedDocumentsException e) {
 					if (constants.getDebugModeOn())
 						System.out.println("No related documents in fallback either");
-					documentset = new DocumentSet();
 					documentset.setRequestedDocument(requestDocument);
 				}
 			}

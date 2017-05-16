@@ -102,7 +102,6 @@ public class solrConnection {
 			SolrDocumentList docs = response.getResults();
 			// no related documents found
 			if (docs.isEmpty()) {
-				// System.out.println("In here");
 				throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
 			} else {
 				relatedDocuments.setSuggested_label("Related Articles");

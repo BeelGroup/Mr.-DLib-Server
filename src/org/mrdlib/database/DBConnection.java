@@ -4027,7 +4027,7 @@ public class DBConnection {
 
 	public Boolean matchCollectionPattern(String inputQuery, String organizationId) {
 		String query = "";
-		if (organizationId == null) {
+		if (organizationId == null || organizationId.equals("1")) {
 			query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes();
 		} else {
 			query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes() + " WHERE "
@@ -4035,7 +4035,7 @@ public class DBConnection {
 		}
 		List<String> prefixes = new ArrayList<String>();
 		try (PreparedStatement stmt = con.prepareStatement(query)) {
-			if (organizationId != null)
+			if (organizationId != null && !organizationId.equals("1"))
 				stmt.setString(1, organizationId);
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
