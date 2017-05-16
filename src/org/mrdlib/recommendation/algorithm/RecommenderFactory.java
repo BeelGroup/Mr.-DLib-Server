@@ -60,7 +60,7 @@ public class RecommenderFactory {
 		// file
 		if(Integer.parseInt(requestDocument.getDocumentId())>9505925){
 			Integer coreRecommenderAPI = random.nextInt(10000);
-			if(coreRecommenderAPI<10000){
+			if(coreRecommenderAPI<2000){
 				return random.nextBoolean()? new CoreSearch(con) : new CoreRecommender(con);
 			}else return RecommenderFactory.returnStandardDistributionRDG(con, requestDocument);
 		}

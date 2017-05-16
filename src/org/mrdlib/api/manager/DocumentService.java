@@ -131,7 +131,7 @@ public class DocumentService {
 					documentset.setRequestingPartnerId(partnerId);
 				if (appVersion != null)
 					documentset.setAppVersion(appVersion);
-				if (appVersion != null)
+				if (appLang != null && appLang.length()>1)
 					documentset.setAppLang(appLang.substring(0, 2));
 			}
 			/*
