@@ -110,7 +110,7 @@ public class RecommendationService {
 		// Check accessKey from clickURL against the one stored in our
 		// database
 		try{
-			accessKeyCheck = con.checkAccessKey(recoId, accessKey, false);
+			if(accessKey!=null)	accessKeyCheck = con.checkAccessKey(recoId, accessKey, false);
 			if (accessKeyCheck) {
 				try {
 					// Get document related to recommendation
