@@ -129,10 +129,12 @@ public class DocumentService {
 					documentset.setRequestingAppId(applicationId);
 				if (partnerId != null)
 					documentset.setRequestingPartnerId(partnerId);
-				if (appVersion != null)
+				if (appVersion != null && appVersion.matches("[a-z0-9A-Z-#.]+"))
 					documentset.setAppVersion(appVersion);
-				if (appLang != null && appLang.length()>1)
+				if (appLang != null && appLang.length()>1 && appLang.substring(0,2).matches("[a-zA-Z][a-zA-Z]")){
 					documentset.setAppLang(appLang.substring(0, 2));
+				}
+					
 			}
 			/*
 			 * First we have a look if it is an integer. if the conversion
@@ -194,6 +196,7 @@ public class DocumentService {
 							// lucene does not like these chars
 							System.out.println("requestDocument: " + requestDocument.getTitle());
 						} else {
+							requestDocument.setDocumentId(inputQuery);
 							throw new NoEntryException(inputQuery);
 						}
 					}
