@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 
 /**
  * Partner content manager for mediaTUM.
@@ -59,17 +60,22 @@ public class MediaTUMPartnerContentManager {
 			for (File file : contentFolder.listFiles()) {
 				String filePath = file.getAbsolutePath();
 				
-				if (filePath.endsWith(".xml")) {
-					System.out.println(filePath);
-					
-					OAIDCRecordConverted oaidcRecordConverted = mediaTUMContentConverter.convertPartnerContentToStorablePartnerContent(filePath);
+				System.out.print(filePath);
 				
-					if (oaidcRecordConverted.isContentValid()) {
-						mediaTUMContentStorer.store(dbConnection, oaidcRecordConverted);
+				if (filePath.endsWith(".xml")) {
+					MediaTUMXMLDocument xmlDocument = mediaTUMContentConverter.convertPartnerContentToStorablePartnerContent(filePath);
+					
+					if (xmlDocument != null) {
+						
+						if (!mediaTUMContentStorer.store(dbConnection, xmlDocument)) {
+							System.out.println(" - storage failed");
+						}
 					} else {
-						// TODO: handle failed conversions
+						System.out.print(" - conversion failed");
 					}
 				}
+				
+				System.out.print("\n");
 			}
 		
 			dbConnection.close();

@@ -22,7 +22,8 @@ public interface IContentStorer<T> {
 	 * 
 	 * @param dbConnection MDL specific connection to the database
 	 * @param storableContent content in intermediate data format <T> to store in the MDL database
+	 * @return true on success, false on failure
 	 */
-	public void store(DBConnection dbConnection, T storableContent);
+	public Boolean store(DBConnection dbConnection, T storableContent);
 	
 }

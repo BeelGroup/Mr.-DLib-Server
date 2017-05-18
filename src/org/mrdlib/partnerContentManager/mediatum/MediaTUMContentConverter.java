@@ -2,29 +2,15 @@ package org.mrdlib.partnerContentManager.mediatum;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.charset.Charset;
+import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import org.mrdlib.partnerContentManager.IContentConverter;
-import org.mrdlib.partnerContentManager.MdlDocument;
-import org.mrdlib.partnerContentManager.MdlDocumentAbstract;
-import org.mrdlib.partnerContentManager.MdlDocumentExternalId;
-import org.mrdlib.partnerContentManager.MdlDocumentExternalIdExternalName;
-import org.mrdlib.partnerContentManager.MdlDocumentKeyphrase;
-import org.mrdlib.partnerContentManager.MdlDocumentKeyphraseCount;
-import org.mrdlib.partnerContentManager.MdlDocumentKeyphraseSource;
-import org.mrdlib.partnerContentManager.MdlDocumentPerson;
-import org.mrdlib.partnerContentManager.MdlDocumentTitleSearches;
-import org.mrdlib.partnerContentManager.MdlDocumentTranslatedField;
-import org.mrdlib.partnerContentManager.MdlDocumentTranslatedFieldFieldType;
-import org.mrdlib.partnerContentManager.MdlDocumentTranslatedFieldTranslationTool;
-import org.mrdlib.partnerContentManager.MdlDocumentType;
-import org.mrdlib.partnerContentManager.MdlPerson;
-import org.mrdlib.partnerContentManager.MdlPersonDataQuality;
+import org.mrdlib.partnerContentManager.gesis.Tuple;
 
 /**
  * Implementation of ContentConverter for partner mediaTUM.
@@ -33,29 +19,131 @@ import org.mrdlib.partnerContentManager.MdlPersonDataQuality;
  * @author wuestehube
  *
  */
-public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordConverted> {
+public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDocument> {
 
-	@Override
-	public OAIDCRecordConverted convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert) {
-		OAIDCRecord oaidcRecord = readOAIDCRecordFromFile(pathOfFileToConvert);
+	/**
+	 * Creates the mapping of type codes used in mediaTUM and Mr. DLib. Types are the publication types.
+	 * 
+	 * @return a type map that can be used in processing XML documents
+	 */
+	private Map<String, String> createTypeMap() {
+		Map<String, String> typeMap = new HashMap<String, String>();
 		
-		MdlDocument mdlDocument = mapMediaTumContentToMdlDocumentTable(oaidcRecord);
-		MdlDocumentAbstract mdlDocumentAbstract = mapMediaTumContentToMdlDocumentAbstractTable(oaidcRecord);
-		MdlDocumentExternalId mdlDocumentExternalId = mapMediaTumContentToMdlDocumentExternalIdTable(oaidcRecord);
-		MdlDocumentKeyphrase mdlDocumentKeyphrase = mapMediaTumContentToMdlDocumentKeyphraseTable(oaidcRecord);
-		MdlDocumentKeyphraseCount mdlDocumentKeyphraseCount = mapMediaTumContentToMdlDocumentKeyphraseCountTable(oaidcRecord);
-		MdlDocumentPerson mdlDocumentPerson = mapMediaTumContentToMdlDocumentPersonTable(oaidcRecord);
-		MdlDocumentTitleSearches mdlDocumentTitleSearches = mapMediaTumContentToMdlDocumentTitleSearchesTable(oaidcRecord);
-		MdlDocumentTranslatedField mdlDocumentTranslatedField = mapMediaTumContentToDocumentTranslatedFieldTable(oaidcRecord);
-		List<MdlPerson> mdlPerson = mapMediaTumContentToMdlPersonTable(oaidcRecord);
+		typeMap.put("report", "report");
+		typeMap.put("thesis_unspecified", "thesis_unspecified");
+		typeMap.put("thesis_doctoral", "thesis_doctoral");
+		typeMap.put("thesis_master", "thesis_master");
+		typeMap.put("article", "article");
+		typeMap.put("thesis_bachelor", "thesis_bachelor");
+		typeMap.put("unknown", "unknown");
 		
-		OAIDCRecordConverted oaidcRecordConverted = new OAIDCRecordConverted(mdlDocument, mdlDocumentAbstract, mdlDocumentExternalId,
-				mdlDocumentKeyphrase, mdlDocumentKeyphraseCount, mdlDocumentPerson, mdlDocumentTitleSearches, mdlDocumentTranslatedField,
-				mdlPerson);
-
-		return oaidcRecordConverted;
+		return typeMap;
 	}
 	
+	/**
+	 * Creates the mapping of language codes used in mediaTUM and Mr. DLib.
+	 * 
+	 * @return a language map that can be used in processing XML documents
+	 */
+	private Map<String, String> createLanguageMap() {
+		Map<String, String> languageMap = new HashMap<String, String>();
+		
+		languageMap.put("(eng)", "(en)");
+		languageMap.put("eng", "(en)");
+		languageMap.put("(deu)", "(de)");
+		languageMap.put("deu", "(de)");
+		languageMap.put("(ger)", "(de)");
+		languageMap.put("ger", "(de)");
+		languageMap.put("(spa)", "(es)");
+		languageMap.put("spa", "(es)");
+		languageMap.put("(fra)", "(fr)");
+		languageMap.put("fra", "(fr)");
+		languageMap.put("(zho)", "(zh)");
+		languageMap.put("zho", "(zh)");
+		languageMap.put("(jpn)", "(ja)");
+		languageMap.put("jpn", "(ja)");
+		languageMap.put("(rus)", "(ru)");
+		languageMap.put("rus", "(ru)");
+		
+		return languageMap;
+	}
+	
+	/**
+	 * Creates the mapping of type resolve used in mediaTUM and Mr. DLib.
+	 * 
+	 * @return a type resolve map that can be used in processing XML documents
+	 */
+	private Map<Tuple, String> createTypeResolveMap() {
+		HashMap<Tuple, String> typeResolveMap = new HashMap<Tuple, String>();
+		
+		// not needed in case of mediaTUM
+		
+		return typeResolveMap;
+	}
+	
+	@Override
+	public MediaTUMXMLDocument convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert) {
+		// extract information
+		OAIDCRecord oaidcRecord = readOAIDCRecordFromFile(pathOfFileToConvert);
+		
+		ArrayList<String> abstracts = getAbstractsFromOAIDCRecord(oaidcRecord);
+		String language = getLanguageFromOAIDCRecord(oaidcRecord);
+		String idOriginal = getIdOriginalFromOAIDCRecord(oaidcRecord);
+		String title = getTitleFromOAICDRecord(oaidcRecord);
+		String fulltitle = getTitleFromOAICDRecord(oaidcRecord);
+		String year = getYearFromOAIDCRecord(oaidcRecord);
+		String facetYear = getYearFromOAIDCRecord(oaidcRecord);
+		ArrayList<String> authors = getAuthorsFromOAIDCRecord(oaidcRecord);
+		ArrayList<String> keyWords = getKeyWordsFromOAIDCRecord(oaidcRecord);
+		String type = getTypeFromOAIDCRecord(oaidcRecord);
+		String publishedIn = getPublishedInFromOAIDCRecord(oaidcRecord);
+		String collection = getCollectionFromOAIDCRecord(oaidcRecord);
+		
+		// check for errors
+		if ((abstracts == null) || (language == null) || (idOriginal == null) || (title == null) ||
+				(fulltitle == null) || (year == null) || (facetYear == null) || (authors == null) ||
+				(keyWords == null) || (type == null) || (publishedIn == null) || (collection == null)) {
+			return null;
+		}
+		
+		// set up XML document
+		Map<String, String> typeMap = createTypeMap();
+		Map<String, String> languageMap = createLanguageMap();
+		Map<Tuple, String> typeResolveMap = createTypeResolveMap();
+		
+		MediaTUMXMLDocument xmlDocument = new MediaTUMXMLDocument(typeMap, languageMap, typeResolveMap);
+		
+		for (String abstract_ : abstracts) {
+			xmlDocument.addAbstract(abstract_.split(Pattern.quote("|"))[1], abstract_.split(Pattern.quote("|"))[0]);
+		}
+		xmlDocument.setId(idOriginal);
+		xmlDocument.setTitle(title);
+		xmlDocument.setFulltitle(fulltitle);
+		xmlDocument.setLanguage(language);
+		xmlDocument.setYear(year);
+		xmlDocument.setFacetYear(facetYear);
+		for (String author : authors) {
+			author = author.split(Pattern.quote("("))[0].trim();
+			xmlDocument.addAuthor(author);
+		}
+		for (String keyWord : keyWords) {
+			xmlDocument.addKeyWord(keyWord);
+		}
+		xmlDocument.addType(type);
+		xmlDocument.setPublishedIn(publishedIn, "publisher");
+		xmlDocument.setCollection(collection);
+		
+		xmlDocument.normalize();
+		
+		return xmlDocument;
+	}
+	
+	/**
+	 * Reads in a given file and converts it to an OAIDC record.
+	 * 
+	 * @param pathOfFile file to read in
+	 * @return OAIDC record
+	 */
 	private OAIDCRecord readOAIDCRecordFromFile(String pathOfFile) {
 		OAIDCRecord oaidcRecord = new OAIDCRecord();
 		
@@ -70,7 +158,33 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
                 // attribute found
                 if (line.contains("<dc:")) {
                 	String attributeName = line.split("<dc:")[1].split(">")[0].split(" ")[0];
-                	String attributeValue = line.split(">")[1].split("</")[0];
+                	
+                	// take multi lines into account
+                	int i = 0;
+                	while (!line.contains("</dc")) {
+                		if (scanner.hasNextLine()) {
+                			line += " " + scanner.nextLine();
+                		}
+                		
+                		// for safety
+                		i++;
+                		if (i > 100) {
+                			break;
+                		}
+                	}
+                	
+                	String attributeValue = line.split(">")[1].split("</dc")[0];
+                	
+                	if (i > 0) {
+                		attributeValue = line.substring(line.indexOf(">")).split("</dc")[0];
+                	}
+                	
+                	// remove tags
+                	attributeValue = attributeValue.replaceAll("<br>", " ");
+                	attributeValue = attributeValue.replaceAll(Pattern.quote("<i>"), "");
+                	attributeValue = attributeValue.replaceAll(Pattern.quote("</i>"), "");
+                	attributeValue = attributeValue.replaceAll(Pattern.quote("<sup>"), "");
+                	attributeValue = attributeValue.replaceAll(Pattern.quote("</sup>"), "");
                 	if (attributeValue.contains("<![CDATA[]]")) {
                 		attributeValue = "";
                 	}
@@ -78,9 +192,7 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
                 		attributeValue = attributeValue.split(Pattern.quote("![CDATA["))[1].split(Pattern.quote("]]"))[0];
                 	}
                 	
-                	if (!attributeValue.equals("")) {
-                		System.out.println(attributeName + " = " + attributeValue);
-                		
+                	if (!attributeValue.equals("")) {                		
                 		switch (attributeName) {
 						case "title":
 							oaidcRecord.addTitle(attributeValue);
@@ -94,7 +206,14 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 							}
 							break;
 						case "description":
-							oaidcRecord.addDescription(attributeValue);
+							// default language
+							String descriptionLanguage = "de";
+							
+							if (line.contains("xml:lang")) {
+								 descriptionLanguage = line.split(Pattern.quote("<dc:description xml:lang="))[1].split(">")[0].replaceAll("\"", "");
+							}
+							
+							oaidcRecord.addDescription(descriptionLanguage + "|" + attributeValue);
 							break;
 						case "publisher":
 							oaidcRecord.addPublisher(attributeValue);
@@ -147,115 +266,74 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
         }
 	}
 	
-	/**
-	 * Converts one OAI DC record to MDL's document table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocument mapMediaTumContentToMdlDocumentTable(OAIDCRecord oaidcRecord) {
-		// check data for plausibility
+	private ArrayList<String> getAbstractsFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		ArrayList<String> abstracts = new ArrayList<String>();
 		
-		// title
-		if (oaidcRecord.getTitles().size() != 1) {
-			System.out.println("title != 1");
-			return null;
-		}
-		// language
-		if (oaidcRecord.getLanguages().size() != 1) {
-			System.out.println("language != 1");
-			return null;
-		}
-		// year
-		if (oaidcRecord.getDates().size() != 1) {
-			System.out.println("date != 1");
-			return null;
-		}
-		
-		// map data
-		
-		// no mapping
-		long document_id = 0;
-		// get all elements of oaidcRecord.getIdentifiers() as concatenated string, prefix with "mt"
-		String id_original = "mt" + stringArrayListToString(oaidcRecord.getIdentifiers(), null);
-		long collection_id = 0;
-		String title = oaidcRecord.getTitles().get(0);
-		String title_clean = getCleanTitleFromTitle(title);
-		String published_in = oaidcRecord.getPublishers().get(0);
-		String language = oaidcRecord.getLanguages().get(0);
-		int publication_year = getPublicationYearFromOAIDCDateFormat(oaidcRecord.getDates().get(0));
-		// choose type to convert
-		int type_index = 0;
-		if (oaidcRecord.getTypes().size() > 1) {
-			int i = 0;
-			for (String type : oaidcRecord.getTypes()) {
-				if (type.contains("doc-type:")) {
-					type_index = i;
-				}
-				i++;
-			}
-		}
-		MdlDocumentType type = getMdlDocumentTypeFromOAIDCType(oaidcRecord.getTypes().get(type_index));
-		String keywords = stringArrayListToString(oaidcRecord.getSubjects(), ", ");
-		// use current system date
-		Date added = new Date();
-		
-		// return data
-		
-		MdlDocument mdlDocument = new MdlDocument(document_id, id_original, collection_id, title, title_clean, published_in, language, publication_year, type, keywords, added);
-		
-		return mdlDocument;
-	}
-	
-	/**
-	 * Concatenates the elements of a string array list.
-	 * 
-	 * @param arrayList array list whose elements to concatenate
-	 * @param separator null if strings should not be separated, otherwise printed between strings of array
-	 * @return
-	 */
-	private String stringArrayListToString(ArrayList<String> arrayList, String separator) {
-		StringBuilder builder = new StringBuilder();
-		
-		// for keeping track of current index
-		int size = arrayList.size();
-		int i = 0;
-		
-		for (String currentString : arrayList) {
-		    builder.append(currentString);
-		    if (separator != null && (i+1) < size) {
-		    	builder.append(separator);
-		    }
-		    
-		    i++;
-		}
-		
-		return builder.toString();
-	}
-	
-	/**
-	 * Cleans a title according to the description of a clean title in the MDL database.
-	 * This reads: "Clean title, i.e. only ASCII characters (no spaces, all lower case); if length of clean title is smaller than half the original title, use original title"
-	 * 
-	 * @param title Title to clean
-	 * @return cleaned title
-	 */
-	private String getCleanTitleFromTitle(String title) {
-		// convert to ASCII
-		String result = Charset.forName("US-ASCII").encode(title).toString();
-		
-		// convert to lower case
-		result = result.toLowerCase();
-		
-		// remove spaces
-		result = result.replace(" ", "");
-		
-		// check whether clean title is shorter than half of the original title or not, return result accordingly
-		if (result.length() < (title.length() / 2)) {
-			return title;
+		if (oaidcRecord.getDescriptions().size() > 0) {
+			abstracts = oaidcRecord.getDescriptions();
 		} else {
-			return result;
+			// a common case
 		}
+		
+		for (int i = 0; i < abstracts.size(); i++) {
+			abstracts.set(i, replaceSpecialCharacters(abstracts.get(i)));
+		}
+		
+		return abstracts;
+	}
+	
+	private String getLanguageFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		String language = "";
+		
+		if (oaidcRecord.getLanguages().size() > 0) {
+			language = oaidcRecord.getLanguages().get(0);
+		} else {
+			System.out.println("Error: no language found.");
+			return null;
+		}
+		
+		return language;
+	}
+	
+	private String getIdOriginalFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		String idOrignal = "";
+		
+		if (oaidcRecord.getIdentifiers().size() > 0) {
+			idOrignal = "mt" + oaidcRecord.getIdentifiers().get(0);
+		} else {
+			System.out.println("Error: no identifier found.");
+			return null;
+		}
+		
+		return idOrignal;
+	}
+	
+	private String getTitleFromOAICDRecord(OAIDCRecord oaidcRecord) {
+		String title = "";
+		
+		if (oaidcRecord.getTitles().size() > 0) {
+			title = oaidcRecord.getTitles().get(0);
+		} else {
+			System.out.println("Error: no title found.");
+			return null;
+		}
+		
+		title = replaceSpecialCharacters(title);
+		
+		return title;
+	}
+	
+	private String getYearFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		String year = "";
+		
+		if (oaidcRecord.getDates().size() > 0) {
+			year = Integer.toString(getPublicationYearFromOAIDCDateFormat(oaidcRecord.getDates().get(0)));
+		} else {
+			System.out.println("Error: no year found.");
+			return null;
+		}
+		
+		return year;
 	}
 	
 	/**
@@ -265,329 +343,112 @@ public class MediaTUMContentConverter implements IContentConverter<OAIDCRecordCo
 	 * @return extracted year
 	 */
 	private int getPublicationYearFromOAIDCDateFormat(String oaiDate) {
-		return Integer.parseInt(oaiDate.substring(0, 3));
+		return Integer.parseInt(oaiDate.substring(0, 4));
 	}
 	
-	/**
-	 * Maps a mediaTUM OAI DC publication type to the publication types of MDL.
-	 * 
-	 * @param oaiType mediaTUM publication type to map
-	 * @return mapped MDL publication type
-	 */
-	private MdlDocumentType getMdlDocumentTypeFromOAIDCType(String oaiType) {
-		// TODO: improve type mapping
+	private ArrayList<String> getAuthorsFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		ArrayList<String> authors = new ArrayList<String>();
 		
-		switch (oaiType) {
-		case "doc-type:report":
-			return MdlDocumentType.UNKNOWN;
-		case "thesis":
-			return MdlDocumentType.THESIS_UNSPECIFIED;
-		case "report":
-			return MdlDocumentType.UNKNOWN;
-		case "dissertation":
-			return MdlDocumentType.UNKNOWN;
-		case "doc-type:masterThesis":
-			return MdlDocumentType.THESIS_UNSPECIFIED;
-		case "doc-type:doctoralThesis":
-			return MdlDocumentType.THESIS_UNSPECIFIED;
-		case "article":
-			return MdlDocumentType.UNKNOWN;
-		case "doc-type:bachelorThesis":
-			return MdlDocumentType.THESIS_UNSPECIFIED;
-		default:
-			return MdlDocumentType.UNKNOWN;
-		}
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's document abstract table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocumentAbstract mapMediaTumContentToMdlDocumentAbstractTable(OAIDCRecord oaidcRecord) {
-		// check data for plausibility
+		authors = oaidcRecord.getCreators();
+		authors.addAll(oaidcRecord.getContributors());
 		
-		// language
-		if (oaidcRecord.getLanguages().size() != 1) {
-			return null;
-		}
-		// description
-		if (oaidcRecord.getDescriptions().size() != 1) {
-			return null;
-		}
-
-		// map data
-		
-		// no mapping
-		long document_abstract_id = 0;
-		// no mapping
-		long document_id = 0;
-		String language = getMdlLanguageCodeFromOAIDCCode(oaidcRecord.getLanguages().get(0));
-		String abstract_ = oaidcRecord.getDescriptions().get(0);
-		Date added = new Date();
-		
-		// return data
-		
-		MdlDocumentAbstract mdlDocumentAbstract = new MdlDocumentAbstract(document_abstract_id, document_id, language, abstract_, added);
-		
-		return mdlDocumentAbstract;
-	}
-
-	/**
-	 * Maps a mediaTUM OAI DC language code to the language code of MDL.
-	 * 
-	 * @param oaiLanguageCode language code to map
-	 * @return mapped language code
-	 */
-	private String getMdlLanguageCodeFromOAIDCCode(String oaiLanguageCode) {
-		// MDL language codes: cs, da, de, en, es, et, fr, it, lv, nl, pl, pt, ru, sv
-		
-		switch (oaiLanguageCode) {
-		case "eng":
-			return "en";
-		case "deu":
-			return "de";
-		case "ger":
-			return "de";
-		case "spa":
-			return "es";
-		case "fra":
-			return "fr";
-		case "zho":
-			return "zh";
-		case "jpn":
-			return "ja";
-		case "rus":
-			return "ru";
-		default:
-			return null;
-		}
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's document external id table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document external id table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocumentExternalId mapMediaTumContentToMdlDocumentExternalIdTable(OAIDCRecord oaidcRecord) {
-		// TODO: find out if and how to use this table
-		
-		long document_id = 0;
-		MdlDocumentExternalIdExternalName external_name = MdlDocumentExternalIdExternalName.ARXIV;
-		String external_id = "";
-		
-		MdlDocumentExternalId mdlDocumentExternalId = new MdlDocumentExternalId(document_id, external_name, external_id);
-		
-		return mdlDocumentExternalId;
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's document keyphrase table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document keyphrase table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocumentKeyphrase mapMediaTumContentToMdlDocumentKeyphraseTable(OAIDCRecord oaidcRecord) {
-		// no mapping
-		
-		long doc_id = 0;
-		String term = "";
-		float score = 0;
-		int gramity = 0;
-		MdlDocumentKeyphraseSource source = MdlDocumentKeyphraseSource.ABSTRACT;
-		
-		MdlDocumentKeyphrase mdlDocumentKeyphrase = new MdlDocumentKeyphrase(doc_id, term, score, gramity, source);
-		
-		return mdlDocumentKeyphrase;
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's document keyphrase count table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document keyphrase count table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocumentKeyphraseCount mapMediaTumContentToMdlDocumentKeyphraseCountTable(OAIDCRecord oaidcRecord) {
-		// no mapping
-		
-		long doc_id = 0;
-		int gramity = 0;
-		MdlDocumentKeyphraseSource source = MdlDocumentKeyphraseSource.ABSTRACT;
-		long count = 0;
-		
-		MdlDocumentKeyphraseCount mdlDocumentKeyphraseCount = new MdlDocumentKeyphraseCount(doc_id, gramity, source, count);
-		
-		return mdlDocumentKeyphraseCount;
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's document person table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document person table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocumentPerson mapMediaTumContentToMdlDocumentPersonTable(OAIDCRecord oaidcRecord) {
-		// TODO: find out if this table contains entries for each person mapped to a record, then insert them
-		
-		long document_person_id = 0;
-		long document_id = 0;
-		long person_id = 0;
-		int rank = 0;
-		Date added = new Date();
-		
-		MdlDocumentPerson mdlDocumentPerson = new MdlDocumentPerson(document_person_id, document_id, person_id, rank, added);
-		
-		return mdlDocumentPerson;
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's document title searches table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document title searches table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocumentTitleSearches mapMediaTumContentToMdlDocumentTitleSearchesTable(OAIDCRecord oaidcRecord) {
-		// no mapping
-		
-		long document_title_search_id = 0;
-		String clean_search_string = "";
-		String original_search_string = "";
-
-		MdlDocumentTitleSearches mdlDocumentTitleSearches = new MdlDocumentTitleSearches(document_title_search_id, clean_search_string, original_search_string);
-		
-		return mdlDocumentTitleSearches;
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's document translated field table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's document translated field table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private MdlDocumentTranslatedField mapMediaTumContentToDocumentTranslatedFieldTable(OAIDCRecord oaidcRecord) {
-		// check data for plausibility
-		
-		// language
-		if (oaidcRecord.getLanguages().size() != 1) {
-			return null;
-		}
-
-		// map data
-		
-		long document_id = 0;
-		MdlDocumentTranslatedFieldFieldType field_type = MdlDocumentTranslatedFieldFieldType.ABSTRACT;
-		MdlDocumentTranslatedFieldTranslationTool translation_tool = MdlDocumentTranslatedFieldTranslationTool.JOSHUA;
-		String source_language = getMdlLanguageCodeFromOAIDCCode(oaidcRecord.getLanguages().get(0));
-		String target_language = "";
-		String text = "";
-		
-		MdlDocumentTranslatedField mdlDocumentTranslatedField = new MdlDocumentTranslatedField(document_id, field_type, translation_tool, source_language, target_language, text);
-		
-		// return data
-		
-		return mdlDocumentTranslatedField;
-	}
-	
-	/**
-	 * Converts one OAI DC record to MDL's person table. Checks provided data for plausibility.
-	 * 
-	 * @param oaidcRecord OAI DC record to convert to MDL's person table
-	 * @return null if data is implausible, otherwise converted OAI DC record
-	 */
-	private List<MdlPerson> mapMediaTumContentToMdlPersonTable(OAIDCRecord oaidcRecord) {
-		List<MdlPerson> persons = new ArrayList<MdlPerson>();
-		
-		// check data for plausibility
-		
-		// creator
-		if (oaidcRecord.getCreators().size() != 1) {
-			return null;
-		}
-		// contributors
-		if (oaidcRecord.getContributors() == null) {
-			return null;
-		}
-
-		// map data of creator
-		persons.add(createMdlPersonFromOaiName(oaidcRecord.getCreators().get(0)));
-		
-		// map data of contributors
-		for (String contributor : oaidcRecord.getContributors()) {
-			persons.add(createMdlPersonFromOaiName(contributor));
+		for (int i = 0; i < authors.size(); i++) {
+			authors.set(i, replaceSpecialCharacters(authors.get(i)));
 		}
 		
-		// return data
-		
-		return persons;
+		return authors;
 	}
 	
-	/**
-	 * Creates a MDL person object.
-	 * 
-	 * @param oaiName name of the person to create an object of
-	 * @return MDL person object
-	 */
-	private MdlPerson createMdlPersonFromOaiName(String oaiName) {
-		long person_id = 0;
-		String name_first = getFirstNameFromOaiName(oaiName);
-		String name_middle = getMiddleNameFromOaiName(oaiName);
-		String name_last = getLastNameFromOaiName(oaiName);
-		String name_unstructured = oaiName;
-		Date added = new Date();
-		MdlPersonDataQuality data_quality = MdlPersonDataQuality.INVALID;
+	private ArrayList<String> getKeyWordsFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		ArrayList<String> keyWords = new ArrayList<>();
 		
-		MdlPerson mdlPerson = new MdlPerson(person_id, name_first, name_middle, name_last, name_unstructured, added, data_quality);
-
-		return mdlPerson;
-	}
-
-	/**
-	 * Returns the first name of a given name. Assumes first, middle and last names are split with spaces.
-	 * 
-	 * @param oaiName name to get first name of
-	 * @return first name of given name
-	 */
-	private String getFirstNameFromOaiName(String oaiName) {
-		return oaiName.split(" ")[0];
-	}
-	
-	/**
-	 * Returns the middle name of a given name. Assumes first, middle and last names are split with spaces.
-	 * 
-	 * @param oaiName name to get middle name of
-	 * @return middle name of given name
-	 */
-	private String getMiddleNameFromOaiName(String oaiName) {
-		String[] stringParts = oaiName.split(" ");
-		
-		if (stringParts.length > 2) {
-			String middleName = "";
-			
-			for (int i=1; i < stringParts.length-1; i++) {
-				middleName += stringParts[i];
-				
-				if (i < stringParts.length-2) {
-					middleName += " ";
-				}
+		for (String subject : oaidcRecord.getSubjects()) {
+			for (String keyWord : subject.split(";")) {
+				keyWords.add(replaceSpecialCharacters(keyWord));
 			}
-			
-			return middleName;
-		} else {
-			return "";
 		}
+		
+		return keyWords;
 	}
 	
-	/**
-	 * Returns the last name of a given name. Assumes first, middle and last names are split with spaces.
-	 * 
-	 * @param oaiName name to get last name of
-	 * @return last name of given name
-	 */
-	private String getLastNameFromOaiName(String oaiName) {
-		String[] stringParts = oaiName.split(" ");
-		return oaiName.split(" ")[stringParts.length - 1];
+	private String getTypeFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		String type = "";
+		
+		if (oaidcRecord.getTypes().size() > 0) {
+			switch (oaidcRecord.getTypes().get(0)) {
+			case "doc-type:report":
+				type = "report";
+				break;
+			case "thesis":
+				type = "thesis_unspecified";
+				break;
+			case "report":
+				type = "report";
+				break;
+			case "dissertation":
+				type = "thesis_doctoral";
+				break;
+			case "doc-type:masterThesis":
+				type = "thesis_master";
+				break;
+			case "doc-type:doctoralThesis":
+				type = "thesis_doctoral";
+				break;
+			case "article":
+				type = "article";
+				break;
+			case "doc-type:bachelorThesis":
+				type = "thesis_bachelor";
+				break;
+			default:
+				type = "unknown";
+				break;
+			}
+		} else {
+			System.out.println("Error: no type found.");
+			return null;
+		}
+		
+		return type;
+	}
+	
+	private String getPublishedInFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		String publishedIn = "";
+		
+		if (oaidcRecord.getPublishers().size() > 0) {
+			publishedIn = oaidcRecord.getPublishers().get(0);
+		} else {
+			System.out.println("Warning: no publishers found.");
+		}
+		
+		publishedIn = replaceSpecialCharacters(publishedIn);
+		
+		return publishedIn;
+	}
+	
+	private String replaceSpecialCharacters(String stringToReplaceUmlautsIn) {
+		/* thanks to http://stackoverflow.com/questions/4122170/java-change-%C3%A1%C3%A9%C5%91%C5%B1%C3%BA-to-aeouu */		
+		stringToReplaceUmlautsIn = Normalizer.normalize(stringToReplaceUmlautsIn, Normalizer.Form.NFD)
+				.replaceAll("[^\\p{ASCII}]", "");
+		
+		return stringToReplaceUmlautsIn;
+	}
+	
+	private String getCollectionFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		// default value
+		String collection = "000";
+		
+		int numSubjects = oaidcRecord.getSubjects().size();
+		
+		if (numSubjects > 0) {
+			String lastSubject = oaidcRecord.getSubjects().get(numSubjects-1);
+			
+			if (lastSubject.contains("ddc:")) {
+				collection = lastSubject.split("ddc:")[1];
+			}
+		}
+		
+		return "mediatum-ddc" + collection;
 	}
 	
 }
