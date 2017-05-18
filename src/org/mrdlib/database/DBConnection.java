@@ -1295,6 +1295,8 @@ public class DBConnection {
 		ResultSet rs = null;
 		String title = null;
 		String publishedIn = null;
+		String keywords = "";
+		String docAbstract = null;
 
 		try {
 
@@ -1318,11 +1320,13 @@ public class DBConnection {
 
 				title = rs.getString(constants.getTitle());
 				publishedIn = rs.getString(constants.getPublishedId());
+				keywords = rs.getString(constants.getKeywords());
+				docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn,
-						rs.getInt(constants.getYear()), "", "", "", constants);
+						docAbstract, keywords, rs.getInt(constants.getYear()), "", "", "", constants);
 				if (rs.wasNull())
 					document.setYear(-1);
 
@@ -2776,6 +2780,61 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				return rs.getString("lang");
+			} else {
+				return "NONE";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+
+	}
+	
+		/**
+	 * Get the fist 25 words of the abstract, if recorded in the database
+	 * 
+	 * @param docId
+	 *            document id for which we need the details about the abstract
+	 * @return the first 25 words of the document abstract else 'NONE'
+	 * @throws Exception
+	 */
+	
+	public String getDocAbstractById(String docId) throws Exception {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String docAbstract = null;
+		String [] arr ;
+		String abstrct = "";
+		
+		// Select query to lookup abstract language using the documentId from
+		// the document_abstracts table
+		String query = "SELECT `" + constants.getAbstr() + "` FROM " + constants.getAbstracts()
+				+ " WHERE " + constants.getAbstractDocumentId() + " = '" + docId + "'";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				docAbstract = rs.getString(constants.getAbstr());
+				arr = docAbstract.split("\\s+"); 
+				if (arr.length >35){
+					 for(int i=0; i<35 ; i++){
+						 abstrct = abstrct + " " + arr[i] ;         
+			        }
+					 abstrct = abstrct + " ...";
+				}
+				else
+					abstrct = docAbstract;
+				return abstrct;
 			} else {
 				return "NONE";
 			}
