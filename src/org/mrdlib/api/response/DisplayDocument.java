@@ -41,6 +41,8 @@ public class DisplayDocument implements Serializable {
 	private String publishedIn;
 	private int year;
 	private String cleanTitle;
+	private String keywords;
+	private String docAbstract;
 
 	private int suggestedRank;
 	private String collectionShortName;
@@ -66,7 +68,7 @@ public class DisplayDocument implements Serializable {
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
-			String title, String authorNames, String publishedIn, int year, String clickUrl, String fallbackUrl,
+			String title, String authorNames, String publishedIn, String docAbstract, String keywords, int year, String clickUrl, String fallbackUrl,
 			String collectionShortName, Constants constants) {
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
@@ -75,6 +77,8 @@ public class DisplayDocument implements Serializable {
 		this.title = title;
 		this.authorNames = authorNames;
 		this.publishedIn = publishedIn;
+		this.keywords = keywords;
+		this.docAbstract = docAbstract;
 		this.year = year;
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_plain"));
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_fully_formatted"));
@@ -145,6 +149,16 @@ public class DisplayDocument implements Serializable {
 	public void setPublishedIn(String publishedIn) {
 		this.publishedIn = publishedIn.replaceAll("[<>]", "");
 	}
+	
+	@XmlElement(name = "abstract")
+	public void setDocAbstract(String docAbstract) {
+		this.docAbstract = docAbstract.replaceAll("[<>]", "");
+	}
+
+	@XmlElement(name = "keywords")
+	public void setKeywords(String keywords) {
+		this.keywords = keywords.replaceAll("[<>]", "");
+	}
 
 	public void setYear(int year) {
 		this.year = year;
@@ -160,6 +174,14 @@ public class DisplayDocument implements Serializable {
 
 	public String getPublishedIn() {
 		return publishedIn;
+	}
+	
+	public String getKeywords() {
+		return keywords;
+	}
+	
+	public String getDocAbstract() {
+		return docAbstract;
 	}
 
 	public int getYear() {
