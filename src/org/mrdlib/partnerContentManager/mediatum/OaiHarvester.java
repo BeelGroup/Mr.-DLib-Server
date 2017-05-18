@@ -96,7 +96,7 @@ public class OaiHarvester {
      * @param from Date (format yyyy-mm) from which until today to harvest.
      * @param outputDirectoryPath Path of directory to write harvested data to.
      */
-    private static void harvestFrom(String baseUrl, String metadataFormat, String from, String outputDirectoryPath) {
+    public static void harvestFrom(String baseUrl, String metadataFormat, String from, String outputDirectoryPath) {
         // get current year and month
         Calendar currentDate = Calendar.getInstance();
         int currentYear = currentDate.get(Calendar.YEAR);
