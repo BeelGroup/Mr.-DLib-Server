@@ -134,8 +134,10 @@ public class OaiHarvester {
         }
 
         // harvest current year
-        for (int month = 1; month <= currentMonth; month++) {
-            harvestMonth(baseUrl, metadataFormat, formatDate(currentYear, month), outputDirectoryPath);
+        if (fromYear != currentYear) {
+		    for (int month = 1; month <= currentMonth; month++) {
+		        harvestMonth(baseUrl, metadataFormat, formatDate(currentYear, month), outputDirectoryPath);
+		    }
         }
     }
 
