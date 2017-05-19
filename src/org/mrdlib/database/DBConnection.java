@@ -1670,11 +1670,11 @@ public class DBConnection {
 					+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
 					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIpHash()
 					+ ", " + constants.getIp() + ", " + constants.getRequestingAppId() + ", "
-					+ constants.getProcessingAppId() + ", " + constants.getPartnerId() + ", "
-					+ constants.getAppVersion() + ", " + constants.getAppLang() + ") VALUES ('";
+					+ constants.getProcessingAppId() + ", " + constants.getAppVersion() + ", " + constants.getAppLang()
+					+ ") VALUES ('";
 			query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
-					+ "', '" + statusCode + "',?, ?,?,?,?,?,?,?);";
+					+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
@@ -1682,7 +1682,8 @@ public class DBConnection {
 			// carry on
 			if (noEntryExceptionRecorded) {
 				stmt.setNull(1, java.sql.Types.BIGINT);
-				System.out.println("No entry exception woohoo");
+				if (constants.getDebugModeOn())
+					System.out.println("No entry exception woohoo");
 			} else {
 				stmt.setString(1, referenceId);
 			}
@@ -1693,14 +1694,14 @@ public class DBConnection {
 			stmt.setString(5, documentSet.getRequestingAppId());
 			String processingAppId;
 			try {
-				processingAppId = documentSet.getAlgorithmDetails().getProcessingAppId();
+				processingAppId = documentSet.getAlgorithmDetails().getRecommendationProvider().equals("Core") ? "8"
+						: "6";
 			} catch (NullPointerException e) {
 				processingAppId = null;
 			}
 			stmt.setString(6, processingAppId);
-			stmt.setString(7, documentSet.getRequestingPartnerId());
-			stmt.setString(8, documentSet.getAppVersion());
-			stmt.setString(9, documentSet.getAppLang());
+			stmt.setString(7, documentSet.getAppVersion());
+			stmt.setString(8, documentSet.getAppLang());
 
 			try {
 				String saltedIp = "mld" + ipAddress;
@@ -2659,7 +2660,7 @@ public class DBConnection {
 
 		String query = "SELECT " + constants.getGramity() + ", count FROM " + constants.getKeyphrases() + " WHERE "
 				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getSourceInKeyphrases()
-				+ "=" + (source.equals("title") ? "'title'" : "'title_and_abstract'");
+				+ "=" + (source.contains("abstract") ? "'title_and_abstract'" : "'title'");
 
 		try {
 			stmt = con.createStatement();
@@ -3382,7 +3383,6 @@ public class DBConnection {
 
 			stmt.setString(7, recommenderDetails.getCbfTextFields());
 			stmt.setString(8, recommenderDetails.getCbfTextFields());
-
 			rs = stmt.executeQuery();
 			if (rs.next()) {
 				cbfId = rs.getInt(constants.getCbfId());
@@ -3397,7 +3397,7 @@ public class DBConnection {
 				String values = "?,?,?,?";
 				if (keyphrases) {
 					columns += ", " + constants.getCbfNgramType();
-					values += ", '" + recommenderDetails.getCbfFeatureType();
+					values += ", '" + recommenderDetails.getCbfFeatureType() + "'";
 				}
 				if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
 					columns += ", " + constants.getSearchMode();
@@ -3987,7 +3987,6 @@ public class DBConnection {
 		try (PreparedStatement stmt = con.prepareStatement(query)) {
 			stmt.setString(1, requestDocument.getCleanTitle());
 			stmt.setString(2, requestDocument.getTitle());
-			System.out.println(query);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
 				titleStringId = rs.getString(constants.getTitleSearchId());
@@ -4022,15 +4021,15 @@ public class DBConnection {
 		return titleStringId;
 	}
 
-	public String getApplicationId(String appName) throws NoEntryException {
-		String query = "SELECT " + constants.getApplicationId() + " FROM " + constants.getApplication() + " WHERE "
+	public String getIdInApplications(String appName, String column) throws NoEntryException {
+		String query = "SELECT " + column + " FROM " + constants.getApplication() + " WHERE "
 				+ constants.getApplicationPublicName() + "=?";
 
 		try (PreparedStatement stmt = con.prepareStatement(query)) {
 			stmt.setString(1, appName);
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
-				return rs.getString(constants.getApplicationId());
+				return rs.getString(column);
 			} else {
 				throw new NoEntryException(appName);
 			}
@@ -4140,6 +4139,10 @@ public class DBConnection {
 			}
 		}
 		return allowedCollections;
+	}
+
+	public String getApplicationId(String appName) {
+		return getIdInApplications(appName, constants.getApplicationId());
 	}
 
 }

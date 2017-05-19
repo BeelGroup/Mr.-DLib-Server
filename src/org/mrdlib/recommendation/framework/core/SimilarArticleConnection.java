@@ -116,7 +116,9 @@ public class SimilarArticleConnection {
 
 	public DocumentSet convertToMDLSet(List<? extends ExternalDocumentRepresentation> externalRepresentationSet,
 			DocumentSet containerSet) {
-
+		if(externalRepresentationSet==null){
+			return containerSet;
+		}
 		for (ExternalDocumentRepresentation item : externalRepresentationSet) {
 			containerSet.addDocument(item.convertToMDLDocument());
 		}

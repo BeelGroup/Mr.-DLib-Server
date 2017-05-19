@@ -20,13 +20,13 @@ public class AlgorithmDetails {
 	private boolean fallback = false;
 	private int recommendationAlgorithmId;
 
-	private String processingAppId;
+	private String recommendationProvider;
 
 	public AlgorithmDetails(String name) {
 		if (name.toLowerCase().contains("core"))
-			this.setProcessingAppId("8");
+			this.setRecommendationProvider("Core");
 		else
-			this.setProcessingAppId("6");
+			this.setRecommendationProvider("Mr-DLib");
 		this.name = name;
 	}
 
@@ -240,12 +240,12 @@ public class AlgorithmDetails {
 		this.queryParser = queryParser;
 	}
 
-	public String getProcessingAppId() {
-		return processingAppId;
+	public String getRecommendationProvider() {
+		return recommendationProvider;
 	}
 
-	public void setProcessingAppId(String processingAppId) {
-		this.processingAppId = processingAppId;
+	public void setRecommendationProvider(String processingAppId) {
+		this.recommendationProvider = processingAppId;
 	}
 
 	@Override

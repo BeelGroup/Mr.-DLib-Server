@@ -329,33 +329,33 @@ public class solrConnection {
 
 			}
 
-			System.out.println("set query with= " + queryString.toString());
+			if(constants.getDebugModeOn()) System.out.println("set query with= " + queryString.toString());
 			query.set("q", queryString.toString());
-			System.out.println("set query with title: " + queryString.toString());
+			if(constants.getDebugModeOn()) System.out.println("set query with title: " + queryString.toString());
 		} else {
 			query.setQuery(title);
 
 		}
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
-		System.out.println("max rows are: " + delimitedRows);
+		if(constants.getDebugModeOn()) System.out.println("max rows are: " + delimitedRows);
 		// set display params
 		query.setParam("fl", "score,id");
 
 		try {
-			System.out.println("try to get the response from solr! The query looks like: " + query);
+			if(constants.getDebugModeOn()) System.out.println("try to get the response from solr! The query looks like: " + query);
 			response = solr.query(query);
-			System.out.println("response seems to be: " + response.toString());
+			if(constants.getDebugModeOn()) System.out.println("response seems to be: " + response.toString());
 			SolrDocumentList docs = response.getResults();
-			System.out.println("Query Time: " + Integer.toString(response.getQTime()));
+			if(constants.getDebugModeOn()) System.out.println("Query Time: " + Integer.toString(response.getQTime()));
 
 			// no related documents found
 			if (docs.isEmpty()) {
-				System.out.println("docs.isEmpty() is true");
+				if(constants.getDebugModeOn()) System.out.println("docs.isEmpty() is true");
 				throw new NoRelatedDocumentsException("query was performed by title: " + title,
 						"query was performed by title: " + title);
 			} else {
-				System.out.println("docs.isEmpty() is false");
+				if(constants.getDebugModeOn()) System.out.println("docs.isEmpty() is false");
 				long timeNow = System.currentTimeMillis();
 				relatedDocuments.setSuggested_label("Related Articles");
 				relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());

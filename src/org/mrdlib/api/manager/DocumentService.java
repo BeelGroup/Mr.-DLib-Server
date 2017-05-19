@@ -88,11 +88,10 @@ public class DocumentService {
 		Long timeToUserModel = null;
 		Long timeAfterExecution = null;
 		Boolean requestByTitle = false;
-		boolean fourOFourError = false;
 
 		// could lead to inconsistency. Identifier would be better
-		String applicationId = "";
-		String partnerId = "";
+		String applicationId = null;
+		String partnerId = null;
 		try {
 			/*
 			 * Do some checks based on the Query parameters. Add 401 status code
@@ -101,24 +100,29 @@ public class DocumentService {
 			 * and organization_id is incorrect
 			 * 
 			 */
-			if (partnerName != null && appName != null) {
+			if (appName != null && !appName.equals("")) {
 				try {
 
 					applicationId = con.getApplicationId(appName);
-					partnerId = con.getOrganizationId(partnerName);
+					if (partnerName != null && !appName.equals("")) {
+						Boolean appVerified = true;
+						try {
+							partnerId = con.getOrganizationId(partnerName);
+						} catch (NoEntryException e) {
+							appVerified = false;
+						}
+						if (appVerified)
+							appVerified = con.verifyLinkAppOrg(applicationId, partnerId);
+						if (!appVerified)
+							statusReportSet.addStatusReport(new StatusReport(401, "Application_id " + appName
+									+ " is not linked with organization_id: " + partnerName));
+					}
+					partnerId = con.getIdInApplications(appName, constants.getOrganizationInApplication());
 
-					Boolean appVerified = con.verifyLinkAppOrg(applicationId, partnerId);
-					if (!appVerified)
-						statusReportSet.addStatusReport(new StatusReport(401,
-								"Application_id " + appName + " is not linked with organization_id: " + partnerName));
 				} catch (NoEntryException e) {
 					statusReportSet.addStatusReport(new StatusReport(401,
-							"Authenticity check is invalid. There is no link between app_id and org_id that has been provided in the query URL",
-							"Application_id: " + appName + " organization_id: " + partnerName));
+							"The application with name: " + appName + " has not been registered with Mr. DLib"));
 				}
-			} else {
-				applicationId = null;
-				partnerId = null;
 			}
 
 			{
@@ -131,10 +135,10 @@ public class DocumentService {
 					documentset.setRequestingPartnerId(partnerId);
 				if (appVersion != null && appVersion.matches("[a-z0-9A-Z-#.]+"))
 					documentset.setAppVersion(appVersion);
-				if (appLang != null && appLang.length()>1 && appLang.substring(0,2).matches("[a-zA-Z][a-zA-Z]")){
+				if (appLang != null && appLang.length() > 1 && appLang.substring(0, 2).matches("[a-zA-Z][a-zA-Z]")) {
 					documentset.setAppLang(appLang.substring(0, 2));
 				}
-					
+
 			}
 			/*
 			 * First we have a look if it is an integer. if the conversion
@@ -149,7 +153,7 @@ public class DocumentService {
 					System.out.println("try int");
 				Integer.parseInt(inputQuery);
 				requestDocument = con.getDocumentBy(constants.getDocumentId(), inputQuery);
-			}catch(NoEntryException e){
+			} catch (NoEntryException e) {
 				requestDocument = new DisplayDocument();
 				requestDocument.setDocumentId(inputQuery);
 				requestByTitle = false;
@@ -206,14 +210,15 @@ public class DocumentService {
 			// get all related documents from solr
 			Boolean validAlgorithmFlag = false;
 			int numberOfAttempts = 0;
-
+			documentset.setRequestedDocument(requestDocument);
 			// Retry while algorithm is not valid, and we still have retries
 			// left
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
 					if (constants.getDebugModeOn())
 						System.out.println("trying to get the algorithm from the factory");
-					relatedDocumentGenerator = RecommenderFactory.getRandomRDG(con, requestDocument, requestByTitle);
+					relatedDocumentGenerator = RecommenderFactory.getRandomRDG(con, documentset, requestByTitle);
+
 					timeToPickAlgorithm = System.currentTimeMillis();
 					timeToUserModel = timeToPickAlgorithm;
 					if (constants.getDebugModeOn())
@@ -233,9 +238,6 @@ public class DocumentService {
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
 					if (requestByTitle) {
-						statusReportSet.addStatusReport(
-								new StatusReport(404, "No related documents corresponding to input query:"
-										+ requestDocument.getCleanTitle()));
 						validAlgorithmFlag = true;
 					}
 				}
@@ -265,7 +267,6 @@ public class DocumentService {
 
 			timeAfterExecution = System.currentTimeMillis();
 
-
 			if (documentset.getSize() > 0) {
 				documentset = ar.selectRandomRanking(documentset);
 				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
@@ -276,20 +277,21 @@ public class DocumentService {
 				documentset.setRankDelivered();
 				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
 
-			} else
-				throw new NoRelatedDocumentsException(documentset.getRequestedDocument().getOriginalDocumentId(),
-						documentset.getRequestedDocument().getDocumentId());
+			} else {
+				if (!requestByTitle) {
 
+					statusReportSet.addStatusReport(new StatusReport(204,
+							"No related documents found for document id: " + requestDocument.getDocumentId()
+									+ " (original document id : " + requestDocument.getOriginalDocumentId() + ")"));
+				} else {
+					statusReportSet.addStatusReport(new StatusReport(204, "Documents related to query by title ("
+							+ requestDocument.getTitle() + " ) were not found"));
+				}
+			}
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
-			fourOFourError = true;
-			statusReportSet.addStatusReport(e1.getStatusReport());
-			// if retry limit has been reached and no related documents still
-			// have been extracted
-		} catch (NoRelatedDocumentsException e) {
-			statusReportSet.addStatusReport(e.getStatusReport());
-
-			// if something else happened there
+			statusReportSet.addStatusReport(new StatusReport(404, "No such document with document id "
+					+ requestDocument.getDocumentId() + " exists in our database"));
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 			e.printStackTrace();
@@ -297,25 +299,7 @@ public class DocumentService {
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
-		else {
-			for (StatusReport statusReport : statusReportSet.getStatusReportList()) {
-				if (statusReport.getStatusCode() == 404) {
-					fourOFourError = true;
-					break;
-				}
-			}
-			if (fourOFourError) {
-				System.out.println("Got here");
-				statusReportSet = new StatusReportSet();
-				if (requestByTitle) {
-					statusReportSet.addStatusReport(new StatusReport(404,
-							"Documents related to query by title(" + requestDocument.getTitle() + " )were not found"));
-				} else {
-					statusReportSet.addStatusReport(new StatusReport(404, "No such document with document id "
-							+ requestDocument.getDocumentId() + " exists in our database"));
-				}
-			}
-		}
+
 		System.out.println("Did the documentset stuff");
 
 		// add both the status message and the related document to the xml

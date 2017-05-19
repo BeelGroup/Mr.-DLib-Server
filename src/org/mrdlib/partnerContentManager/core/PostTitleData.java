@@ -225,7 +225,7 @@ public class PostTitleData implements ExternalDocumentRepresentation {
 		DisplayDocument mdlDoc = new DisplayDocument();
 		mdlDoc.setOriginalDocumentId("core-" + this.getId());
 		mdlDoc.setTitle(this.getTitle());
-		mdlDoc.setAuthorNames(this.getAuthors().toString());
+		mdlDoc.setAuthorNames(String.join(", ", this.getAuthors()));
 		try {
 			mdlDoc.setYear(Integer.parseInt(this.getYear()));
 		} catch (NumberFormatException e) {

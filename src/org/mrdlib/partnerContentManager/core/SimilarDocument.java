@@ -137,7 +137,7 @@ public DisplayDocument convertToMDLDocument() {
 	mdlDoc.setRelevanceScoreFromAlgorithm(this.getScore());
 	mdlDoc.setTitle(this.getTitle());
 	mdlDoc.setOriginalDocumentId("core-" + this.getId());
-	mdlDoc.setAuthorNames(this.getAuthors().toString());
+	mdlDoc.setAuthorNames(String.join(", ", this.getAuthors()));
 	try{
 		mdlDoc.setYear(Integer.parseInt(this.getYear()));
 	} catch(NumberFormatException e){
