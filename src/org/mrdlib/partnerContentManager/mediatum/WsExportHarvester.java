@@ -14,6 +14,7 @@ public class WsExportHarvester {
 
     /**
      * Returns true if the given URL returns nodes, otherwise false.
+     * 
      * @param url URL of node.
      * @return True or false.
      */
@@ -34,6 +35,7 @@ public class WsExportHarvester {
 
     /**
      * Returns a query string for retrieving parents of a node.
+     * 
      * @param baseUrl Base URL of the ws_export service.
      * @param nodeId Id of node whose parents to retrieve.
      * @return Query string.
@@ -45,6 +47,7 @@ public class WsExportHarvester {
     /**
      * Harvests the parents of the given node in the given ws_export service with the given parameters and saves the
      * progress in the given hash map.
+     * 
      * @param baseUrl Base URL of the ws_export service.
      * @param nodeIds Hash map for keeping track of the harvesting progress.
      * @param nodeId Id of node whose parents to retrieve.
@@ -73,6 +76,7 @@ public class WsExportHarvester {
 
     /**
      * Returns a query string for retrieving children of a node.
+     * 
      * @param baseUrl Base URL of the ws_export service.
      * @param numNodesToFetchAtOnce Number of nodes to fetch at once.
      * @param nodeId Id of node whose children to retrieve.
@@ -86,6 +90,7 @@ public class WsExportHarvester {
     /**
      * Harvests the children of the given node in the given ws_export service with the given parameters and saves the
      * progress in the given hash map.
+     * 
      * @param baseUrl Base URL of the ws_export service.
      * @param numNodesToFetchAtOnce Number of nodes to fetch at once.
      * @param nodeIds Hash map for keeping track of the harvesting progress.
@@ -132,6 +137,7 @@ public class WsExportHarvester {
 
     /**
      * Returns the number of explored nodes in the given hash map.
+     * 
      * @param nodeIds Hash map for keeping track of the harvesting progress.
      * @return Number of explored nodes.
      */
@@ -150,6 +156,7 @@ public class WsExportHarvester {
     /**
      * Harvests the given node in the given ws_export service with the given parameters and saves the progress in the
      * given hash map.
+     * 
      * @param baseUrl Base URL of the ws_export service.
      * @param numNodesToFetchAtOnce Number of nodes to fetch at once.
      * @param nodeIds Hash map for keeping track of the harvesting progress.
@@ -170,6 +177,7 @@ public class WsExportHarvester {
 
     /**
      * Returns the key of the first unexplored node found in the given hash map.
+     * 
      * @param nodeIds Hash map for keeping track of the harvesting progress.
      * @return Key of the first found unexplored node in the given hash map.
      */
@@ -188,6 +196,7 @@ public class WsExportHarvester {
 
     /**
      * Harvests the first unexplored node in the given hash map.
+     * 
      * @param baseUrl Base URL of the ws_export service.
      * @param numNodesToFetchAtOnce Number of nodes to fetch at once.
      * @param nodeIds Hash map for keeping track of the harvesting progress.
@@ -209,6 +218,7 @@ public class WsExportHarvester {
 
     /**
      * Returns true if nodes in the given hash map are not yet explored, otherwise false.
+     * 
      * @param nodeIds Hash map to search for unexplored nodes in.
      * @return True or false.
      */
@@ -224,6 +234,7 @@ public class WsExportHarvester {
 
     /**
      * Harvests the ws_export service of mediaTUM with the given parameters.
+     * 
      * @param baseUrl Base URL of the ws_export service.
      * @param numNodesToFetchAtOnce Number of nodes to fetch at once.
      * @param fileContainingNodesIdsPath File that contains the progress (each line information about a node).

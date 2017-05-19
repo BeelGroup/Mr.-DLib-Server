@@ -1,7 +1,5 @@
 package org.mrdlib.partnerContentManager;
 
-import java.util.List;
-
 /**
  * Interface specifying methods for converting content of MDL partners to a data format that may be easier persisted in the MDL database.
  * 

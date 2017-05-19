@@ -237,6 +237,9 @@ public class OAIDCRecord {
     	return stringBuilder.toString();
     }
     
+    /**
+     * Custom toString() implementation.
+     */
     public String toString() {
     	String oaidcRecord = "[";
     	

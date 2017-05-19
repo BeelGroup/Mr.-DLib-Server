@@ -19,29 +19,32 @@ public class OaiHarvester {
 
     /**
      * Returns a given year and month in a formatted way.
+     * 
      * @param year Year to format.
      * @param month Month to format.
      * @return Formatted date.
      */
-    private static String formatDate(int year, int month) {
+    private String formatDate(int year, int month) {
         return year + "-" + String.format("%02d", month);
     }
 
     /**
      * Returns a given day in a two-digit-format.
+     * 
      * @param day Day to format.
      * @return Formatted day.
      */
-    private static String formatDay(int day) {
+    private String formatDay(int day) {
         return String.format("%02d", day);
     }
 
     /**
      * Returns the number of days of a given month (format yyyy-mm).
+     * 
      * @param month Month (format yyyy-mm) which number of days to return.
      * @return Number of days.
      */
-    private static int getDaysOfMonth(String month) {
+    private int getDaysOfMonth(String month) {
         String[] monthParts = month.split("-");
 
         int year = Integer.parseInt(monthParts[0]);
@@ -52,10 +55,11 @@ public class OaiHarvester {
 
     /**
      * Retrieves the earliestDatestamp from the identification of the OAI interface.
+     * 
      * @param baseUrl Base URL of the OAI interface.
      * @return Earliest datestamp.
      */
-    private static String getEarliestDatestamp(String baseUrl) {
+    private String getEarliestDatestamp(String baseUrl) {
         InputStream inputStream = WebsiteRetrievalService.getInputStreamFromUrl(baseUrl + "?verb=Identify");
         Document document = WebsiteRetrievalService.getDocumentFromInputStream(inputStream);
 
@@ -64,12 +68,13 @@ public class OaiHarvester {
 
     /**
      * Harvests all data provided in a given meta data format of a given month (format yyyy-mm).
+     * 
      * @param baseUrl Base URL of the OAI interface.
      * @param metadataFormat Metadata format to harvest.
      * @param month Month (format yyyy-mm) which to harvest.
      * @param outputDirectoryPath Path of directory to write harvested data to.
      */
-    private static void harvestMonth(String baseUrl, String metadataFormat, String month, String outputDirectoryPath) {
+    private void harvestMonth(String baseUrl, String metadataFormat, String month, String outputDirectoryPath) {
         // construct OAI query string
         String url = baseUrl + "?verb=ListRecords&metadataPrefix=" + metadataFormat + "&from=" + month + "-01&until=" +
                 month + "-" + formatDay(getDaysOfMonth(month));
@@ -91,12 +96,13 @@ public class OaiHarvester {
 
     /**
      * Harvests all data provided in a given meta data format from a given date (format yyyy-mm-dd) until today.
+     * 
      * @param baseUrl Base URL of the OAI interface.
      * @param metadataFormat Metadata format to harvest.
      * @param from Date (format yyyy-mm) from which until today to harvest.
      * @param outputDirectoryPath Path of directory to write harvested data to.
      */
-    public static void harvestFrom(String baseUrl, String metadataFormat, String from, String outputDirectoryPath) {
+    public void harvestFrom(String baseUrl, String metadataFormat, String from, String outputDirectoryPath) {
         // get current year and month
         Calendar currentDate = Calendar.getInstance();
         int currentYear = currentDate.get(Calendar.YEAR);
@@ -135,11 +141,12 @@ public class OaiHarvester {
 
     /**
      * Harvests all data provided by the OAI interface in the given metadata format.
+     * 
      * @param baseUrl Base URL of the OAI interface.
      * @param metadataFormat Metadata Format of data to harvest.
      * @param outputDirectoryPath Path of directory to write harvested data to.
      */
-    public static void harvest(String baseUrl, String metadataFormat, String outputDirectoryPath) {
+    public void harvest(String baseUrl, String metadataFormat, String outputDirectoryPath) {
         String earliestDatestamp = getEarliestDatestamp(baseUrl);
 
         harvestFrom(baseUrl, metadataFormat, earliestDatestamp, outputDirectoryPath);

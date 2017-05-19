@@ -19,6 +19,7 @@ public class WebsiteRetrievalService {
 
     /**
      * Returns the data retrieved from a given URL as an InputStream.
+     * 
      * @param url URL to retrieve data from.
      * @return Retrieved data as InputStream.
      */
@@ -43,6 +44,7 @@ public class WebsiteRetrievalService {
 
     /**
      * Transforms an InputStream to a Document.
+     * 
      * @param inputStream InputStream to transform
      * @return document that the InputStream has been transformed into
      */

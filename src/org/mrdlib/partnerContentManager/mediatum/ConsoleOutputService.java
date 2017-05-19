@@ -15,7 +15,6 @@ public class ConsoleOutputService {
     public static void printOutError(String message, Exception e) {
         System.err.println(message);
         if (e != null) {
-            //noinspection ThrowablePrintedToSystemOut
             System.err.println(e);
         }
         System.err.println(Arrays.toString(Thread.currentThread().getStackTrace()));

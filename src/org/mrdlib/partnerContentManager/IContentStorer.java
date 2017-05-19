@@ -1,7 +1,5 @@
 package org.mrdlib.partnerContentManager;
 
-import java.util.List;
-
 import org.mrdlib.database.DBConnection;
 
 /**

@@ -1,7 +1,6 @@
 package org.mrdlib.partnerContentManager.mediatum;
 
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.mrdlib.partnerContentManager.IContentDownloader;
@@ -29,9 +28,25 @@ public class MediaTUMContentDownloader implements IContentDownloader {
 	public void downloadContentSince(String folderToStoreContentIn, Date since) {
 		OaiHarvester oaiHarvester = new OaiHarvester();
 		
-		int year = since.getYear();
-		int month = since.getMonth();
-		int day = since.getDate();
+		oaiHarvester.harvestFrom(baseUrl, metadataFormat, convertDateToOAIDate(since), folderToStoreContentIn);
+		
+		// TODO: in case of mediaTUM data that has been deleted from the database of mediaTUM needs
+		// to be deleted from Mr. DLib's database as well.
+	}
+	
+	/**
+	 * Converts a given date (format Jave.util.Date) to a string (format "yyyy").
+	 * 
+	 * @param date date to convert (format Jave.util.Date)
+	 * @return converted date as string (format "yyyy")
+	 */
+	private String convertDateToOAIDate(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DAY_OF_MONTH);
 		
 		String oaiDate = year + "-";
 		if (month < 10) {
@@ -43,7 +58,7 @@ public class MediaTUMContentDownloader implements IContentDownloader {
 		}
 		oaiDate += day;
 		
-		oaiHarvester.harvestFrom(baseUrl, metadataFormat, oaiDate, folderToStoreContentIn);
+		return oaiDate;
 	}
 
 }

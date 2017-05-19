@@ -14,6 +14,7 @@ class ProgressSavingService {
 
     /**
      * Saves progress of exploring nodes into given file.
+     * 
      * @param nodeIds Hash map containing progress to save.
      * @param progressFilePath Path of file to write progress to.
      */
@@ -41,6 +42,7 @@ class ProgressSavingService {
 
     /**
      * Reads in the progress from the given file and returns it as a hash map.
+     * 
      * @param progressFilePath File to read in progress from.
      * @return Hash map containing the read in progress.
      */
@@ -62,11 +64,13 @@ class ProgressSavingService {
                     nodeIds.putIfAbsent(line, ExplorationState.NOT_EXPLORED);
                 }
             }
+            
+            scanner.close();
         } catch (FileNotFoundException e) {
             ConsoleOutputService.printOutError("Error while reading in progress file " + progressFilePath +
                     ".", e);
         }
-
+        
         return nodeIds;
     }
 

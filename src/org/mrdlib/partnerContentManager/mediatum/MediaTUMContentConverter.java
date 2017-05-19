@@ -266,6 +266,13 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
         }
 	}
 	
+	/**
+	 * Extracts given abstracts (multiple abstracts because of abstracts given in multiple languages)
+	 * from a given OAIDC record.
+	 * 
+	 * @param oaidcRecord OAIDC record to extract abstracts from
+	 * @return list of extracted abstracts
+	 */
 	private ArrayList<String> getAbstractsFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		ArrayList<String> abstracts = new ArrayList<String>();
 		
@@ -282,6 +289,13 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return abstracts;
 	}
 	
+	/**
+	 * Extracts the language of a publication from a given OAIDC record.
+	 * 
+	 * @param oaidcRecord OAIDC record to extract language from.
+	 * @return extracted language, that may need conversion to the internal language coding format of Mr. DLib<br>
+	 * for that purpose the language map exists, that may be set up using createTypeMap()
+	 */
 	private String getLanguageFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		String language = "";
 		
@@ -295,6 +309,13 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return language;
 	}
 	
+	/**
+	 * Extracts the "original" id used at mediaTUM and prefixes it with "mt". mediaTUM uses numbers,
+	 * primarily in the 7-figures range.
+	 * 
+	 * @param oaidcRecord OAIDC record to get the "original" id from
+	 * @return prefixed "original" id of OAIDC record from mediaTUM
+	 */
 	private String getIdOriginalFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		String idOrignal = "";
 		
@@ -308,6 +329,12 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return idOrignal;
 	}
 	
+	/**
+	 * Extracts a publication's title from a given OAIDC record.
+	 * 
+	 * @param oaidcRecord OAIDC record to extract title from
+	 * @return publication's title
+	 */
 	private String getTitleFromOAICDRecord(OAIDCRecord oaidcRecord) {
 		String title = "";
 		
@@ -323,6 +350,12 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return title;
 	}
 	
+	/**
+	 * Extracts a publication's year from a given OAIDC record as a string formatted as "yyyy".
+	 * 
+	 * @param oaidcRecord OAIDC record to extract year from
+	 * @return extracted publication's year (format "yyyy")
+	 */
 	private String getYearFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		String year = "";
 		
@@ -359,6 +392,13 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return authors;
 	}
 	
+	/**
+	 * Extracts keywords from an OAIDC record. Values provided through the OAI tag "subject" are used.
+	 * This approach may be specific to mediaTUM.
+	 * 
+	 * @param oaidcRecord OAIDC record to extract keywords from
+	 * @return list of extracted keywords
+	 */
 	private ArrayList<String> getKeyWordsFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		ArrayList<String> keyWords = new ArrayList<>();
 		
@@ -371,6 +411,14 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return keyWords;
 	}
 	
+	/**
+	 * Extracts a "type" of a publication from an OAIDC record.
+	 * A "publication type" may for example be a doctoral thesis or an article in a journal.
+	 * The available publication types are very specific to the content provider mediaTUM.
+	 * 
+	 * @param oaidcRecord OAIDC record to extract a "publication type" from
+	 * @return extracted "publication type"
+	 */
 	private String getTypeFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		String type = "";
 		
@@ -426,14 +474,30 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return publishedIn;
 	}
 	
-	private String replaceSpecialCharacters(String stringToReplaceUmlautsIn) {
+	/**
+	 * Replaces "special characters" in a given string.
+	 * "special characters" are e.g. characters that cause problems when storing strings in the MySQL database,
+	 * that are specific Unicode characters that are possibly incompatible with the database or column format.
+	 * 
+	 * @param stringToReplaceSpecialCharactersIn string to replace special characters in
+	 * @return given string with replaced special characters
+	 */
+	private String replaceSpecialCharacters(String stringToReplaceSpecialCharactersIn) {
 		/* thanks to http://stackoverflow.com/questions/4122170/java-change-%C3%A1%C3%A9%C5%91%C5%B1%C3%BA-to-aeouu */		
-		stringToReplaceUmlautsIn = Normalizer.normalize(stringToReplaceUmlautsIn, Normalizer.Form.NFD)
+		stringToReplaceSpecialCharactersIn = Normalizer.normalize(stringToReplaceSpecialCharactersIn, Normalizer.Form.NFD)
 				.replaceAll("[^\\p{ASCII}]", "");
 		
-		return stringToReplaceUmlautsIn;
+		return stringToReplaceSpecialCharactersIn;
 	}
 	
+	/**
+	 * Extracts a "collection" from a given OAIDC record.
+	 * "collections" are used by content provider mediaTUM to group publications. The groups are effectively
+	 * fields of research (e.g. Mathematics) that are encoded using a three-digit code prefixed with "ddc:". 
+	 * 
+	 * @param oaidcRecord OAIDC record to extract "collection" from
+	 * @return extracted "collection" used by mediaTUM to group publications
+	 */
 	private String getCollectionFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		// default value
 		String collection = "000";
