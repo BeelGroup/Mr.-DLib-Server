@@ -320,7 +320,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		String idOrignal = "";
 		
 		if (oaidcRecord.getIdentifiers().size() > 0) {
-			idOrignal = "mt" + oaidcRecord.getIdentifiers().get(0);
+			idOrignal = oaidcRecord.getIdentifiers().get(0);
 		} else {
 			System.out.println("Error: no identifier found.");
 			return null;
