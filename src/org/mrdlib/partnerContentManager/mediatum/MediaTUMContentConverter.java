@@ -2,7 +2,6 @@ package org.mrdlib.partnerContentManager.mediatum;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -282,7 +281,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		}
 		
 		for (int i = 0; i < abstracts.size(); i++) {
-			abstracts.set(i, replaceSpecialCharacters(abstracts.get(i)));
+			abstracts.set(i, abstracts.get(i));
 		}
 		
 		return abstracts;
@@ -344,8 +343,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 			return null;
 		}
 		
-		title = replaceSpecialCharacters(title);
-		
 		return title;
 	}
 	
@@ -385,7 +382,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		authors.addAll(oaidcRecord.getContributors());
 		
 		for (int i = 0; i < authors.size(); i++) {
-			authors.set(i, replaceSpecialCharacters(authors.get(i)));
+			authors.set(i, authors.get(i));
 		}
 		
 		return authors;
@@ -409,7 +406,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 					String decodedCollection = decodeCollection(encodedCollection);
 					keyWords.add(decodedCollection);
 				} else {
-					keyWords.add(replaceSpecialCharacters(keyWord));
+					keyWords.add(keyWord);
 				}
 			}
 		}
@@ -607,25 +604,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 			System.out.println("Warning: no publishers found.");
 		}
 		
-		publishedIn = replaceSpecialCharacters(publishedIn);
-		
 		return publishedIn;
-	}
-	
-	/**
-	 * Replaces "special characters" in a given string.
-	 * "special characters" are e.g. characters that cause problems when storing strings in the MySQL database,
-	 * that are specific Unicode characters that are possibly incompatible with the database or column format.
-	 * 
-	 * @param stringToReplaceSpecialCharactersIn string to replace special characters in
-	 * @return given string with replaced special characters
-	 */
-	private String replaceSpecialCharacters(String stringToReplaceSpecialCharactersIn) {
-		/* thanks to http://stackoverflow.com/questions/4122170/java-change-%C3%A1%C3%A9%C5%91%C5%B1%C3%BA-to-aeouu */		
-		stringToReplaceSpecialCharactersIn = Normalizer.normalize(stringToReplaceSpecialCharactersIn, Normalizer.Form.NFD)
-				.replaceAll("[^\\p{ASCII}]", "");
-		
-		return stringToReplaceSpecialCharactersIn;
 	}
 	
 	/**
