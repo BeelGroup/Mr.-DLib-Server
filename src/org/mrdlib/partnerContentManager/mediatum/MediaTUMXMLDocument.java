@@ -43,6 +43,8 @@ public class MediaTUMXMLDocument extends XMLDocument {
 	private String publishedIn;
 	private int publishedInRank;
 	private String collection;
+	private String license;
+	private String fullText;
 	
 	private LinkedHashSet<Person> authors = new LinkedHashSet<Person>();
 	private Map<String, String> typeMap = new HashMap<String, String>();
@@ -395,6 +397,22 @@ public class MediaTUMXMLDocument extends XMLDocument {
 	public String getCollection() {
 		return collection;
 	}
+	
+	public String getLicense() {
+		return license;
+	}
+
+	public void setLicense(String license) {
+		this.license = license;
+	}
+
+	public String getFullText() {
+		return fullText;
+	}
+
+	public void setFullText(String fullText) {
+		this.fullText = fullText;
+	}
 
 	public LinkedHashSet<Person> getAuthors() {
 		return authors;
@@ -576,7 +594,7 @@ public class MediaTUMXMLDocument extends XMLDocument {
 		return "MediaTUMXMLDocument [id=" + id + ", title=" + title + ", fulltitle=" + fulltitle + ", language="
 				+ language + ", abstr=" + abstracts + ", year=" + year + ", facetYear=" + facetYear + ", keywords="
 				+ keywords + ", type=" + type + ", publishedIn=" + publishedIn + ", collection=" + collection
-				+ ", authors=" + authorsAsString + "]";
+				+ ", authors=" + authorsAsString + ", license=" + license + ", fulltext=" + fullText + "]";
 	}
 	
 }

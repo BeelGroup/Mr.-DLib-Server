@@ -166,6 +166,8 @@ public class Constants {
 	private String year;
 	private String type;
 	private String keywords;
+	private String license;
+	private String fulltext;
 
 	// table collection
 	private String collectionID;
@@ -423,6 +425,8 @@ public class Constants {
 			this.year = prop.getProperty("year");
 			this.type = prop.getProperty("type");
 			this.keywords = prop.getProperty("keywords");
+			this.license = prop.getProperty("license");
+			this.fulltext = prop.getProperty("fulltext");
 
 			this.collectionID = prop.getProperty("collectionId");
 			this.collectionShortName = prop.getProperty("collectionShortName");
@@ -979,6 +983,14 @@ public class Constants {
 
 	public String getKeywords() {
 		return keywords;
+	}
+
+	public String getLicense() {
+		return license;
+	}
+
+	public String getFulltext() {
+		return fulltext;
 	}
 
 	public String getLanguage() {

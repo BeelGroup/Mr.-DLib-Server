@@ -96,6 +96,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		String type = getTypeFromOAIDCRecord(oaidcRecord);
 		String publishedIn = getPublishedInFromOAIDCRecord(oaidcRecord);
 		String collection = getCollectionFromOAIDCRecord(oaidcRecord);
+		String license = getLicenseFromOAIDCRecord(oaidcRecord);
+		String fullText = getFullTextFromOAIDCRecord(oaidcRecord);
 		
 		// check for errors
 		if ((abstracts == null) || (language == null) || (idOriginal == null) || (title == null) ||
@@ -130,6 +132,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		xmlDocument.addType(type);
 		xmlDocument.setPublishedIn(publishedIn, "publisher");
 		xmlDocument.setCollection(collection);
+		xmlDocument.setLicense(license);
+		xmlDocument.setFullText(fullText);
 		
 		xmlDocument.normalize();
 		
@@ -188,6 +192,15 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
                 	}
                 	if (attributeValue.contains("<![CDATA[")) {
                 		attributeValue = attributeValue.split(Pattern.quote("![CDATA["))[1].split(Pattern.quote("]]"))[0];
+                	}
+                	
+                	// escape single quotes
+                	if (attributeValue.contains("'")) {
+                		System.out.println("BEFORE ESCAPING: " + attributeValue);
+                	}
+                	
+                	if (attributeValue.contains("'")) {
+                		System.out.println("AFTER ESCAPING: " + attributeValue);
                 	}
                 	
                 	if (!attributeValue.equals("")) {                		
@@ -595,6 +608,12 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return type;
 	}
 	
+	/**
+	 * Extracts a publisher from a given OAIDC record.
+	 * 
+	 * @param oaidcRecord OAIDC record to extract publisher from
+	 * @return extracted publisher
+	 */
 	private String getPublishedInFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		String publishedIn = "";
 		
@@ -630,6 +649,63 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		}
 		
 		return "mediatum-ddc" + collection;
+	}
+	
+	/**
+	 * Extracts an indication of the rights related to the given OAIDC record.
+	 * It may either be "open_access", "licence" or an empty string
+	 * 
+	 * @param oaidcRecord OAIDC record to extract rights indication from
+	 * @return extracted rights indication from corresponding enum
+	 */
+	private String getLicenseFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		// default for unknown license
+		String license = "NULL";
+		
+		if (oaidcRecord.getRights().size() > 0) {
+			String rights = oaidcRecord.getRights().get(0);
+			
+			switch (rights) {
+			case ("info:eu-repo/semantics/openAccess"):
+				license = "open_access";
+				break;
+			default:
+				license = "licence";
+				break;
+			}
+		} else {
+			// possible case
+		}
+		
+		return license;
+	}
+	
+	/**
+	 * Extracts an indication whether full text of a given OAIDC record is provided.
+	 * And, if so, in which format.
+	 * 
+	 * @param oaidcRecord OAIDC record to get full text indication of
+	 * @return full text indication providing information about full text type - value of the corresponding enum
+	 */
+	private String getFullTextFromOAIDCRecord(OAIDCRecord oaidcRecord) {
+		String fullText = "no";
+		
+		if (oaidcRecord.getFormats().size() > 0) {
+			String format = oaidcRecord.getFormats().get(0);
+			
+			switch (format) {
+			case "application/pdf":
+				fullText = "pdf";
+				break;
+			default:
+				fullText = "no";
+				break;
+			}
+		} else {
+			// possible case
+		}
+		
+		return fullText;
 	}
 	
 }
