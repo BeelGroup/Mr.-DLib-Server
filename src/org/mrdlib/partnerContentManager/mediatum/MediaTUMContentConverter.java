@@ -29,12 +29,12 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 	private Map<String, String> createTypeMap() {
 		Map<String, String> typeMap = new HashMap<String, String>();
 		
+		typeMap.put("article", "article_unknown");
 		typeMap.put("report", "report");
 		typeMap.put("thesis_unspecified", "thesis_unspecified");
-		typeMap.put("thesis_doctoral", "thesis_doctoral");
-		typeMap.put("thesis_master", "thesis_master");
-		typeMap.put("article", "article");
 		typeMap.put("thesis_bachelor", "thesis_bachelor");
+		typeMap.put("thesis_master", "thesis_master");
+		typeMap.put("thesis_doctoral", "thesis_doctoral");
 		typeMap.put("unknown", "unknown");
 		
 		return typeMap;
@@ -581,7 +581,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 				type = "thesis_doctoral";
 				break;
 			case "article":
-				type = "article";
+				type = "article_unknown";
 				break;
 			case "doc-type:bachelorThesis":
 				type = "thesis_bachelor";
