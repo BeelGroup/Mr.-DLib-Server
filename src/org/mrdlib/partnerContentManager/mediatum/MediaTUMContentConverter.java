@@ -406,8 +406,9 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 			for (String keyWord : subject.split(";")) {
 				// prevent encoded collection information to be stored as a keyword
 				if (keyWord.contains("ddc:")) {
-					String encodedCollection = keyWord.split(Pattern.quote("ddc:"))[0];
-					keyWords.add(decodeCollection(encodedCollection));
+					String encodedCollection = keyWord.split("ddc")[1].substring(1);
+					String decodedCollection = decodeCollection(encodedCollection);
+					keyWords.add(decodedCollection);
 				} else {
 					keyWords.add(replaceSpecialCharacters(keyWord));
 				}
