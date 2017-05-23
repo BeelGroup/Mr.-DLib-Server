@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-import org.mrdlib.partnerContentManager.IContentConverter;
 import org.mrdlib.partnerContentManager.gesis.Tuple;
 
 /**

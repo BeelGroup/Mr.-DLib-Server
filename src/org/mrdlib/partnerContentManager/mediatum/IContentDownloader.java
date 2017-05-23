@@ -1,4 +1,4 @@
-package org.mrdlib.partnerContentManager;
+package org.mrdlib.partnerContentManager.mediatum;
 
 import java.util.Date;
 

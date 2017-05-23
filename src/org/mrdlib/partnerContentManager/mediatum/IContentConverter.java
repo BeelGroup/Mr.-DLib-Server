@@ -1,4 +1,4 @@
-package org.mrdlib.partnerContentManager;
+package org.mrdlib.partnerContentManager.mediatum;
 
 /**
  * Interface specifying methods for converting content of MDL partners to a data format that may be easier persisted in the MDL database.
