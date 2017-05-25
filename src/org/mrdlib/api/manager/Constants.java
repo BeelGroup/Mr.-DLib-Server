@@ -167,7 +167,7 @@ public class Constants {
 	private String type;
 	private String keywords;
 	private String license;
-	private String fulltext;
+	private String fulltextFormat;
 
 	// table collection
 	private String collectionID;
@@ -426,7 +426,7 @@ public class Constants {
 			this.type = prop.getProperty("type");
 			this.keywords = prop.getProperty("keywords");
 			this.license = prop.getProperty("license");
-			this.fulltext = prop.getProperty("fulltext");
+			this.fulltextFormat = prop.getProperty("fulltextFormat");
 
 			this.collectionID = prop.getProperty("collectionId");
 			this.collectionShortName = prop.getProperty("collectionShortName");
@@ -989,8 +989,8 @@ public class Constants {
 		return license;
 	}
 
-	public String getFulltext() {
-		return fulltext;
+	public String getFulltextFormat() {
+		return fulltextFormat;
 	}
 
 	public String getLanguage() {

@@ -119,10 +119,6 @@ public class DBConnection {
 				if (!result.startsWith("enum") && result.contains("(")) {
 					lengthMap.put(rs.getString("Field"),
 							Integer.parseInt(result.substring(result.indexOf("(") + 1, result.indexOf(")"))));
-				
-					System.out.println("LENGTHMAP.PUT: (" + rs.getString("Field") + ", " + Integer.parseInt(result.substring(result.indexOf("(") + 1, result.indexOf(")"))) + "");
-				} else {
-					System.out.println("NOT IN LENGTHMAP: " + rs.getString("Type") + ", " + rs.getString("Field"));
 				}
 			}
 		} catch (SQLException e) {
@@ -755,16 +751,14 @@ public class DBConnection {
 			if (value instanceof String) {
 				// replace high commata
 				String valueString = replaceHighComma((String) value);
-				
-				System.out.println("VALUESTRING: " + valueString);
-				
+
 				// ignore values which have no specific length
-				if ((!coloumnName.equals(constants.getType()) && !coloumnName.equals(constants.getLicense()) && !coloumnName.equals(constants.getFulltext())
-						|| coloumnName.equals(constants.getUnstructured())
-						|| coloumnName.equals(constants.getAbstr()))) {
-					
-					System.out.println("VALUESTRING: " + valueString);
-					
+				if (!coloumnName.equals(constants.getType())
+						&& !coloumnName.equals(constants.getLicense())
+						&& !coloumnName.equals(constants.getFulltextFormat())
+						&& !coloumnName.equals(constants.getUnstructured())
+						&& !coloumnName.equals(constants.getAbstr())) {
+
 					// check for truncation error
 					if (valueString.length() > lengthMap.get(coloumnName))
 						System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
@@ -1042,7 +1036,7 @@ public class DBConnection {
 					+ constants.getDocumentCollectionID() + ", " + constants.getTitle() + ", "
 					+ constants.getTitleClean() + ", " + constants.getPublishedId() + ", " + ""
 					+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
-					+ constants.getKeywords() + ", " + constants.getLicense() + ", " + constants.getFulltext() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ constants.getKeywords() + ", " + constants.getLicense() + ", " + constants.getFulltextFormat() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 			// get the collection id by its name, to store relation in documents
 			// table
@@ -1062,14 +1056,14 @@ public class DBConnection {
 			SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
 			SetIfNull(document, stateQueryDoc, document.getKeywordsAsString(), 9, "string", constants.getKeywords());
 			
-			System.out.println("LICENSE: " + document.getLicense());
-			System.out.println("FULLTEXT: " + document.getFullText());
+			if (document.getLicense().equals("NULL")) {
+				stateQueryDoc.setNull(10, java.sql.Types.VARCHAR, constants.getFulltextFormat());
+			} else {
+				SetIfNull(document, stateQueryDoc, document.getLicense(), 10, "string", constants.getLicense());
+			}
 			
-			SetIfNull(document, stateQueryDoc, document.getLicense(), 10, "string", constants.getLicense());
-			SetIfNull(document, stateQueryDoc, document.getFullText(), 11, "string", constants.getFulltext());
+			SetIfNull(document, stateQueryDoc, document.getFullText(), 11, "string", constants.getFulltextFormat());
 
-			System.out.println("QUERY: " + stateQueryDoc.toString());
-			
 			stateQueryDoc.executeUpdate();
 
 			// get the key of the inserted document
