@@ -158,7 +158,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 
                 // attribute found
                 if (line.contains("<dc:")) {
-                	String attributeName = getAttributeNameFromLine(line);
+                	String attributeName = line.split("<dc:")[1].split(">")[0].split(" ")[0];
                 	
                 	// take multi lines into account
                 	int i = 0;
@@ -281,12 +281,15 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
         }
 	}
 	
-	private String getAttributeNameFromLine(String line) {
-		return line.split("<dc:")[1].split(">")[0].split(" ")[0];
-	}
-	
+	/**
+	 * Returns the value of the language tag of a given XML file holding an OAI DC record.
+	 * 
+	 * @param pathOfFile path of file to get language of
+	 * @return language of given OAI DC record
+	 */
 	private String getPublicationLanguage(String pathOfFile) {
-		String language = "";
+		// English is assumed to be the default language
+		String language = "eng";
 		
 		File file = new File(pathOfFile);
 		
@@ -346,8 +349,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		if (oaidcRecord.getLanguages().size() > 0) {
 			language = oaidcRecord.getLanguages().get(0);
 		} else {
-			System.out.println("Error: no language found.");
-			return null;
+			// if no language is indicated, English is assumed to be the default language
+			language = "eng";
 		}
 		
 		return language;
