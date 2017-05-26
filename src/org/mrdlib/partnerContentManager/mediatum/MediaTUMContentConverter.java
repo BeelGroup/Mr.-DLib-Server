@@ -48,6 +48,9 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		
 		languageMap.put("(eng)", "(en)");
 		languageMap.put("eng", "(en)");
+		// English is assumed to be the default language
+		languageMap.put("unknown", "(en)");
+		languageMap.put("(unknown)", "(en)");
 		languageMap.put("(deu)", "(de)");
 		languageMap.put("deu", "(de)");
 		languageMap.put("(ger)", "(de)");
@@ -58,6 +61,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		languageMap.put("fra", "(fr)");
 		languageMap.put("(zho)", "(zh)");
 		languageMap.put("zho", "(zh)");
+		languageMap.put("(chi)", "(zh)");
+		languageMap.put("chi", "(zh)");
 		languageMap.put("(jpn)", "(ja)");
 		languageMap.put("jpn", "(ja)");
 		languageMap.put("(rus)", "(ru)");
@@ -199,7 +204,14 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							oaidcRecord.addTitle(attributeValue);
 							break;
 						case "creator":
-							String[] creators = attributeValue.split(";");
+							String separationCharacterCreator = ";";
+							
+							if (!attributeValue.contains(";")) {
+								separationCharacterCreator = ",";
+							}
+							
+							String[] creators = attributeValue.split(separationCharacterCreator);
+							
 							for (String creator : creators) {
 								oaidcRecord.addCreator(creator);
 							}
@@ -231,7 +243,13 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							oaidcRecord.addPublisher(attributeValue);
 							break;
 						case "contributor":
-							String[] contributors = attributeValue.split(";");
+							String separationCharacterContributor = ";";
+							
+							if (!attributeValue.contains(";")) {
+								separationCharacterContributor = ",";
+							}
+							
+							String[] contributors = attributeValue.split(separationCharacterContributor);
 							for (String contributor : contributors) {
 								oaidcRecord.addCreator(contributor);
 							}
