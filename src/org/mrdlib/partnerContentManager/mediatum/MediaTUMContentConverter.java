@@ -653,7 +653,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		if (oaidcRecord.getPublishers().size() > 0) {
 			publishedIn = oaidcRecord.getPublishers().get(0);
 		} else {
-			System.out.println("Warning: no publishers found.");
+			// might be the case
 		}
 		
 		return publishedIn;
