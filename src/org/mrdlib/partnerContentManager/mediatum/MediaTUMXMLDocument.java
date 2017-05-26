@@ -27,11 +27,6 @@ import org.mrdlib.partnerContentManager.gesis.XMLDocument;
  */
 public class MediaTUMXMLDocument extends XMLDocument {
 	
-	// just for debugging purposes
-	// TODO: remove documentPath and id
-	private String documentPath;
-	private String id;
-	
 	// attributes of the document
 	private String title;
 	private String fulltitle;
@@ -40,7 +35,6 @@ public class MediaTUMXMLDocument extends XMLDocument {
 	// stored as a list since abstracts in multiple languages may be available
 	private ArrayList<Abstract> abstr = new ArrayList<Abstract>();
 	private int year;
-	private int facetYear;
 	private Set<String> keywords = new HashSet<String>();
 	private String type;
 	private Set<String> typeSet = new HashSet<String>();
@@ -94,7 +88,7 @@ public class MediaTUMXMLDocument extends XMLDocument {
 				return tempType;
 			else {
 				// otherwise say its not handled yet but return unknown
-				System.out.println("In Export " + documentPath + " In Document: " + id + ": Undefined Type: " + type);
+				System.out.println("Undefined Type: " + type);
 				return "unknown";
 			}
 		}
@@ -130,7 +124,7 @@ public class MediaTUMXMLDocument extends XMLDocument {
 					// if not, say its not handled, but set unknown
 					else {
 						System.out.println(
-								"In Export " + documentPath + " In Document: " + id + ": Multiple Types: " + allTypes);
+								"Multiple Types: " + allTypes);
 						type = "unknown";
 					}
 				}
@@ -218,7 +212,6 @@ public class MediaTUMXMLDocument extends XMLDocument {
 		this.cleantitle = calculateTitleClean(this.title);
 		setCleanTitle();
 		language = setLanguageToStandard(language);
-		selectYear();
 		tidyUpKeywords();
 		normalizeTitle();
 		selectType();
@@ -256,7 +249,7 @@ public class MediaTUMXMLDocument extends XMLDocument {
 
 		for (String keyword : copy) {
 			// put in lowercase
-			String lowerKeyword = keyword.toLowerCase();
+			String lowerKeyword = keyword; //.toLowerCase();
 			keywords.remove(keyword);
 			keywords.add(lowerKeyword);
 
@@ -273,34 +266,6 @@ public class MediaTUMXMLDocument extends XMLDocument {
 				keywords.add(lowerKeyword.substring(lowerKeyword.indexOf(",") + 1));
 			}
 		}
-	}
-
-	/**
-	 * Select between two years a reasonable year, which is between 1500 and current+2
-	 * year has priority over facetYear if both are reasonable.
-	 * If both are weird, say it and save it as 0, which will later be interpreted as NULL.
-	 */
-	private void selectYear() {
-		int tempYear = 0;
-		int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-		// if year is not reasonable (outside of 1500 until current+2
-		if (year < 1500 || year > currentYear + 2) {
-			// if facetyear also is weird
-			if (facetYear < 1500 || facetYear > currentYear + 2) {
-				if (facetYear == 0 && year == 0) {
-				} else {
-					// say it and save as 0
-					System.out.println("In Export " + documentPath + " In Document: " + id + "Weird Years: " + year
-							+ ", " + facetYear);
-					tempYear = 0;
-				}
-			// take facetYear if year is not reasonable but facetYear is
-			} else
-				tempYear = facetYear;
-		// take year if year is reasonable
-		} else
-			tempYear = year;
-		year = tempYear;
 	}
 
 	/**
@@ -324,7 +289,6 @@ public class MediaTUMXMLDocument extends XMLDocument {
 			title = fulltitle;
 		// if fulltitle is not equals title and not as big, say it and stay with title
 		else if (!title.equals(fulltitle)) {
-			System.out.println("In Export " + documentPath + " In Document: " + id);
 			System.out.println("Different titles!");
 			System.out.println("Title: " + title);
 			System.out.println("Fulltitle: " + fulltitle);
@@ -404,7 +368,7 @@ public class MediaTUMXMLDocument extends XMLDocument {
 			language = null;
 		if (!validLanguage) {
 			// if its not a valid Language print out the wrong language but write null
-			System.out.println("In Export " + documentPath + " In Document: " + id + ": Language needs to be defined: "
+			System.out.println("Language needs to be defined: "
 					+ language);
 			language = null;
 		}
@@ -470,14 +434,6 @@ public class MediaTUMXMLDocument extends XMLDocument {
 		return keywordString;
 	}
 
-	public int getFacetYyear() {
-		return facetYear;
-	}
-
-	public void setFacetYear(String facetYear) {
-		this.facetYear = makeYearInt(facetYear);
-	}
-
 	public void addType(String type) {
 		if (!chooseType(type).equals("unknown"))
 			this.typeSet.add(chooseType(type));
@@ -503,14 +459,6 @@ public class MediaTUMXMLDocument extends XMLDocument {
 		return type;
 	}
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
 	public String getTitle() {
 		return title;
 	}
@@ -529,14 +477,6 @@ public class MediaTUMXMLDocument extends XMLDocument {
 
 	public String getCleanTitle() {
 		return cleantitle;
-	}
-
-	public String getDocumentPath() {
-		return documentPath;
-	}
-
-	public void setDocumentPath(String documentPath) {
-		this.documentPath = documentPath;
 	}
 
 	public String getPublishedIn() {
@@ -599,8 +539,8 @@ public class MediaTUMXMLDocument extends XMLDocument {
 			authorsAsString += "(" + person.getName() + ")";
 		}
 		
-		return "MediaTUMXMLDocument [id=" + id + ", title=" + title + ", fulltitle=" + fulltitle + ", language="
-				+ language + ", abstr=" + abstracts + ", year=" + year + ", facetYear=" + facetYear + ", keywords="
+		return "MediaTUMXMLDocument [title=" + title + ", fulltitle=" + fulltitle + ", language="
+				+ language + ", abstr=" + abstracts + ", year=" + year + ", keywords="
 				+ keywords + ", type=" + type + ", publishedIn=" + publishedIn + ", collection=" + collection
 				+ ", authors=" + authorsAsString + ", license=" + license + ", fulltext=" + fullText + "]";
 	}

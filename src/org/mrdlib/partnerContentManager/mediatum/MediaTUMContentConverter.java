@@ -121,7 +121,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		xmlDocument.setFulltitle(fulltitle);
 		xmlDocument.setLanguage(language);
 		xmlDocument.setYear(year);
-		xmlDocument.setFacetYear(facetYear);
 		for (String author : authors) {
 			author = author.split(Pattern.quote("("))[0].trim();
 			xmlDocument.addAuthor(author);
@@ -192,15 +191,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
                 	}
                 	if (attributeValue.contains("<![CDATA[")) {
                 		attributeValue = attributeValue.split(Pattern.quote("![CDATA["))[1].split(Pattern.quote("]]"))[0];
-                	}
-                	
-                	// escape single quotes
-                	if (attributeValue.contains("'")) {
-                		System.out.println("BEFORE ESCAPING: " + attributeValue);
-                	}
-                	
-                	if (attributeValue.contains("'")) {
-                		System.out.println("AFTER ESCAPING: " + attributeValue);
                 	}
                 	
                 	if (!attributeValue.equals("")) {                		
