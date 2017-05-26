@@ -158,7 +158,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 
                 // attribute found
                 if (line.contains("<dc:")) {
-                	String attributeName = line.split("<dc:")[1].split(">")[0].split(" ")[0];
+                	String attributeName = getAttributeNameFromLine(line);
                 	
                 	// take multi lines into account
                 	int i = 0;
@@ -202,8 +202,16 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							oaidcRecord.addCreator(attributeValue);
 							break;
 						case "subject":
-							for (String subject : attributeValue.split(", ")) {
-								oaidcRecord.addSubject(subject);
+							String subjectLanguage = "";
+							
+							if (line.contains("xml:lang")) {
+								subjectLanguage = line.split(Pattern.quote("<dc:subject xml:lang="))[1].split(">")[0].replaceAll("\"", "");
+							}
+							
+							if (subjectLanguage.equals(getPublicationLanguage(pathOfFile))) {
+								for (String subject : attributeValue.split(", ")) {
+									oaidcRecord.addSubject(subject);
+								}
 							}
 							break;
 						case "description":
@@ -265,6 +273,35 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
         } catch (FileNotFoundException e) {
             return null;
         }
+	}
+	
+	private String getAttributeNameFromLine(String line) {
+		return line.split("<dc:")[1].split(">")[0].split(" ")[0];
+	}
+	
+	private String getPublicationLanguage(String pathOfFile) {
+		String language = "";
+		
+		File file = new File(pathOfFile);
+		
+		try {
+            Scanner scanner = new Scanner(file);
+            
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+
+                // attribute found
+                if (line.contains("<dc:language>")) {
+                	language = line.split(">")[1].split("</dc")[0];
+                }
+            }
+            
+            scanner.close();
+		} catch (FileNotFoundException e) {
+            return null;
+        }
+		
+		return language;
 	}
 	
 	/**

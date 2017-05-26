@@ -1020,7 +1020,7 @@ public class DBConnection {
 			}
 		}
 		
-		// if the document dont exists, insert it including authors, collection,
+		// if the document does not exist, insert it including authors, collection,
 		// abstracts and so on
 		try {
 			Iterator<Person> it = authors.iterator();
