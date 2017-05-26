@@ -761,8 +761,8 @@ public class DBConnection {
 
 					// check for truncation error
 					if (valueString.length() > lengthMap.get(coloumnName))
-						System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
-								+ coloumnName + " because too long!");
+						System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate "
+								+ coloumnName + " (Value: " + valueString + ") because too long!");
 				}
 				
 				value = (T) valueString;

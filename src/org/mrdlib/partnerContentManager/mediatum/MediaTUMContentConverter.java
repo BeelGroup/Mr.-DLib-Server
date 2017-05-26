@@ -199,7 +199,10 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							oaidcRecord.addTitle(attributeValue);
 							break;
 						case "creator":
-							oaidcRecord.addCreator(attributeValue);
+							String[] creators = attributeValue.split(";");
+							for (String creator : creators) {
+								oaidcRecord.addCreator(creator);
+							}
 							break;
 						case "subject":
 							String subjectLanguage = "";
@@ -228,7 +231,10 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							oaidcRecord.addPublisher(attributeValue);
 							break;
 						case "contributor":
-							oaidcRecord.addContributor(attributeValue);
+							String[] contributors = attributeValue.split(";");
+							for (String contributor : contributors) {
+								oaidcRecord.addCreator(contributor);
+							}
 							break;
 						case "date":
 							oaidcRecord.addDate(attributeValue);
