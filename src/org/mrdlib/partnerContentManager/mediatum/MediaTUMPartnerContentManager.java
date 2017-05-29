@@ -55,7 +55,7 @@ public class MediaTUMPartnerContentManager {
 			for (File file : contentFolder.listFiles()) {
 				String filePath = file.getAbsolutePath();
 				
-				System.out.println(filePath);
+//				System.out.println(filePath);
 				
 				if (filePath.endsWith(".xml")) {
 					MediaTUMXMLDocument xmlDocument = mediaTUMContentConverter.convertPartnerContentToStorablePartnerContent(filePath);
@@ -63,10 +63,10 @@ public class MediaTUMPartnerContentManager {
 					if (xmlDocument != null) {
 						
 						if (!mediaTUMContentStorer.store(dbConnection, xmlDocument)) {
-							System.out.println("storage failed");
+							System.out.println(filePath + ": storage failed");
 						}
 					} else {
-						System.out.println("conversion failed");
+						System.out.println(filePath + ": conversion failed");
 					}
 				}
 			}

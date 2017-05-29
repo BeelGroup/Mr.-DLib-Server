@@ -249,7 +249,7 @@ public class MediaTUMXMLDocument extends XMLDocument {
 
 		for (String keyword : copy) {
 			// put in lowercase
-			String lowerKeyword = keyword.toLowerCase();
+			String lowerKeyword = keyword; // .toLowerCase();
 			keywords.remove(keyword);
 			keywords.add(lowerKeyword);
 
