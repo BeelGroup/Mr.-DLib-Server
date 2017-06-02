@@ -59,6 +59,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		languageMap.put("spa", "(es)");
 		languageMap.put("(fra)", "(fr)");
 		languageMap.put("fra", "(fr)");
+		languageMap.put("(fre)", "(fr)");
+		languageMap.put("fre", "(fr)");
 		languageMap.put("(zho)", "(zh)");
 		languageMap.put("zho", "(zh)");
 		languageMap.put("(chi)", "(zh)");
