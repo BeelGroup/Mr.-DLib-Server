@@ -99,6 +99,11 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		String year = getYearFromOAIDCRecord(oaidcRecord);
 		String facetYear = getYearFromOAIDCRecord(oaidcRecord);
 		ArrayList<String> authors = getAuthorsFromOAIDCRecord(oaidcRecord);
+		
+		for (String author : authors) {
+			System.out.println("AUTHOR: " + author);
+		}
+		
 		ArrayList<String> keyWords = getKeyWordsFromOAIDCRecord(oaidcRecord);
 		String type = getTypeFromOAIDCRecord(oaidcRecord);
 		String publishedIn = getPublishedInFromOAIDCRecord(oaidcRecord);
@@ -208,10 +213,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 						case "creator":
 							String separationCharacterCreator = ";";
 							
-							if (!attributeValue.contains(";")) {
-								separationCharacterCreator = ",";
-							}
-							
 							String[] creators = attributeValue.split(separationCharacterCreator);
 							
 							for (String creator : creators) {
@@ -246,10 +247,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							break;
 						case "contributor":
 							String separationCharacterContributor = ";";
-							
-							if (!attributeValue.contains(";")) {
-								separationCharacterContributor = ",";
-							}
 							
 							String[] contributors = attributeValue.split(separationCharacterContributor);
 							for (String contributor : contributors) {
