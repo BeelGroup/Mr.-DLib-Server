@@ -113,6 +113,19 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 			return null;
 		}
 		
+		// check if language of publication and abstract match, set publication to unknown if they don't
+		boolean languageOfPublicationAndAbstractMatch = false;
+		for (String abstract_ : abstracts) {
+			String languageAbstract = abstract_.split(Pattern.quote("|"))[0];
+			if (language.equals(languageAbstract)) {
+				languageOfPublicationAndAbstractMatch = true;
+				break;
+			}
+		}
+		if (!languageOfPublicationAndAbstractMatch && (abstracts.size() != 0)) {
+			language = "unknown";
+		}
+		
 		// set up XML document
 		Map<String, String> typeMap = createTypeMap();
 		Map<String, String> languageMap = createLanguageMap();
