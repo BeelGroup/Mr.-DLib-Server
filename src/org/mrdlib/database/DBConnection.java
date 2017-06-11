@@ -1051,7 +1051,13 @@ public class DBConnection {
 			SetIfNull(document, stateQueryDoc, document.getTitle(), 3, "string", constants.getTitle());
 			SetIfNull(document, stateQueryDoc, document.getCleanTitle(), 4, "string", constants.getTitleClean());
 			SetIfNull(document, stateQueryDoc, document.getPublishedIn(), 5, "string", constants.getPublishedId());
-			SetIfNull(document, stateQueryDoc, document.getLanguage(), 6, "string", constants.getLanguage());
+			
+			if (document.getLanguage().equals("NULL")) {
+				stateQueryDoc.setNull(6, java.sql.Types.VARCHAR, constants.getLanguage());
+			} else {
+				SetIfNull(document, stateQueryDoc, document.getLanguage(), 6, "string", constants.getLanguage());
+			}
+			
 			SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
 			SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
 			SetIfNull(document, stateQueryDoc, document.getKeywordsAsString(), 9, "string", constants.getKeywords());
@@ -1063,7 +1069,7 @@ public class DBConnection {
 			}
 			
 			SetIfNull(document, stateQueryDoc, document.getFullText(), 11, "string", constants.getFulltextFormat());
-
+			
 			stateQueryDoc.executeUpdate();
 
 			// get the key of the inserted document

@@ -370,7 +370,7 @@ public class MediaTUMXMLDocument extends XMLDocument {
 			// if its not a valid Language print out the wrong language but write null
 			System.out.println("Language needs to be defined: "
 					+ language);
-			language = null;
+			language = "NULL";
 		}
 
 		return language;

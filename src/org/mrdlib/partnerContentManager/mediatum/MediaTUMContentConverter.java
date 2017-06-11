@@ -48,9 +48,9 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		
 		languageMap.put("(eng)", "(en)");
 		languageMap.put("eng", "(en)");
-		// English is assumed to be the default language
-		languageMap.put("unknown", "(en)");
-		languageMap.put("(unknown)", "(en)");
+		// unknown is the default language
+		languageMap.put("unknown", "(NULL)");
+		languageMap.put("(unknown)", "(NULL)");
 		languageMap.put("(deu)", "(de)");
 		languageMap.put("deu", "(de)");
 		languageMap.put("(ger)", "(de)");
@@ -98,12 +98,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		String fulltitle = getTitleFromOAICDRecord(oaidcRecord);
 		String year = getYearFromOAIDCRecord(oaidcRecord);
 		String facetYear = getYearFromOAIDCRecord(oaidcRecord);
-		ArrayList<String> authors = getAuthorsFromOAIDCRecord(oaidcRecord);
-		
-		for (String author : authors) {
-			System.out.println("AUTHOR: " + author);
-		}
-		
+		ArrayList<String> authors = getAuthorsFromOAIDCRecord(oaidcRecord);		
 		ArrayList<String> keyWords = getKeyWordsFromOAIDCRecord(oaidcRecord);
 		String type = getTypeFromOAIDCRecord(oaidcRecord);
 		String publishedIn = getPublishedInFromOAIDCRecord(oaidcRecord);
@@ -234,7 +229,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							break;
 						case "description":
 							// default language
-							String descriptionLanguage = "de";
+							String descriptionLanguage = "unknown";
 							
 							if (line.contains("xml:lang")) {
 								 descriptionLanguage = line.split(Pattern.quote("<dc:description xml:lang="))[1].split(">")[0].replaceAll("\"", "");
@@ -305,8 +300,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 	 * @return language of given OAI DC record
 	 */
 	private String getPublicationLanguage(String pathOfFile) {
-		// English is assumed to be the default language
-		String language = "eng";
+		// unknown is the default language
+		String language = "unknown";
 		
 		File file = new File(pathOfFile);
 		
@@ -366,8 +361,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		if (oaidcRecord.getLanguages().size() > 0) {
 			language = oaidcRecord.getLanguages().get(0);
 		} else {
-			// if no language is indicated, English is assumed to be the default language
-			language = "eng";
+			// if no language is indicated, the language is unknown
+			language = "unknown";
 		}
 		
 		return language;
