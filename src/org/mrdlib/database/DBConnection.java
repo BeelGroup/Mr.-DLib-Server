@@ -1058,7 +1058,13 @@ public class DBConnection {
 				SetIfNull(document, stateQueryDoc, document.getLanguage(), 6, "string", constants.getLanguage());
 			}
 			
-			SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
+			// if year is marked as not given, set it to NULL
+			if (document.getYear() == 0) {
+				stateQueryDoc.setNull(7, java.sql.Types.INTEGER, constants.getYear());
+			} else {
+				SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
+			}
+			
 			SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
 			SetIfNull(document, stateQueryDoc, document.getKeywordsAsString(), 9, "string", constants.getKeywords());
 			

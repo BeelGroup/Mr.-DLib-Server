@@ -96,8 +96,10 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		String idOriginal = getIdOriginalFromOAIDCRecord(oaidcRecord);
 		String title = getTitleFromOAICDRecord(oaidcRecord);
 		String fulltitle = getTitleFromOAICDRecord(oaidcRecord);
-		String year = getYearFromOAIDCRecord(oaidcRecord);
-		String facetYear = getYearFromOAIDCRecord(oaidcRecord);
+		// since the years that are stored in the XML file represent the last modification,
+		// but not the publication year, ignore them by sending to default value that is later replaced with NULL
+		String year = "0"; // getYearFromOAIDCRecord(oaidcRecord);
+		String facetYear = "0";
 		ArrayList<String> authors = getAuthorsFromOAIDCRecord(oaidcRecord);		
 		ArrayList<String> keyWords = getKeyWordsFromOAIDCRecord(oaidcRecord);
 		String type = getTypeFromOAIDCRecord(oaidcRecord);
