@@ -1088,15 +1088,16 @@ public class DBConnection {
 				}
 			}
 
-			// insert every related abstract to the abstract table with the
-			// corresponding document id
-			for (int i = 0; i < document.getAbstracts().size(); i++)
-				addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
-
 			// insert all author document relations with the related keys from
 			// author and document
 			for (int i = 0; i < authors.size(); i++) {
 				addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
+			}
+			
+			// insert every related abstract to the abstract table with the
+			// corresponding document id
+			for (int i = 0; i < document.getAbstracts().size(); i++) {
+				addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
 			}
 
 		} catch (SQLException sqle) {
