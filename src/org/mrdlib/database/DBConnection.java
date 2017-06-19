@@ -1,4 +1,4 @@
-package org.mrdlib.database; 				//JB: This class contains lots of functionality like adding data to a DB. I wouldn't assume such functionality in a class called "DBConnection". 
+package org.mrdlib.database; 		 
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -106,7 +106,7 @@ public class DBConnection {
 	}
 
 	/**
-	 * stores the lengths of the database field in the length map					//JB: Why?
+	 * stores the lengths of the database field in the length map
 	 * 
 	 * @param ResultSet
 	 *            of a query which asked for coloumn information of the database
@@ -327,7 +327,7 @@ public class DBConnection {
 
 		// the query to get the person
 		String query = "SELECT " + constants.getFirstname() + "," + constants.getMiddlename() + ","
-				+ constants.getSurname() + "," + constants.getUnstructured() + " FROM " + constants.getPersons()	//JB:I do not really find those getter method names intuitive. Wouldn't "getPersonsTableName" be more intuitive?
+				+ constants.getSurname() + "," + constants.getUnstructured() + " FROM " + constants.getPersons()
 				+ " WHERE " + constants.getPersonID() + " = '" + authorID + "'";
 		try {
 			stmt = con.createStatement();
