@@ -68,18 +68,22 @@ public class DBConnection {
 			else
 				createConnectionJar();
 			stmt = con.createStatement();
-			stmt.executeQuery("SET NAMES 'utf8'");
+			stmt.executeQuery("SET NAMES 'latin1'");
 
 			// get all the lengths of the database fields and store it in a map
-			System.out.println(constants.getDocuments());
 			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
 			fillMap(rs);
 			rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getAbstracts());
 			fillMap(rs2);
+			// rs3 = stmt.executeQuery("SHOW VARIABLES LIKE '%collation%'");
+			// while (rs3.next())
+			// System.out.println(rs3.getString("Variable_name") + " : " +
+			// rs3.getString("Value"));
 			// rs3 = stmt.executeQuery("SHOW COLUMNS FROM " +
 			// constants.getPersons());
 			// fillMap(rs3);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw e;
 		} finally {
 			try {
@@ -147,7 +151,7 @@ public class DBConnection {
 		try {
 			Context initContext = new InitialContext();
 			Context envContext = (Context) initContext.lookup("java:comp/env");
-			DataSource ds = (DataSource) envContext.lookup("jdbc/mrdlib");
+			DataSource ds = (DataSource) envContext.lookup("jdbc/" + constants.getDb());
 			con = ds.getConnection();
 		} catch (Exception e) {
 			System.out.println("Exception in Database connection via tomcat");
@@ -1103,6 +1107,44 @@ public class DBConnection {
 	}
 
 	/**
+	 * get the short name of a collection by its id
+	 * 
+	 * @param id
+	 *            of the collection
+	 * @return the short name of the collection
+	 * @throws SQLException
+	 */
+	public String getCollectionShortNameById(Long id) throws SQLException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String name = "";
+
+		// query to obtain the short name of the collection by its id
+		String query = "SELECT " + constants.getCollectionShortName() + " FROM " + constants.getCollections()
+				+ " WHERE " + constants.getCollectionID() + " = '" + id + "'";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+
+			if (rs.next())
+				name = rs.getString(constants.getCollectionShortName());
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return name;
+	}
+
+	/**
 	 * insert an abstract to the abstract table
 	 * 
 	 * @param document,
@@ -1232,29 +1274,9 @@ public class DBConnection {
 		return persons;
 	}
 
-	/**
-	 * get the short name of a collection by its id
-	 * 
-	 * @param id
-	 *            of the collection
-	 * @return the short name of the collection
-	 * @throws SQLException
-	 */
-	public String getCollectionShortNameById(Long id) throws SQLException {
-		Statement stmt = null;
-		ResultSet rs = null;
-		String name = "";
+			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
+					.collect(Collectors.toList());
 
-		// query to obtain the short name of the collection by its id
-		String query = "SELECT " + constants.getCollectionShortName() + " FROM " + constants.getCollections()
-				+ " WHERE " + constants.getCollectionID() + " = '" + id + "'";
-
-		try {
-			stmt = con.createStatement();
-			rs = stmt.executeQuery(query);
-
-			if (rs.next())
-				name = rs.getString(constants.getCollectionShortName());
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -1267,7 +1289,7 @@ public class DBConnection {
 				throw e;
 			}
 		}
-		return name;
+		return persons;
 	}
 
 	/**
@@ -1287,19 +1309,22 @@ public class DBConnection {
 		DisplayDocument document = null;
 		String authorNames = "";
 		StringJoiner joiner = new StringJoiner(", ");
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		String title = null;
 		String publishedIn = null;
+		String keywords = "";
+		String docAbstract = null;
 
 		try {
-			stmt = con.createStatement();
 
 			// get all information of a document stored in a database by the
 			// value of a custom coloumn
-			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = '" + id + "'";
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = ?";
+			stmt = con.prepareStatement(query);
+			stmt.setString(1, id);
 
-			rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery();
 			// if there is a document
 			if (rs.next()) {
 
@@ -1313,11 +1338,13 @@ public class DBConnection {
 
 				title = rs.getString(constants.getTitle());
 				publishedIn = rs.getString(constants.getPublishedId());
+				keywords = rs.getString(constants.getKeywords());
+				docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
 						rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn,
-						rs.getInt(constants.getYear()), "", "", "", constants);
+						docAbstract, keywords, rs.getInt(constants.getYear()), "", "", "", constants);
 				if (rs.wasNull())
 					document.setYear(-1);
 
@@ -1330,10 +1357,12 @@ public class DBConnection {
 			} else
 				throw new NoEntryException(id);
 		} catch (SQLException e) {
+			System.out.println("SQL Exception");
 			throw e;
 		} catch (NoEntryException e) {
 			throw e;
 		} catch (Exception e) {
+			System.out.println("Regualar exception");
 			throw e;
 		} finally {
 			try {
@@ -1538,230 +1567,126 @@ public class DBConnection {
 
 	/**
 	 * 
-	 * logs the single recommendations
-	 * 
-	 * @param DisplayDocument
-	 *            document, the recommendation to log
-	 * @param documentSet,
-	 *            needed for metadata, ids, and further processing
-	 * @return int, id of the created recommendation log
-	 * @throws Exception
-	 */
-	/*
-	 * public int logRecommendations(DisplayDocument document, DocumentSet
-	 * documentset) throws Exception { PreparedStatement stmt = null; ResultSet
-	 * rs = null; int recommendationId = -1; int bibliometricReRankingId = -1;
-	 * int recommendationAlgorithmId = -1;
-	 * 
-	 * // logs the reranking data and get back id bibliometricReRankingId =
-	 * logReRankingBibliometrics(documentset, documentset.getBibliometricId());
-	 * 
-	 * // logs the algorithm data and get back id recommendationAlgorithmId =
-	 * logRecommendationAlgorithm(documentset);
-	 * 
-	 * try { // insertion query String query = "INSERT INTO " +
-	 * constants.getRecommendations() + " (" +
-	 * constants.getDocumentIdInRecommendations() + ", " +
-	 * constants.getRecommendationSetIdInRecommendations() // + // ", // " // +
-	 * // constants.getBibliometricReRankId() + ", " + constants.getRankReal() +
-	 * ", " + constants.getRankCurrent() + ", " + constants.getAlgorithmId() +
-	 * ", " + constants.getTextRelevanceScoreInRecommendations() + ") VALUES ("
-	 * + document.getDocumentId() + ", " + documentset.getRecommendationSetId()
-	 * + ", ? , '" + document.getSuggestedRank() + "', '" +
-	 * document.getSuggestedRank() + "', '" + recommendationAlgorithmId + "', '"
-	 * + document.getRelevanceScoreFromAlgorithm() + "');";
-	 * 
-	 * stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-	 * 
-	 * // insert 0 if no bibliometric is present if (bibliometricReRankingId !=
-	 * -1) { stmt.setInt(1, bibliometricReRankingId); } else stmt.setNull(1,
-	 * java.sql.Types.INTEGER);
-	 * 
-	 * stmt.executeUpdate();
-	 * 
-	 * // get the autogenerated key back rs = stmt.getGeneratedKeys(); if
-	 * (rs.next()) recommendationId = rs.getInt(1);
-	 * 
-	 * } catch (Exception e) { throw e; } finally { try { if (stmt != null)
-	 * stmt.close(); if (rs != null) rs.close(); } catch (SQLException e) {
-	 * throw e; } } return recommendationId; }
-	 * 
-	 * /** Helper function to log the recommendationAlgorithmId in the
-	 * recommendations table Searches using the fields in the
-	 * algorithmLoggingInfo hashmap for an exact match for an algorithm in the
-	 * recommendationAlgorithms table in the database, and returns the id if
-	 * present.
-	 * 
-	 * If not, adds the entry into the table and returns the newly created row's
-	 * id
-	 * 
-	 * This method is for the case where all the documents in a document set all
-	 * have been chosen using the same recommendation algorithm
-	 * 
-	 * @param documentset DocumentSet which contains the recommendations that
-	 * have to be logged
-	 * 
-	 * @return the recommendationAlgorithm id
-	 * 
-	 * @throws Exception
-	 */
-	/*
-	 * private int logRecommendationAlgorithm(DocumentSet documentset) throws
-	 * Exception { Statement stmt = null; ResultSet rs = null;
-	 * 
-	 * // get the hashmap which has the details of the recommendation algorithm
-	 * HashMap<String, String> recommenderDetails =
-	 * documentset.getRDG().algorithmLoggingInfo;
-	 * 
-	 * int recommendationAlgorithmId = -1; try {
-	 * 
-	 * // search for an exact match of the algorithm in the table String query =
-	 * "SELECT " + constants.getRecommendationAlgorithmId() + " FROM " +
-	 * constants.getRecommendationAlgorithm() + " WHERE "; for (String key :
-	 * recommenderDetails.keySet()) { if (key != "name" && key != "typeOfGram")
-	 * { query += (key + "='" + recommenderDetails.get(key) + "' AND "); } }
-	 * query = query.replaceAll(" AND $", "");
-	 * 
-	 * stmt = con.createStatement(); rs = stmt.executeQuery(query);
-	 * 
-	 * // if found, get the id of the exact match if (rs.next()) {
-	 * recommendationAlgorithmId =
-	 * rs.getInt(constants.getRecommendationAlgorithmId()); } else { if (stmt !=
-	 * null) stmt.close(); if (rs != null) rs.close();
-	 * 
-	 * // Insert the row into the table query = "INSERT INTO " +
-	 * constants.getRecommendationAlgorithm() + "("; String columns = ""; String
-	 * values = ""; for (String key : recommenderDetails.keySet()) { if (key !=
-	 * "name") { columns += (key + ", "); values += ("'" +
-	 * recommenderDetails.get(key) + "', "); } } columns = columns.replaceAll(
-	 * ", $", " "); values = values.replaceAll(", $", " "); query += (columns +
-	 * ") VALUES(" + values + ")");
-	 * 
-	 * stmt = con.createStatement(); stmt.executeUpdate(query,
-	 * Statement.RETURN_GENERATED_KEYS); rs = stmt.getGeneratedKeys();
-	 * 
-	 * // Get back the generated keys if (rs.next()) recommendationAlgorithmId =
-	 * rs.getInt(1); }
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); throw e; } finally { try {
-	 * if (stmt != null) stmt.close(); if (rs != null) rs.close(); } catch
-	 * (SQLException e) { throw e; } }
-	 * 
-	 * // return the algorithm Id return recommendationAlgorithmId; }
-	 */
-
-	/**
-	 * 
-	 * logs the bibliometric data
-	 * 
-	 * @param DisplayDocument
-	 *            document, the recommendation where the bibliometric to log
-	 *            belongs to
-	 * 
-	 * @param int,
-	 *            the BibId
-	 * 
-	 * @return int, the created logging rerank bibliometric id
-	 * 
-	 * @throws Exception
-	 */
-	/*
-	 * public int logReRankingBibliometrics(DocumentSet documentset, int bibId)
-	 * throws Exception { PreparedStatement stmt = null; ResultSet rs = null;
-	 * int reRankingBibId = -1;
-	 * 
-	 * try { // insertion query String query = "INSERT INTO " +
-	 * constants.getReRankingBibliometrics() + " (" +
-	 * constants.getNumberFromSolr() + ", " + constants.getReRankingMethod() +
-	 * ", " + constants.getPercentageWithBibliometrics() + ", " +
-	 * constants.getBibIdInReRank() + ") VALUES ('" +
-	 * documentset.getNumberOfCandidatesToReRank() + "', '" +
-	 * documentset.getReRankingCombination() + "', '" +
-	 * documentset.getPercentageRankingValue() + "', ?);";
-	 * 
-	 * stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS); //
-	 * if no bibId is present, set null if (bibId > 0) stmt.setInt(1, bibId);
-	 * else stmt.setNull(1, java.sql.Types.INTEGER);
-	 * 
-	 * stmt.executeUpdate();
-	 * 
-	 * // get the autogenerated key back rs = stmt.getGeneratedKeys(); if
-	 * (rs.next()) reRankingBibId = rs.getInt(1);
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); throw e; } finally { try {
-	 * if (stmt != null) stmt.close(); } catch (SQLException e) { throw e; } }
-	 * return reRankingBibId; }
-	 */
-
-	private int logEvent(String documentId, RootElement rootElement, boolean clicked) throws Exception {
-		return logEvent(documentId, rootElement, clicked, (Long) null);
-	}
-
-	/**
-	 * 
 	 * logs the event in the logging table
 	 * 
-	 * @param documentId,
-	 *            from the requested document
+	 * @param referenceId,
+	 *            the reference for the request: documentId for recommendation
+	 *            request, recommendationId for click_url request, titleSearchId
+	 *            for recommendation by title
 	 * @param Long,
 	 *            time, where the request was registered
 	 * @param RootElement,
 	 *            the rootElement, where everything is stored
-	 * @param boolean,
-	 *            if the recommendation was clicked
+	 * @param String,
+	 *            the type of request - request_for_recommendations,
+	 *            url_redirect, search_by_title
 	 * @return int, id of the created event
 	 * @throws Exception
 	 */
-	private int logEvent(String documentId, RootElement rootElement, Boolean clicked, Long requestTime)
-			throws Exception {
+	private int logEvent(String referenceId, RootElement rootElement, String requestType) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
 		String statusCode = "";
 		String debugMessage = "";
+		Boolean noEntryExceptionRecorded = false;
+		DocumentSet documentSet = rootElement.getDocumentSet();
+		Long requestTime = documentSet.getStartTime();
+
+		String referenceColumnName = "";
+		switch (requestType) {
+		case "related_documents": {
+			referenceColumnName = constants.getDocumentIdInLogging();
+			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+				noEntryExceptionRecorded = true;
+			break;
+		}
+		case "url_for_recommended_document": {
+			referenceColumnName = constants.getRecommendationIdInLogging();
+			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+				noEntryExceptionRecorded = true;
+
+			break;
+		}
+		case "search_by_title": {
+			referenceColumnName = constants.getTitleSearchIdInLogging();
+			break;
+		}
+		}
 
 		// if there occured multiple errors error
 		if (rootElement.getStatusReportSet().getSize() > 1) {
-			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++)
+			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++) {
 				// gather every message
 				debugMessage = debugMessage
 						+ rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugMessage();
+			}
 			// set status code to mutiple errors
 			statusCode = "207";
 		} else {
 			// if theres only one report (either error or 200, gather it
 			StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
 			statusCode = statusReport.getStatusCode() + "";
+
 			debugMessage = statusReport.getDebugMessage();
 		}
 
 		try {
 			// insertion query
 			String query = "INSERT INTO " + constants.getLoggings() + " (" + constants.getRequest() + ", "
-					+ constants.getDocumentIdInLogging() + ", " + constants.getRequestReceived() + ", "
+					+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
 					+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
-					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ") VALUES (";
-			// if it was clicked
-			if (clicked) {
-				query += "'url_for_recommended_document'";
-			}
-			// if there was no click
-			else {
-				query += "'related_documents'";
-				requestTime = rootElement.getDocumentSet().getStartTime();
-			}
-			// add the rest of the query
-			query += ", " + documentId + ", '" + new Timestamp(requestTime) + "', '"
+					+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIpHash()
+					+ ", " + constants.getIp() + ", " + constants.getRequestingAppId() + ", "
+					+ constants.getProcessingAppId() + ", " + constants.getAppVersion() + ", " + constants.getAppLang()
+					+ ") VALUES ('";
+			query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
 					+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
-					+ "', '" + statusCode + "', ?);";
+					+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
 
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
+			// if there was noEntryException, then set referenceId to NULL, else
+			// carry on
+			if (noEntryExceptionRecorded) {
+				stmt.setNull(1, java.sql.Types.BIGINT);
+				if (constants.getDebugModeOn())
+					System.out.println("No entry exception woohoo");
+			} else {
+				stmt.setString(1, referenceId);
+			}
+
+			String ipAddress = documentSet.getIpAddress();
+
+			stmt.setString(4, ipAddress);
+			stmt.setString(5, documentSet.getRequestingAppId());
+			String processingAppId;
+			try {
+				processingAppId = documentSet.getAlgorithmDetails().getRecommendationProvider().equals("Core") ? "8"
+						: "6";
+			} catch (NullPointerException e) {
+				processingAppId = null;
+			}
+			stmt.setString(6, processingAppId);
+			stmt.setString(7, documentSet.getAppVersion());
+			stmt.setString(8, documentSet.getAppLang());
+
+			try {
+				String saltedIp = "mld" + ipAddress;
+				MessageDigest m = MessageDigest.getInstance("MD5");
+				m.update(saltedIp.getBytes(), 0, saltedIp.length());
+				String ipHash = new BigInteger(1, m.digest()).toString(16);
+				stmt.setString(3, ipHash);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 			// if the debugMessage was empty, set database type to null
+
 			if (debugMessage == null || debugMessage.isEmpty()) {
-				stmt.setNull(1, java.sql.Types.VARCHAR);
+				stmt.setNull(2, java.sql.Types.VARCHAR);
 			} else
-				stmt.setString(1, debugMessage);
+				stmt.setString(2, debugMessage);
 
 			stmt.executeUpdate();
 
@@ -1851,8 +1776,11 @@ public class DBConnection {
 	 * @throws Exception
 	 *             if SQL errors occur
 	 */
-	public String getDocIdFromRecommendation(String recommendationId) throws Exception {
+	public List<String> getReferencesFromRecommendation(String recommendationId, Boolean needDocumentId)
+			throws Exception {
 		String docId = "dummy";
+		String referenceId = "dummy";
+		List<String> references = new ArrayList<String>();
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -1863,6 +1791,7 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				docId = rs.getString(constants.getDocumentIdInRecommendations());
+				referenceId = rs.getString(constants.getExternalOriginalDocumentId());
 			} else {
 				throw new NoEntryException(recommendationId);
 			}
@@ -1880,21 +1809,30 @@ public class DBConnection {
 				throw e;
 			}
 		}
-		return docId;
+		references.add(docId);
+		references.add(referenceId);
+		return references;
 	}
 
 	/**
 	 * Utility method to verify the accesskey provided by the user against the
-	 * one present in our database for that recommendation_id
+	 * one present in our database for that recommendation_id or
+	 * recommendationSetId
 	 * 
-	 * @param recommendationId
-	 *            the recommendation_id for which we need to check the accessKey
+	 * @param Id
+	 *            the id for which we need to check the accessKey if
+	 *            recommendationSet=true, then Id = recommendationSetId else it
+	 *            is recommendationId
 	 * @param accessKey
 	 *            the access key hash provided by the user
+	 * @param recommendationSet
+	 *            if recommendationSet=true, then Id = recommendationSetId else
+	 *            it is recommendationId
 	 * @return True if access key matches, false if not
 	 * @throws SQLException
 	 */
-	public Boolean checkAccessKey(String recommendationId, String accessKey) throws SQLException {
+	public Boolean checkAccessKey(String Id, String accessKey, boolean recommendationSet)
+			throws SQLException, NoEntryException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String accessKeyInDb = "";
@@ -1904,15 +1842,19 @@ public class DBConnection {
 			// Select query to lookup accesskey for the recommendationId in the
 			// database
 			String query = "SELECT " + constants.getAccessKey() + " FROM " + constants.getRecommendationSets()
-					+ " WHERE " + constants.getRecommendationSetsId() + " IN (SELECT "
-					+ constants.getRecommendationSetIdInRecommendations() + " FROM " + constants.getRecommendations()
-					+ " WHERE " + constants.getRecommendationId() + " = " + recommendationId + ")";
-
+					+ " WHERE " + constants.getRecommendationSetsId() + " IN (";
+			if (recommendationSet) {
+				query += Id + ")";
+			} else {
+				query += "SELECT " + constants.getRecommendationSetIdInRecommendations() + " FROM "
+						+ constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " = " + Id
+						+ ")";
+			}
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				accessKeyInDb = rs.getString(constants.getAccessKey());
 			} else {
-				throw new NoEntryException(recommendationId);
+				throw new NoEntryException(Id, "recommendation");
 			}
 
 			// Compare accessKey in our database against the one which was
@@ -1944,33 +1886,37 @@ public class DBConnection {
 	 *            the recommendation_id for which the click needs to be recorded
 	 * @param documentId
 	 *            the document_id corresponding to the recommendation
-	 * @param requestTime
-	 *            the time at which the click was recorded
 	 * @param rootElement
 	 *            In order to check the status of the current request and verify
 	 *            that there were no errors upstream
+	 * @param accessKeyCheck
 	 * @return true if logged successfully, exception in every other case
 	 * @throws SQLException
 	 */
-	public Boolean logRecommendationClick(String recommendationId, String documentId, Long requestTime,
-			RootElement rootElement) throws Exception {
+	public Boolean logRecommendationClick(String recommendationId, RootElement rootElement, Boolean accessKeyCheck)
+			throws Exception {
 		Statement stmt = null;
 		int loggingId = -1;
 		try {
-			stmt = con.createStatement();
 
-			// Update query to set the time at which a recommendation was
-			// clicked
-			String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked() + " =  IF( "
-					+ constants.getClicked() + " IS NULL, '" + new Timestamp(requestTime) + "', "
-					+ constants.getClicked() + ") WHERE " + constants.getRecommendationId() + " = " + recommendationId;
+			loggingId = logEvent(recommendationId, rootElement, "url_for_recommended_document");
 
-			stmt.executeUpdate(query);
-			int clickCount = updateClicksInRecommendationSet(recommendationId);
-			if (clickCount == 0) {
-				System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
+			if (accessKeyCheck) {
+				stmt = con.createStatement();
+
+				// Update query to set the time at which a recommendation was
+				// clicked
+				String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked()
+						+ " =  IF( " + constants.getClicked() + " IS NULL, '"
+						+ new Timestamp(rootElement.getDocumentSet().getStartTime()) + "', " + constants.getClicked()
+						+ ") WHERE " + constants.getRecommendationId() + " = " + recommendationId;
+
+				stmt.executeUpdate(query);
+				int clickCount = updateClicksInRecommendationSet(recommendationId);
+				if (clickCount == 0) {
+					System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
+				}
 			}
-			loggingId = logEvent(documentId, rootElement, true, requestTime);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -2739,10 +2685,13 @@ public class DBConnection {
 	 *         randomly chosen stereotype documents
 	 * @throws Exception
 	 */
-	public DocumentSet getStereotypeRecommendations(DisplayDocument requestDoc, int numberOfRelatedDocs,
-			AlgorithmDetails algorithmLoggingInfo) throws Exception {
+	public DocumentSet getStereotypeRecommendations(DocumentSet documentSet) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
+
+		int numberOfRelatedDocs = documentSet.getDesiredNumberFromAlgorithm();
+		AlgorithmDetails algorithmLoggingInfo = documentSet.getAlgorithmDetails();
+
 		String query = "";
 		try {
 			stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -2757,9 +2706,8 @@ public class DBConnection {
 			query += " ORDER BY RAND()";
 			// System.out.println(query);
 			rs = stmt.executeQuery(query);
-			DocumentSet documentSet = new DocumentSet();
+
 			documentSet.setSuggested_label("Related Articles");
-			documentSet.setRequestedDocument(requestDoc);
 
 			if (rs.last()) {
 				int rows = rs.getRow();
@@ -2775,9 +2723,15 @@ public class DBConnection {
 
 				// HARDCODED FOR COMPATABILITY
 				relDocument.setRelevanceScoreFromAlgorithm(1.00);
-				if (relDocument.getCollectionShortName().equals(constants.getGesis()))
-					fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-
+				if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+					if (constants.getEnvironment().equals("api"))
+						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					else
+						fallback_url = constants.getGesisBetaCollectionLink()
+								.concat(relDocument.getOriginalDocumentId());
+				} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+					fallback_url = constants.getCoreCollectionLink()
+							.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 				relDocument.setFallbackUrl(fallback_url);
 				documentSet.addDocument(relDocument);
 				i++;
@@ -2828,7 +2782,7 @@ public class DBConnection {
 
 		String query = "SELECT " + constants.getGramity() + ", count FROM " + constants.getKeyphrases() + " WHERE "
 				+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getSourceInKeyphrases()
-				+ "=" + (source.equals("title") ? "'title'" : "'title_and_abstract'");
+				+ "=" + (source.contains("abstract") ? "'title_and_abstract'" : "'title'");
 
 		try {
 			stmt = con.createStatement();
@@ -2967,6 +2921,61 @@ public class DBConnection {
 		}
 
 	}
+	
+		/**
+	 * Get the fist 25 words of the abstract, if recorded in the database
+	 * 
+	 * @param docId
+	 *            document id for which we need the details about the abstract
+	 * @return the first 25 words of the document abstract else 'NONE'
+	 * @throws Exception
+	 */
+	
+	public String getDocAbstractById(String docId) throws Exception {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String docAbstract = null;
+		String [] arr ;
+		String abstrct = "";
+		
+		// Select query to lookup abstract language using the documentId from
+		// the document_abstracts table
+		String query = "SELECT `" + constants.getAbstr() + "` FROM " + constants.getAbstracts()
+				+ " WHERE " + constants.getAbstractDocumentId() + " = '" + docId + "'";
+
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				docAbstract = rs.getString(constants.getAbstr());
+				arr = docAbstract.split("\\s+"); 
+				if (arr.length >35){
+					 for(int i=0; i<35 ; i++){
+						 abstrct = abstrct + " " + arr[i] ;         
+			        }
+					 abstrct = abstrct + " ...";
+				}
+				else
+					abstrct = docAbstract;
+				return abstrct;
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+
+	}
 
 	/**
 	 * Please fill me!
@@ -2976,7 +2985,8 @@ public class DBConnection {
 	 * @return
 	 * @throws Exception
 	 */
-	public DocumentSet logRecommendationDeliveryNew(String documentId, RootElement rootElement) throws Exception {
+	public DocumentSet logRecommendationDeliveryNew(String referenceId, RootElement rootElement, Boolean requestByTitle)
+			throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationSetId = -1;
@@ -2993,85 +3003,91 @@ public class DBConnection {
 			e.printStackTrace();
 		}
 		documentset.setAccessKeyHash(accessKeyHash);
-		loggingId = logEvent(documentId, rootElement, false);
-		documentset = logRecommendationAlgorithmNew(documentset);
+		loggingId = logEvent(referenceId, rootElement, requestByTitle ? "search_by_title" : "related_documents");
 
-		try {
-			// insertion query
-			String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
-					+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
-					+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
-					+ constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
-					+ constants.getPreparationTime() + ", " + constants.getRecFrameworkTime() + ", "
-					+ constants.getPostProcessingTime() + ", " + constants.getAccessKey() + ", "
-					+ constants.getMinimumRelevanceScoreDisplay() + ", " + constants.getMaximumRelevanceScoreDisplay()
-					+ ", " + constants.getMeanRelevanceScoreDisplay() + ", "
-					+ constants.getMedianRelevanceScoreDisplay() + ", " + constants.getModeRelevanceScoreDisplay()
-					+ ", " + constants.getMinimumFinalScoreDisplay() + ", " + constants.getMaximumFinalScoreDisplay()
-					+ ", " + constants.getMeanFinalScoreDisplay() + ", " + constants.getMedianFinalScoreDisplay() + ", "
-					+ constants.getModeFinalScoreDisplay() + ") VALUES (" + loggingId + ", "
-					+ documentset.getRecommendationAlgorithmId() + ", " + (documentset.isFallback() ? "'Y'" : "'N'")
-					+ ", " + documentset.getNumberOfReturnedResults() + ", " + documentset.getSize() + ", 'system', '"
-					+ documentset.getAfterAlgorithmChoosingTime() + "', '"
-					+ documentset.getAfterAlgorithmExecutionTime() + "', '" + documentset.getAfterRerankTime() + "', '"
-					+ accessKeyHash + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+		if (documentset.getSize() > 0) {
+			documentset = logRecommendationAlgorithmNew(documentset);
 
-			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-
-			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
-
-				if (currentStats.getType().equals("relevance")) {
-					stmt.setDouble(1, currentStats.getRankVMin());
-					stmt.setDouble(2, currentStats.getRankVMax());
-					stmt.setDouble(3, currentStats.getRankVMean());
-					stmt.setDouble(4, currentStats.getRankVMedian());
-
-					if (currentStats.getRankVMode() == -1) {
-						stmt.setNull(5, java.sql.Types.FLOAT);
-					} else
-						stmt.setDouble(5, currentStats.getRankVMode());
-
-				} else if (currentStats.getType().equals("final")) {
-					stmt.setDouble(6, currentStats.getRankVMin());
-					stmt.setDouble(7, currentStats.getRankVMax());
-					stmt.setDouble(8, currentStats.getRankVMean());
-					stmt.setDouble(9, currentStats.getRankVMedian());
-
-					if (currentStats.getRankVMode() == -1) {
-						stmt.setNull(10, java.sql.Types.FLOAT);
-					} else
-						stmt.setDouble(10, currentStats.getRankVMode());
-				}
-			}
-
-			stmt.executeUpdate();
-
-			// get the autogenerated key back
-			rs = stmt.getGeneratedKeys();
-			if (rs.next())
-				recommendationSetId = rs.getInt(1);
-
-			// set the generated key as recommendation set id
-			documentset.setRecommendationSetId(recommendationSetId + "");
-
-			for (int i = 0; i < documentset.getSize(); i++) {
-				DisplayDocument current = documentset.getDisplayDocument(i);
-				// log each single recommendation
-				current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
-			}
-
-			if (!documentset.getReRankingCombination().equals("standard_only"))
-				logRankingStatistics(documentset);
-
-		} catch (Exception e) {
-			throw e;
-		} finally {
 			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
+				// insertion query
+				String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
+						+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
+						+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
+						+ constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
+						+ constants.getPreparationTime() + ", " + constants.getRecFrameworkTime() + ", "
+						+ constants.getPostProcessingTime() + ", " + constants.getAccessKey() + ", "
+						+ constants.getMinimumRelevanceScoreDisplay() + ", "
+						+ constants.getMaximumRelevanceScoreDisplay() + ", " + constants.getMeanRelevanceScoreDisplay()
+						+ ", " + constants.getMedianRelevanceScoreDisplay() + ", "
+						+ constants.getModeRelevanceScoreDisplay() + ", " + constants.getMinimumFinalScoreDisplay()
+						+ ", " + constants.getMaximumFinalScoreDisplay() + ", " + constants.getMeanFinalScoreDisplay()
+						+ ", " + constants.getMedianFinalScoreDisplay() + ", " + constants.getModeFinalScoreDisplay()
+						+ ", " + constants.getExternalRecommendationSetId() + ", " + constants.getExternalAlgorithmId()
+						+ ") VALUES (" + loggingId + ", " + documentset.getRecommendationAlgorithmId() + ", "
+						+ (documentset.isFallback() ? "'Y'" : "'N'") + ", " + documentset.getNumberOfReturnedResults()
+						+ ", " + documentset.getSize() + ", 'system', '" + documentset.getAfterAlgorithmChoosingTime()
+						+ "', '" + documentset.getAfterAlgorithmExecutionTime() + "', '"
+						+ documentset.getAfterRerankTime() + "', '" + accessKeyHash
+						+ "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+				stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
+				for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+
+					if (currentStats.getType().equals("relevance")) {
+						stmt.setDouble(1, currentStats.getRankVMin());
+						stmt.setDouble(2, currentStats.getRankVMax());
+						stmt.setDouble(3, currentStats.getRankVMean());
+						stmt.setDouble(4, currentStats.getRankVMedian());
+
+						if (currentStats.getRankVMode() == -1) {
+							stmt.setNull(5, java.sql.Types.FLOAT);
+						} else
+							stmt.setDouble(5, currentStats.getRankVMode());
+
+					} else if (currentStats.getType().equals("final")) {
+						stmt.setDouble(6, currentStats.getRankVMin());
+						stmt.setDouble(7, currentStats.getRankVMax());
+						stmt.setDouble(8, currentStats.getRankVMean());
+						stmt.setDouble(9, currentStats.getRankVMedian());
+
+						if (currentStats.getRankVMode() == -1) {
+							stmt.setNull(10, java.sql.Types.FLOAT);
+						} else
+							stmt.setDouble(10, currentStats.getRankVMode());
+					}
+				}
+				stmt.setString(11, documentset.getExternalRecommendationSetId());
+				stmt.setString(12, documentset.getExternalAlgorithmId());
+				stmt.executeUpdate();
+
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					recommendationSetId = rs.getInt(1);
+
+				// set the generated key as recommendation set id
+				documentset.setRecommendationSetId(recommendationSetId + "");
+
+				for (int i = 0; i < documentset.getSize(); i++) {
+					DisplayDocument current = documentset.getDisplayDocument(i);
+					// log each single recommendation
+					current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
+				}
+
+				if (!documentset.getReRankingCombination().equals("standard_only"))
+					logRankingStatistics(documentset);
+
+			} catch (Exception e) {
 				throw e;
+			} finally {
+				try {
+					if (stmt != null)
+						stmt.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					throw e;
+				}
 			}
 		}
 		return documentset;
@@ -3093,6 +3109,7 @@ public class DBConnection {
 	 * @param documentset
 	 *            DocumentSet which contains the recommendations that have to be
 	 *            logged
+	 * @param requestByTitle
 	 * @return the recommendationAlgorithm id
 	 * @throws Exception
 	 */
@@ -3103,6 +3120,7 @@ public class DBConnection {
 
 		// get the hashmap which has the details of the recommendation algorithm
 		AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
+		// System.out.println(recommenderDetails.getQueryParser());
 
 		String recommendationClass = recommenderDetails.getRecommendationClass();
 		Boolean fallback = recommenderDetails.isFallback();
@@ -3131,6 +3149,7 @@ public class DBConnection {
 			query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
 					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
 					+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND "
+					+ constants.getShuffled() + "='" + (documentset.isShuffled()?"Y" : "N") + "' AND "
 					+ constants.getBibReRankingApplied() + "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
 					+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
 					+ documentset.getDesiredNumberFromAlgorithm() + "'";
@@ -3298,30 +3317,41 @@ public class DBConnection {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationId = -1;
-
+		Double maxRelevanceScorePerSet = 0.0;
+		for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+			if (currentStats.getType().equals("relevance"))
+				maxRelevanceScorePerSet = currentStats.getRankVMax();
+		}
 		try {
 			// insertion query
 			String query = "INSERT INTO " + constants.getRecommendations() + " ("
-					+ constants.getDocumentIdInRecommendations() + ", "
-					+ constants.getRecommendationSetIdInRecommendations() + ", " + constants.getRankAfterAlgorithm()
-					+ ", " + constants.getRankAfterReRanking() + ", " + constants.getRankAfterShuffling() + ", "
-					+ constants.getRankDelivered() + ", " + constants.getTextRelevanceScoreInRecommendations() + ", "
-					+ constants.getFinalRankingScore() + ") VALUES (" + document.getDocumentId() + ", "
+					+ constants.getDocumentIdInRecommendations() + ", " + constants.getExternalOriginalDocumentId()
+					+ ", " + constants.getRecommendationSetIdInRecommendations() + ", "
+					+ constants.getRankAfterAlgorithm() + ", " + constants.getRankAfterReRanking() + ", "
+					+ constants.getRankAfterShuffling() + ", " + constants.getRankDelivered() + ", "
+					+ constants.getTextRelevanceScoreInRecommendations() + ", " + constants.getFinalRankingScore()
+					+ ", " + constants.getRelativeRelevanceScore() + ") VALUES (" + "?,?, "
 					+ documentset.getRecommendationSetId() + ", '" + document.getRankAfterAlgorithm() + "', ?, ?, '"
 					+ document.getRankDelivered() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
-					+ document.getFinalScore() + "');";
-
+					+ document.getFinalScore() + "'" + ", '"
+					+ ((double) document.getRelevanceScoreFromAlgorithm() / maxRelevanceScorePerSet) + "')";
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-
+			if (document.getDocumentId() == null) {
+				stmt.setString(1, null);
+				stmt.setString(2, document.getOriginalDocumentId());
+			} else {
+				stmt.setString(1, document.getDocumentId());
+				stmt.setString(2, null);
+			}
 			if (document.getRankAfterReRanking() == -1) {
-				stmt.setNull(1, java.sql.Types.SMALLINT);
+				stmt.setNull(3, java.sql.Types.SMALLINT);
 			} else
-				stmt.setInt(1, document.getRankAfterReRanking());
+				stmt.setInt(3, document.getRankAfterReRanking());
 
 			if (document.getRankAfterShuffling() == -1) {
-				stmt.setNull(2, java.sql.Types.SMALLINT);
+				stmt.setNull(4, java.sql.Types.SMALLINT);
 			} else
-				stmt.setInt(2, document.getRankAfterShuffling());
+				stmt.setInt(4, document.getRankAfterShuffling());
 
 			// System.out.println(query);
 			stmt.executeUpdate();
@@ -3436,21 +3466,47 @@ public class DBConnection {
 	 */
 	private int getCbfId(AlgorithmDetails recommenderDetails) throws SQLException {
 		int cbfId = -1;
-		Statement stmt = null;
 		ResultSet rs = null;
-		boolean keyphrases = !recommenderDetails.getCbfFeatureType().equals("terms");
-		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE "
-				+ constants.getCbfFeatureType() + " = '" + (keyphrases ? "keyphrases" : "terms") + "'";
+		boolean inputIsDocument = !recommenderDetails.getName().contains("Query");
+		String queryType = "";
+		if (!inputIsDocument)
+			queryType = recommenderDetails.getQueryParser();
+		boolean keyphrases = !(recommenderDetails.getCbfFeatureCount() == null)
+				&& !recommenderDetails.getCbfFeatureType().equals("terms");
+
+		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE ("
+				+ constants.getInputType() + " =? OR ( " + constants.getInputType() + " IS NULL AND ? IS NULL)) AND ("
+				+ constants.getCbfFeatureType() + "=? OR ( " + constants.getCbfFeatureType()
+				+ " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFeatureCount() + "=? OR ( "
+				+ constants.getCbfFeatureCount() + " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFields()
+				+ "= ? OR ( " + constants.getCbfFields() + " IS NULL AND ? IS NULL))";
+
 		if (keyphrases) {
-			System.out.println(recommenderDetails);
 			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getCbfFeatureType() + "'";
 		}
-		query += " AND " + constants.getCbfFeatureCount() + "='" + recommenderDetails.getCbfFeatureCount() + "' AND "
-				+ constants.getCbfFields() + "= '" + recommenderDetails.getCbfTextFields() + "'";
+		if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
+			query += " AND " + constants.getSearchMode() + " = '" + queryType + "'";
+		}
 
-		try {
-			stmt = con.createStatement();
-			rs = stmt.executeQuery(query);
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, (inputIsDocument ? "document" : "query"));
+			stmt.setString(2, (inputIsDocument ? "document" : "query"));
+
+			if ((recommenderDetails.getCbfFeatureCount() == null))
+				stmt.setString(3, null);
+			else
+				stmt.setString(3, (keyphrases ? "keyphrases" : "terms"));
+			if ((recommenderDetails.getCbfFeatureCount() == null))
+				stmt.setString(4, null);
+			else
+				stmt.setString(4, (keyphrases ? "keyphrases" : "terms"));
+
+			stmt.setString(5, recommenderDetails.getCbfFeatureCount());
+			stmt.setString(6, recommenderDetails.getCbfFeatureCount());
+
+			stmt.setString(7, recommenderDetails.getCbfTextFields());
+			stmt.setString(8, recommenderDetails.getCbfTextFields());
+			rs = stmt.executeQuery();
 			if (rs.next()) {
 				cbfId = rs.getInt(constants.getCbfId());
 				// System.out.printf("cbfId:%d\n", cbfId);
@@ -3459,37 +3515,41 @@ public class DBConnection {
 					stmt.close();
 				if (rs != null)
 					rs.close();
-				String columns = constants.getCbfFeatureType();
-				String values = "'" + (keyphrases ? "keyphrases" : "terms") + "'";
+				String columns = constants.getCbfFeatureType() + "," + constants.getInputType();
+				columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
+				String values = "?,?,?,?";
 				if (keyphrases) {
-					columns += ", " + constants.getCbfNgramType() + ", " + constants.getCbfFeatureCount() + ", "
-							+ constants.getCbfFields();
-					values += ", '" + recommenderDetails.getCbfFeatureType() + "', '"
-							+ recommenderDetails.getCbfFeatureCount() + "', '" + recommenderDetails.getCbfTextFields()
-							+ "'";
-				} else {
-					columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
-					values += ", '" + recommenderDetails.getCbfFeatureCount() + "', '"
-							+ recommenderDetails.getCbfTextFields() + "'";
+					columns += ", " + constants.getCbfNgramType();
+					values += ", '" + recommenderDetails.getCbfFeatureType() + "'";
 				}
+				if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
+					columns += ", " + constants.getSearchMode();
+					values += ", '" + queryType + "'";
+				}
+
 				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
 
-				stmt = con.createStatement();
+				try (PreparedStatement stmtInsert = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+					if ((recommenderDetails.getCbfFeatureCount() == null))
+						stmtInsert.setString(1, null);
+					else
+						stmtInsert.setString(1, (keyphrases ? "keyphrases" : "terms"));
+					stmtInsert.setString(2, (inputIsDocument ? "document" : "query"));
+					stmtInsert.setString(3, recommenderDetails.getCbfFeatureCount());
+					stmtInsert.setString(4, recommenderDetails.getCbfTextFields());
+					stmtInsert.executeUpdate();
 
-				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
-
-				// get the autogenerated key back
-				rs = stmt.getGeneratedKeys();
-				if (rs.next())
-					cbfId = rs.getInt(1);
+					// get the autogenerated key back
+					rs = stmtInsert.getGeneratedKeys();
+					if (rs.next())
+						cbfId = rs.getInt(1);
+				}
 				// System.out.println(cbfId);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw e;
 		} finally {
-			if (stmt != null)
-				stmt.close();
 			if (rs != null)
 				rs.close();
 		}
@@ -4023,4 +4083,191 @@ public class DBConnection {
 		}
 		return "No document in database";
 	}
+
+	public void logRecommendationSetReceivedAcknowledgement(String recommendationSetId, Long requestRecieved)
+			throws SQLException {
+		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
+				+ constants.getRecommendationSetReceivedTime() + "=  IF( "
+				+ constants.getRecommendationSetReceivedTime() + " IS NULL, ?, "
+				+ constants.getRecommendationSetReceivedTime() + ") WHERE " + constants.getRecommendationSetsId()
+				+ "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setTimestamp(1, new Timestamp(requestRecieved));
+			stmt.setString(2, recommendationSetId);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	public String getTitleStringId(DisplayDocument requestDocument) throws SQLException {
+		String titleStringId = "";
+		ResultSet rs = null;
+
+		String query = "SELECT " + constants.getTitleSearchId() + " FROM " + constants.getDocumentTitleSearchTable()
+				+ " WHERE " + constants.getTitleSearchString() + "= ? AND " + constants.getOriginalSearchString()
+				+ "=?";
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, requestDocument.getCleanTitle());
+			stmt.setString(2, requestDocument.getTitle());
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				titleStringId = rs.getString(constants.getTitleSearchId());
+			} else {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				query = "INSERT INTO " + constants.getDocumentTitleSearchTable() + "("
+						+ constants.getTitleSearchString() + "," + constants.getOriginalSearchString()
+						+ ") VALUES(	?,?)";
+				try (PreparedStatement stmtAlternate = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+					stmtAlternate.setString(1, requestDocument.getCleanTitle());
+					stmtAlternate.setString(2, requestDocument.getTitle());
+					stmtAlternate.executeUpdate();
+
+					// get the autogenerated key back
+					rs = stmtAlternate.getGeneratedKeys();
+					if (rs.next())
+						titleStringId = rs.getString(1);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if (rs != null)
+				rs.close();
+		}
+		return titleStringId;
+	}
+
+	public String getIdInApplications(String appName, String column) throws NoEntryException {
+		String query = "SELECT " + column + " FROM " + constants.getApplication() + " WHERE "
+				+ constants.getApplicationPublicName() + "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, appName);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(column);
+			} else {
+				throw new NoEntryException(appName);
+			}
+
+		} catch (SQLException e) {
+			System.out.println("SQL Exception in getApplicationId");
+			System.out.println("Query: " + query);
+			System.out.println("Argument: " + appName);
+			throw new NoEntryException(appName, "Application");
+		}
+	}
+
+	public String getOrganizationId(String orgName) throws NoEntryException {
+		String query = "SELECT " + constants.getOrganizationId() + " FROM " + constants.getOrganization() + " WHERE "
+				+ constants.getOrganizationPublicName() + "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, orgName);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(constants.getOrganizationId());
+			} else {
+				throw new NoEntryException(orgName);
+			}
+
+		} catch (SQLException e) {
+			System.out.println("SQL Exception in getApplicationId");
+			System.out.println("Query: " + query);
+			System.out.println("Argument: " + orgName);
+			throw new NoEntryException(orgName, "Organization");
+		}
+	}
+
+	public Boolean verifyLinkAppOrg(String applicationId, String organizationId) {
+		String query = "SELECT " + constants.getOrganizationInApplication() + " FROM " + constants.getApplication()
+				+ " WHERE " + constants.getApplicationId() + "=?";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, applicationId);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(constants.getOrganizationInApplication()).equals(organizationId);
+			} else {
+				throw new NoEntryException(applicationId, "Application");
+			}
+		} catch (SQLException e) {
+			System.out.println("SQL Exception in getApplicationId");
+			System.out.println("Query: " + query);
+			System.out.println("Argument: " + applicationId);
+			throw new NoEntryException(applicationId, "Application");
+		}
+	}
+
+	public Boolean matchCollectionPattern(String inputQuery, String organizationId) {
+		String query = "";
+		if (organizationId == null || organizationId.equals("1")) {
+			query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes();
+		} else {
+			query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes() + " WHERE "
+					+ constants.getOrganizationIdInPartnerPrefixes() + " = ?";
+		}
+		List<String> prefixes = new ArrayList<String>();
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			if (organizationId != null && !organizationId.equals("1"))
+				stmt.setString(1, organizationId);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				prefixes.add(rs.getString(constants.getPrefix()));
+			}
+		} catch (SQLException e) {
+			if (constants.getDebugModeOn())
+				System.out.println("The query that broke the system is:" + query);
+			return false;
+		}
+		Boolean match = false;
+		for (String prefix : prefixes) {
+			if (inputQuery.startsWith(prefix + "-")) {
+				match = true;
+				break;
+			}
+		}
+		return match;
+	}
+
+	public List<String> getAccessableCollections(String accessingOrganization) {
+		List<String> allowedCollections = new ArrayList<String>();
+		if (accessingOrganization == null) {
+			allowedCollections.add("2");
+		} else {
+			String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
+					+ constants.getOrganizationInCollection() + " IN (SELECT " + constants.getAccessedOrganization()
+					+ " FROM " + constants.getAccessRightsTable() + " WHERE " + constants.getAccessingOrganization()
+					+ " = ?)";
+			try (PreparedStatement stmt = con.prepareStatement(query)) {
+				stmt.setString(1, accessingOrganization);
+				ResultSet rs = stmt.executeQuery();
+				while (rs.next()) {
+					allowedCollections.add(rs.getString(constants.getCollectionID()));
+				}
+				if (allowedCollections.isEmpty())
+					allowedCollections.add("2");
+			} catch (SQLException e) {
+				System.out.println("Error in SQL query execution in getAccessableCollections method. Details:");
+				System.out.println(query + "\n " + "?=" + accessingOrganization);
+				allowedCollections = new ArrayList<String>();
+				allowedCollections.add("2");
+			}
+		}
+		return allowedCollections;
+	}
+
+	public String getApplicationId(String appName) {
+		return getIdInApplications(appName, constants.getApplicationId());
+	}
+
 }

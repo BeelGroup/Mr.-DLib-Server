@@ -3,6 +3,8 @@ package org.mrdlib.api.response;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 /**
@@ -15,7 +17,7 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
  */
 public class DebugDetailsPerSet {
 	private String recommendationApproach;
-	
+
 	private List<Statistics> rankStats = new ArrayList<Statistics>();
 
 	private boolean bibliometricReRanking = true;
@@ -29,13 +31,13 @@ public class DebugDetailsPerSet {
 	private String bibSource;
 	private boolean fallbackRanking = false;
 
-	private AlgorithmDetails algoDetails; 
+	private AlgorithmDetails algoDetails;
 	private long numberOfReturnedResults;
 	private int desiredNumberFromAlgorithm;
 	private int numberOfDisplayedRecommendations = 1;
-	
+
 	private boolean shuffled = false;
-	
+
 	private Long startTime;
 	private Long algorithmChoosingTime;
 	private Long userModelTime;
@@ -43,6 +45,16 @@ public class DebugDetailsPerSet {
 	private Long rerankTime;
 
 	private String accessKeyHash;
+	private String originatingIp;
+
+	private String externalRecommendationSetId;
+	private String externalAlgorithmId;
+
+	private String requestingPartnerId;
+	private String requestingAppId;
+	private String appVersion;
+	private String appLang;
+
 	// NEED timestamps: end?
 
 	public DebugDetailsPerSet() {
@@ -59,7 +71,7 @@ public class DebugDetailsPerSet {
 	public void addRankingStats(Statistics stats) {
 		this.rankStats.add(stats);
 	}
-	
+
 	public List<Statistics> getRankStats() {
 		return rankStats;
 	}
@@ -193,7 +205,8 @@ public class DebugDetailsPerSet {
 	}
 
 	public void setFallback(boolean fallback) {
-		this.algoDetails.setFallback(fallback);;
+		this.algoDetails.setFallback(fallback);
+		;
 	}
 
 	public String getRecommendationAlgorithmId() {
@@ -249,6 +262,69 @@ public class DebugDetailsPerSet {
 
 	public void setAlgoDetails(AlgorithmDetails details) {
 		this.algoDetails = details;
+	}
+
+	public String getOriginatingIp() {
+		return originatingIp;
+	}
+
+	@XmlTransient
+	public void setOriginatingIp(String originatingIp) {
+		this.originatingIp = originatingIp;
+	}
+
+	public String getRequestingPartnerId() {
+		return requestingPartnerId;
+	}
+
+	@XmlTransient
+	public void setRequestingPartnerId(String partnerId) {
+		this.requestingPartnerId = partnerId;
+	}
+
+	public String getRequestingAppId() {
+		return requestingAppId;
+	}
+
+	@XmlTransient
+	public void setRequestingAppId(String appId) {
+		this.requestingAppId = appId;
+	}
+
+	public String getAppVersion() {
+		return appVersion;
+	}
+
+	@XmlTransient
+	public void setAppVersion(String appVersion) {
+		this.appVersion = appVersion;
+	}
+
+	public String getAppLang() {
+		return appLang;
+	}
+
+	@XmlTransient
+	public void setAppLang(String appLang) {
+		this.appLang = appLang;
+	}
+
+	public String getExternalRecommendationSetId() {
+		return externalRecommendationSetId;
+	}
+
+	@XmlTransient
+	public void setExternalRecommendationSetId(String externalRecommendationSetId) {
+		this.externalRecommendationSetId = externalRecommendationSetId;
+	}
+
+	public String getExternalAlgorithmId() {
+		return externalAlgorithmId;
+	}
+
+	@XmlTransient
+	public void setExternalAlgorithmId(String externalAlgorithmId) {
+		this.externalAlgorithmId = externalAlgorithmId;
 	}
 
 }

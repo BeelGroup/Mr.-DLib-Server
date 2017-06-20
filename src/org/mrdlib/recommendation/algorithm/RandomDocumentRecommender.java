@@ -22,16 +22,6 @@ public class RandomDocumentRecommender extends RelatedDocumentsMLT {
 		
 	}
 
-	@Override
-	/**
-	 * calls the <code>getRelatedDocumentSet(DisplayDocument, int)</code>
-	 * requesting the default number of documents.
-	 * 
-	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception {
-		return getRelatedDocumentSet(requestDoc, 10);
-	}
-
 	/**
 	 * Returns <code>numberOfRelatedDocs</code> number of documents randomly
 	 * selected from the collection. Addresses the Simplest case that all
@@ -39,17 +29,17 @@ public class RandomDocumentRecommender extends RelatedDocumentsMLT {
 	 * 
 	 */
 	@Override
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
+	public DocumentSet getRelatedDocumentSet(DocumentSet requestDocSet) throws Exception {
 		Random random = new Random();
 
 		// get a random seed to use to generate a random number for sorting
 		long randomSeed = random.nextLong();
 		random.setSeed(randomSeed);
 		String seed = Integer.toString(random.nextInt());
-
+		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo);
 		try {
 			// get the random recommendations from solr
-			return scon.getRandomDocumentSet(requestDoc, numberOfRelatedDocs, false, seed);
+			return scon.getRandomDocumentSet(requestDocSet, false, seed);
 		} catch (Exception e) {
 			// e.printStackTrace();
 			throw e;

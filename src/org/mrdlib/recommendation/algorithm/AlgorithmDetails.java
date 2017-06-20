@@ -12,25 +12,37 @@ public class AlgorithmDetails {
 	private String cbfTextFields;
 	private String cbfFeatureType;
 	private String cbfFeatureCount;
+	private String queryParser;
 
 	private boolean humanCuratedRecommendations = false;
 	private String category;
-	
+
 	private boolean fallback = false;
 	private int recommendationAlgorithmId;
-	
-	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction) {
+
+	private String recommendationProvider;
+
+	public AlgorithmDetails(String name) {
+		if (name.toLowerCase().contains("core"))
+			this.setRecommendationProvider("Core");
+		else
+			this.setRecommendationProvider("Mr-DLib");
 		this.name = name;
+	}
+
+	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction) {
+		this(name);
 		this.recommendationClass = recommendationClass;
 		this.languageRestriction = languageRestriction;
 	}
 
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String category) {
+		this(name);
 		if (recommendationClass.equals("stereotype") && recommendationClass.equals("most_popular")) {
 			throw new UnknownException(
 					"This Algorithm Details constructor can only be used for Stereotype or Most Popular Recommendation approaches");
 		} else {
-			this.name = name;
+
 			this.recommendationClass = recommendationClass;
 			this.languageRestriction = languageRestriction;
 			this.category = category;
@@ -40,14 +52,19 @@ public class AlgorithmDetails {
 
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String cbfTextFields,
 			String cbfFeatureType, String cbfFeatureCount) {
-		super();
-		this.name = name;
+		this(name);
 		this.recommendationClass = recommendationClass;
 		this.languageRestriction = languageRestriction;
 		this.cbfTextFields = cbfTextFields;
 		this.cbfFeatureType = cbfFeatureType;
 		this.cbfFeatureCount = cbfFeatureCount;
 		this.setContentBased(true);
+	}
+
+	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String cbfTextFields,
+			String cbfFeatureType, String cbfFeatureCount, String queryParser) {
+		this(name, recommendationClass, languageRestriction, cbfTextFields, cbfFeatureType, cbfFeatureCount);
+		this.setQueryParser(queryParser);
 	}
 
 	/**
@@ -162,8 +179,6 @@ public class AlgorithmDetails {
 		this.cbfFeatureCount = cbfFeatureCount;
 	}
 
-	
-
 	/**
 	 * @param category
 	 *            the category to set
@@ -195,7 +210,8 @@ public class AlgorithmDetails {
 	}
 
 	/**
-	 * @param fallback the fallback to set
+	 * @param fallback
+	 *            the fallback to set
 	 */
 	public void setFallback(boolean fallback) {
 		this.fallback = fallback;
@@ -209,15 +225,29 @@ public class AlgorithmDetails {
 	}
 
 	/**
-	 * @param recommendationAlgorithmId the recommendationAlgorithmId to set
+	 * @param recommendationAlgorithmId
+	 *            the recommendationAlgorithmId to set
 	 */
 	public void setRecommendationAlgorithmId(int recommendationAlgorithmId) {
 		this.recommendationAlgorithmId = recommendationAlgorithmId;
 	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+
+	public String getQueryParser() {
+		return queryParser;
+	}
+
+	public void setQueryParser(String queryParser) {
+		this.queryParser = queryParser;
+	}
+
+	public String getRecommendationProvider() {
+		return recommendationProvider;
+	}
+
+	public void setRecommendationProvider(String processingAppId) {
+		this.recommendationProvider = processingAppId;
+	}
+
 	@Override
 	public String toString() {
 		return "AlgorithmDetails [" + (name != null ? "name=" + name + ", " : "")
@@ -226,8 +256,9 @@ public class AlgorithmDetails {
 				+ (cbfTextFields != null ? "cbfTextFields=" + cbfTextFields + ", " : "")
 				+ (cbfFeatureType != null ? "cbfFeatureType=" + cbfFeatureType + ", " : "")
 				+ (cbfFeatureCount != null ? "cbfFeatureCount=" + cbfFeatureCount + ", " : "")
-				+ "humanCuratedRecommendations=" + humanCuratedRecommendations + ", "
-				+ (category != null ? "category=" + category + ", " : "") + "fallback=" + fallback
-				+ ", recommendationAlgorithmId=" + recommendationAlgorithmId + "]";
+				+ (queryParser != null ? "queryParser=" + queryParser + ", " : "") + "humanCuratedRecommendations="
+				+ humanCuratedRecommendations + ", " + (category != null ? "category=" + category + ", " : "")
+				+ "fallback=" + fallback + ", recommendationAlgorithmId=" + recommendationAlgorithmId + "]";
 	}
+
 }

@@ -31,24 +31,16 @@ public class MostPopularRecommender extends RelatedDocuments {
 
 	}
 
-	@Override
-	/**
-	 * Calls the <code>getRelatedDocumentSet(DisplayDocument, int)</code> which
-	 * returns default number of mostPopular documents from the database
-	 * 
-	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc) throws Exception {
-		return getRelatedDocumentSet(requestDoc, 10);
-	}
 
 	@Override
 	/**
 	 * returns mostPopular documents from database
 	 */
-	public DocumentSet getRelatedDocumentSet(DisplayDocument requestDoc, int numberOfRelatedDocs) throws Exception {
+	public DocumentSet getRelatedDocumentSet(DocumentSet requestDocSet) throws Exception {
 		DocumentSet results = new DocumentSet();
+		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo);
 		try {
-			results = con.getStereotypeRecommendations(requestDoc, numberOfRelatedDocs, algorithmLoggingInfo);
+			results = con.getStereotypeRecommendations(requestDocSet);
 		} catch (Exception e) {
 			throw e;
 		}

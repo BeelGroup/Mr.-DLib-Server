@@ -1,9 +1,12 @@
 package org.mrdlib.api.manager;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.mrdlib.api.response.DisplayDocument;
@@ -25,7 +28,7 @@ import org.mrdlib.recommendation.ranking.ApplyRanking;
  *         This class is called by Tomcat and the start of the webapp
  */
 // yxc get the name here
-@Path("documents/{documentId : [a-zA-Z0-9-_.,%:;!?+*()$]+}")
+@Path("documents/{documentId : [a-zA-Z0-9-_.,%:;!'&@?+*#()$]+}")
 // set Path and allow numbers, letters and -_., Save Path as document_id
 public class DocumentService {
 
@@ -67,16 +70,76 @@ public class DocumentService {
 	 *            - id from the cooperation partner
 	 * @return a document set of related documents
 	 */
-	public RootElement getRelatedDocumentSet(@PathParam("documentId") String inputQuery) {
-		System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
+	public RootElement getRelatedDocumentSet(@Context HttpServletRequest request,
+			@PathParam("documentId") String inputQuery, @QueryParam("org_id") String partnerName,
+			@QueryParam("app_id") String appName, @QueryParam("app_version") String appVersion,
+			@QueryParam("app_lang") String appLang) {
+		if (constants.getDebugModeOn())
+			System.out.println("started getRelatedDocumentSet with input: " + inputQuery);
+
+		String ipAddress = request.getHeader("X-FORWARDED-FOR");
+		if (ipAddress == null) {
+			ipAddress = request.getRemoteAddr();
+		}
+
 		DisplayDocument requestDocument = null;
-		DocumentSet documentset = null;
+		DocumentSet documentset = new DocumentSet();
 		Long timeToPickAlgorithm = null;
 		Long timeToUserModel = null;
+		Long timeAfterExecution = null;
 		Boolean requestByTitle = false;
-		// could lead to inconsistency. Identifyer would be better
-		try {
 
+		// could lead to inconsistency. Identifier would be better
+		String applicationId = null;
+		String partnerId = null;
+		try {
+			/*
+			 * Do some checks based on the Query parameters. Add 401 status code
+			 * if anything is amiss Example: 401 if application_id is wrong or
+			 * if organization_id (partner_id) is wrong or if link b/w app id
+			 * and organization_id is incorrect
+			 * 
+			 */
+			if (appName != null && !appName.equals("")) {
+				try {
+
+					applicationId = con.getApplicationId(appName);
+					if (partnerName != null && !appName.equals("")) {
+						Boolean appVerified = true;
+						try {
+							partnerId = con.getOrganizationId(partnerName);
+						} catch (NoEntryException e) {
+							appVerified = false;
+						}
+						if (appVerified)
+							appVerified = con.verifyLinkAppOrg(applicationId, partnerId);
+						if (!appVerified)
+							statusReportSet.addStatusReport(new StatusReport(401, "Application_id " + appName
+									+ " is not linked with organization_id: " + partnerName));
+					}
+					partnerId = con.getIdInApplications(appName, constants.getOrganizationInApplication());
+
+				} catch (NoEntryException e) {
+					statusReportSet.addStatusReport(new StatusReport(401,
+							"The application with name: " + appName + " has not been registered with Mr. DLib"));
+				}
+			}
+
+			{
+				documentset.setIpAddress(ipAddress);
+				documentset.setStartTime(requestRecieved);
+
+				if (applicationId != null)
+					documentset.setRequestingAppId(applicationId);
+				if (partnerId != null)
+					documentset.setRequestingPartnerId(partnerId);
+				if (appVersion != null && appVersion.matches("[a-z0-9A-Z-#.]+"))
+					documentset.setAppVersion(appVersion);
+				if (appLang != null && appLang.length() > 1 && appLang.substring(0, 2).matches("[a-zA-Z][a-zA-Z]")) {
+					documentset.setAppLang(appLang.substring(0, 2));
+				}
+
+			}
 			/*
 			 * First we have a look if it is an integer. if the conversion
 			 * fails, e.g. there are some letters in it, we go on and try to get
@@ -86,38 +149,60 @@ public class DocumentService {
 			 */
 			try {
 				// get the requested document from the database by mdl ID
-				System.out.println("try int");
+				if (constants.getDebugModeOn())
+					System.out.println("try int");
 				Integer.parseInt(inputQuery);
 				requestDocument = con.getDocumentBy(constants.getDocumentId(), inputQuery);
+			} catch (NoEntryException e) {
+				requestDocument = new DisplayDocument();
+				requestDocument.setDocumentId(inputQuery);
+				requestByTitle = false;
+				throw e;
 			} catch (NumberFormatException e) {
-				System.out.println("int failed");
+				if (constants.getDebugModeOn())
+					System.out.println("int failed");
 				try {
-					System.out.println("try origonal id");
+					if (constants.getDebugModeOn())
+						System.out.println("try origonal id");
 					// get the requested document from the database by its
 					// Original ID
 					requestDocument = con.getDocumentBy(constants.getIdOriginal(), inputQuery);
 				} catch (NoEntryException e1) {
-					System.out.println("original id failed");
+					if (constants.getDebugModeOn())
+						System.out.println("original id failed");
 					// The encoding does not work for / so we convert them
 					// by our own on JabRef side
 					inputQuery = inputQuery.replaceAll("convbckslsh", "/");
-					System.out.println("searching the database for a document with title");
+					if (constants.getDebugModeOn())
+						System.out.println("searching the database for a document with title");
 					try {
 						// get the requested document from the database by its
 						// title
 						requestDocument = con.getDocumentBy(constants.getTitle(), inputQuery);
-						System.out.println("The Document is in our Database!");
+						if (constants.getDebugModeOn())
+							System.out.println("The Document is in our Database!");
 					} catch (Exception e2) {
-						System.out.println("it seems there is no document in our database with this title");
-						System.out.println("lets now try if lucene find some documents for us.");
-						inputQuery = inputQuery.toLowerCase();
-						// lucene does not like these chars
-						inputQuery = inputQuery
-								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", "");
-						requestByTitle = true;
+						if (constants.getDebugModeOn())
+							System.out.println("it seems there is no document in our database with this title");
+						if (constants.getDebugModeOn())
+							System.out.println(
+									"lets now try if this matches a pattern in our database. In that case, we have a 404 error");
+
+						Boolean prefixMatch = con.matchCollectionPattern(inputQuery, partnerId);
 						requestDocument = new DisplayDocument();
 						requestDocument.setTitle(inputQuery);
-						System.out.println("requestDocument: " + requestDocument.getTitle());
+						inputQuery = inputQuery
+								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", " ");
+						requestDocument.setCleanTitle(inputQuery);
+						if (!prefixMatch) {
+							requestByTitle = true;
+							inputQuery = inputQuery.toLowerCase();
+							// lucene does not like these chars
+							System.out.println("requestDocument: " + requestDocument.getTitle());
+						} else {
+							requestDocument.setDocumentId(inputQuery);
+							throw new NoEntryException(inputQuery);
+						}
 					}
 				}
 			}
@@ -125,109 +210,128 @@ public class DocumentService {
 			// get all related documents from solr
 			Boolean validAlgorithmFlag = false;
 			int numberOfAttempts = 0;
-
+			documentset.setRequestedDocument(requestDocument);
 			// Retry while algorithm is not valid, and we still have retries
 			// left
 			while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 				try {
-					System.out.println("trying to get the algorithm from the factory");
-					relatedDocumentGenerator = RecommenderFactory.getRandomRDG(con, requestDocument, requestByTitle);
+					if (constants.getDebugModeOn())
+						System.out.println("trying to get the algorithm from the factory");
+					relatedDocumentGenerator = RecommenderFactory.getRandomRDG(con, documentset, requestByTitle);
+
 					timeToPickAlgorithm = System.currentTimeMillis();
 					timeToUserModel = timeToPickAlgorithm;
-					System.out.println("chosen algorithm: " + relatedDocumentGenerator.algorithmLoggingInfo.getName());
+					if (constants.getDebugModeOn())
+						System.out.println(
+								"chosen algorithm: " + relatedDocumentGenerator.algorithmLoggingInfo.getName());
 
-					documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
-							ar.getNumberOfCandidatesToReRank());
 					documentset.setRequestedDocument(requestDocument);
+					documentset.setDesiredNumberFromAlgorithm(ar.getNumberOfCandidatesToReRank());
+
+					documentset = relatedDocumentGenerator.getRelatedDocumentSet(documentset);
 					validAlgorithmFlag = true;
 					// If no related documents are present, redo the algorithm
 				} catch (NoRelatedDocumentsException e) {
-					System.out.println(
-							"algorithmLoggingInfo: " + relatedDocumentGenerator.algorithmLoggingInfo.toString());
+					if (constants.getDebugModeOn())
+						System.out.println(
+								"algorithmLoggingInfo: " + relatedDocumentGenerator.algorithmLoggingInfo.toString());
 					validAlgorithmFlag = false;
 					numberOfAttempts++;
-					if(requestByTitle){
-						statusReportSet.addStatusReport(new StatusReport(404, "No related documents corresponding to input query:"
-								+ requestDocument.getTitle()));
-						validAlgorithmFlag=true;
+					if (requestByTitle) {
+						validAlgorithmFlag = true;
 					}
 				}
 			}
 
 			if (validAlgorithmFlag) {
-				if (numberOfAttempts > 0)
-					System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
-							numberOfAttempts);
+				if (numberOfAttempts > 0) {
+					if (constants.getDebugModeOn())
+						System.out.printf("We retried %d times for document " + requestDocument.getDocumentId() + "\n",
+								numberOfAttempts);
+					documentset.setRequestedDocument(requestDocument);
+				}
 			} else {
-				System.out.println("Using fallback recommender");
+				if (constants.getDebugModeOn())
+					System.out.println("Using fallback recommender");
 				relatedDocumentGenerator = RecommenderFactory.getFallback(con);
-				documentset = relatedDocumentGenerator.getRelatedDocumentSet(requestDocument,
-						ar.getNumberOfCandidatesToReRank());
+				try {
+					documentset = relatedDocumentGenerator.getRelatedDocumentSet(documentset);
+				} catch (NoRelatedDocumentsException e) {
+					if (constants.getDebugModeOn())
+						System.out.println("No related documents in fallback either");
+					documentset.setRequestedDocument(requestDocument);
+				}
 			}
-			System.out.println("Do the documentset stuff");
-			Long timeAfterExecution = System.currentTimeMillis();
-			documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
-			documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
-			documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
-			documentset.setAlgorithmDetails(relatedDocumentGenerator.getAlgorithmLoggingInfo());
+			if (constants.getDebugModeOn())
+				System.out.println("Do the documentset stuff");
 
-			documentset = ar.selectRandomRanking(documentset);
-			documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
-			documentset.setRankDelivered();
-			documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
-			documentset.setStartTime(requestRecieved);
-			System.out.println("Did the documentset stuff");
+			timeAfterExecution = System.currentTimeMillis();
+
+			if (documentset.getSize() > 0) {
+				documentset = ar.selectRandomRanking(documentset);
+				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
+				documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
+				documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
+
+				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
+				documentset.setRankDelivered();
+				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
+
+			} else {
+				if (!requestByTitle) {
+
+					statusReportSet.addStatusReport(new StatusReport(204,
+							"No related documents found for document id: " + requestDocument.getDocumentId()
+									+ " (original document id : " + requestDocument.getOriginalDocumentId() + ")"));
+				} else {
+					statusReportSet.addStatusReport(new StatusReport(204, "Documents related to query by title ("
+							+ requestDocument.getTitle() + " ) were not found"));
+				}
+			}
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
-			statusReportSet.addStatusReport(e1.getStatusReport());
-
-			// if retry limit has been reached and no related documents still
-			// have been extracted
-		} catch (NoRelatedDocumentsException e) {
-			statusReportSet.addStatusReport(e.getStatusReport());
-			// if something else happened there
+			statusReportSet.addStatusReport(new StatusReport(404, "No such document with document id "
+					+ requestDocument.getDocumentId() + " exists in our database"));
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+			e.printStackTrace();
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
-		else{
-			boolean fourOFourError = false;
-			for(StatusReport statusReport: statusReportSet.getStatusReportList()){
-				if(statusReport.getStatusCode()==404){
-					fourOFourError = true;
-					break;
-				}
-			}
-			if(fourOFourError){
-				statusReportSet = new StatusReportSet();
-				statusReportSet.addStatusReport(new StatusReport(404, "Documents related to query by title("
-						+ requestDocument.getTitle() +" )were not found"));
-			}
-		}
+
+		System.out.println("Did the documentset stuff");
+
 		// add both the status message and the related document to the xml
 		rootElement.setDocumentSet(documentset);
 		rootElement.setStatusReportSet(statusReportSet);
-		System.out.println("added stuff to root element");
-		System.out.println("requestByTitle is: " + requestByTitle);
-		if (!requestByTitle) {
+		if (constants.getDebugModeOn()) {
+			System.out.println("added stuff to root element");
+			System.out.println("requestByTitle is: " + requestByTitle);
 			System.out.println("Try to do the logging stuff");
-			try {
-				// log all the statistic about this execution
-				documentset = con.logRecommendationDeliveryNew(requestDocument.getDocumentId(), rootElement);
+		}
 
-				for (DisplayDocument doc : documentset.getDocumentList()) {
-					String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
-							+ doc.getRecommendationId() + "/original_url?access_key=" + documentset.getAccessKeyHash()
-							+ "&format=direct_url_forward";
-					doc.setClickUrl(url);
-				}
-			} catch (Exception e) {
-				System.out.println("nullpointer catched");
-				e.printStackTrace();
-				statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
+		try {
+			// log all the statistic about this execution
+			String referenceId = "";
+			if (requestByTitle) {
+				String titleStringId = con.getTitleStringId(requestDocument);
+				referenceId = titleStringId;
+			} else {
+				referenceId = requestDocument.getDocumentId();
 			}
+			documentset = con.logRecommendationDeliveryNew(referenceId, rootElement, requestByTitle);
+
+			for (DisplayDocument doc : documentset.getDocumentList()) {
+				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
+						+ doc.getRecommendationId() + "/original_url?access_key=" + documentset.getAccessKeyHash()
+						+ "&format=direct_url_forward";
+				doc.setClickUrl(url);
+			}
+		} catch (Exception e) {
+			System.out.println("nullpointer catched");
+			e.printStackTrace();
+			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
 
 		try {
@@ -242,27 +346,38 @@ public class DocumentService {
 			if (statusReportSet.getSize() > 1)
 				statusReportSet.setDebugDetailsPerSetInStatusReport(documentset.getDebugDetailsPerSet());
 		} catch (NullPointerException e) {
-			throw new NullPointerException("It seems we don't have access to the database or solr index."
-					+ " This is happening most likely because you didn't changed the config file properly, mysql or solr could also be down.");
-			// e.printStackTrace();
+			// throw new NullPointerException("It seems we don't have access to
+			// the database or solr index."
+			// + " This is happening most likely because you didn't changed the
+			// config file properly, mysql or solr could also be down.");
+			e.printStackTrace();
 		}
 
 		if (!constants.getDebugModeOn()) {
 			DisplayDocument current = null;
-			rootElement.getDocumentSet().setDebugDetailsPerSet(null);
-			for (int i = 0; i < documentset.getSize(); i++) {
-				current = rootElement.getDocumentSet().getDisplayDocument(i);
-				current.setDebugDetails(null);
+			if (rootElement.getDocumentSet().getSize() > 0) {
+				rootElement.getDocumentSet().setDebugDetailsPerSet(null);
+
+				for (int i = 0; i < documentset.getSize(); i++) {
+					current = rootElement.getDocumentSet().getDisplayDocument(i);
+					current.setDebugDetails(null);
+				}
+			}
+			for (StatusReport report : rootElement.getStatusReportSet().getStatusReportList()) {
+				report.setDebugMessage(null);
 			}
 		}
-
+		if (documentset.getSize() == 0) {
+			rootElement.setDocumentSet(null);
+		}
 		return rootElement;
 	}
 
-	@GET
-	@Produces("text/plain")
-	public String getOriginalDoc() {
-		return "Hello World ";
-	}
+	/*
+	 * @GET
+	 * 
+	 * @Produces("text/plain") public String getOriginalDoc() { return
+	 * "Hello World "; }
+	 */
 
 }

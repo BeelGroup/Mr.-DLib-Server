@@ -41,6 +41,8 @@ public class DisplayDocument implements Serializable {
 	private String publishedIn;
 	private int year;
 	private String cleanTitle;
+	private String keywords;
+	private String docAbstract;
 
 	private int suggestedRank;
 	private String collectionShortName;
@@ -54,9 +56,9 @@ public class DisplayDocument implements Serializable {
 		this.originalDocumentId = originalDocumentId;
 		this.title = title;
 	}
-	
-	public DisplayDocument(String documentId, String originalDocumentId,
-			String title, String publishedIn, int year,	String collectionShortName, Constants constants) {
+
+	public DisplayDocument(String documentId, String originalDocumentId, String title, String publishedIn, int year,
+			String collectionShortName, Constants constants) {
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
 		this.title = title;
@@ -66,8 +68,8 @@ public class DisplayDocument implements Serializable {
 	}
 
 	public DisplayDocument(String recommendationId, String documentId, String originalDocumentId, int suggestedRank,
-			String title, String authorNames, String publishedIn, int year, String clickUrl, String fallbackUrl,
-			String collectionShortName, Constants constants) {
+			String title, String authorNames, String publishedIn, String docAbstract, String keywords, int year,
+			String clickUrl, String fallbackUrl, String collectionShortName, Constants constants) {
 		this.recommendationId = recommendationId;
 		this.documentId = documentId;
 		this.originalDocumentId = originalDocumentId;
@@ -75,6 +77,8 @@ public class DisplayDocument implements Serializable {
 		this.title = title;
 		this.authorNames = authorNames;
 		this.publishedIn = publishedIn;
+		setKeywords(keywords);
+		setDocAbstract(docAbstract);
 		this.year = year;
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_plain"));
 		this.snippetList.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_fully_formatted"));
@@ -96,11 +100,19 @@ public class DisplayDocument implements Serializable {
 		cleanTitle = cleanTitle.toLowerCase();
 		return cleanTitle;
 	}
-	
+
 	public String getCleanTitle() {
 		return this.cleanTitle;
 	}
-	
+
+	public void reCalculateSnippets() {
+		List<Snippet> temp = new ArrayList<Snippet>();
+		temp.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_plain"));
+		temp.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_fully_formatted"));
+		temp.add(new Snippet(clickUrl, title, authorNames, publishedIn, year, "html_and_css"));
+		this.setSnippetList(temp);
+	}
+
 	@XmlTransient
 	public void setCleanTitle(String cleanTitle) {
 		this.cleanTitle = cleanTitle;
@@ -138,6 +150,21 @@ public class DisplayDocument implements Serializable {
 		this.publishedIn = publishedIn.replaceAll("[<>]", "");
 	}
 
+	@XmlElement(name = "abstract")
+	public void setDocAbstract(String docAbstract) {
+		if (docAbstract != null && !docAbstract.equals("")) {
+			this.docAbstract = "<![CDATA[" + docAbstract.replaceAll("[<>]", "") + "]]>";
+		} else
+			this.docAbstract = null;
+	}
+
+	@XmlElement(name = "keywords")
+	public void setKeywords(String keywords) {
+		if (keywords != null) {
+			this.keywords = "<![CDATA[" + keywords.replaceAll("[<>]", "") + "]]>";
+		}
+	}
+
 	public void setYear(int year) {
 		this.year = year;
 	}
@@ -152,6 +179,14 @@ public class DisplayDocument implements Serializable {
 
 	public String getPublishedIn() {
 		return publishedIn;
+	}
+
+	public String getKeywords() {
+		return keywords;
+	}
+
+	public String getDocAbstract() {
+		return docAbstract;
 	}
 
 	public int getYear() {

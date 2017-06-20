@@ -36,6 +36,7 @@ public class Constants {
 	private String externalIds;
 	private String recommendations;
 	private String recommendationSets;
+	private String titleSearch;
 	private String loggings;
 	private String reRankingBibliometrics;
 	private String bibPersons;
@@ -48,6 +49,10 @@ public class Constants {
 	private String algorithmRerankingBibliometrics;
 	private String bibliometrics;
 	private String recommendationStatisticsReRankingBibliometric;
+	private String application;
+	private String organization;
+	private String partnerPrefixes;
+	private String accessRightsTable;
 
 	// db table log rank stats
 	private String recommendationStatisticsRecommendationSetId;
@@ -74,6 +79,8 @@ public class Constants {
 	private String loggingId;
 	private String request;
 	private String documentIdInLogging;
+	private String recommendationIdInLogging;
+	private String titleSearchIdInLogging;
 	private String requestReceived;
 	private String responseDelivered;
 	private String totalProcessingTime;
@@ -81,10 +88,17 @@ public class Constants {
 	private String debugDetails;
 	private String ipHash;
 	private String ip;
+	private String partnerId;
+	private String requestingAppId;
+	private String processingAppId;
+	private String appVersion;
+	private String appLang;
+
 
 	// db table recommendations
 	private String recommendationId;
 	private String documentIdInRecommendations;
+	private String externalOriginalDocumentId;
 	private String recommendationSetIdInRecommendations;
 	private String clicked;
 	private String rankAfterAlgorithm;
@@ -93,6 +107,7 @@ public class Constants {
 	private String rankDelivered;
 	private String textRelevanceScoreInRecommendations;
 	private String finalRankingScore;
+	private String relativeRelevanceScore;
 
 	// db table recommendation sets
 	private String recommendationSetsId;
@@ -101,6 +116,7 @@ public class Constants {
 	private String deliveredRecommendations;
 	private String algorithmId;
 	private String trigger;
+	private String recommendationSetReceivedTime;
 	private String maximumOriginalRank;
 	private String recommendationPreparationTime;
 	private String userModellingTime;
@@ -117,6 +133,8 @@ public class Constants {
 	private String meanFinalScoreDisplay;
 	private String medianFinalScoreDisplay;
 	private String modeFinalScoreDisplay;
+	private String externalRecommendationSetId;
+	private String externalAlgorithmId;
 
 	// db table external id
 	private String documentIdInExternalIds;
@@ -166,8 +184,22 @@ public class Constants {
 	private String collectionID;
 	private String collectionShortName;
 	private String collectionName;
-	private String organization;
+	private String organizationInCollection;
 
+	// table application
+	private String applicationId;
+	private String applicationPublicName;
+	private String organizationInApplication;
+
+	// table organization
+	private String organizationId;
+	private String organizationName;
+	private String organizationPublicName;
+
+	// table partnerPrefixes
+	private String organizationIdInPartnerPrefixes;
+	private String prefix;
+	
 	// db table person
 	private String personID;
 	private String firstname;
@@ -194,12 +226,19 @@ public class Constants {
 	private String shuffled;
 	private String desiredRecommendationsInRecommendationAlgorithms;
 
+	
+	//db table access rights
+	private String accessingOrganization;
+	private String accessedOrganization;
+
 	// db table z_recommendation_algorithms__details_cbf
 	private String cbfId;
 	private String cbfFeatureType;
 	private String cbfFeatureCount;
 	private String cbfFields;
 	private String cbfNgramType;
+	private String inputType;
+	private String searchMode;
 
 	// db table z_recommendation_algorithms__details_stereotype
 	private String stereotypeRecommendationDetailsId;
@@ -228,6 +267,11 @@ public class Constants {
 	private String gramity;
 	private String documentIdInKeyphrases;
 
+	// db table document_title_searches
+	private String titleSearchString;
+	private String titleSearchId;
+	private String originalSearchString;
+
 	// solr
 	private String solrWebService;
 	private String solrMrdlib;
@@ -237,6 +281,7 @@ public class Constants {
 	// collections
 	private String gesis;
 	private String gesisCollectionLink;
+	private String gesisBetaCollectionLink;
 	private String core;
 	private String coreCollectionLink;
 
@@ -254,7 +299,7 @@ public class Constants {
 
 		Properties prop = new Properties();
 		InputStream input = null;
-
+	
 		try {
 			input = getClass().getClassLoader().getResourceAsStream(tomcatConfigPath);
 			prop.load(input);
@@ -277,6 +322,7 @@ public class Constants {
 			this.externalIds = prop.getProperty("externalIds");
 			this.recommendations = prop.getProperty("recommendations");
 			this.recommendationSets = prop.getProperty("recommendationSets");
+			this.titleSearch = prop.getProperty("titleSearch");
 			this.loggings = prop.getProperty("loggings");
 			this.reRankingBibliometrics = prop.getProperty("reRankingBibliometrics");
 			this.bibPersons = prop.getProperty("bibliometricPersons");
@@ -290,6 +336,10 @@ public class Constants {
 			this.bibliometrics = prop.getProperty("bibliometrics");
 			this.recommendationStatisticsReRankingBibliometric = prop
 					.getProperty("recommendationStatisticsReRankingBibliometric");
+			this.application = prop.getProperty("application");
+			this.organization = prop.getProperty("organization");
+			this.partnerPrefixes = prop.getProperty("partnerPrefixes");
+			this.accessRightsTable = prop.getProperty("accessRightsTable");
 
 			this.recommendationStatisticsRecommendationSetId = prop
 					.getProperty("recommendationStatisticsRecommendationSetId");
@@ -311,6 +361,8 @@ public class Constants {
 			this.loggingId = prop.getProperty("loggingId");
 			this.request = prop.getProperty("request");
 			this.documentIdInLogging = prop.getProperty("documentIdInLogging");
+			this.recommendationIdInLogging = prop.getProperty("recommendationIdInLogging");
+			this.titleSearchIdInLogging = prop.getProperty("titleSearchIdInLogging");
 			this.requestReceived = prop.getProperty("requestReceived");
 			this.responseDelivered = prop.getProperty("responseDelivered");
 			this.totalProcessingTime = prop.getProperty("totalProcessingTime");
@@ -318,9 +370,15 @@ public class Constants {
 			this.debugDetails = prop.getProperty("debugDetails");
 			this.ipHash = prop.getProperty("ipHash");
 			this.ip = prop.getProperty("ip");
+			this.partnerId = prop.getProperty("partnerId");
+			this.requestingAppId = prop.getProperty("requestingAppId");
+			this.processingAppId = prop.getProperty("processingAppId");
+			this.appVersion = prop.getProperty("appVersion");
+			this.appLang = prop.getProperty("appLang");
 
 			this.recommendationId = prop.getProperty("recommendationId");
 			this.documentIdInRecommendations = prop.getProperty("documentIdInRecommendations");
+			this.externalOriginalDocumentId = prop.getProperty("externalOriginalDocumentId");
 			this.recommendationSetIdInRecommendations = prop.getProperty("recommendationSetIdInRecommendations");
 			this.algorithmId = prop.getProperty("algorithmId");
 			this.clicked = prop.getProperty("clicked");
@@ -330,12 +388,14 @@ public class Constants {
 			this.rankDelivered = prop.getProperty("rankDelivered");
 			this.textRelevanceScoreInRecommendations = prop.getProperty("textRelevanceScoreInRecommendations");
 			this.finalRankingScore = prop.getProperty("finalRankingScore");
+			this.relativeRelevanceScore = prop.getProperty("relativeRelevanceScore");
 
 			this.recommendationSetsId = prop.getProperty("recommendationSetsId");
 			this.loggingIdInRecommendationSets = prop.getProperty("loggingIdInRecommendationSets");
 			this.numberOfReturnedResults = prop.getProperty("numberOfReturnedResults");
 			this.deliveredRecommendations = prop.getProperty("deliveredRecommendations");
 			this.trigger = prop.getProperty("trigger");
+			this.recommendationSetReceivedTime = prop.getProperty("recommendationSetReceivedTime");
 			this.maximumOriginalRank = prop.getProperty("maximumOriginalRank");
 			this.recommendationPreparationTime = prop.getProperty("recommendationPreparationTime");
 			this.userModellingTime = prop.getProperty("userModellingTime");
@@ -352,10 +412,16 @@ public class Constants {
 			this.meanFinalScoreDisplay = prop.getProperty("meanFinalScoreDisplay");
 			this.medianFinalScoreDisplay = prop.getProperty("medianFinalScoreDisplay");
 			this.modeFinalScoreDisplay = prop.getProperty("modeFinalScoreDisplay");
+			this.externalRecommendationSetId = prop.getProperty("externalRecommendationSetId");
+			this.externalAlgorithmId = prop.getProperty("externalAlgorithmId");
 
 			this.documentIdInExternalIds = prop.getProperty("documentIdInExternalIds");
 			this.externalName = prop.getProperty("externalName");
 			this.externalId = prop.getProperty("externalId");
+
+			this.titleSearchString = prop.getProperty("titleSearchString");
+			this.titleSearchId = prop.getProperty("titleSearchId");
+			this.originalSearchString = prop.getProperty("originalSearchString");
 
 			this.bibliometricPersonsId = prop.getProperty("bibliometricPersonsId");
 			this.personIdInBibliometricPers = prop.getProperty("personIdInBibliometricPers");
@@ -391,6 +457,14 @@ public class Constants {
 			this.abstractLanguage = prop.getProperty("abstractLanguage");
 			this.abstr = prop.getProperty("abstract");
 
+			this.applicationId = prop.getProperty("applicationId");
+			this.applicationPublicName = prop.getProperty("applicationPublicName");
+			this.organizationInApplication = prop.getProperty("organizationIdInApplication");
+
+			this.organizationId = prop.getProperty("organizationId");
+			this.organizationName = prop.getProperty("organizationName");
+			this.organizationPublicName = prop.getProperty("organizationPublicName");
+
 			this.documentID = prop.getProperty("documentId");
 			this.idOriginal = prop.getProperty("idOriginal");
 			this.documentCollectionID = prop.getProperty("documentCollectionId");
@@ -403,11 +477,17 @@ public class Constants {
 			this.type = prop.getProperty("type");
 			this.keywords = prop.getProperty("keywords");
 
+			this.accessingOrganization = prop.getProperty("accessingOrganization");
+			this.accessedOrganization = prop.getProperty("accessedOrganization");
+			
 			this.collectionID = prop.getProperty("collectionId");
 			this.collectionShortName = prop.getProperty("collectionShortName");
 			this.collectionName = prop.getProperty("collectionName");
-			this.organization = prop.getProperty("organization");
+			this.organizationInCollection = prop.getProperty("organizationInCollection");
 
+			this.prefix = prop.getProperty("prefix");
+			this.organizationIdInPartnerPrefixes = prop.getProperty("organizationIdInPartnerPrefixes");
+			
 			this.personID = prop.getProperty("personId");
 			this.firstname = prop.getProperty("firstname");
 			this.middlename = prop.getProperty("middlename");
@@ -436,6 +516,8 @@ public class Constants {
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
 			this.cbfFields = prop.getProperty("cbfFields");
 			this.cbfNgramType = prop.getProperty("cbfNgramType");
+			this.searchMode = prop.getProperty("searchMode");
+			this.inputType = prop.getProperty("inputType");
 
 			this.stereotypeRecommendationDetailsId = prop.getProperty("stereotypeRecommendationDetailsId");
 			this.stereotypeCategoryInStereotypeDetails = prop.getProperty("stereotypeCategoryInStereotypeDetails");
@@ -461,6 +543,7 @@ public class Constants {
 			this.documentIdInSolr = prop.getProperty("documentIdInSolr");
 
 			this.gesisCollectionLink = prop.getProperty("gesisCollectionLink");
+			this.gesisBetaCollectionLink = prop.getProperty("gesisBetaCollectionLink");
 			this.gesis = prop.getProperty("gesis");
 			this.core = prop.getProperty("core");
 			this.coreCollectionLink = prop.getProperty("coreCollectionLink");
@@ -942,8 +1025,8 @@ public class Constants {
 		return collectionName;
 	}
 
-	public String getOrganization() {
-		return organization;
+	public String getOrganizationInCollection() {
+		return organizationInCollection;
 	}
 
 	public String getCollections() {
@@ -1211,7 +1294,145 @@ public class Constants {
 	}
 
 	public String getDesiredRecommendationsInRecommendationAlgorithms() {
-		// TODO Auto-generated method stub
 		return desiredRecommendationsInRecommendationAlgorithms;
 	}
+
+	public String getGesisBetaCollectionLink() {
+		return gesisBetaCollectionLink;
+	}
+
+	public String getRecommendationSetReceivedTime() {
+		return recommendationSetReceivedTime;
+	}
+
+	public String getDocumentTitleSearchTable() {
+		return titleSearch;
+	}
+
+	public String getRecommendationIdInLogging() {
+		return recommendationIdInLogging;
+	}
+
+	public String getTitleSearchIdInLogging() {
+		return titleSearchIdInLogging;
+	}
+
+	/**
+	 * @return the titleSearchString
+	 */
+	public String getTitleSearchString() {
+		return titleSearchString;
+	}
+
+	/**
+	 * @return the titleSearchId
+	 */
+	public String getTitleSearchId() {
+		return titleSearchId;
+	}
+
+	public String getOriginalSearchString() {
+		return originalSearchString;
+	}
+
+	public String getRelativeRelevanceScore() {
+		return relativeRelevanceScore;
+	}
+
+	public String getInputType() {
+		return inputType;
+	}
+
+	public String getSearchMode() {
+		return searchMode;
+	}
+
+	public String getApplication() {
+		return application;
+	}
+
+	public String getOrganization() {
+		return organization;
+	}
+
+	public String getApplicationId() {
+		return applicationId;
+	}
+
+	public String getApplicationPublicName() {
+		return applicationPublicName;
+	}
+
+	public String getOrganizationInApplication() {
+		return organizationInApplication;
+	}
+
+	public String getOrganizationId() {
+		return organizationId;
+	}
+
+	public String getOrganizationName() {
+		return organizationName;
+	}
+
+	public String getOrganizationPublicName() {
+		return organizationPublicName;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	public String getRequestingAppId() {
+		return requestingAppId;
+	}
+
+	public String getAppVersion() {
+		return appVersion;
+	}
+
+	public String getAppLang() {
+		return appLang;
+	}
+
+	public String getPartnerPrefixes() {
+		return partnerPrefixes;
+	}
+
+	public String getOrganizationIdInPartnerPrefixes() {
+		return organizationIdInPartnerPrefixes;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public String getAccessingOrganization() {
+		return accessingOrganization;
+	}
+
+	public String getAccessedOrganization() {
+		return accessedOrganization;
+	}
+
+	public String getAccessRightsTable() {
+		return accessRightsTable;
+	}
+
+	public String getExternalOriginalDocumentId() {
+		return externalOriginalDocumentId;
+	}
+
+	public String getExternalRecommendationSetId() {
+		return externalRecommendationSetId;
+	}
+
+	public String getExternalAlgorithmId() {
+		return externalAlgorithmId;
+	}
+
+	public String getProcessingAppId() {
+		return processingAppId;
+	}
+
 }

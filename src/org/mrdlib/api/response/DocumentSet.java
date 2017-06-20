@@ -384,10 +384,8 @@ public class DocumentSet {
 
 			// if the document is the same, do not add as duplicate
 			if (equalDocuments(document, current)) {
-				if (Integer.parseInt(current.getDocumentId()) < Integer.parseInt(document.getDocumentId())) {
 					this.documentList.remove(i);
 					this.documentList.add(document);
-				}
 				return;
 			}
 		}
@@ -705,4 +703,67 @@ public class DocumentSet {
 	public void setFallbackRanking(boolean fallbackRanking) {
 		this.debugDetailsPerSet.setFallbackRanking(fallbackRanking);
 	}
+	
+	@XmlTransient
+	public void setIpAddress(String ip){
+		this.debugDetailsPerSet.setOriginatingIp(ip);
+	}
+	
+	public String getIpAddress(){
+		return this.debugDetailsPerSet.getOriginatingIp();
+	}
+	
+	public String getRequestingPartnerId() {
+		return this.debugDetailsPerSet.getRequestingPartnerId();
+	}
+
+	@XmlTransient
+	public void setRequestingPartnerId(String partnerId) {
+		this.debugDetailsPerSet.setRequestingPartnerId(partnerId);
+	}
+
+	public String getRequestingAppId() {
+		return this.debugDetailsPerSet.getRequestingAppId();
+	}
+
+	@XmlTransient
+	public void setRequestingAppId(String appId) {
+		this.debugDetailsPerSet.setRequestingAppId(appId);
+	}
+
+	public String getAppVersion() {
+		return this.debugDetailsPerSet.getAppVersion();
+	}
+
+	@XmlTransient
+	public void setAppVersion(String appVersion) {
+		this.debugDetailsPerSet.setAppVersion(appVersion);
+	}
+
+	public String getAppLang() {
+		return this.debugDetailsPerSet.getAppLang();
+	}
+
+	@XmlTransient
+	public void setAppLang(String appLang) {
+		this.debugDetailsPerSet.setAppLang(appLang);
+	}
+
+	public String getExternalAlgorithmId() {
+		return this.debugDetailsPerSet.getExternalAlgorithmId();
+	}
+
+	public String getExternalRecommendationSetId() {
+		return this.debugDetailsPerSet.getExternalRecommendationSetId();
+	}
+
+	@XmlTransient
+	public void setExternalAlgorithmId(String externalAlgorithmId) {
+		this.debugDetailsPerSet.setExternalAlgorithmId(externalAlgorithmId);
+	}
+	@XmlTransient
+	public void setExternalRecommendationSetId(String externalRecommendationSetId) {
+		this.debugDetailsPerSet.setExternalRecommendationSetId(externalRecommendationSetId);
+	}
+
 }

@@ -25,6 +25,6 @@ public class NoRelatedDocumentsException extends WebApplicationException {
 	}
 	
 	public StatusReport getStatusReport() {
-		return new StatusReport(204, new StatusMessage("No related documents found for document id: "+id+"  (partner id: "+originalId+")", "en"));
+		return new StatusReport(204, new StatusMessage("No related documents found for document id: "+id+"  (original document id: "+originalId+")", "en"));
 	}
 }

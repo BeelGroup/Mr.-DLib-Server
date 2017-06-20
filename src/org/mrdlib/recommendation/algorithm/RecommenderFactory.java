@@ -4,58 +4,12 @@ import java.util.Random;
 
 import org.mrdlib.api.manager.UnknownException;
 import org.mrdlib.api.response.DisplayDocument;
+import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.database.NoEntryException;
 
 public class RecommenderFactory {
 	static RelatedDocuments rdg;
-
-	/**
-	 * Initializes a new recommender object according to the probabilities
-	 * described in the probabilities.properties file Unoptimized -- Better not
-	 * use this
-	 * 
-	 * @param con
-	 *            DBConnection object to pass onto the recommender object
-	 * @return A <code>RelatedDocuments</code> recommender object
-	 * @throws Exception
-	 */
-	public static RelatedDocuments getRandomRDG(DBConnection con) throws Exception {
-
-		// Load probabilities from the config file
-		Random random = new Random();
-		Probabilities probs = new Probabilities();
-
-		// Start cumulative with prob(RandomDocumentRecommender), then keep
-		// incrementing by the probability value for the next recommender in the
-		// file
-		int cumulative = probs.getRandomDocumentRecommender();
-
-		// draw a random number
-		int randomRecommendationApproach = random.nextInt(10000);
-		if (randomRecommendationApproach < cumulative)
-			rdg = new RandomDocumentRecommender(con);
-		else {
-			cumulative += probs.getRandomDocumentRecommenderLanguageRestricted();
-			if (randomRecommendationApproach < cumulative)
-				rdg = new RandomDocumentRecommenderLanguageRestricted(con);
-			else {
-				cumulative += probs.getRelatedDocumentsFromSolr();
-				if (randomRecommendationApproach < cumulative)
-					rdg = new RelatedDocumentsMLT(con);
-				else {
-					cumulative += probs.getRelatedDocumentsFromSolrWithKeyphrases();
-					if (randomRecommendationApproach < cumulative)
-						rdg = new RelatedDocumentsKeyphrases(con);
-					else
-						rdg = new StereotypeRecommender(con);
-				}
-			}
-		}
-
-		// for testing individually:
-		// return new RandomDocumentRecommenderLanguageRestricted(con);
-		return rdg;
-	}
 
 	/**
 	 * Initializes a fallback recommender
@@ -87,27 +41,81 @@ public class RecommenderFactory {
 	 * @return A <code>RelatedDocuments</code> recommender object
 	 * @throws Exception
 	 */
-	public static RelatedDocuments getRandomRDG(DBConnection con, DisplayDocument requestDocument,
-			Boolean requestByTitle) throws Exception {
+	public static RelatedDocuments getRandomRDG(DBConnection con, DocumentSet docSet, Boolean requestByTitle)
+			throws Exception {
+		DisplayDocument requestDocument = docSet.getRequestedDocument();
+		String appId = docSet.getDebugDetailsPerSet().getRequestingAppId();
+		Random random = new Random();
 
-		System.out.println("reached getRandomRDG");
 		if (requestByTitle) {
-			System.out.println("will now return a RelatedDocumentsQuery");
-			return new RelatedDocumentsQuery(con);
+			return requestByTitleRDG(appId, random, con);
 		}
 		// Load probabilities from the config file
-		Random random = new Random();
-		Probabilities probs = new Probabilities();
 
 		// Start cumulative with prob(RandomDocumentRecommender), then keep
 		// incrementing by the probability value for the next recommender in the
 		// file
-		int cumulative = probs.getRandomDocumentRecommender();
-
+		if (Integer.parseInt(requestDocument.getDocumentId()) > 9505925) {
+			Integer coreRecommenderAPI = random.nextInt(10000);
+			if (coreRecommenderAPI < 2000 && checkAccessToCoreAPI(appId, con)) {
+				return random.nextBoolean() ? new CoreRecommender(con) : new CoreRecommender(con);
+			} else
+				return RecommenderFactory.returnStandardDistributionRDG(con, requestDocument);
+		}
 		// draw a random number
+
+		return RecommenderFactory.returnStandardDistributionRDG(con, requestDocument);
+		// return new CoreRecommender(con);
+	}
+
+	private static RelatedDocuments requestByTitleRDG(String appId, Random random, DBConnection con)
+			throws Exception {
+
+		/*
+		 * If the documentSet's application_id indicates that the request is
+		 * from Jabref, we can include the CORE Recommender in the randomization
+		 * process. If not we use the standardDistributionRDG for requestByTitle
+		 */
+		
+		Boolean requestIsFromJabref = checkAccessToCoreAPI(appId, con);
+
+		if (requestIsFromJabref) {
+			if (random.nextInt(3) < 0)
+				return new CoreSearch(con);
+			else
+				return returnStandardQueryByTitleRDG(con, random);
+		} else
+			return returnStandardQueryByTitleRDG(con, random);
+
+	}
+
+	private static Boolean checkAccessToCoreAPI(String appId, DBConnection con) {
+		try {
+			return con.getApplicationId("jabref_desktop").equalsIgnoreCase(appId)
+					|| con.getApplicationId("mdl_client_test").equalsIgnoreCase(appId);
+		} catch (NoEntryException e) {
+			if (appId != null)
+				System.out.println("AppId " + appId + " not present in our db");
+			return false;
+		}
+	}
+
+	private static RelatedDocuments returnStandardQueryByTitleRDG(DBConnection con, Random random) throws Exception {
+		if (random.nextBoolean()) {
+			return new RelatedDocumentsQuery(con);
+		} else {
+			return new RelatedDocumentsQueryEdismax(con);
+		}
+	}
+
+	public static RelatedDocuments returnStandardDistributionRDG(DBConnection con, DisplayDocument requestDocument) {
+		Random random = new Random();
+
 		int randomRecommendationApproach = random.nextInt(10000);
 
-		// what the hell is this doing?
+		Probabilities probs = new Probabilities();
+		int cumulative = probs.getRandomDocumentRecommender();
+
 		try {
 			// CASE: Completely random
 			if (randomRecommendationApproach < cumulative)
@@ -171,7 +179,7 @@ public class RecommenderFactory {
 			}
 			throw new UnknownException(e, true);
 		}
-
 		return rdg;
 	}
+
 }
