@@ -167,7 +167,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 			if (StringUtils.countMatches(attributeValue, " ") == 1) {
 				// one author, comma-separated
 				attributeValue = attributeValue.replace(" ", ",");
-				System.out.println("ONE AUTHOR, COMMA-SEPARATED: " + attributeValue);
 			} else {
 				// multiple authors, comma-separated
 				attributeValue = attributeValue.replace(", ", ";");
@@ -273,8 +272,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							}
 							
 							oaidcRecord.addDescription(descriptionLanguage + "|" + attributeValue);
-							
-							System.out.println("DESCRIPTION: " + descriptionLanguage + "|" + attributeValue);
 							
 							break;
 						case "publisher":
@@ -382,7 +379,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		
 		for (int i = 0; i < abstracts.size(); i++) {
 			abstracts.set(i, abstracts.get(i));
-			System.out.println("ABSTRACT: " + abstracts.get(i));
 		}
 		
 		return abstracts;
@@ -461,7 +457,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		
 		for (int i = 0; i < authors.size(); i++) {
 			authors.set(i, authors.get(i));
-			System.out.println("AUTHOR: " + authors.get(i));
 		}
 		
 		return authors;
