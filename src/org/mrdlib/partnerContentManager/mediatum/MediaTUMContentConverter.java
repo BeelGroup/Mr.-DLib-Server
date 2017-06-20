@@ -482,7 +482,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		String type = "";
 		
 		if (oaidcRecord.getTypes().size() > 0) {
-			switch (oaidcRecord.getTypes().get(0)) {
+			switch (oaidcRecord.getTypes().get(oaidcRecord.getTypes().size() - 1)) {
 			case "doc-type:report":
 				type = "report";
 				break;
