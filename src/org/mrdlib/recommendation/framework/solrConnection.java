@@ -316,7 +316,7 @@ public class solrConnection {
 		// parser
 
 		if (standard) {
-			String[] splitedTitle = title.split("\\s+");
+			String[] splitedTitle = title.trim().split("\\s+");
 			StringBuffer queryString = new StringBuffer();
 			for (int i = 0; i < splitedTitle.length; i++) {
 				queryString.append("title:" + splitedTitle[i] + " OR ");

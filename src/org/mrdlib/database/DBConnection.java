@@ -3027,6 +3027,7 @@ public class DBConnection {
 			query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
 					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
 					+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND "
+					+ constants.getShuffled() + "='" + (documentset.isShuffled()?"Y" : "N") + "' AND "
 					+ constants.getBibReRankingApplied() + "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
 					+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
 					+ documentset.getDesiredNumberFromAlgorithm() + "'";
