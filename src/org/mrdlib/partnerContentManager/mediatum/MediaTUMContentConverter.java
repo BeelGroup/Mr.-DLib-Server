@@ -232,15 +232,20 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 						case "subject":
 							String subjectLanguage = "";
 							
+							// this is the case for abstracts
 							if (line.contains("xml:lang")) {
 								subjectLanguage = line.split(Pattern.quote("<dc:subject xml:lang="))[1].split(">")[0].replaceAll("\"", "");
+							
+								if (subjectLanguage.equals(getPublicationLanguage(pathOfFile))) {
+									for (String subject : attributeValue.split(", ")) {
+										oaidcRecord.addSubject(subject);
+									}
+								}
+							// this is the case for collections
+							} else {
+								oaidcRecord.addSubject(attributeValue);
 							}
 							
-							if (subjectLanguage.equals(getPublicationLanguage(pathOfFile))) {
-								for (String subject : attributeValue.split(", ")) {
-									oaidcRecord.addSubject(subject);
-								}
-							}
 							break;
 						case "description":
 							// default language
@@ -423,34 +428,11 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 	}
 	
 	/**
-	 * Extracts a publication's year from a given OAIDC record as a string formatted as "yyyy".
+	 * Extracts keywords from an OAIDC record. Values provided through the OAI tags "creator" and "contributor" are used.
 	 * 
-	 * @param oaidcRecord OAIDC record to extract year from
-	 * @return extracted publication's year (format "yyyy")
+	 * @param oaidcRecord OAIDC record to extract authors from
+	 * @return list of extracted authors
 	 */
-	private String getYearFromOAIDCRecord(OAIDCRecord oaidcRecord) {
-		String year = "";
-		
-		if (oaidcRecord.getDates().size() > 0) {
-			year = Integer.toString(getPublicationYearFromOAIDCDateFormat(oaidcRecord.getDates().get(0)));
-		} else {
-			System.out.println("Error: no year found.");
-			return null;
-		}
-		
-		return year;
-	}
-	
-	/**
-	 * Extracts the year from a OAI DC date format (yyyy-mm-dd).
-	 * 
-	 * @param oaiDate date in OAI DC format (yyyy-mm-dd) to extract year from
-	 * @return extracted year
-	 */
-	private int getPublicationYearFromOAIDCDateFormat(String oaiDate) {
-		return Integer.parseInt(oaiDate.substring(0, 4));
-	}
-	
 	private ArrayList<String> getAuthorsFromOAIDCRecord(OAIDCRecord oaidcRecord) {
 		ArrayList<String> authors = new ArrayList<String>();
 		
@@ -475,151 +457,17 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		ArrayList<String> keyWords = new ArrayList<>();
 		
 		for (String subject : oaidcRecord.getSubjects()) {
-			for (String keyWord : subject.split(";")) {
-				// prevent encoded collection information to be stored as a keyword
-				if (keyWord.contains("ddc:")) {
-					String encodedCollection = keyWord.split("ddc")[1].substring(1);
-					String decodedCollection = decodeCollection(encodedCollection);
-					keyWords.add(decodedCollection);
-				} else {
-					keyWords.add(keyWord);
+			if (!subject.substring(0, 4).equals("ddc:")) {
+				for (String keyWord : subject.split(";")) {
+					// prevent encoded collection information to be stored as a keyword
+					if (!keyWord.contains("ddc:")) {
+						keyWords.add(keyWord);
+					}
 				}
 			}
 		}
 		
 		return keyWords;
-	}
-	
-	/**
-	 * Returns the collection title corresponding to a given collection key.
-	 * 
-	 * @param encodedCollection collection key to decode
-	 * @return corresponding collection title
-	 */
-	private String decodeCollection(String encodedCollection) {
-		String decodedCollection = "";
-		
-		switch (encodedCollection) {
-		case "000":
-			decodedCollection = "Generalities, Science";
-			break;
-		case "004":
-			decodedCollection = "Data processing Computer science";
-			break;
-		case "020":
-			decodedCollection = "Library and information sciences";
-			break;
-		case "100":
-			decodedCollection = "Philosophy";
-			break;
-		case "150":
-			decodedCollection = "Psychology";
-			break;
-		case "200":
-			decodedCollection = "Religion";
-			break;
-		case "300":
-			decodedCollection = "Social sciences";
-			break;
-		case "330":
-			decodedCollection = "Economics";
-			break;
-		case "333.7":
-			decodedCollection = "Natural ressources, energy and environment";
-			break;
-		case "340":
-			decodedCollection = "Law";
-			break;
-		case "370":
-			decodedCollection = "Education";
-			break;
-		case "400":
-			decodedCollection = "Language, Linguistics";
-			break;
-		case "500":
-			decodedCollection = "Natural sciences and mathematics";
-			break;
-		case "510":
-			decodedCollection = "Mathematics";
-			break;
-		case "520":
-			decodedCollection = "Astronomy and allied sciences";
-			break;
-		case "530":
-			decodedCollection = "Physics";
-			break;
-		case "540":
-			decodedCollection = "Chemistry and allied sciences";
-			break;
-		case "550":
-			decodedCollection = "Earth sciences";
-			break;
-		case "570":
-			decodedCollection = "Life sciences";
-			break;
-		case "580":
-			decodedCollection = "Botanical sciences";
-			break;
-		case "590":
-			decodedCollection = "Zoological sciences";
-			break;
-		case "600":
-			decodedCollection = "Technology (Applied sciences)";
-			break;
-		case "610":
-			decodedCollection = "Medical sciences Medicine";
-			break;
-		case "620":
-			decodedCollection = "Engineering and allied operations";
-			break;
-		case "630":
-			decodedCollection = "Agriculture";
-			break;
-		case "640":
-			decodedCollection = "Home economics and family living";
-			break;
-		case "650":
-			decodedCollection = "Management and auxiliary services";
-			break;
-		case "660":
-			decodedCollection = "Chemical engineering";
-			break;
-		case "670":
-			decodedCollection = "Manufacturing";
-			break;
-		case "690":
-			decodedCollection = "Buildings";
-			break;
-		case "700":
-			decodedCollection = "The arts";
-			break;
-		case "710":
-			decodedCollection = "Civic and landscape art";
-			break;
-		case "720":
-			decodedCollection = "Architecture";
-			break;
-		case "780":
-			decodedCollection = "Music";
-			break;
-		case "790":
-			decodedCollection = "Recreational and performing arts";
-			break;
-		case "800":
-			decodedCollection = "Literature and rhetoric";
-			break;
-		case "900":
-			decodedCollection = "Geography and history";
-			break;
-		case "910":
-			decodedCollection = "Geography and travel";
-			break;
-
-		default:
-			break;
-		}
-		
-		return decodedCollection;
 	}
 	
 	/**
@@ -701,13 +549,9 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		// default value
 		String collection = "000";
 		
-		int numSubjects = oaidcRecord.getSubjects().size();
-		
-		if (numSubjects > 0) {
-			String lastSubject = oaidcRecord.getSubjects().get(numSubjects-1);
-			
-			if (lastSubject.contains("ddc:")) {
-				collection = lastSubject.split("ddc:")[1];
+		for (String subject : oaidcRecord.getSubjects()) {
+			if (subject.contains("ddc:")) {
+				collection = subject.split("ddc:")[1];
 			}
 		}
 		
