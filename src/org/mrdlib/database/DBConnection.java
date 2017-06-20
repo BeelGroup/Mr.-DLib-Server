@@ -1524,57 +1524,7 @@ public class DBConnection {
 			stmt.executeUpdate();
 
 		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	/**
-	 * 
-	 * Insert a row to the bibliometrices Table
-	 * 
-	 * @param id,
-	 *            id from the corresponding document
-	 * @param metric,
-	 *            the metric to insert (eg total_count)
-	 * @param dataType,
-	 *            the dataType of the metric (eg readers, citations)
-	 * @param category,
-	 *            the category of the metric (eg for mendeley: user_role,
-	 *            country, subdiscipline)
-	 * @param subtype,
-	 *            the subtype of the metric (eg for mendeley: physics, germany,
-	 *            professor)
-	 * @param value,
-	 *            the value of the metric (eg number of readers/citations,
-	 *            h-index of readers/citations etc)
-	 * @param value,
-	 *            the datasourcce of the metric (eg mendeley, google scholar,
-	 *            microsoft acamdemics)
-	 */
-	public void writeBibliometricsInDatabase(String id, String metric, String dataType, String category, String subtype,
-			double value, String dataSource) {
-		PreparedStatement stmt = null;
-		String query = "";
-
-		try {
-			query = "INSERT IGNORE INTO " + constants.getBibDocuments() + " ("
-					+ constants.getDocumentIdInBibliometricDoc() + ", " + constants.getMetric() + ", "
-					+ constants.getDataType() + ", " + constants.getMetricValue() + ", " + constants.getDataSource()
-					+ ") VALUES (" + id + ", '" + metric + "', '" + dataType + "', " + value + ", '" + dataSource
-					+ "');";
-
-			stmt = con.prepareStatement(query);
-			// System.out.println(query);
-			// stmt.executeUpdate();
-
-		} catch (Exception e) {
+			System.out.println(query);
 			e.printStackTrace();
 		} finally {
 			try {
@@ -2574,8 +2524,8 @@ public class DBConnection {
 
 		String query = "SELECT sum(BP.value) as sumOfvalue FROM document D JOIN document_person PD ON PD.document_id = D."
 				+ constants.getDocumentId() + " JOIN bibliometric_person BP ON BP.person_id = PD.person_id "
-				+ "WHERE D." + constants.getDocumentId() + " = " + docId + " and BP.bibliometric_id= "
-				+ bibliometricId + " GROUP BY D." + constants.getDocumentId();
+				+ "WHERE D." + constants.getDocumentId() + " = " + docId + " and BP.bibliometric_id= " + bibliometricId
+				+ " GROUP BY D." + constants.getDocumentId();
 
 		try {
 			stmt = con.createStatement();
@@ -2599,10 +2549,10 @@ public class DBConnection {
 		}
 		return value;
 	}
-	
+
 	public void executeUpdate(String query) {
 		Statement stmt = null;
-		
+
 		try {
 			stmt = con.createStatement();
 			stmt.executeUpdate(query);
@@ -3740,14 +3690,16 @@ public class DBConnection {
 
 		// TODO: make variables
 		String query = "insert INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
-				+ ", bibliometrics_id, " + constants.getMetricValue() + ") VALUES (" + id + ", " + bibId + ", " + value
-				+ ")";
+				+ ", " + constants.getBibliometricIdInBibliometricDocument() + ", " + constants.getMetricValue()
+				+ ") VALUES (" + id + ", " + bibId + ", " + value + ")";
 
 		try {
 			stmt = con.createStatement();
+			//System.out.println(query);
 			stmt.executeUpdate(query);
 
 		} catch (Exception e) {
+			System.out.println(query);
 			System.out.println(e);
 		} finally {
 			try {

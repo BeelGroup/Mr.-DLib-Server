@@ -136,7 +136,7 @@ public class MConnection {
 								title = title.replaceAll("<strong>|<\\/strong>", "");
 							
 							//eliminate special characters for better comparison and search for matching title
-							if (documentData.calculateCleanTitle().equals(documentData.calculateCleanTitle())) {
+							if (calculateCleanTitle(documentData.getTitle()).equals(calculateCleanTitle(title))) {
 								
 								//if it matches, get the mendeley id for second request
 								mendeleyId = (String) document.get("id");
@@ -159,6 +159,13 @@ public class MConnection {
 			//write progress to config file
 			mconfig.writeMendeleyCrawlingProcessToConfigFile(k + mconfig.getBatchSize());
 		}
+	}
+	
+	private String calculateCleanTitle(String title) {
+		String cleanTitle = "";
+		cleanTitle = title.replaceAll("[^a-zA-Z]", "");
+		cleanTitle = cleanTitle.toLowerCase();
+		return cleanTitle;
 	}
 
 	/**

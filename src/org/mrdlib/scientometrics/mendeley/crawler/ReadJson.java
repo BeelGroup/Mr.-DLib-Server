@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.mrdlib.api.manager.Constants;
+import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.database.DBConnection;
 
 /**
@@ -18,6 +20,8 @@ public class ReadJson {
 
 	private Config mconfig;
 	private DBConnection con;
+	private int count;
+	private int countAbs;
 
 	/**
 	 * open a database connection
@@ -58,9 +62,10 @@ public class ReadJson {
 						keyvalueStr = keyvalueStr.substring(18);
 					con.writeIdentifiersInDatabase(id, keyStr.toString(), keyvalueStr);
 				//write the metric in the database
-				} else
-					con.writeBibliometricsInDatabase(id+"", "simple_count", "readers", category, keyStr.toString(),
-							Integer.parseInt(keyvalue.toString()), "mendeley");
+				}/* else
+					
+					con.writeBibliometricsInDatabase(id+"", 1, category, keyStr.toString(),
+							Integer.parseInt(keyvalue.toString()));*/
 			}
 		}
 	}
@@ -113,7 +118,8 @@ public class ReadJson {
 			
 			//get the absolute readercount and write it to database
 			readerCount = Integer.parseInt(jsonObject.get("reader_count").toString());
-			con.writeBibliometricsInDatabase(id+"", "simple_count", "readers", "all", null, readerCount, "mendeley");
+			con.writeBibliometricsInDatabase(id+"", 1, readerCount);
+			count++;
 			
 			//get the readercount of the subcategories and write them to database
 			/*getReaderShipByCategory(id, jsonObject, "reader_count_by_country");
@@ -128,6 +134,45 @@ public class ReadJson {
 			e.printStackTrace();
 		}
 	}
+	
+	public void doubleCheckJson(Path path) {
+		JSONParser parser = new JSONParser();
+		String filename;
+		int id;
+		String title;
+		DisplayDocument document = new DisplayDocument();
+		countAbs++;
+		
+		try {
+			//get the file to parse
+			Object obj = parser.parse(new FileReader(path.toString()));
+
+			//get the json object from the file
+			JSONObject jsonObject = (JSONObject) obj;
+			
+			//get the mrdlib id from the filename
+			filename = path.getFileName().toString();
+			id = Integer.parseInt(filename.substring(0, filename.indexOf(' ')));
+			title = jsonObject.get("title").toString();
+			document = con.getDocumentBy("document_id", id+"");
+			
+			if(!calculateCleanTitle(title).equals(calculateCleanTitle(document.getTitle()))) {
+				Files.delete(path);
+				count++;
+			}
+
+		} catch (Exception e) {
+			System.out.println(path.toString());
+			e.printStackTrace();
+		}
+	}
+	
+	private String calculateCleanTitle(String title) {
+		String cleanTitle = "";
+		cleanTitle = title.replaceAll("[^a-zA-Z]", "");
+		cleanTitle = cleanTitle.toLowerCase();
+		return cleanTitle;
+	}
 
 	/**
 	 * get every file of the stored mendeley responses and perform processJson
@@ -138,11 +183,22 @@ public class ReadJson {
 			Files.walk(Paths.get(mconfig.getPathOfDownload()))
 					.filter((p) -> !p.toFile().isDirectory() && p.toFile().getAbsolutePath().endsWith(".txt"))
 					.forEach(p -> this.processJson(p));
-			//this.processJson(Paths.get("/home/mrdlib/MendeleyData/0/1 mrdlib.txt"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("Inserted: " + count);
+	}
+	
+	public void doubleCheckMendeleyJsonFiles() {
+		try {
+			Files.walk(Paths.get(mconfig.getPathOfDownload()))
+					.filter((p) -> !p.toFile().isDirectory() && p.toFile().getAbsolutePath().endsWith(".txt"))
+					.forEach(p -> this.doubleCheckJson(p));
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("Deleted: " + count +"/"+ countAbs);
 	}
 
 	/**
@@ -150,6 +206,8 @@ public class ReadJson {
 	 */
 	public static void main(String[] args) throws Exception {
 		ReadJson rJson = new ReadJson();
+		//System.out.println("I'm new!");
 		rJson.readStoredMendeleyJsonFiles();
+		//rJson.doubleCheckMendeleyJsonFiles();
 	}
 }
