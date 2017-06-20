@@ -457,11 +457,13 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		ArrayList<String> keyWords = new ArrayList<>();
 		
 		for (String subject : oaidcRecord.getSubjects()) {
-			if (!subject.substring(0, 4).equals("ddc:")) {
-				for (String keyWord : subject.split(";")) {
-					// prevent encoded collection information to be stored as a keyword
-					if (!keyWord.contains("ddc:")) {
-						keyWords.add(keyWord);
+			if (subject.length() >= 4) {
+				if (!subject.substring(0, 4).equals("ddc:")) {
+					for (String keyWord : subject.split(";")) {
+						// prevent encoded collection information to be stored as a keyword
+						if (!keyWord.contains("ddc:")) {
+							keyWords.add(keyWord);
+						}
 					}
 				}
 			}
