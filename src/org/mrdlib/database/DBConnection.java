@@ -1271,25 +1271,7 @@ public class DBConnection {
 				throw e;
 			}
 		}
-		return persons;
-	}
-
-			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
-					.collect(Collectors.toList());
-
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				throw e;
-			}
-		}
-		return persons;
+		return persons;	
 	}
 
 	/**
