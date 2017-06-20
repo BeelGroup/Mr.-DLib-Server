@@ -1097,7 +1097,7 @@ public class DBConnection {
 			// insert every related abstract to the abstract table with the
 			// corresponding document id
 			for (int i = 0; i < document.getAbstracts().size(); i++) {
-				addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+				addMediaTUMAbstractToDocument(document, document.getAbstracts().get(i), docKey);
 			}
 
 		} catch (SQLException sqle) {
@@ -1274,6 +1274,41 @@ public class DBConnection {
 			// values
 			SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
 			SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
+			SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
+
+			stmt.executeUpdate();
+		} catch (Exception e) {
+			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+	}
+	
+	private void addMediaTUMAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) throws Exception {
+		PreparedStatement stmt = null;
+		try {
+			// query which inserts the abstract information
+			String query = "INSERT INTO " + constants.getAbstracts() + " (" + constants.getAbstractDocumentId() + ", "
+					+ constants.getAbstractLanguage() + ", " + constants.getAbstr() + ") VALUES (?, ?, ?)";
+
+			stmt = con.prepareStatement(query);
+
+			// set values of abstract with wrapper method to check for null
+			// values
+			SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
+			
+			if (abstr.getLanguage().equals("NULL")) {
+				stmt.setNull(2, java.sql.Types.VARCHAR, constants.getAbstractLanguage());
+			} else {
+				SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
+			}
+			
 			SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
 
 			stmt.executeUpdate();

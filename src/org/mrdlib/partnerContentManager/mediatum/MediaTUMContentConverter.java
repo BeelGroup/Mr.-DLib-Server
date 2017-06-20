@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mrdlib.partnerContentManager.gesis.Tuple;
 
 /**
@@ -161,6 +162,24 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return xmlDocument;
 	}
 	
+	private String[] getAuthorsFromAttributeValue(String attributeValue) {
+		if (!attributeValue.contains(";")) {
+			if (StringUtils.countMatches(attributeValue, " ") == 1) {
+				// one author, comma-separated
+				attributeValue = attributeValue.replace(" ", ",");
+				System.out.println("ONE AUTHOR, COMMA-SEPARATED: " + attributeValue);
+			} else {
+				// multiple authors, comma-separated
+				attributeValue = attributeValue.replace(", ", ";");
+				attributeValue = attributeValue.replace(" ", ",");
+			}
+		}
+		
+		String[] authors = attributeValue.split(";");
+		
+		return authors;
+	}
+	
 	/**
 	 * Reads in a given file and converts it to an OAIDC record.
 	 * 
@@ -221,9 +240,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							oaidcRecord.addTitle(attributeValue);
 							break;
 						case "creator":
-							String separationCharacterCreator = ";";
-							
-							String[] creators = attributeValue.split(separationCharacterCreator);
+							String[] creators = getAuthorsFromAttributeValue(attributeValue);
 							
 							for (String creator : creators) {
 								oaidcRecord.addCreator(creator);
@@ -256,14 +273,16 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 							}
 							
 							oaidcRecord.addDescription(descriptionLanguage + "|" + attributeValue);
+							
+							System.out.println("DESCRIPTION: " + descriptionLanguage + "|" + attributeValue);
+							
 							break;
 						case "publisher":
 							oaidcRecord.addPublisher(attributeValue);
 							break;
 						case "contributor":
-							String separationCharacterContributor = ";";
+							String[] contributors = getAuthorsFromAttributeValue(attributeValue);
 							
-							String[] contributors = attributeValue.split(separationCharacterContributor);
 							for (String contributor : contributors) {
 								oaidcRecord.addCreator(contributor);
 							}
@@ -363,6 +382,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		
 		for (int i = 0; i < abstracts.size(); i++) {
 			abstracts.set(i, abstracts.get(i));
+			System.out.println("ABSTRACT: " + abstracts.get(i));
 		}
 		
 		return abstracts;
@@ -441,6 +461,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		
 		for (int i = 0; i < authors.size(); i++) {
 			authors.set(i, authors.get(i));
+			System.out.println("AUTHOR: " + authors.get(i));
 		}
 		
 		return authors;
