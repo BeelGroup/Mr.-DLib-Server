@@ -2837,7 +2837,7 @@ public class DBConnection {
 					abstrct = docAbstract;
 				return abstrct;
 			} else {
-				return "NONE";
+				return null;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
