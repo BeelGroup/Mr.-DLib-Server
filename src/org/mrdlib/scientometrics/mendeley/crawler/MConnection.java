@@ -136,6 +136,8 @@ public class MConnection {
 								title = title.replaceAll("<strong>|<\\/strong>", "");
 							
 							//eliminate special characters for better comparison and search for matching title
+							//This if condition doesn't seem correct
+							//Should perhaps be comparing variable 'document' to 'documentData'?
 							if (documentData.calculateCleanTitle().equals(documentData.calculateCleanTitle())) {
 								
 								//if it matches, get the mendeley id for second request
