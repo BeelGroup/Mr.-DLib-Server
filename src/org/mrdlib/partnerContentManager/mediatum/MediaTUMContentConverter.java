@@ -94,7 +94,8 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		
 		ArrayList<String> abstracts = getAbstractsFromOAIDCRecord(oaidcRecord);
 		String language = getLanguageFromOAIDCRecord(oaidcRecord);
-		String idOriginal = getIdOriginalFromOAIDCRecord(oaidcRecord);
+		// prefix original id analogous to existing original ids
+		String idOriginal = "mediatum-" + getIdOriginalFromOAIDCRecord(oaidcRecord);
 		String title = getTitleFromOAICDRecord(oaidcRecord);
 		String fulltitle = getTitleFromOAICDRecord(oaidcRecord);
 		// since the years that are stored in the XML file represent the last modification,
@@ -162,19 +163,35 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return xmlDocument;
 	}
 	
+	/**
+	 * Extracts the authors from a given attribute value retrieved from mediaTUM's XML.
+	 * Authors may either be comma- or semicolon-separated.
+	 * 
+	 * @param attributeValue value of attribute to extract authors from
+	 * @return extracted authors
+	 */
 	private String[] getAuthorsFromAttributeValue(String attributeValue) {
-		if (!attributeValue.contains(";")) {
-			if (StringUtils.countMatches(attributeValue, " ") == 1) {
-				// one author, comma-separated
-				attributeValue = attributeValue.replace(" ", ",");
-			} else {
-				// multiple authors, comma-separated
-				attributeValue = attributeValue.replace(", ", ";");
-				attributeValue = attributeValue.replace(" ", ",");
-			}
+		String attributeValueWithOutBrackets = attributeValue.replaceAll("\\(.*\\)", "");
+		
+		// distinguish cases
+		if (attributeValueWithOutBrackets.contains(";")) {
+			// semicolon-separated, multiple
+		} else if (StringUtils.countMatches(attributeValueWithOutBrackets, ",") > 1) {
+			// comma-separated, multiple
+			attributeValue = attributeValue.replace(", ", ";");
+			attributeValue = attributeValue.replace(" ", ",");
+		} else if (!attributeValueWithOutBrackets.contains(",")) {
+			// comma-separated, single
+			attributeValue = attributeValue.replace(" ", ",");
+		} else {
+			// semicolon-separated, single
 		}
 		
 		String[] authors = attributeValue.split(";");
+		
+		for (String author : authors) {
+			System.out.println("AUTHOR: " + author);
+		}
 		
 		return authors;
 	}
