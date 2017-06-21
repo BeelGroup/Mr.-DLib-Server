@@ -367,9 +367,11 @@ public class MediaTUMXMLDocument extends XMLDocument {
 		} else
 			language = null;
 		if (!validLanguage) {
-			// if its not a valid Language print out the wrong language but write null
-			System.out.println("Language needs to be defined: "
-					+ language);
+			if (!language.equals("(NULL")) {
+				// if its not a valid Language print out the wrong language but write null
+				System.out.println("Language needs to be defined: "
+						+ language);
+			}
 			language = "NULL";
 		}
 

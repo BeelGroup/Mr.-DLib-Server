@@ -173,25 +173,41 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 	private String[] getAuthorsFromAttributeValue(String attributeValue) {
 		String attributeValueWithOutBrackets = attributeValue.replaceAll("\\(.*\\)", "");
 		
+		// comment in for debugging
+//		System.out.println("ATTRIBUTE VALUE: " + attributeValue);
+		
 		// distinguish cases
 		if (attributeValueWithOutBrackets.contains(";")) {
 			// semicolon-separated, multiple
+			if (!attributeValueWithOutBrackets.contains(", ")) {
+				attributeValue = attributeValue.replace(",", ", ");
+			}
 		} else if (StringUtils.countMatches(attributeValueWithOutBrackets, ",") > 1) {
 			// comma-separated, multiple
-			attributeValue = attributeValue.replace(", ", ";");
-			attributeValue = attributeValue.replace(" ", ",");
+			if (attributeValueWithOutBrackets.contains("., ")) {
+				// comma-separated first and last names, as well as authors
+				attributeValue = attributeValue.replace("., ", ".;");
+				if (!attributeValueWithOutBrackets.contains(",")) {
+					// first and last name separated with space
+					attributeValue = attributeValue.replace(" ", ", ");
+				}
+			} else {
+				attributeValue = attributeValue.replace(", ", ";");
+				attributeValue = attributeValue.replace(" ", ", ");
+			}
 		} else if (!attributeValueWithOutBrackets.contains(",")) {
 			// comma-separated, single
-			attributeValue = attributeValue.replace(" ", ",");
+			attributeValue = attributeValue.replace(" ", ", ");
 		} else {
 			// semicolon-separated, single
 		}
 		
 		String[] authors = attributeValue.split(";");
 		
-		for (String author : authors) {
-			System.out.println("AUTHOR: " + author);
-		}
+		// comment in for debugging
+//		for (String author : authors) {
+//			System.out.println("AUTHOR: " + author);
+//		}
 		
 		return authors;
 	}

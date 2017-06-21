@@ -55,7 +55,8 @@ public class MediaTUMPartnerContentManager {
 			for (File file : contentFolder.listFiles()) {
 				String filePath = file.getAbsolutePath();
 				
-				System.out.println(filePath);
+				// comment in for debugging
+//				System.out.println(filePath);
 				
 				if (filePath.endsWith(".xml")) {
 					MediaTUMXMLDocument xmlDocument = mediaTUMContentConverter.convertPartnerContentToStorablePartnerContent(filePath);
