@@ -115,6 +115,7 @@ public class MediaTUMContentDownloader implements IContentDownloader {
                     "&metadataPrefix=" + metadataFormat;
 
             String filePath = pathOfFolderToDownloadContentTo + "/" + nodeId + ".xml";
+            
             File file = new File(filePath);
             try {
                 FileUtils.copyURLToFile(new URL(url), file);
