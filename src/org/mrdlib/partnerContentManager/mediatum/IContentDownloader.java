@@ -25,7 +25,7 @@ public interface IContentDownloader {
 	
 	/**
 	 * Downloads all content that has been added by the content provider since a given date to the specified folder.
-	 * This may be useful for regularly fetching content. 
+	 * This may be useful for regularly fetching content.
 	 * 
 	 * @param pathOfFolderToDownloadContentTo path of folder to download content to
 	 * @param since date since which to download content
