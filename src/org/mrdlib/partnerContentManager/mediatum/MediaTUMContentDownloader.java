@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -107,6 +106,8 @@ public class MediaTUMContentDownloader implements IContentDownloader {
         int nodeId = idToDownloadContentWithHigherId + 1;
         boolean idIsValid = true;
 
+        System.out.println("--- Download of new records starts ---");
+        
         while (idIsValid) {
             System.out.println(nodeId);
 
@@ -128,6 +129,10 @@ public class MediaTUMContentDownloader implements IContentDownloader {
                 file.delete();
             }
         }
+        
+        System.out.println("--- Download of new records finished ---");
 	}
+	
+	
 
 }
