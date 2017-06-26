@@ -160,7 +160,7 @@ public class DisplayDocument implements Serializable {
 
 	@XmlElement(name = "keywords")
 	public void setKeywords(String keywords) {
-		if (keywords != null) {
+		if (keywords != null && keywords.length()>0) {
 			this.keywords = "<![CDATA[" + keywords.replaceAll("[<>]", "") + "]]>";
 		}
 	}
@@ -347,4 +347,5 @@ public class DisplayDocument implements Serializable {
 	public void setFinalScore(double finalScore) {
 		this.debugDetails.setFinalScore(finalScore);
 	}
+	
 }
