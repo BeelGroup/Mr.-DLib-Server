@@ -94,7 +94,7 @@ public class Snippet implements Serializable {
 		String formattedTitle = title != null ? "<a href='" + clickUrl + "'>" + title + "</a>. " : ""; 
 		String formattedAuthors = authorNames != null ? authorNames + ". "  : ""; 
 		String formattedPublishedIn = publishedIn != null ? publishedIn + ". "  : "";
-		String formattedYear = year	+ ".";
+		String formattedYear = year	+ ". ";
 		
 		return constructCDATAString(formattedTitle, formattedAuthors, formattedPublishedIn, formattedYear);	
 	}
