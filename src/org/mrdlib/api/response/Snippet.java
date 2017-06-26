@@ -1,6 +1,7 @@
 package org.mrdlib.api.response;
 
 import java.io.Serializable;
+import java.util.Formatter;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;
@@ -26,7 +27,7 @@ public class Snippet implements Serializable {
 	public Snippet(String clickUrl, String title, String authorNames, String publishedIn, int year, String format) {
 		this.format = format;
 		this.clickUrl = clickUrl;
-
+		
 		if (format.equals("html_plain"))
 			this.content = formatContentHtmlPlain(title, authorNames, publishedIn, year);
 		else if (format.equals("html_fully_formatted"))
@@ -48,9 +49,12 @@ public class Snippet implements Serializable {
 	 * @return snippet as String
 	 */
 	private String formatContentHtmlCss(String title, String authorNames, String publishedIn, int year) {
-		return "<![CDATA[<span class='mdl-title'>" + title + "</span>. <span class='mdl-authors'>" + authorNames
-				+ "</span>. <span class='mdl-journal'>" + publishedIn + "</span>. <span class='mdl-year'>" + year
-				+ "</span>]]>";
+		String formattedTitle = title != null ? "<span class='mdl-title'>" + title + "</span>. " : ""; 
+		String formattedAuthors = authorNames != null ? "<span class='mdl-authors'>" + authorNames + "</span>. "  : ""; 
+		String formattedPublishedIn = publishedIn != null ? "<span class='mdl-journal'>" + publishedIn + "</span>. "  : "";
+		String formattedYear = "<span class='mdl-year'>" + year	+ "</span>";
+		
+		return constructCDATAString(formattedTitle, formattedAuthors, formattedPublishedIn, formattedYear);
 	}
 
 	/**
@@ -64,9 +68,16 @@ public class Snippet implements Serializable {
 	 * @return snippet as String
 	 */
 	private String formatContentHtmlFully(String title, String authorNames, String publishedIn, int year) {
-		return "<![CDATA[<a href='" + clickUrl + "'><font color='#000000' size='4' face='Arial, Helvetica, sans-serif'>"
-				+ title + ".</font></a><font color='#000000' size='4' face='Arial, Helvetica, sans-serif'>"
-				+ authorNames + ". <i>" + publishedIn + "</i>. " + year + ".</font>]]>";
+
+		//Should use String formatter, separate this presentation out to CSS, or separate View code out completely
+		String fontHTMLTag = "<font color='#000000' size='4' face='Arial, Helvetica, sans-serif'>";		
+
+		String formattedTitle = title != null ? "<a href='" + clickUrl + "'>" + fontHTMLTag + title + ".</font></a>" : ""; 
+		String formattedAuthors = authorNames != null ? fontHTMLTag + authorNames + ". "  : ""; 
+		String formattedPublishedIn = publishedIn != null ? "<i>" + publishedIn + "</i>. "  : "";
+		String formattedYear = year	+ ".</font>";
+
+		return constructCDATAString(formattedTitle, formattedAuthors, formattedPublishedIn, formattedYear);	
 	}
 
 	/**
@@ -80,10 +91,18 @@ public class Snippet implements Serializable {
 	 * @return snippet as String
 	 */
 	private String formatContentHtmlPlain(String title, String authorNames, String publishedIn, int year) {
-		return "<![CDATA[<a href='" + clickUrl + "'>" + title + "</a>. " + authorNames + ". " + publishedIn + ".  "
-				+ year + ".]]>";
+		String formattedTitle = title != null ? "<a href='" + clickUrl + "'>" + title + "</a>. " : ""; 
+		String formattedAuthors = authorNames != null ? authorNames + ". "  : ""; 
+		String formattedPublishedIn = publishedIn != null ? publishedIn + ". "  : "";
+		String formattedYear = year	+ ".";
+		
+		return constructCDATAString(formattedTitle, formattedAuthors, formattedPublishedIn, formattedYear);	
 	}
 
+	private String constructCDATAString(String title, String authorNames, String publishedIn, String year){
+		return "<![CDATA[" + title + authorNames + publishedIn + year + "]]>";
+	}
+	
 	/**
 	 * 
 	 * set the clickURL, also in the already build content
