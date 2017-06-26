@@ -86,7 +86,7 @@ public class JSONDocument {
 	 */
 	public String calculateTitleClean(String title) {
 		String temp;
-		temp = title.replaceAll("[^a-zA-Z0-9]", "");
+		temp = title.replaceAll("[^a-zA-Z]", "");
 		temp = temp.toLowerCase();
 		return temp;
 	}
