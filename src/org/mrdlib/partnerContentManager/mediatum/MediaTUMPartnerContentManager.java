@@ -20,7 +20,7 @@ public class MediaTUMPartnerContentManager {
 	 * 
 	 * @param args 1) path of folder to store the partner's content, 2) id_original (without prefix) of the latest
 	 * mediaTUM record inserted into the database, if new records should be downloaded
-	 * before importing, 'no-download' otherwise
+	 * before importing, -1 otherwise
 	 * @throws IOException thrown if saving intermediate data on the hard drive fails
 	 */
 	public static void main(String[] args) throws IOException {

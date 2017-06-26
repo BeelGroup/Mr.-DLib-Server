@@ -343,7 +343,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 						case "coverage":
 							oaidcRecord.addCoverage(attributeValue);
 							break;
-						case "right":
+						case "rights":
 							oaidcRecord.addRight(attributeValue);
 							break;
 

@@ -134,6 +134,4 @@ public class MediaTUMContentDownloader implements IContentDownloader {
         System.out.println("--- Download of new records finished ---");
 	}
 	
-	
-
 }
