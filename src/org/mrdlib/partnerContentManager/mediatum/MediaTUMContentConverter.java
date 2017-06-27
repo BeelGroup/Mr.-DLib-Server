@@ -628,7 +628,7 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 				license = "open_access";
 				break;
 			default:
-				license = "licence";
+				license = "restricted";
 				break;
 			}
 		} else {
