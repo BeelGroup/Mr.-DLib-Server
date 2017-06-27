@@ -1115,6 +1115,31 @@ public class DBConnection {
 			}
 		}
 	}
+	
+	public ArrayList<Long> getMediaTUMIdsInDatabase() {
+		ArrayList<Long> mediaTUMIds = new ArrayList<>();
+		
+		try {
+			Statement statement = con.createStatement();
+			
+			// ResultSet resultSet = statement.executeQuery("select * from document where id_original like '%mediatum%'");
+			ResultSet resultSet = statement.executeQuery("select * from document where id_original like '%mediatum%'");
+			
+			System.out.println(resultSet);
+			
+			while (resultSet.next()) {
+				String idOriginal = resultSet.getString("id_original");				
+				Long mediaTUMId = Long.parseLong(idOriginal.replace("mediatum-", ""));
+				
+				mediaTUMIds.add(mediaTUMId);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return mediaTUMIds;
+	}
 
 	/**
 	 * insert a JSONDocument to the database with all the related information
