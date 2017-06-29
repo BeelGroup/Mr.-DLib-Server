@@ -68,7 +68,7 @@ public class MediaTUMContentDownloader implements IContentDownloader {
 	 * @param file file to check usefulness of
 	 * @return true if useful, otherwise false
 	 */
-    private static boolean isFileUseful(File file) {
+    public static boolean isFileUseful(File file) {
         boolean fileIsUseful = true;
 
         Scanner scanner = null;
