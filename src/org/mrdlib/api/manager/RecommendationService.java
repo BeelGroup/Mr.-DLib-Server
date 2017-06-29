@@ -73,8 +73,8 @@ public class RecommendationService {
 	@Path("{recommendationId:[0-9]+}/original_url/")
 	public Response getRedirectedPathReversedParams(@Context HttpServletRequest request,
 			@PathParam("recommendationId") String recoId, @QueryParam("access_key") String accessKey,
-			@QueryParam("request_format") String format) throws Exception {
-		return getRedirectedPath(request, recoId, accessKey, format);
+			@QueryParam("request_format") String format, @QueryParam("app_id") String appName) throws Exception {
+		return getRedirectedPath(request, recoId, accessKey, format, appName);
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class RecommendationService {
 	 *         clicked
 	 * @throws Exception
 	 */
-	public Response getRedirectedPath(HttpServletRequest request, String recoId, String accessKey, String format)
+	public Response getRedirectedPath(HttpServletRequest request, String recoId, String accessKey, String format, String appName)
 			throws Exception {
 		URI url;
 		Boolean accessKeyCheck = false;
@@ -106,7 +106,19 @@ public class RecommendationService {
 		if (ipAddress == null) {
 			ipAddress = request.getRemoteAddr();
 		}
-
+		
+		String applicationId = null;
+		
+		if (appName != null && !appName.equals("")) {
+			try{
+				applicationId = con.getApplicationId(appName);
+			} catch (NoEntryException e) {
+				statusReportSet.addStatusReport(new StatusReport(401,
+						"The application with name: " + appName + " has not been registered with Mr. DLib"));
+			}
+		}
+		
+		
 		// Check accessKey from clickURL against the one stored in our
 		// database
 		try{
@@ -156,12 +168,11 @@ public class RecommendationService {
 
 		rootElement.setStatusReportSet(statusReportSet);
 		try {
-			System.out.println("In here");
-
 			url = new URI(urlString);
 			DocumentSet results = new DocumentSet();
 			results.setIpAddress(ipAddress);
 			results.setStartTime(requestRecieved);
+			results.setRequestingAppId(applicationId);
 			rootElement.setDocumentSet(results);
 			// Log recommendation Click
 			Boolean clickLoggingDone = con.logRecommendationClick(recoId, rootElement, accessKeyCheck);

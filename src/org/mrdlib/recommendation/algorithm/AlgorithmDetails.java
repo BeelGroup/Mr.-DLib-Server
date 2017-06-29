@@ -23,7 +23,7 @@ public class AlgorithmDetails {
 	private String recommendationProvider;
 
 	public AlgorithmDetails(String name) {
-		if (name.toLowerCase().contains("core"))
+		if (name.toLowerCase().contains("Core"))
 			this.setRecommendationProvider("Core");
 		else
 			this.setRecommendationProvider("Mr-DLib");
