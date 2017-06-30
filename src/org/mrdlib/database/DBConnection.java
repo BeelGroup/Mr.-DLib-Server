@@ -1289,7 +1289,7 @@ public class DBConnection {
 	 */
 	public DisplayDocument getDocumentBy(String coloumnName, String id) throws Exception {
 		DisplayDocument document = null;
-		String authorNames = "";
+		String authorNames = null;
 		StringJoiner joiner = new StringJoiner(", ");
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -1316,7 +1316,9 @@ public class DBConnection {
 				for (int i = 0; i < authors.size(); i++)
 					joiner.add(authors.get(i).getName());
 
-				authorNames = joiner.toString();
+				if(authors.size() > 0){
+					authorNames = joiner.toString();
+				}
 
 				title = rs.getString(constants.getTitle());
 				publishedIn = rs.getString(constants.getPublishedId());
