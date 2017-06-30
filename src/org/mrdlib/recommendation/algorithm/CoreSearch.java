@@ -1,6 +1,7 @@
 package org.mrdlib.recommendation.algorithm;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.mrdlib.api.response.DisplayDocument;
@@ -28,7 +29,9 @@ public class CoreSearch extends RelatedDocuments {
 
 		DisplayDocument requestDocument = requestDocSet.getRequestedDocument();
 		String title = requestDocument.getTitle();
-		String json = sacon.searchByTitle(title);
+		int multiplicativeFactor = (50/(title.split(" ").length)) +1;
+		String duplicatedTitle  = String.join(" ",  Collections.nCopies(multiplicativeFactor, title));
+		String json = sacon.searchByTitle(duplicatedTitle);
 		List<PostTitleData> docs = sacon.parseJSONFromPostTitle(json);
 		DocumentSet returnable = sacon.convertToMDLSet(docs, requestDocSet);
 		if(returnable.getSize()==0) throw new NoRelatedDocumentsException(title, title);
