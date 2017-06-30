@@ -3,6 +3,7 @@ package org.mrdlib.partnerContentManager.mediatum;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.mrdlib.database.DBConnection;
@@ -57,9 +58,12 @@ public class MediaTUMDeletedDocumentScanner {
 				
 				// print out progress
 				i++;
-				if ((i%1000) == 0) {
+				if ((i%100) == 0) {
 					System.out.println(i + " out of " + mdlIds.size() + "nodes have been checked");
 				}
+				
+				// sleep to prevent overload of mediaTUM's system
+				TimeUnit.MILLISECONDS.sleep(500);
 			}
 			System.out.println("--- checking validity of ids done ---");
 			
