@@ -28,7 +28,7 @@ import org.mrdlib.recommendation.ranking.ApplyRanking;
  *         This class is called by Tomcat and the start of the webapp
  */
 // yxc get the name here
-@Path("documents/{documentId : [a-zA-Z0-9-_.,%:;!'&@?+*#()$]+}")
+@Path("documents/{documentId}") 
 // set Path and allow numbers, letters and -_., Save Path as document_id
 public class DocumentService {
 
