@@ -192,7 +192,7 @@ public class DocumentService {
 						requestDocument = new DisplayDocument();
 						requestDocument.setTitle(inputQuery);
 						inputQuery = inputQuery
-								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\", " ");
+								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\|\\'|\\;", " ");
 						requestDocument.setCleanTitle(inputQuery);
 						if (!prefixMatch) {
 							requestByTitle = true;
