@@ -52,7 +52,7 @@ public class Snippet implements Serializable {
 		String formattedTitle = title != null ? "<span class='mdl-title'>" + title + "</span>. " : ""; 
 		String formattedAuthors = authorNames != null ? "<span class='mdl-authors'>" + authorNames + "</span>. "  : ""; 
 		String formattedPublishedIn = publishedIn != null ? "<span class='mdl-journal'>" + publishedIn + "</span>. "  : "";
-		String formattedYear = "<span class='mdl-year'>" + year	+ "</span>.";
+		String formattedYear = year > 0 ? "<span class='mdl-year'>" + year	+ "</span>." : "";
 		
 		return constructCDATAString(formattedTitle, formattedAuthors, formattedPublishedIn, formattedYear);
 	}
@@ -73,9 +73,9 @@ public class Snippet implements Serializable {
 		String fontHTMLTag = "<font color='#000000' size='4' face='Arial, Helvetica, sans-serif'>";		
 
 		String formattedTitle = title != null ? "<a href='" + clickUrl + "'>" + fontHTMLTag + title + "</font></a>. " : ""; 
-		String formattedAuthors = authorNames != null ? fontHTMLTag + authorNames + ". "  : ""; 
+		String formattedAuthors = authorNames != null ? fontHTMLTag + authorNames + ". "  : fontHTMLTag; 
 		String formattedPublishedIn = publishedIn != null ? "<i>" + publishedIn + "</i>. "  : "";
-		String formattedYear = year	+ "</font>.";
+		String formattedYear = year > 0 ? year + "</font>" : "</font>";
 
 		return constructCDATAString(formattedTitle, formattedAuthors, formattedPublishedIn, formattedYear);	
 	}
@@ -94,7 +94,7 @@ public class Snippet implements Serializable {
 		String formattedTitle = title != null ? "<a href='" + clickUrl + "'>" + title + "</a>. " : ""; 
 		String formattedAuthors = authorNames != null ? authorNames + ". "  : ""; 
 		String formattedPublishedIn = publishedIn != null ? publishedIn + ". "  : "";
-		String formattedYear = year	+ ".";
+		String formattedYear = year > 0 ? year	+ "." : "";
 		
 		return constructCDATAString(formattedTitle, formattedAuthors, formattedPublishedIn, formattedYear);	
 	}
