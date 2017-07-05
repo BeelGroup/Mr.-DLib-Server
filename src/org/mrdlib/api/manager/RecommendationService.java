@@ -136,17 +136,20 @@ public class RecommendationService {
 
 					if (!useExternalDocumentId) {
 						relDocument = con.getDocumentBy(constants.getDocumentId(), reference);
-
+						String collectionShortName = relDocument.getCollectionShortName();
 						// Generate the redirection Path
-						if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+						if (collectionShortName.equals(constants.getGesis())) {
 							if (constants.getEnvironment().equals("api"))
 								urlString = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
 							else
 								urlString = constants.getGesisBetaCollectionLink()
 										.concat(relDocument.getOriginalDocumentId());
-						} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+						} else if (collectionShortName.contains(constants.getCore())){
 							urlString = constants.getCoreCollectionLink()
-									.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+									.concat(relDocument.getOriginalDocumentId().split("-")[1]);}
+						else if(collectionShortName.contains(constants.getMediatum())){
+							urlString = constants.getMediatumCollectionLink()
+									.concat(relDocument.getOriginalDocumentId().split("-")[1]);						}
 					} else {
 						if (reference.contains(constants.getCore()))
 							urlString = constants.getCoreCollectionLink().concat(reference.split("-")[1]);

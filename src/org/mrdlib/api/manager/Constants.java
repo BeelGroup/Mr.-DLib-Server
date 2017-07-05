@@ -294,6 +294,10 @@ public class Constants {
 
 	private String probabilitiesConfigPath;
 
+	private String mediatum;
+
+	private String mediatumCollectionLink;
+
 	// load the config file
 	public Constants() {
 
@@ -547,7 +551,9 @@ public class Constants {
 			this.gesis = prop.getProperty("gesis");
 			this.core = prop.getProperty("core");
 			this.coreCollectionLink = prop.getProperty("coreCollectionLink");
-
+			this.mediatumCollectionLink = prop.getProperty("mediatumCollectionLink");
+			this.mediatum = prop.getProperty("mediatum");
+			
 			this.mendeleyConfigPath = prop.getProperty("mendeleyConfigPath");
 			this.probabilitiesConfigPath = prop.getProperty("probabilityConfigPath");
 
@@ -1435,4 +1441,10 @@ public class Constants {
 		return processingAppId;
 	}
 
+	public String getMediatumCollectionLink() {
+		return mediatumCollectionLink;
+	}
+	public String getMediatum() {
+		return mediatum;
+	}
 }
