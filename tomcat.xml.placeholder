@@ -1,0 +1,3 @@
+Tomcat.xml needs to go in the directory this file is in.
+This contains the server configuration, e.g. the database connection including the password.
+You can find this file in the dropbox share.

@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+    id 'war'  
+    id 'org.akhikhl.gretty' version '1.4.2'
+}
+
+gretty {
+    servletContainer 'tomcat8'
+    enableNaming true // enable JNDI in tomcat
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    gretty 'org.apache.tomcat:tomcat-dbcp:8.0.23' // tomcat does not bring this
+    compile fileTree(dir: 'lib', include: '*.jar')
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.7.19'  
+}
