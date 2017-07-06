@@ -176,6 +176,7 @@ public class Constants {
 	private String authors;
 	private String publishedIn;
 	private String language;
+	private String languageDetected;
 	private String year;
 	private String type;
 	private String keywords;
@@ -297,6 +298,7 @@ public class Constants {
 	private String mediatum;
 
 	private String mediatumCollectionLink;
+
 
 	// load the config file
 	public Constants() {
@@ -477,6 +479,7 @@ public class Constants {
 			this.authors = prop.getProperty("authors");
 			this.publishedIn = prop.getProperty("publication");
 			this.language = prop.getProperty("language");
+			this.languageDetected = prop.getProperty("languageDetected");
 			this.year = prop.getProperty("year");
 			this.type = prop.getProperty("type");
 			this.keywords = prop.getProperty("keywords");
@@ -1053,6 +1056,10 @@ public class Constants {
 
 	public String getLanguage() {
 		return language;
+	}
+	
+	public String getLanguageDetected() {
+		return languageDetected;
 	}
 
 	public String getTitleClean() {

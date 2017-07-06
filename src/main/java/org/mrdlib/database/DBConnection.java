@@ -109,7 +109,7 @@ public class DBConnection {
 	 * stores the lengths of the database field in the length map
 	 * 
 	 * @param ResultSet
-	 *            of a query which asked for coloumn information of the database
+	 *            of a query which asked for column information of the database
 	 * @throws SQLException
 	 */
 	private void fillMap(ResultSet rs) throws SQLException {
@@ -738,25 +738,25 @@ public class DBConnection {
 	 *            the index of the related ? marker (where to insert)
 	 * @param type,
 	 *            the corresponding type of the inserted value
-	 * @param coloumnName,
-	 *            the coloumn name of the value
+	 * @param columnName,
+	 *            the column name of the value
 	 * @return
 	 * @throws SQLException
 	 */
 	public <T> PreparedStatement SetIfNull(XMLDocument document, PreparedStatement stmt, T value, int index,
-			String type, String coloumnName) throws SQLException {
+			String type, String columnName) throws SQLException {
 
 		try {
 			if (value instanceof String) {
 				// replace high commata
 				String valueString = replaceHighComma((String) value);
 				// ignore values which have no specific length
-				if (!(coloumnName.equals(constants.getType()) || coloumnName.equals(constants.getUnstructured())
-						|| coloumnName.equals(constants.getAbstr()))) {
+				if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
+						|| columnName.equals(constants.getAbstr()))) {
 					// check for truncation error
-					if (valueString.length() > lengthMap.get(coloumnName))
+					if (valueString.length() > lengthMap.get(columnName))
 						System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
-								+ coloumnName + " because too long!");
+								+ columnName + " because too long!");
 				}
 				value = (T) valueString;
 			}
@@ -770,7 +770,7 @@ public class DBConnection {
 				// the year has to be handles seperatly. Since int cannot be
 				// null, a 0 is used. if a zero is set, the year in the database
 				// has to be null
-			} else if (coloumnName.equals(constants.getYear())) {
+			} else if (columnName.equals(constants.getYear())) {
 				if (((Integer) value) == 0)
 					stmt.setNull(index, java.sql.Types.INTEGER);
 				// otherwise use real value
@@ -801,25 +801,25 @@ public class DBConnection {
 	 *            the index of the related ? marker (where to insert)
 	 * @param type,
 	 *            the corresponding type of the inserted value
-	 * @param coloumnName,
-	 *            the coloumn name of the value
+	 * @param columnName,
+	 *            the column name of the value
 	 * @return
 	 * @throws SQLException
 	 */
 	public <T> PreparedStatement SetIfNull(JSONDocument document, PreparedStatement stmt, T value, int index,
-			String type, String coloumnName) throws SQLException {
+			String type, String columnName) throws SQLException {
 
 		try {
 			if (value instanceof String) {
 				// replace high commata
 				String valueString = replaceHighComma((String) value);
 				// ignore values which have no specific length
-				if (!(coloumnName.equals(constants.getType()) || coloumnName.equals(constants.getUnstructured())
-						|| coloumnName.equals(constants.getAbstr()))) {
+				if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
+						|| columnName.equals(constants.getAbstr()))) {
 					// check for truncation error
-					if (valueString.length() > lengthMap.get(coloumnName))
+					if (valueString.length() > lengthMap.get(columnName))
 						System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
-								+ coloumnName + " because too long!");
+								+ columnName + " because too long!");
 				}
 				value = (T) valueString;
 			}
@@ -834,7 +834,7 @@ public class DBConnection {
 				// the year has to be handles seperatly. Since int cannot be
 				// null, a 0 is used. if a zero is set, the year in the database
 				// has to be null
-			} else if (coloumnName.equals(constants.getYear())) {
+			} else if (columnName.equals(constants.getYear())) {
 				if ((Integer) value == 0)
 					stmt.setNull(index, java.sql.Types.INTEGER);
 				// otherwise use real value
@@ -1275,40 +1275,76 @@ public class DBConnection {
 	}
 
 	/**
+	 * special case of getDocumentsBy with array of size one
+	 */
+	public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
+		List<DisplayDocument> docs = getDocumentsBy(columnName, new String[] { id });
+		if (docs.size() == 0) 
+			throw new NoEntryException(id);
+		return docs.get(0);
+	}
+	/**
+	 * get list of documents with specific column values
+	 * batches queries, then do request further details from other tables (default action)
 	 * 
+	 * for each document: 
 	 * Get a complete displayable Document by any customized field (returns only
-	 * first retrieved document! Please use unique coloumns to obtain like
+	 * first retrieved document! Please use unique columns to obtain like
 	 * original id or id!
 	 * 
-	 * @param coloumnName
+	 * @param columnName
 	 *            for which should be searched (please use original id or id)
-	 * @param id,
-	 *            either original id or id
-	 * @return the (first) retrieved Document
+	 * @param ids,
+	 *            list of either original id or id
+	 * 
+	 */
+	public List<DisplayDocument> getDocumentsBy(String columnName, String[] ids) throws Exception {
+		return getDocumentsBy(columnName, ids, false);
+	}
+	/**
+	 * get list of documents with specific column values
+	 * batches queries, then may request further details from other tables
+	 * 
+	 * for each document: 
+	 * Get a complete displayable Document by any customized field (returns only
+	 * first retrieved document! Please use unique columns to obtain like
+	 * original id or id!
+	 * 
+	 * @param columnName
+	 *            for which should be searched (please use original id or id)
+	 * @param ids,
+	 *            list of either original id or id
+	 * 
+	 * @param disableJoin: disable joining with other tables; abstract and collection information are not filled in
+	 * TODO: see if we can replace separate queries with join
+	 * 
+	 * @return the retrieved Documents
 	 * @throws Exception
 	 */
-	public DisplayDocument getDocumentBy(String coloumnName, String id) throws Exception {
-		DisplayDocument document = null;
-		String authorNames = null;
-		StringJoiner joiner = new StringJoiner(", ");
+	public List<DisplayDocument> getDocumentsBy(String columnName, String[] ids, boolean disableJoin) throws Exception {
+		List<DisplayDocument> documents = new ArrayList<DisplayDocument>(ids.length);
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		String title = null;
-		String publishedIn = null;
-		String keywords = "";
-		String docAbstract = null;
 
 		try {
+			DisplayDocument document;
 
-			// get all information of a document stored in a database by the
-			// value of a custom coloumn
-			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = ?";
+			// get all information of a batch of documents stored in a database by the
+			// value of a custom column
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " IN (?)";
 			stmt = con.prepareStatement(query);
-			stmt.setString(1, id);
+			String idList = Arrays.asList(ids).stream().collect(Collectors.joining(", "));
+			stmt.setString(1, idList);
 
 			rs = stmt.executeQuery();
-			// if there is a document
-			if (rs.next()) {
+			// go through all documents
+			while (rs.next()) {
+				String authorNames = null;
+				StringJoiner joiner = new StringJoiner(", ");
+				String title = null;
+				String publishedIn = null;
+				String keywords = "";
+				String docAbstract = null;
 
 				// concatenate each author to a single string with ',' as
 				// seperator.
@@ -1323,7 +1359,8 @@ public class DBConnection {
 				title = rs.getString(constants.getTitle());
 				publishedIn = rs.getString(constants.getPublishedId());
 				keywords = rs.getString(constants.getKeywords());
-				docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
+				if (!disableJoin)
+					docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
@@ -1336,17 +1373,15 @@ public class DBConnection {
 				// collection
 				document.setLanguage(rs.getString(constants.getLanguage()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
-				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
-				return document;
-			} else
-				throw new NoEntryException(id);
+				if (!disableJoin)
+					document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
+				documents.add(document);
+			} 
 		} catch (SQLException e) {
-			System.out.println("SQL Exception");
 			throw e;
 		} catch (NoEntryException e) {
 			throw e;
 		} catch (Exception e) {
-			System.out.println("Regualar exception");
 			throw e;
 		} finally {
 			try {
@@ -1358,6 +1393,7 @@ public class DBConnection {
 				throw e;
 			}
 		}
+		return documents;
 	}
 
 	/**
@@ -1365,14 +1401,14 @@ public class DBConnection {
 	 * Gets a document with all information from documents, without authors and
 	 * collection name
 	 * 
-	 * @param coloumnName
+	 * @param columnName
 	 *            for which should be searched (please use original id or id)
 	 * @param id,
 	 *            either original id or id
 	 * @return the (first) retrieved Document
 	 * @throws Exception
 	 */
-	public DisplayDocument getPureDocumentBy(String coloumnName, String id) throws Exception {
+	public DisplayDocument getPureDocumentBy(String columnName, String id) throws Exception {
 		DisplayDocument document = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1383,8 +1419,8 @@ public class DBConnection {
 			stmt = con.createStatement();
 
 			// get all information of a document stored in a database by the
-			// value of a custom coloumn
-			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + coloumnName + " = '" + id + "'";
+			// value of a custom column
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " = '" + id + "'";
 
 			rs = stmt.executeQuery(query);
 			// if there is a document
