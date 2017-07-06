@@ -14,10 +14,7 @@ git status
 *.eml
 *.iml
 .idea/
-/gradle
 /.gradle
-/gradlew
-/gradlew.bat
 # files containing passwords
 /src/main/resources/config.properties
 /tomcat.xml
