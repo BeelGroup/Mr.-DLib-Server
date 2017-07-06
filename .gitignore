@@ -8,10 +8,16 @@
 .settings/*
 *.name
 *.config
-resources/config.properties
 git status
 /build/
 */WEB-INF/*.jar
 *.eml
 *.iml
 .idea/
+/gradle
+/.gradle
+/gradlew
+/gradlew.bat
+# files containing passwords
+/src/main/resources/config.properties
+/tomcat.xml

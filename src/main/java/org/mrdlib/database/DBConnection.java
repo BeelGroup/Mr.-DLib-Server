@@ -771,7 +771,7 @@ public class DBConnection {
 				// null, a 0 is used. if a zero is set, the year in the database
 				// has to be null
 			} else if (coloumnName.equals(constants.getYear())) {
-				if (((int) value) == 0)
+				if (((Integer) value) == 0)
 					stmt.setNull(index, java.sql.Types.INTEGER);
 				// otherwise use real value
 				else
@@ -835,7 +835,7 @@ public class DBConnection {
 				// null, a 0 is used. if a zero is set, the year in the database
 				// has to be null
 			} else if (coloumnName.equals(constants.getYear())) {
-				if ((int) value == 0)
+				if ((Integer) value == 0)
 					stmt.setNull(index, java.sql.Types.INTEGER);
 				// otherwise use real value
 				else
