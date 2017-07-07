@@ -2,6 +2,7 @@ package org.mrdlib.partnerContentManager.general.languageDetection;
 
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.api.manager.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.sql.Types;
 
 import org.apache.tika.language.detect.LanguageDetector;
 import org.apache.tika.langdetect.OptimaizeLangDetector;
@@ -26,6 +28,7 @@ import org.apache.tika.langdetect.OptimaizeLangDetector;
 public class LanguageDetection {
     private DBConnection db;
     private static final long TIMEOUT = 30; // how long each awaitTermination blocks
+    private static final long BATCH_SIZE = 50000; // how many entries to query from the DB at once
     public LanguageDetection (DBConnection db) {
         this.db = db;
     }
@@ -95,9 +98,20 @@ public class LanguageDetection {
 
     public static void main(String[] args) {
         try {
+	        Constants constants = new Constants();
             DBConnection connection = new DBConnection("jar");
-            List<DisplayDocument> docs = connection.getDocumentsBy("language_detected", new String[]{ "NULL" });
-            System.out.println(docs.size());
+            LanguageDetection detection = new LanguageDetection(connection);
+            while(true) {
+                List<DisplayDocument> docs = connection.getDocumentsWithMissingValue(constants.getLanguageDetected(), 100000);
+                if (docs.size() == 0) break;
+
+                List<Object> languages = (List) detection.detectLanguage(docs);
+                List<Object> ids = docs.stream()
+                    .map( (DisplayDocument d) -> d.getDocumentId())
+                    .collect(Collectors.toList());
+                connection.setDocumentValues(constants.getDocumentId(), ids, Types.BIGINT,
+                    constants.getLanguageDetected(), languages, Types.CHAR);
+            }
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();
