@@ -13,6 +13,7 @@ import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1275,76 +1276,40 @@ public class DBConnection {
 	}
 
 	/**
-	 * special case of getDocumentsBy with array of size one
-	 */
-	public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
-		List<DisplayDocument> docs = getDocumentsBy(columnName, new String[] { id });
-		if (docs.size() == 0) 
-			throw new NoEntryException(id);
-		return docs.get(0);
-	}
-	/**
-	 * get list of documents with specific column values
-	 * batches queries, then do request further details from other tables (default action)
 	 * 
-	 * for each document: 
 	 * Get a complete displayable Document by any customized field (returns only
 	 * first retrieved document! Please use unique columns to obtain like
 	 * original id or id!
 	 * 
 	 * @param columnName
 	 *            for which should be searched (please use original id or id)
-	 * @param ids,
-	 *            list of either original id or id
-	 * 
-	 */
-	public List<DisplayDocument> getDocumentsBy(String columnName, String[] ids) throws Exception {
-		return getDocumentsBy(columnName, ids, false);
-	}
-	/**
-	 * get list of documents with specific column values
-	 * batches queries, then may request further details from other tables
-	 * 
-	 * for each document: 
-	 * Get a complete displayable Document by any customized field (returns only
-	 * first retrieved document! Please use unique columns to obtain like
-	 * original id or id!
-	 * 
-	 * @param columnName
-	 *            for which should be searched (please use original id or id)
-	 * @param ids,
-	 *            list of either original id or id
-	 * 
-	 * @param disableJoin: disable joining with other tables; abstract and collection information are not filled in
-	 * TODO: see if we can replace separate queries with join
-	 * 
-	 * @return the retrieved Documents
+	 * @param id,
+	 *            either original id or id
+	 * @return the (first) retrieved Document
 	 * @throws Exception
 	 */
-	public List<DisplayDocument> getDocumentsBy(String columnName, String[] ids, boolean disableJoin) throws Exception {
-		List<DisplayDocument> documents = new ArrayList<DisplayDocument>(ids.length);
+	public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
+		DisplayDocument document = null;
+		String authorNames = null;
+		StringJoiner joiner = new StringJoiner(", ");
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		String title = null;
+		String publishedIn = null;
+		String keywords = "";
+		String docAbstract = null;
 
 		try {
-			DisplayDocument document;
 
-			// get all information of a batch of documents stored in a database by the
+			// get all information of a document stored in a database by the
 			// value of a custom column
-			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " IN (?)";
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " = ?";
 			stmt = con.prepareStatement(query);
-			String idList = Arrays.asList(ids).stream().collect(Collectors.joining(", "));
-			stmt.setString(1, idList);
+			stmt.setString(1, id);
 
 			rs = stmt.executeQuery();
-			// go through all documents
-			while (rs.next()) {
-				String authorNames = null;
-				StringJoiner joiner = new StringJoiner(", ");
-				String title = null;
-				String publishedIn = null;
-				String keywords = "";
-				String docAbstract = null;
+			// if there is a document
+			if (rs.next()) {
 
 				// concatenate each author to a single string with ',' as
 				// seperator.
@@ -1359,8 +1324,7 @@ public class DBConnection {
 				title = rs.getString(constants.getTitle());
 				publishedIn = rs.getString(constants.getPublishedId());
 				keywords = rs.getString(constants.getKeywords());
-				if (!disableJoin)
-					docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
+				docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
@@ -1373,15 +1337,17 @@ public class DBConnection {
 				// collection
 				document.setLanguage(rs.getString(constants.getLanguage()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
-				if (!disableJoin)
-					document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
-				documents.add(document);
-			} 
+				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
+				return document;
+			} else
+				throw new NoEntryException(id);
 		} catch (SQLException e) {
+			System.out.println("SQL Exception");
 			throw e;
 		} catch (NoEntryException e) {
 			throw e;
 		} catch (Exception e) {
+			System.out.println("Regualar exception");
 			throw e;
 		} finally {
 			try {
@@ -1393,7 +1359,6 @@ public class DBConnection {
 				throw e;
 			}
 		}
-		return documents;
 	}
 
 	/**
@@ -1459,6 +1424,77 @@ public class DBConnection {
 				throw e;
 			}
 		}
+	}
+
+	/**
+	 * set given values for specific documents via batch update
+	 * 
+	 * @param idColumn which kind of ids are given
+	 * @param ids ids of documents to update
+	 * @param valueColumn which column to update
+	 * @param values values to set, in same order as id 
+	 */
+	public void setDocumentValues(String idColumn, List<Object> ids, int idType, String valueColumn, List<Object> values, int valueType) throws Exception {
+		PreparedStatement stmt = null;
+		if (ids.size() != values.size()) {
+			throw new Exception("Values and IDs are not of equal length.");
+		}
+		try {
+			String query = "UPDATE " + constants.getDocuments() +
+				" SET " + valueColumn + " = ? " + " WHERE " + idColumn + " = ?";
+			stmt = con.prepareStatement(query);
+			for (int i = 0; i < ids.size(); i++) {
+				stmt.setObject(1, values.get(i), valueType);
+				stmt.setObject(2, ids.get(i), idType);
+				stmt.addBatch();
+			}
+			stmt.executeBatch();
+		} finally {
+			if (stmt != null)
+				stmt.close();
+		}
+	}
+
+	/**
+	 * get compact representation of documents (i.e. org_id, doc_id, title)
+	 * where given column is NULL
+	 * 
+	 * @param columnName column to use for filtering
+	 * @param limit limit; <=0 for no limit
+	 * @return matching documents
+	 */
+	public List<DisplayDocument> getDocumentsWithMissingValue(String columnName, long limit) throws Exception {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<DisplayDocument> documents = new LinkedList<DisplayDocument>();
+
+		try {
+			// get all information of a document stored in a database by the
+			// value of a custom column
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " IS NULL";
+			if (limit > 0) {
+				query += " LIMIT ?";
+			}
+			stmt = con.prepareStatement(query);
+			if (limit > 0) {
+				stmt.setLong(1, limit);
+			}
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				// create a simple document with values from the database
+				DisplayDocument document = new DisplayDocument(rs.getString(constants.getTitle()),
+				 String.valueOf(rs.getLong(constants.getDocumentId())),
+				  rs.getString(constants.getIdOriginal()));
+				  documents.add(document);
+			} 
+		} finally {
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
+		}
+		return documents;
 	}
 
 	/**

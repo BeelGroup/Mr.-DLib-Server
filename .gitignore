@@ -1,4 +1,4 @@
-/bin/
+bin/
 /target
 *.classpath
 *.project
