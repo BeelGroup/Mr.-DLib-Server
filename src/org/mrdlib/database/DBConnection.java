@@ -38,6 +38,8 @@ import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
+import javafx.util.Pair;
+
 /**
  * 
  * @author Millah
@@ -1271,7 +1273,7 @@ public class DBConnection {
 				throw e;
 			}
 		}
-		return persons;	
+		return persons;
 	}
 
 	/**
@@ -1316,7 +1318,7 @@ public class DBConnection {
 				for (int i = 0; i < authors.size(); i++)
 					joiner.add(authors.get(i).getName());
 
-				if(authors.size() > 0){
+				if (authors.size() > 0) {
 					authorNames = joiner.toString();
 				}
 
@@ -1327,8 +1329,8 @@ public class DBConnection {
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
-						rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn,
-						docAbstract, keywords, rs.getInt(constants.getYear()), "", "", "", constants);
+						rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn, docAbstract,
+						keywords, rs.getInt(constants.getYear()), "", "", "", constants);
 				if (rs.wasNull())
 					document.setYear(-1);
 
@@ -2905,8 +2907,8 @@ public class DBConnection {
 		}
 
 	}
-	
-		/**
+
+	/**
 	 * Get the fist 25 words of the abstract, if recorded in the database
 	 * 
 	 * @param docId
@@ -2914,32 +2916,31 @@ public class DBConnection {
 	 * @return the first 25 words of the document abstract else 'NONE'
 	 * @throws Exception
 	 */
-	
+
 	public String getDocAbstractById(String docId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String docAbstract = null;
-		String [] arr ;
+		String[] arr;
 		String abstrct = "";
-		
+
 		// Select query to lookup abstract language using the documentId from
 		// the document_abstracts table
-		String query = "SELECT `" + constants.getAbstr() + "` FROM " + constants.getAbstracts()
-				+ " WHERE " + constants.getAbstractDocumentId() + " = '" + docId + "'";
+		String query = "SELECT `" + constants.getAbstr() + "` FROM " + constants.getAbstracts() + " WHERE "
+				+ constants.getAbstractDocumentId() + " = '" + docId + "'";
 
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				docAbstract = rs.getString(constants.getAbstr());
-				arr = docAbstract.split("\\s+"); 
-				if (arr.length >35){
-					 for(int i=0; i<35 ; i++){
-						 abstrct = abstrct + " " + arr[i] ;         
-			        }
-					 abstrct = abstrct + " ...";
-				}
-				else
+				arr = docAbstract.split("\\s+");
+				if (arr.length > 35) {
+					for (int i = 0; i < 35; i++) {
+						abstrct = abstrct + " " + arr[i];
+					}
+					abstrct = abstrct + " ...";
+				} else
 					abstrct = docAbstract;
 				return abstrct;
 			} else {
@@ -3132,9 +3133,9 @@ public class DBConnection {
 					+ constants.getRecommendationAlgorithm() + " WHERE ";
 			query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
 					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
-					+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND "
-					+ constants.getShuffled() + "='" + (documentset.isShuffled()?"Y" : "N") + "' AND "
-					+ constants.getBibReRankingApplied() + "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
+					+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND " + constants.getShuffled()
+					+ "='" + (documentset.isShuffled() ? "Y" : "N") + "' AND " + constants.getBibReRankingApplied()
+					+ "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
 					+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
 					+ documentset.getDesiredNumberFromAlgorithm() + "'";
 			if (rerankingBibId > 0) {
@@ -3739,7 +3740,7 @@ public class DBConnection {
 
 		try {
 			stmt = con.createStatement();
-			//System.out.println(query);
+			// System.out.println(query);
 			stmt.executeUpdate(query);
 
 		} catch (Exception e) {
@@ -4252,6 +4253,202 @@ public class DBConnection {
 
 	public String getApplicationId(String appName) {
 		return getIdInApplications(appName, constants.getApplicationId());
+	}
+
+	public Pair<List<Long>, List<Boolean>> getDocumentSets(int startingSet, int numberOfSets) {
+		String query = "SELECT " + constants.getRecommendationSetsId() + ", AVG(" + constants.getRankDelivered() + "/"
+				+ constants.getRankAfterReRanking() + ")!=1 AS 'shuffled' FROM " + constants.getRecommendations()
+				+ " WHERE " + constants.getRecommendationSetsId() + " >= ? " + "GROUP BY "
+				+ constants.getRecommendationSetsId() + " LIMIT ?";
+		List<Long> recommendationSetIds = new ArrayList<Long>();
+		List<Boolean> shuffled = new ArrayList<Boolean>();
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setInt(1, startingSet);
+			stmt.setInt(2, numberOfSets);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				recommendationSetIds.add(rs.getLong(constants.getRecommendationSetsId()));
+				shuffled.add(rs.getBoolean("shuffled"));
+			}
+
+		} catch (SQLException e) {
+			System.out.printf(query + "    ? = %d , %d\n", startingSet, numberOfSets);
+		}
+		return new Pair<List<Long>, List<Boolean>>(recommendationSetIds, shuffled);
+	}
+
+	/*public Boolean checkShuffled(Long id) {
+		String query = "SELECT " + constants.getRankAfterReRanking() + ", " + constants.getRankDelivered() + " FROM "
+				+ constants.getRecommendations() + " WHERE " + constants.getRecommendationSetsId() + "=?";
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setLong(1, id);
+			ResultSet rs = stmt.executeQuery();
+			List<Integer> rankAfterReRank = new ArrayList<Integer>();
+			List<Integer> rankDelivered = new ArrayList<Integer>();
+			while (rs.next()) {
+				rankAfterReRank.add(rs.getInt(constants.getRankAfterReRanking()));
+				rankDelivered.add(rs.getInt(constants.getRankDelivered()));
+			}
+			return !rankAfterReRank.equals(rankDelivered);
+		} catch (SQLException e) {
+			System.out.printf(query + " ?= %d", id);
+		}
+		return null;
+	}*/
+
+	public List<Boolean> getShuffledFlagInDB(Long startingSet, Long endingSet) {
+		List<Boolean> shuffled = new ArrayList<Boolean>();
+		String query = "SELECT " + constants.getShuffled() + " FROM " + constants.getRecommendationAlgorithm()
+				+ " AS ra JOIN " + constants.getRecommendationSets() + " AS rs ON ra."
+				+ constants.getRecommendationAlgorithmId() + "= rs." + constants.getRecommendationAlgorithmId()
+				+ " RIGHT JOIN " + constants.getRecommendations() +" as r on r." 
+				+ constants.getRecommendationSetsId() + "=rs." + constants.getRecommendationSetsId()
+				+ " WHERE r." + constants.getRecommendationSetsId() + " BETWEEN ? AND ? GROUP BY r."
+				+ constants.getRecommendationSetsId() + " HAVING COUNT(r." + constants.getRecommendationId() + ")>0"; 
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setLong(1, startingSet);
+			stmt.setLong(2, endingSet);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				shuffled.add(rs.getBoolean(constants.getShuffled()));
+			}
+
+		} catch (SQLException e) {
+			System.out.printf(query + "    ? = %d , %d\n", startingSet, endingSet);
+		}
+		return shuffled;
+
+	}
+
+	public Long switchShuffledFlag(Long id) {
+		String query = "SELECT * FROM " + constants.getRecommendationAlgorithm() + " WHERE "
+				+ constants.getRecommendationAlgorithmId() + " IN (SELECT " + constants.getRecommendationAlgorithmId()
+				+ " FROM " + constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId()
+				+ " = ?)";
+		Boolean shuffled = null, reRanking = null;
+		String recommendationClass = null, langRestriction = null;
+		int desiredNumber = 0;
+		Long algorithmId = null, bibRerankingId = null;
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setLong(1, id);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				//System.out.println(id + " , " + rs.getString(1));
+				recommendationClass = rs.getString(constants.getRecommendationClass());
+				langRestriction = rs.getString(constants.getLanguageRestrictionInRecommenderAlgorithm());
+				shuffled = rs.getBoolean(constants.getShuffled());
+				reRanking = rs.getBoolean(constants.getBibReRankingApplied());
+				desiredNumber = rs.getInt(constants.getDesiredRecommendationsInRecommendationAlgorithms());
+				algorithmId = null;
+				switch (recommendationClass) {
+				case "cbf": {
+					algorithmId = rs.getLong(constants.getCbfId());
+					break;
+				}
+				case "stereotype": {
+					algorithmId = rs.getLong(constants.getStereotypeRecommendationDetailsId());
+					break;
+				}
+
+				case "most_popular": {
+					algorithmId = rs.getLong(constants.getMostPopularRecommendationDetailsId());
+					break;
+				}
+				default:
+					break;
+				}
+				bibRerankingId = null;
+				if (reRanking)
+					bibRerankingId = rs.getLong("reranking_bibliometric_reranking_details");
+			}
+		} catch (SQLException e) {
+			System.out.println(query + " ? = " + Long.toString(id));
+			e.printStackTrace();
+			return (long) 0;
+		}
+
+		Boolean newShuffledStatus = !shuffled;
+		String selectQuery = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
+				+ constants.getRecommendationAlgorithm() + " WHERE ";
+		selectQuery += constants.getRecommendationClass() + "='" + recommendationClass + "' AND "
+				+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='" + langRestriction + "' AND "
+				+ constants.getShuffled() + "='" + (newShuffledStatus ? "Y" : "N") + "' AND "
+				+ constants.getBibReRankingApplied() + "=" + (reRanking ? "'Y'" : "'N'") + " AND "
+				+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
+				+ Integer.toString(desiredNumber) + "'";
+		if (reRanking) {
+			selectQuery += " AND reranking_bibliometric_reranking_details" + "=" + Long.toString(bibRerankingId);
+		}
+		switch (recommendationClass) {
+		case "cbf": {
+			selectQuery += " AND " + constants.getCbfId() + "=" + Long.toString(algorithmId);
+			break;
+		}
+		case "stereotype": {
+			selectQuery += " AND " + constants.getStereotypeRecommendationDetailsId() + "=" + Long.toString(algorithmId);
+			break;
+		}
+
+		case "most_popular": {
+			selectQuery += " AND " + constants.getMostPopularRecommendationDetailsId() + "=" + Long.toString(algorithmId);
+			break;
+		}
+
+		}
+		try (PreparedStatement selectStmt = con.prepareStatement(selectQuery);
+				ResultSet result = selectStmt.executeQuery();) {
+
+			if (result.next()) {
+				return result.getLong(constants.getRecommendationAlgorithmId());
+			}
+		} catch (SQLException e) {
+			System.out.println(query);
+			return (long) 0;
+		}
+		
+		String insertQuery = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
+		String columns = "";
+		String values = "";
+
+		columns += constants.getRecommendationClass() + ", " + constants.getLanguageRestrictionInRecommenderAlgorithm()
+				+ ", " + constants.getBibReRankingApplied()
+				+ ((reRanking) ? (", " + "reranking_bibliometric_reranking_details") : "")
+				+ (recommendationClass.contains("random") ? ""
+						: (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
+				+ ", " + constants.getShuffled() + ", "
+				+ constants.getDesiredRecommendationsInRecommendationAlgorithms();
+		values += "'" + recommendationClass + "', '" + langRestriction + "', " + (reRanking ? "'Y'" : "'N'")
+				+ (reRanking ? (", " + Long.toString(bibRerankingId)) : "")
+				+ (recommendationClass.contains("random") ? "" : (", " + Long.toString(algorithmId))) + ", "
+				+ (newShuffledStatus ? "'Y' " : "'N' ") + ", '" + desiredNumber + "'";
+		insertQuery += (columns + ") VALUES(" + values + ")");
+		try (PreparedStatement insertStmt = con.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS);
+					) {
+			insertStmt.executeUpdate();
+			ResultSet insertResults = insertStmt.getGeneratedKeys();
+			if (insertResults.next()) {
+				return insertResults.getLong(1);
+			}
+		} catch (SQLException e) {
+			System.out.println(insertQuery);
+			e.printStackTrace();
+		}
+		return (long) -2;
+	}
+
+	public Pair<Long, Boolean> updateRecommendationAlgorithmIdInRecomemndationSet(Pair<Long, Long> fixedPair) {
+		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
+				+ constants.getRecommendationAlgorithmId() + "=? WHERE " + constants.getRecommendationSetsId() + " =?";
+		try(PreparedStatement stmt = con.prepareStatement(query)){
+			stmt.setLong(1, fixedPair.getValue());
+			stmt.setLong(2, fixedPair.getKey());
+			stmt.executeUpdate();
+		}catch (SQLException e) {
+			System.out.println(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
+			return new Pair<Long, Boolean>(fixedPair.getKey(), false);
+		}
+			
+		return new Pair<Long, Boolean>(fixedPair.getKey(), true);
 	}
 
 }
