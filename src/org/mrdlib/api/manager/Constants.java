@@ -190,6 +190,7 @@ public class Constants {
 	private String applicationId;
 	private String applicationPublicName;
 	private String organizationInApplication;
+	private String applicationFullName;
 
 	// table organization
 	private String organizationId;
@@ -284,6 +285,8 @@ public class Constants {
 	private String gesisBetaCollectionLink;
 	private String core;
 	private String coreCollectionLink;
+	private String mediatum;
+	private String mediatumCollectionLink;
 
 	// settings
 	private boolean debugModeOn = false;
@@ -293,10 +296,6 @@ public class Constants {
 	private String mendeleyConfigPath;
 
 	private String probabilitiesConfigPath;
-
-	private String mediatum;
-
-	private String mediatumCollectionLink;
 
 	// load the config file
 	public Constants() {
@@ -464,6 +463,7 @@ public class Constants {
 			this.applicationId = prop.getProperty("applicationId");
 			this.applicationPublicName = prop.getProperty("applicationPublicName");
 			this.organizationInApplication = prop.getProperty("organizationIdInApplication");
+			this.applicationFullName = prop.getProperty("applicationFullName");
 
 			this.organizationId = prop.getProperty("organizationId");
 			this.organizationName = prop.getProperty("organizationName");
@@ -1446,5 +1446,9 @@ public class Constants {
 	}
 	public String getMediatum() {
 		return mediatum;
+	}
+
+	public String getApplicationFullName() {
+		return applicationFullName;
 	}
 }
