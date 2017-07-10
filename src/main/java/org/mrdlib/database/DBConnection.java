@@ -1739,8 +1739,7 @@ public class DBConnection {
 			stmt.setString(5, documentSet.getRequestingAppId());
 			String processingAppId;
 			try {
-				processingAppId = documentSet.getAlgorithmDetails().getRecommendationProvider().equals("Core") ? "8"
-						: "6";
+				processingAppId = documentSet.getAlgorithmDetails().getRecommendationProviderId();
 			} catch (NullPointerException e) {
 				processingAppId = null;
 			}
@@ -3079,6 +3078,7 @@ public class DBConnection {
 			e.printStackTrace();
 		}
 		documentset.setAccessKeyHash(accessKeyHash);
+		documentset.setAlgorithmDetails(setRecommendationProvider(documentset.getAlgorithmDetails()));
 		loggingId = logEvent(referenceId, rootElement, requestByTitle ? "search_by_title" : "related_documents");
 
 		if (documentset.getSize() > 0) {
@@ -3167,6 +3167,18 @@ public class DBConnection {
 			}
 		}
 		return documentset;
+	}
+
+	private AlgorithmDetails setRecommendationProvider(AlgorithmDetails algorithmDetails) {
+		String algorithmName = algorithmDetails.getName();
+		if(algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())){
+			algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", "application_name"));
+			algorithmDetails.setRecommendationProviderId(getIdInApplications("core_recsys", constants.getApplicationId()));
+		}else{
+			algorithmDetails.setRecommendationProvider(getIdInApplications("mdl_recsys", "application_name"));
+			algorithmDetails.setRecommendationProviderId(getIdInApplications("mdl_recsys", constants.getApplicationId()));
+		}
+		return algorithmDetails;
 	}
 
 	/**
