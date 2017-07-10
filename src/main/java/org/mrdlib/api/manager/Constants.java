@@ -18,6 +18,9 @@ public class Constants {
 	// environment
 	private String environment;
 
+	// api keys
+	private String coreAPIKey;
+
 	// db connection properties
 	private String dbClass;
 	private String db;
@@ -313,6 +316,8 @@ public class Constants {
 			// get the property value
 			this.environment = prop.getProperty("environment");
 
+			this.coreAPIKey = prop.getProperty("coreAPIKey");
+
 			this.dbClass = prop.getProperty("dbClass");
 			this.db = prop.getProperty("db");
 			this.url = prop.getProperty("url");
@@ -580,6 +585,10 @@ public class Constants {
 				}
 			}
 		}
+	}
+
+	public String getCoreAPIKey() {
+		return coreAPIKey;
 	}
 
 	public String getDataQualityPerson() {

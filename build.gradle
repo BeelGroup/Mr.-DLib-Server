@@ -21,13 +21,24 @@ gretty {
     enableNaming true // enable JNDI in tomcat
 }
 
+ext {
+    jackson_version = "2.7.5"
+    junit_version = "4.12"
+    mockito_version = "2.8.47"
+}
+
 dependencies {
-    compile 'org.apache.tika:tika-parsers:1.15' // for language detection
     gretty 'org.apache.tomcat:tomcat-dbcp:8.0.23' // tomcat does not bring this
+    compile 'org.apache.tika:tika-parsers:1.15' // for language detection
+    // json
+    compile "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    compile "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+    compile "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+
     compile fileTree(dir: 'lib', include: '*.jar')
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:2.8.47'  
+    testCompile "junit:junit:$junit_version"
+    testCompile "org.mockito:mockito-core:$mockito_version"  
 }
 
 // create subprojects for e.g. jars for importers
@@ -43,6 +54,10 @@ subprojects {
     apply plugin: 'java'
     // relative location from subproject folder
     dependencies {
+        // json
+        compile "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+        compile "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+        compile "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
         // server libraries not needed
         compile fileTree(dir: '../lib', include: '*.jar')
         compile 'org.apache.tika:tika-parsers:1.15' // for language detection
