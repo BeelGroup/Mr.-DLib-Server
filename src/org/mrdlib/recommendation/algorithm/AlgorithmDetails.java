@@ -21,12 +21,9 @@ public class AlgorithmDetails {
 	private int recommendationAlgorithmId;
 
 	private String recommendationProvider;
+	private String recommendationProviderId;
 
 	public AlgorithmDetails(String name) {
-		if (name.toLowerCase().contains("core"))
-			this.setRecommendationProvider("Core");
-		else
-			this.setRecommendationProvider("Mr-DLib");
 		this.name = name;
 	}
 
@@ -259,6 +256,15 @@ public class AlgorithmDetails {
 				+ (queryParser != null ? "queryParser=" + queryParser + ", " : "") + "humanCuratedRecommendations="
 				+ humanCuratedRecommendations + ", " + (category != null ? "category=" + category + ", " : "")
 				+ "fallback=" + fallback + ", recommendationAlgorithmId=" + recommendationAlgorithmId + "]";
+	}
+
+	public void setRecommendationProviderId(String idInApplications) {
+		this.recommendationProviderId = idInApplications;
+		
+	}
+
+	public String getRecommendationProviderId() {
+		return recommendationProviderId;
 	}
 
 }
