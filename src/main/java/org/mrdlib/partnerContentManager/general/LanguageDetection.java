@@ -1,4 +1,4 @@
-package org.mrdlib.partnerContentManager.general.languageDetection;
+package org.mrdlib.partnerContentManager.general;
 
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.database.DBConnection;

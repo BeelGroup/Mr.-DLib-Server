@@ -1,5 +1,5 @@
 apply plugin: 'application'
-mainClassName = "org.mrdlib.partnerContentManager.general.languageDetection.LanguageDetection"
+mainClassName = "org.mrdlib.partnerContentManager.general.LanguageDetection"
 run {
     if(System.getProperty("exec.args") != null) {
         args System.getProperty("exec.args").split()
