@@ -6,7 +6,8 @@ plugins {
     id 'org.akhikhl.gretty' version '2.0.0'
 }
 // source code location for main project
-sourceSets.main.java.srcDirs = ['src']
+sourceSets.main.java.srcDirs = ['src/main/java']
+sourceSets.test.java.srcDirs = ['src/test/java']
 
 allprojects {
     repositories {
@@ -25,6 +26,8 @@ dependencies {
     gretty 'org.apache.tomcat:tomcat-dbcp:8.0.23' // tomcat does not bring this
     compile fileTree(dir: 'lib', include: '*.jar')
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.8.47'  
 }
 
 // create subprojects for e.g. jars for importers
@@ -44,8 +47,6 @@ subprojects {
         compile fileTree(dir: '../lib', include: '*.jar')
         compile 'org.apache.tika:tika-parsers:1.15' // for language detection
     }
-    sourceSets.main.java.srcDirs = ['../src']
+    sourceSets.main.java.srcDirs = ['../src/main/java']
     sourceSets.main.resources.srcDirs = ['../src/main/resources']
-    // testCompile 'junit:junit:4.12'
-    // testCompile 'org.mockito:mockito-core:2.7.19'  
 }
