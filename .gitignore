@@ -8,13 +8,14 @@ bin/
 .settings/*
 *.name
 *.config
-git status
 build/
 */WEB-INF/*.jar
 *.eml
 *.iml
+*.class
 .idea/
 /.gradle
+.vscode
 # files containing passwords
 /src/main/resources/config.properties
 /tomcat.xml
