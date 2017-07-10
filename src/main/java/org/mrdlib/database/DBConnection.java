@@ -1429,20 +1429,21 @@ public class DBConnection {
 	}
 
 	/**
-	 * set given values for specific documents via batch update
+	 * set given values for specific entries via batch update
 	 * 
+	 * @param talbeName wich table to update
 	 * @param idColumn which kind of ids are given
 	 * @param ids ids of documents to update
 	 * @param valueColumn which column to update
 	 * @param values values to set, in same order as id 
 	 */
-	public void setDocumentValues(String idColumn, List<Object> ids, int idType, String valueColumn, List<Object> values, int valueType) throws Exception {
+	public void setRowValues(String tableName, String idColumn, List<Object> ids, int idType, String valueColumn, List<Object> values, int valueType) throws Exception {
 		PreparedStatement stmt = null;
 		if (ids.size() != values.size()) {
 			throw new Exception("Values and IDs are not of equal length.");
 		}
 		try {
-			String query = "UPDATE " + constants.getDocuments() +
+			String query = "UPDATE " + tableName +
 				" SET " + valueColumn + " = ? " + " WHERE " + idColumn + " = ?";
 			stmt = con.prepareStatement(query);
 			for (int i = 0; i < ids.size(); i++) {
@@ -1458,22 +1459,23 @@ public class DBConnection {
 	}
 
 	/**
-	 * get compact representation of documents (i.e. org_id, doc_id, title)
-	 * where given column is NULL
+	 * get database entries where given column is NULL
 	 * 
+	 * @paramName tableName table to access
 	 * @param columnName column to use for filtering
+	 * @param attributes database columns to read
 	 * @param limit limit; <=0 for no limit
 	 * @return matching documents
 	 */
-	public List<DisplayDocument> getDocumentsWithMissingValue(String columnName, long limit) throws Exception {
+	public List<HashMap<String, Object>> getEntriesWithMissingValue(String tableName, String columnName, List<String> attributes, long limit) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<DisplayDocument> documents = new LinkedList<DisplayDocument>();
+		List<HashMap<String,Object>> entries = new LinkedList<HashMap<String,Object>>();
 
 		try {
 			// get all information of a document stored in a database by the
 			// value of a custom column
-			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " IS NULL";
+			String query = "SELECT * FROM " + tableName + " WHERE " + columnName + " IS NULL";
 			if (limit > 0) {
 				query += " LIMIT ?";
 			}
@@ -1485,10 +1487,11 @@ public class DBConnection {
 
 			while (rs.next()) {
 				// create a simple document with values from the database
-				DisplayDocument document = new DisplayDocument(rs.getString(constants.getTitle()),
-				 String.valueOf(rs.getLong(constants.getDocumentId())),
-				  rs.getString(constants.getIdOriginal()));
-				  documents.add(document);
+				HashMap<String, Object> entry = new HashMap<String,Object>(attributes.size());
+				for (String attr : attributes) {
+					entry.put(attr, rs.getObject(attr));
+				}
+				entries.add(entry);
 			} 
 		} finally {
 			if (stmt != null)
@@ -1496,8 +1499,24 @@ public class DBConnection {
 			if (rs != null)
 				rs.close();
 		}
+		return entries;
+	}
+
+	public List<DisplayDocument> getDocumentsWithMissingValues(String columnName, long limit) throws Exception{
+		List<String> attributes = Arrays.asList(new String[] { 
+			constants.getTitle(), constants.getDocumentId(),
+			 constants.getIdOriginal()});
+		List<HashMap<String, Object>> entries = getEntriesWithMissingValue(constants.getDocuments(), columnName, attributes, limit);
+
+		List<DisplayDocument> documents = new ArrayList<DisplayDocument>(entries.size());
+		for (HashMap<String, Object> entry : entries) {
+			DisplayDocument doc = new DisplayDocument(entry.get(constants.getTitle()).toString(),
+			 entry.get(constants.getDocumentId()).toString(), entry.get(constants.getIdOriginal()).toString());
+			 documents.add(doc);
+		}
 		return documents;
 	}
+
 
 	/**
 	 * Get the number of documents present in database (by searching for highest

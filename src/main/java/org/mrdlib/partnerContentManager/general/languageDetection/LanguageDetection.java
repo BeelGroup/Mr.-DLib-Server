@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,12 +54,12 @@ public class LanguageDetection {
     }
 
     /** 
-     * Go trough documents, look at titles and detect languages from them using Apache Tika
+     * Go trough text and detect languages from it using Apache Tika
      * 
      * @param documents Document IDs
      *  
     */
-    public List<String> detectLanguage(List<DisplayDocument> documents) throws InterruptedException {
+    public List<String> detectLanguage(List<String> documents) throws InterruptedException {
 
         // parallize task
         ExecutorService pool = Executors.newWorkStealingPool();
@@ -77,8 +79,8 @@ public class LanguageDetection {
             }
         });
 
-        for (DisplayDocument doc : documents) {
-            languages.add(pool.submit(new LanguageDetectionTask(doc.getTitle(), detectors)));
+        for (String doc : documents) {
+            languages.add(pool.submit(new LanguageDetectionTask(doc, detectors)));
         }
         pool.shutdown();
 
@@ -98,7 +100,30 @@ public class LanguageDetection {
          }).collect(Collectors.toList());
     }
 
+    enum Mode { ABSTRACT, TITLE };
+
+    // usage: ./gradlew languageDetection:run -Dexec.args=title|abstracts
     public static void main(String[] args) {
+        Mode mode;
+        if (args.length > 0) {
+            String modeArg = args[0].toLowerCase();
+            if ("abstracts".startsWith(modeArg)) {
+                mode = Mode.ABSTRACT;
+                System.out.println("Processing abstracts.");
+            } else if ("titles".startsWith(modeArg)) {
+                mode = Mode.TITLE;
+                System.out.println("Processing titles.");
+            } else {
+                System.out.println("Could not parse arguments: " + args[0]);
+                System.out.println("Usage: [program] titles|abstracts");
+                return;
+            }
+        } else {
+            System.out.println("Error: No argument given. Usage: [program] titles|abstracts");
+            return;
+        }
+
+
         try {
 	        Constants constants = new Constants();
             DBConnection connection = new DBConnection("jar");
@@ -106,24 +131,50 @@ public class LanguageDetection {
             int processed = 0;
             SimpleDateFormat elapsed = new SimpleDateFormat("HH:mm:ss");
             elapsed.setTimeZone(TimeZone.getTimeZone("UTC"));
+            List<String> texts = new ArrayList<String>((int)BATCH_SIZE);
+            List<Object> ids = new ArrayList<Object>((int)BATCH_SIZE);
+
             while(true) {
-                List<DisplayDocument> docs = connection.getDocumentsWithMissingValue(constants.getLanguageDetected(), BATCH_SIZE);
-                if (docs.size() == 0) break;
-                processed += docs.size();
+                texts.clear();
+                ids.clear();
+
+                // fetch entries from database
+                if (mode == Mode.TITLE) {
+                    List<DisplayDocument> docs = connection.getDocumentsWithMissingValues(constants.getLanguageDetected(), BATCH_SIZE);
+                    for (DisplayDocument doc : docs) {
+                        texts.add(doc.getTitle());
+                        ids.add(doc.getDocumentId());
+                    }
+                } else if (mode == Mode.ABSTRACT) {
+                    List<String> attributes = Arrays.asList(new String[] { constants.getAbstr(), constants.getAbstractId() });
+                    List<HashMap<String,Object>> abstracts = connection.getEntriesWithMissingValue(
+                        constants.getAbstracts(), constants.getLanguageDetected(), attributes, BATCH_SIZE);
+                    for (HashMap<String, Object> entry : abstracts) {
+                        texts.add(entry.get(constants.getAbstr()).toString());
+                        ids.add(entry.get(constants.getAbstractId()));
+                    }
+                }
+
+                if (texts.size() == 0) break;
+                processed += texts.size();
                 System.out.println("Processing next batch...");
                 long startTime = System.currentTimeMillis();
 
-                List<Object> languages = (List) detection.detectLanguage(docs);
-                List<Object> ids = docs.stream()
-                    .map( (DisplayDocument d) -> d.getDocumentId())
-                    .collect(Collectors.toList());
-                connection.setDocumentValues(constants.getDocumentId(), ids, Types.BIGINT,
+                List<Object> languages = (List) detection.detectLanguage(texts);
+
+                // save results
+                if (mode == Mode.TITLE) {
+                    connection.setRowValues(constants.getDocuments(), constants.getDocumentId(), ids, Types.BIGINT,
+                        constants.getLanguageDetected(), languages, Types.CHAR);
+                } else if (mode == Mode.ABSTRACT) {
+                    connection.setRowValues(constants.getAbstracts(), constants.getAbstractId(), ids, Types.BIGINT,
                     constants.getLanguageDetected(), languages, Types.CHAR);
+                }
                 long time = System.currentTimeMillis() - startTime;
-                System.out.format("Finished processing batch of %d documents (%s).%n%d documents processed.%n", BATCH_SIZE, 
+                System.out.format("Finished processing batch of %d entries (%s).%n%d entries processed.%n", BATCH_SIZE, 
                     elapsed.format(time), processed);
             }
-            System.out.println("Finished processing documents.");
+            System.out.format("Finished processing %s.%n", mode == Mode.TITLE ? "titles" : "abstracts");
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();
