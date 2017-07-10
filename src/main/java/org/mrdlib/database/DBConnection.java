@@ -3172,10 +3172,10 @@ public class DBConnection {
 	private AlgorithmDetails setRecommendationProvider(AlgorithmDetails algorithmDetails) {
 		String algorithmName = algorithmDetails.getName();
 		if(algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())){
-			algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", "application_name"));
+			algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", constants.getApplicationFullName()));
 			algorithmDetails.setRecommendationProviderId(getIdInApplications("core_recsys", constants.getApplicationId()));
 		}else{
-			algorithmDetails.setRecommendationProvider(getIdInApplications("mdl_recsys", "application_name"));
+			algorithmDetails.setRecommendationProvider(getIdInApplications("mdl_recsys", constants.getApplicationFullName()));
 			algorithmDetails.setRecommendationProviderId(getIdInApplications("mdl_recsys", constants.getApplicationId()));
 		}
 		return algorithmDetails;
