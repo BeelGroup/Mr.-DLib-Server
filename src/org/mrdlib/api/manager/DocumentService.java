@@ -332,7 +332,7 @@ public class DocumentService {
 				doc.setClickUrl(url);
 			}
 		} catch (Exception e) {
-			System.out.println("nullpointer catched");
+			System.out.println("nullpointer caught");
 			e.printStackTrace();
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
@@ -375,12 +375,5 @@ public class DocumentService {
 		}
 		return rootElement;
 	}
-
-	/*
-	 * @GET
-	 * 
-	 * @Produces("text/plain") public String getOriginalDoc() { return
-	 * "Hello World "; }
-	 */
 
 }
