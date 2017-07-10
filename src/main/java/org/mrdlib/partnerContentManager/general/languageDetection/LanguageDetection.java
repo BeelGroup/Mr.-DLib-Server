@@ -30,15 +30,11 @@ import org.apache.tika.langdetect.OptimaizeLangDetector;
  * @author Fabian Richter
  */
 public class LanguageDetection {
-    private DBConnection db;
     private static final long TIMEOUT = 30; // how long each awaitTermination blocks
     private static final long BATCH_SIZE = 10000; // how many entries to query from the DB at once
-    public LanguageDetection (DBConnection db) {
-        this.db = db;
-    }
 
     // actual detection happens here
-    private class LanguageDetectionTask implements Callable<String> {
+    private static class LanguageDetectionTask implements Callable<String> {
         private String title;
         private ThreadLocal<LanguageDetector> detector;
         public LanguageDetectionTask(String title, ThreadLocal<LanguageDetector> detector) {
@@ -59,7 +55,7 @@ public class LanguageDetection {
      * @param documents Document IDs
      *  
     */
-    public List<String> detectLanguage(List<String> documents) throws InterruptedException {
+    public static List<String> detectLanguage(List<String> documents) throws InterruptedException {
 
         // parallize task
         ExecutorService pool = Executors.newWorkStealingPool();
@@ -127,7 +123,6 @@ public class LanguageDetection {
         try {
 	        Constants constants = new Constants();
             DBConnection connection = new DBConnection("jar");
-            LanguageDetection detection = new LanguageDetection(connection);
             int processed = 0;
             SimpleDateFormat elapsed = new SimpleDateFormat("HH:mm:ss");
             elapsed.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -160,7 +155,7 @@ public class LanguageDetection {
                 System.out.println("Processing next batch...");
                 long startTime = System.currentTimeMillis();
 
-                List<Object> languages = (List) detection.detectLanguage(texts);
+                List<Object> languages = (List) detectLanguage(texts);
 
                 // save results
                 if (mode == Mode.TITLE) {
