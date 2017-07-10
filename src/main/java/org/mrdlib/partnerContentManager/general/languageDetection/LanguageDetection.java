@@ -5,6 +5,8 @@ import org.mrdlib.database.DBConnection;
 import org.mrdlib.api.manager.Constants;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -28,7 +30,7 @@ import org.apache.tika.langdetect.OptimaizeLangDetector;
 public class LanguageDetection {
     private DBConnection db;
     private static final long TIMEOUT = 30; // how long each awaitTermination blocks
-    private static final long BATCH_SIZE = 50000; // how many entries to query from the DB at once
+    private static final long BATCH_SIZE = 10000; // how many entries to query from the DB at once
     public LanguageDetection (DBConnection db) {
         this.db = db;
     }
@@ -101,9 +103,15 @@ public class LanguageDetection {
 	        Constants constants = new Constants();
             DBConnection connection = new DBConnection("jar");
             LanguageDetection detection = new LanguageDetection(connection);
+            int processed = 0;
+            SimpleDateFormat elapsed = new SimpleDateFormat("HH:mm:ss");
+            elapsed.setTimeZone(TimeZone.getTimeZone("UTC"));
             while(true) {
-                List<DisplayDocument> docs = connection.getDocumentsWithMissingValue(constants.getLanguageDetected(), 100000);
+                List<DisplayDocument> docs = connection.getDocumentsWithMissingValue(constants.getLanguageDetected(), BATCH_SIZE);
                 if (docs.size() == 0) break;
+                processed += docs.size();
+                System.out.println("Processing next batch...");
+                long startTime = System.currentTimeMillis();
 
                 List<Object> languages = (List) detection.detectLanguage(docs);
                 List<Object> ids = docs.stream()
@@ -111,7 +119,11 @@ public class LanguageDetection {
                     .collect(Collectors.toList());
                 connection.setDocumentValues(constants.getDocumentId(), ids, Types.BIGINT,
                     constants.getLanguageDetected(), languages, Types.CHAR);
+                long time = System.currentTimeMillis() - startTime;
+                System.out.format("Finished processing batch of %d documents (%s).%n%d documents processed.%n", BATCH_SIZE, 
+                    elapsed.format(time), processed);
             }
+            System.out.println("Finished processing documents.");
             connection.close();
         } catch (Exception e) {
             e.printStackTrace();
