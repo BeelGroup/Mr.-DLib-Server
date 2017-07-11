@@ -14,8 +14,8 @@
 package org.mrdlib.partnerContentManager.core.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+
+
 
 
 import org.mrdlib.partnerContentManager.core.model.Resource;
@@ -54,7 +54,7 @@ public class SearchAllResponse {
       return String.valueOf(value);
     }
 
-    @JsonCreator
+
     public static StatusEnum fromValue(String text) {
       for (StatusEnum b : StatusEnum.values()) {
         if (String.valueOf(b.value).equals(text)) {
@@ -65,13 +65,13 @@ public class SearchAllResponse {
     }
   }
 
-  @JsonProperty("status")
+
   private StatusEnum status = null;
 
-  @JsonProperty("totalHits")
+
   private Integer totalHits = null;
 
-  @JsonProperty("data")
+
   private List<Resource> data = new ArrayList<Resource>();
 
   public SearchAllResponse status(StatusEnum status) {

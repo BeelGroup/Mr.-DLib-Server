@@ -14,8 +14,8 @@
 package org.mrdlib.partnerContentManager.core.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+
+
 
 
 import org.mrdlib.partnerContentManager.core.model.Article;
@@ -30,51 +30,27 @@ public class ArticleSearchResponse {
   /**
    * Operation status
    */
-  public enum StatusEnum {
-    OK("OK"),
+
+  public static final String OK = "OK";
+  public static final String NOT_FOUND = "Not found";
     
-    NOT_FOUND("Not found"),
+  public static final String TOO_MANY_QUERIES = "Too many queries";
     
-    TOO_MANY_QUERIES("Too many queries"),
+  public static final String MISSING_PARAMETER = "Missing parameter";
     
-    MISSING_PARAMETER("Missing parameter"),
+  public static final String INVALID_PARAMETER = "Invalid parameter";
     
-    INVALID_PARAMETER("Invalid parameter"),
-    
-    PARAMETER_OUT_OF_BOUNDS("Parameter out of bounds");
+  public static final String PARAMETER_OUT_OF_BOUNDS = "Parameter out of bounds";
 
-    private String value;
+  private String status = null;
 
-    StatusEnum(String value) {
-      this.value = value;
-    }
 
-    @Override
-    public String toString() {
-      return String.valueOf(value);
-    }
-
-    @JsonCreator
-    public static StatusEnum fromValue(String text) {
-      for (StatusEnum b : StatusEnum.values()) {
-        if (String.valueOf(b.value).equals(text)) {
-          return b;
-        }
-      }
-      return null;
-    }
-  }
-
-  @JsonProperty("status")
-  private StatusEnum status = null;
-
-  @JsonProperty("totalHits")
   private Integer totalHits = null;
 
-  @JsonProperty("data")
+
   private List<Article> data = new ArrayList<Article>();
 
-  public ArticleSearchResponse status(StatusEnum status) {
+  public ArticleSearchResponse status(String status) {
     this.status = status;
     return this;
   }
@@ -84,11 +60,11 @@ public class ArticleSearchResponse {
    * @return status
   **/
 
-  public StatusEnum getStatus() {
+  public String getStatus() {
     return status;
   }
 
-  public void setStatus(StatusEnum status) {
+  public void setStatus(String status) {
     this.status = status;
   }
 

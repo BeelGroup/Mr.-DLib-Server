@@ -14,8 +14,8 @@
 package org.mrdlib.partnerContentManager.core.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+
+
 
 
 import org.mrdlib.partnerContentManager.core.model.ArticleJournal;
@@ -32,77 +32,77 @@ import java.util.List;
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2017-07-10T16:43:47.568+09:00")
 public class Article {
-  @JsonProperty("id")
+
   private Integer id = null;
 
-  @JsonProperty("authors")
+
   private List<String> authors = new ArrayList<String>();
 
-  @JsonProperty("citations")
+
   private List<Citation> citations = new ArrayList<Citation>();
 
-  @JsonProperty("contributors")
+
   private List<String> contributors = new ArrayList<String>();
 
-  @JsonProperty("datePublished")
+
   private String datePublished = null;
 
-  @JsonProperty("description")
+
   private String description = null;
 
-  @JsonProperty("fulltext")
+
   private String fulltext = null;
 
-  @JsonProperty("identifiers")
+
   private List<String> identifiers = new ArrayList<String>();
 
-  @JsonProperty("journals")
+
   private List<ArticleJournal> journals = new ArrayList<ArticleJournal>();
 
-  @JsonProperty("language")
+
   private Language language = null;
 
-  @JsonProperty("publisher")
+
   private String publisher = null;
 
-  @JsonProperty("relations")
+
   private List<String> relations = new ArrayList<String>();
 
-  @JsonProperty("repositories")
+
   private List<Repository> repositories = new ArrayList<Repository>();
 
 
-  @JsonProperty("similarities")
+
   private List<Similar> similarities = new ArrayList<Similar>();
 
-  @JsonProperty("subjects")
+
   private List<String> subjects = new ArrayList<String>();
 
-  @JsonProperty("title")
+
   private String title = null;
 
-  @JsonProperty("topics")
+
   private List<String> topics = new ArrayList<String>();
 
-  @JsonProperty("types")
+
   private List<String> types = new ArrayList<String>();
 
-  @JsonProperty("year")
+
   private Integer year = null;
 
-  @JsonProperty("fulltextUrls")
+
   private List<String> fulltextUrls = new ArrayList<String>();
 
-  @JsonProperty("rawRecordXml")
+
   private RawRecordXml rawRecordXml = null;
 
-  @JsonProperty("fulltextIdentifier")
+
   private String fulltextIdentifier = null;
 
-  @JsonProperty("doi")
+
   private String doi = null;
 
-  @JsonProperty("oai")
+
   private String oai = null;
 
   public Article id(Integer id) {

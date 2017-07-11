@@ -14,8 +14,8 @@
 package org.mrdlib.partnerContentManager.core.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+
+
 
 
 import org.mrdlib.partnerContentManager.core.model.RawRecordXml;
@@ -54,7 +54,6 @@ public class ArticleHistoryResponse {
       return String.valueOf(value);
     }
 
-    @JsonCreator
     public static StatusEnum fromValue(String text) {
       for (StatusEnum b : StatusEnum.values()) {
         if (String.valueOf(b.value).equals(text)) {
@@ -65,10 +64,10 @@ public class ArticleHistoryResponse {
     }
   }
 
-  @JsonProperty("status")
+
   private StatusEnum status = null;
 
-  @JsonProperty("data")
+
   private List<RawRecordXml> data = new ArrayList<RawRecordXml>();
 
   public ArticleHistoryResponse status(StatusEnum status) {

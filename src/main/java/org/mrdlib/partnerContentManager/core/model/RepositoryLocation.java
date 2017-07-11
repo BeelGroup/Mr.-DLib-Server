@@ -14,8 +14,8 @@
 package org.mrdlib.partnerContentManager.core.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+
+
 
 
 
@@ -24,22 +24,22 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2017-07-10T16:43:47.568+09:00")
 public class RepositoryLocation {
-  @JsonProperty("id")
+
   private Integer id = null;
 
-  @JsonProperty("repositoryName")
+
   private String repositoryName = null;
 
-  @JsonProperty("country")
+
   private String country = null;
 
-  @JsonProperty("latitude")
+
   private Integer latitude = null;
 
-  @JsonProperty("longitude")
+
   private Integer longitude = null;
 
-  @JsonProperty("countryCode")
+
   private String countryCode = null;
 
   public RepositoryLocation id(Integer id) {

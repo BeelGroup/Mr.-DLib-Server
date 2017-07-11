@@ -14,8 +14,8 @@
 package org.mrdlib.partnerContentManager.core.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+
+
 
 
 
@@ -45,7 +45,7 @@ public class Resource {
       return String.valueOf(value);
     }
 
-    @JsonCreator
+
     public static TypeEnum fromValue(String text) {
       for (TypeEnum b : TypeEnum.values()) {
         if (String.valueOf(b.value).equals(text)) {
@@ -56,10 +56,10 @@ public class Resource {
     }
   }
 
-  @JsonProperty("type")
+
   private TypeEnum type = null;
 
-  @JsonProperty("id")
+
   private String id = null;
 
   public Resource type(TypeEnum type) {

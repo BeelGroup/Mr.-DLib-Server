@@ -19,3 +19,4 @@ build/
 # files containing passwords
 /src/main/resources/config.properties
 /tomcat.xml
+*.*~

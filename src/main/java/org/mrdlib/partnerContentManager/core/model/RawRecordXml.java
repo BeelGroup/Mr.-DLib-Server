@@ -14,8 +14,8 @@
 package org.mrdlib.partnerContentManager.core.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+
+
 
 
 
@@ -24,10 +24,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2017-07-10T16:43:47.568+09:00")
 public class RawRecordXml {
-  @JsonProperty("datetime")
+
   private String datetime = null;
 
-  @JsonProperty("metadata")
+
   private String metadata = null;
 
   public RawRecordXml datetime(String datetime) {

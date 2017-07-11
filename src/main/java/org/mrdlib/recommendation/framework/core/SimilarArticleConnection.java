@@ -27,13 +27,14 @@ import com.owlike.genson.Genson;
 
 public class SimilarArticleConnection {
 
-	String apiKey = "VS69J25GmeWsZiAjMHTvlX3oh1ntONQw";
+	String apiKey;
 	HttpClient httpclient;
 	Constants constants;
 	Genson genson;
 
 	public SimilarArticleConnection() {
 		constants = new Constants();
+		apiKey = constants.getCoreAPIKey();
 		httpclient = HttpClients.createDefault();
 		genson = new Genson();
 
