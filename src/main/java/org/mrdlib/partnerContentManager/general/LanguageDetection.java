@@ -46,9 +46,9 @@ public class LanguageDetection {
             LanguageDetector ld = detector.get();
             ld.reset();
 	    String language = ld.detect(this.title).getLanguage();
-	    if (language.length() < 2)
-		System.err.println("Invalid language code:" + language);
-		return null;
+	    if (language.length() < 2) {
+		return "??";
+	    }
             return language.substring(0, 2);
         }
     }
