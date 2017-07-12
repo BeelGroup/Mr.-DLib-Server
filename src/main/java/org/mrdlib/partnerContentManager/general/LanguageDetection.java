@@ -47,7 +47,8 @@ public class LanguageDetection {
             ld.reset();
 	    String language = ld.detect(this.title).getLanguage();
 	    if (language.length() < 2)
-		throw new Exception("Invalid language code: " + language);
+		System.err.println("Invalid language code:" + language);
+		return null;
             return language.substring(0, 2);
         }
     }
