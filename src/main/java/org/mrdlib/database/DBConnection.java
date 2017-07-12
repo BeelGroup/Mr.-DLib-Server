@@ -1278,16 +1278,50 @@ public class DBConnection {
 	}
 
 	/**
+	 * special case of getDocumentsBy with array of size one
+	 */
+	public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
+		List<DisplayDocument> docs = getDocumentsBy(columnName, new String[] { id });
+		if (docs.size() == 0) 
+			throw new NoEntryException(id);
+		return docs.get(0);
+	}
+	/**
+	 * get list of documents with specific column values
+	 * batches queries, then do request further details from other tables (default action)
 	 * 
+	 * for each document: 
 	 * Get a complete displayable Document by any customized field (returns only
 	 * first retrieved document! Please use unique columns to obtain like
 	 * original id or id!
 	 * 
 	 * @param columnName
 	 *            for which should be searched (please use original id or id)
-	 * @param id,
-	 *            either original id or id
-	 * @return the (first) retrieved Document
+	 * @param ids,
+	 *            list of either original id or id
+	 * 
+	 */
+	public List<DisplayDocument> getDocumentsBy(String columnName, String[] ids) throws Exception {
+		return getDocumentsBy(columnName, ids, false);
+	}
+	/**
+	 * get list of documents with specific column values
+	 * batches queries, then may request further details from other tables
+	 * 
+	 * for each document: 
+	 * Get a complete displayable Document by any customized field (returns only
+	 * first retrieved document! Please use unique columns to obtain like
+	 * original id or id!
+	 * 
+	 * @param columnName
+	 *            for which should be searched (please use original id or id)
+	 * @param ids,
+	 *            list of either original id or id
+	 * 
+	 * @param disableJoin: disable joining with other tables; abstract and collection information are not filled in
+	 * TODO: see if we can replace separate queries with join
+	 * 
+	 * @return the retrieved Documents
 	 * @throws Exception
 	 */
 	public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
@@ -1296,22 +1330,26 @@ public class DBConnection {
 		StringJoiner joiner = new StringJoiner(", ");
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		String title = null;
-		String publishedIn = null;
-		String keywords = "";
-		String docAbstract = null;
 
 		try {
+			DisplayDocument document;
 
 			// get all information of a document stored in a database by the
 			// value of a custom column
 			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " = ?";
 			stmt = con.prepareStatement(query);
-			stmt.setString(1, id);
+			String idList = Arrays.asList(ids).stream().collect(Collectors.joining(", "));
+			stmt.setString(1, idList);
 
 			rs = stmt.executeQuery();
-			// if there is a document
-			if (rs.next()) {
+			// go through all documents
+			while (rs.next()) {
+				String authorNames = null;
+				StringJoiner joiner = new StringJoiner(", ");
+				String title = null;
+				String publishedIn = null;
+				String keywords = "";
+				String docAbstract = null;
 
 				// concatenate each author to a single string with ',' as
 				// seperator.
@@ -1326,7 +1364,8 @@ public class DBConnection {
 				title = rs.getString(constants.getTitle());
 				publishedIn = rs.getString(constants.getPublishedId());
 				keywords = rs.getString(constants.getKeywords());
-				docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
+				if (!disableJoin)
+					docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
@@ -1339,17 +1378,15 @@ public class DBConnection {
 				// collection
 				document.setLanguage(rs.getString(constants.getLanguage()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
-				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
-				return document;
-			} else
-				throw new NoEntryException(id);
+				if (!disableJoin)
+					document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
+				documents.add(document);
+			} 
 		} catch (SQLException e) {
-			System.out.println("SQL Exception");
 			throw e;
 		} catch (NoEntryException e) {
 			throw e;
 		} catch (Exception e) {
-			System.out.println("Regualar exception");
 			throw e;
 		} finally {
 			try {
@@ -1361,6 +1398,7 @@ public class DBConnection {
 				throw e;
 			}
 		}
+		return documents;
 	}
 
 	/**
