@@ -45,7 +45,10 @@ public class LanguageDetection {
             // fetch local instance
             LanguageDetector ld = detector.get();
             ld.reset();
-            return ld.detect(this.title).getLanguage().substring(0, 2);
+	    String language = ld.detect(this.title).getLanguage();
+	    if (language.length() < 2)
+		throw new Exception("Invalid language code: " + language);
+            return language.substring(0, 2);
         }
     }
 
