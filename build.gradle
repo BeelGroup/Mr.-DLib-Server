@@ -3,6 +3,13 @@ plugins {
     id 'war'  
     id 'org.akhikhl.gretty' version '1.4.2'
 }
+sourceSets {  
+    main {  
+        java {  
+            srcDir 'src'  
+        }  
+    }  
+} 
 
 gretty {
     servletContainer 'tomcat8'
@@ -13,8 +20,25 @@ repositories {
     jcenter()
 }
 
+task languageDetectionJar(type: Jar) {
+    from(sourceSets.main.output) {
+        baseName 'LanguageDetection'
+        manifest {
+            attributes 'Main-Class': 'org.mrdlib.partnerContentManager.general.languageDetection.LanguageDetection'
+        }
+    }
+    dependencies {
+        compile 'org.apache.tika:tika-parsers:1.15' // for language detection
+        compile fileTree(dir: 'lib', include: '*.jar')
+        providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
+        testCompile 'junit:junit:4.12'
+        testCompile 'org.mockito:mockito-core:2.7.19'  
+    }
+}
+
 dependencies {
     gretty 'org.apache.tomcat:tomcat-dbcp:8.0.23' // tomcat does not bring this
+    compile 'org.apache.tika:tika-parsers:1.15' // for language detection
     compile fileTree(dir: 'lib', include: '*.jar')
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
     testCompile 'junit:junit:4.12'
