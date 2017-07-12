@@ -13,7 +13,6 @@ import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +38,8 @@ import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
-import javafx.util.Pair;
+
+import org.mrdlib.utils.Pair;
 
 /**
  * 
@@ -1466,7 +1466,7 @@ public class DBConnection {
 		}
 	}
 
-	/**
+/**
 	 * set given values for specific entries via batch update
 	 * 
 	 * @param talbeName wich table to update
@@ -1508,7 +1508,7 @@ public class DBConnection {
 	public List<HashMap<String, Object>> getEntriesWithMissingValue(String tableName, String columnName, List<String> attributes, long limit) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<HashMap<String,Object>> entries = new LinkedList<HashMap<String,Object>>();
+		List<HashMap<String,Object>> entries = new ArrayList<HashMap<String,Object>>();
 
 		try {
 			// get all information of a document stored in a database by the
@@ -1554,8 +1554,6 @@ public class DBConnection {
 		}
 		return documents;
 	}
-
-
 	/**
 	 * Get the number of documents present in database (by searching for highest
 	 * ID
