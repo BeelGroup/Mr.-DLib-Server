@@ -91,6 +91,7 @@ public class LanguageDetection {
             try { 
                 return result.get();
             } catch(Exception e) { 
+		e.printStackTrace();
                 return null; 
             }
          }).collect(Collectors.toList());

@@ -128,11 +128,11 @@ public class CoreApi {
 	    queries.add(search
 			.query(query)
 			// last page should 'just fit' our limit
-			.pageSize((int)(i * MAX_PAGE_SIZE < limit ?
-					MAX_PAGE_SIZE : limit - (i-1) * MAX_PAGE_SIZE))
+			.pageSize((int)(i * MAX_PAGE_SIZE < limit + offset ?
+					MAX_PAGE_SIZE : limit + offset - (i-1) * MAX_PAGE_SIZE))
 			.page((int)i));
-	    System.out.println("page: " + (i * MAX_PAGE_SIZE < limit ?
-					   MAX_PAGE_SIZE : limit - (i-1) * MAX_PAGE_SIZE));
+	    System.out.println("page size: " + (i * MAX_PAGE_SIZE < limit + offset ?
+					   MAX_PAGE_SIZE : limit + offset - (i-1) * MAX_PAGE_SIZE));
 	} 
 	System.out.println(json.serialize(queries));
 

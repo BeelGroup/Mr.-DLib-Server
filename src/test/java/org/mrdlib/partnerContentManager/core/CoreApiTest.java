@@ -33,7 +33,7 @@ public class CoreApiTest {
 	api = new CoreApi();
     }
 
-    @Test
+    // @Test
     public void articleBatchRequest() throws Exception {
 	List<Integer> ids = Arrays.asList(new Integer[] {1});
 	List<Article> articles = api.getArticles(ids);
@@ -47,7 +47,7 @@ public class CoreApiTest {
 	assertEquals(a.getAuthors().get(0), "Ramsden, Anne");
     }
 
-    @Test
+    // @Test
     public void nonExistingArticleBatchRequest() throws Exception {
 	List<Integer> ids = Arrays.asList(new Integer[] {-1});
 	List<Article> articles = api.getArticles(ids);
@@ -59,24 +59,24 @@ public class CoreApiTest {
     @Test
     public void articleListRequest() throws Exception {
 	// test single page with limit
-	List<Article> articles = api.listArticles(2017, 0, 10);
-	assertEquals(articles.size(), 10);
-	for (Article a : articles) {
-	    System.out.println("1: " + a.getTitle());
-	    assertNotNull(a);
-	    assertEquals(new Integer(2017), a.getYear());
-	}
-	// test page offset
-	List<Article> first = articles;
-	articles = api.listArticles(2017, 1, 10);
-	assertEquals(10, articles.size());
-	for (Article a : articles) {
-	    System.out.println("2: " + a.getTitle());
-	    assertNotNull(a);
-	    assertEquals(new Integer(2017), a.getYear());
-	    // should be distinct from first
-	    assertFalse(first.contains(a));
-	}
+	// List<Article> articles = api.listArticles(2017, 0, 10);
+	// assertEquals("simple fetching with limit", articles.size(), 10);
+	// for (Article a : articles) {
+	//     System.out.println("1: " + a.getTitle());
+	//     assertNotNull(a);
+	//     assertEquals("correct year", new Integer(2017), a.getYear());
+	// }
+	// // test page offset
+	// List<Article> first = articles;
+	// articles = api.listArticles(2017, 1, 10);
+	// assertEquals(10, articles.size());
+	// for (Article a : articles) {
+	//     System.out.println("2: " + a.getTitle());
+	//     assertNotNull(a);
+	//     assertEquals(new Integer(2017), a.getYear());
+	//     // should be distinct from first
+	//     assertFalse("fetching with offset: results should be distinct", first.contains(a));
+	// }
 	// paging
 	UncheckedConsumer<Integer> fetchNArticles = (Integer size) -> {
 	    List<Article> list = api.listArticles(2017, 0, size);
@@ -87,10 +87,10 @@ public class CoreApiTest {
 		other.clear();
 		other.addAll(list);
 		other.remove(a);
-		assertFalse(other.contains(a));
+		assertFalse("no duplicates", other.contains(a));
 	    }
 	};
-	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * 2); // one request
+	// fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * 2); // one reques
 	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * (CoreApi.MAX_BATCH_SIZE + 1)); // multiple requests
     }
 
