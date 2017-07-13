@@ -23,8 +23,8 @@ public class CoreApi {
     private static final String endpoint = "https://core.ac.uk/api-v2/";
     private static final String articleBatchPath = "articles/get";
     private static final String articleSearchPath = "articles/search";
-    public static final int MAX_PAGE_SIZE = 100;
-    public static final int MAX_BATCH_SIZE = 100;
+    public static final int MAX_PAGE_SIZE = 10;
+    public static final int MAX_BATCH_SIZE = 10;
 
     private String apiKey;
     private HttpClient http;
@@ -123,16 +123,19 @@ public class CoreApi {
 
 	String query = "year:" + year;
 	// go through as many pages as possible
-	for (long i = 1 + offset; (i-1) * MAX_PAGE_SIZE < limit + offset * MAX_PAGE_SIZE && queries.size() < MAX_BATCH_SIZE; i++) {
+	for (long i = 1; (i-1) * MAX_PAGE_SIZE < limit * MAX_PAGE_SIZE && queries.size() < MAX_BATCH_SIZE; i++) {
 	    SearchRequest search = new SearchRequest();
-	    queries.add(search
-			.query(query)
-			// last page should 'just fit' our limit
-			.pageSize((int)(i * MAX_PAGE_SIZE < limit + offset ?
-					MAX_PAGE_SIZE : limit + offset - (i-1) * MAX_PAGE_SIZE))
-			.page((int)i));
-	    System.out.println("page size: " + (i * MAX_PAGE_SIZE < limit + offset ?
-					   MAX_PAGE_SIZE : limit + offset - (i-1) * MAX_PAGE_SIZE));
+	    int pageSize = (int)(i * MAX_PAGE_SIZE < limit ?
+				 MAX_PAGE_SIZE : limit - (i-1) * MAX_PAGE_SIZE);
+	    System.out.println("PageSize: " + pageSize);
+	    if (pageSize > 0)
+		queries.add(search
+			    .query(query)
+			    // last page should 'just fit' our limit
+			    .pageSize(pageSize)
+			    .page((int) (i + offset) ));
+	    else
+		break;
 	} 
 	System.out.println(json.serialize(queries));
 
