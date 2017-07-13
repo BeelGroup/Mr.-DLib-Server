@@ -4,6 +4,7 @@ import org.mrdlib.partnerContentManager.core.model.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collection;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Consumer;
@@ -59,7 +60,7 @@ public class CoreApiTest {
     @Test
     public void articleListRequest() throws Exception {
 	// test single page with limit
-	// List<Article> articles = api.listArticles(2017, 0, 10);
+	// Collection<Article> articles = api.listArticles(2017, 0, 10);
 	// assertEquals("simple fetching with limit", articles.size(), 10);
 	// for (Article a : articles) {
 	//     System.out.println("1: " + a.getTitle());
@@ -67,7 +68,7 @@ public class CoreApiTest {
 	//     assertEquals("correct year", new Integer(2017), a.getYear());
 	// }
 	// // test page offset
-	// List<Article> first = articles;
+	// Collection<Article> first = articles;
 	// articles = api.listArticles(2017, 1, 10);
 	// assertEquals(10, articles.size());
 	// for (Article a : articles) {
@@ -79,8 +80,8 @@ public class CoreApiTest {
 	// }
 	// paging
 	UncheckedConsumer<Integer> fetchNArticles = (Integer size) -> {
-	    List<Article> list = api.listArticles(2017, 0, size);
-	    List<Article> other = new ArrayList(size);
+	    Collection<Article> list = api.listArticles(2017, 0, size);
+	    Collection<Article> other = new ArrayList(size);
 	    assertEquals(size.intValue(), list.size());
 	    for (Article a : list) {
 		// no duplicates

@@ -4,6 +4,8 @@ import org.mrdlib.api.manager.Constants;
 import org.mrdlib.partnerContentManager.core.model.*;
 
 import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.ArrayList;
 
 import org.apache.http.client.HttpClient;
@@ -23,8 +25,8 @@ public class CoreApi {
     private static final String endpoint = "https://core.ac.uk/api-v2/";
     private static final String articleBatchPath = "articles/get";
     private static final String articleSearchPath = "articles/search";
-    public static final int MAX_PAGE_SIZE = 10;
-    public static final int MAX_BATCH_SIZE = 10;
+    public static final int MAX_PAGE_SIZE = 100;
+    public static final int MAX_BATCH_SIZE = 100;
 
     private String apiKey;
     private HttpClient http;
@@ -101,7 +103,7 @@ public class CoreApi {
 	return getArticles(ids, true, false, false, false, false, false, false);
     }
 
-    public List<Article> listArticles(int year, long offset, long limit) throws Exception {
+    public Collection<Article> listArticles(int year, long offset, long limit) throws Exception {
 	return listArticles(year, offset, limit, true, false, false, false, false, false, false);
     }
 
@@ -115,7 +117,7 @@ public class CoreApi {
      * @param rest: as in getArticles
      * @return: fetched articles
      */
-    public List<Article> listArticles(int year, long offset, long limit, boolean metadata, boolean fulltext, boolean citations, boolean similar, boolean duplicate, boolean urls, boolean faithfulMetadata) throws Exception {
+    public Collection<Article> listArticles(int year, long offset, long limit, boolean metadata, boolean fulltext, boolean citations, boolean similar, boolean duplicate, boolean urls, boolean faithfulMetadata) throws Exception {
 
 	// building queries with paging, going chronologically through all years
 	// no listAll in API; alternative: try all IDs
@@ -127,7 +129,8 @@ public class CoreApi {
 	    SearchRequest search = new SearchRequest();
 	    int pageSize = (int)(i * MAX_PAGE_SIZE < limit ?
 				 MAX_PAGE_SIZE : limit - (i-1) * MAX_PAGE_SIZE);
-	    System.out.println("PageSize: " + pageSize);
+	    if (pageSize > 0 && pageSize != MAX_PAGE_SIZE)
+		System.out.println("PageSize: " + pageSize);
 	    if (pageSize > 0)
 		queries.add(search
 			    .query(query)
@@ -139,23 +142,28 @@ public class CoreApi {
 	} 
 	System.out.println(json.serialize(queries));
 
+	long startTime = System.currentTimeMillis();
 	HttpEntity entity = doRequest(articleSearchPath, json.serialize(queries),
 	    metadata, fulltext, citations, similar, duplicate, urls, faithfulMetadata);
+	System.out.println("Request took " + startTime / 1000 + "s");
 
 	ArticleSearchResponse[] responses = json.deserialize(entity.getContent(), ArticleSearchResponse[].class);
 
 	long totalHits = -1; // did we get all?
 
 	// extract articles
-	List<Article> articles = new ArrayList<Article>(responses.length);
+	HashMap<Integer, Article> articles = new HashMap<Integer, Article>(responses.length);
 	for (ArticleSearchResponse response : responses) {
 	    String status = response.getStatus();
 	    if (status.equals(ArticleSearchResponse.OK)) {
 		totalHits = response.getTotalHits();
-		articles.addAll(response.getData());
-	    } else if (status.equals(ArticleSearchResponse.NOT_FOUND)) {
-		// TODO hm...?
-		articles.add(null);
+		List<Article> matches = response.getData();
+		// avoid duplicates
+		for (Article a : matches) {
+		    if (articles.containsKey(a))
+			System.out.println("Duplicate: " + a.getTitle());
+		    articles.putIfAbsent(a.getId(), a);
+		}
 	    } else {
 		// TODO deal with other responses
 		throw new Exception("Error response from request: " + response.getStatus());
@@ -168,15 +176,22 @@ public class CoreApi {
 	// cover the rest, via recursion
 	if (articles.size() < totalHits && (limit < 0 || articles.size() < limit)) { // articles left?
 	    long newLimit = (limit < 0 ? limit : limit - articles.size());
+	    System.out.println("articles:" + articles.size());
 	    System.out.println("newLimit: " + newLimit);
 	    long newOffset = offset + queries.size();
+	    System.out.println("queries: " + queries.size());
 	    System.out.println("newOffset: " + newOffset);
-	    List<Article> rest = listArticles(year, newOffset, newLimit,
+	    Collection<Article> rest = listArticles(year, newOffset, newLimit,
 		metadata, fulltext, citations, similar, duplicate, urls, faithfulMetadata);
-	    articles.addAll(rest);
+	    for (Article a : rest) {
+		if (articles.containsKey(a))
+		    System.out.println("Duplicate: " + a.getTitle());
+		articles.putIfAbsent(a.getId(), a);
+	    }
 	}
+	System.out.println("Articles: " + articles.values().size());
 
-	return articles;
+	return articles.values();
     }
 
     

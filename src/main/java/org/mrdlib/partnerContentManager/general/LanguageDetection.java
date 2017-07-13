@@ -62,7 +62,7 @@ public class LanguageDetection {
     public static List<String> detectLanguage(List<String> documents) throws InterruptedException {
 
         // parallize task
-        ExecutorService pool = Executors.newWorkStealingPool();
+        ExecutorService pool = Executors.newCachedThreadPool();
         List<Future<String>> languages = new ArrayList<Future<String>>(documents.size());
         // initialize only one detector for each thread: 
         // loading models is bottleneck, but we also don't want to block
