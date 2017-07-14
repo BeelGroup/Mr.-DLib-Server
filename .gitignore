@@ -20,3 +20,6 @@ build/
 /src/main/resources/config.properties
 /tomcat.xml
 *.*~
+/GPATH
+/GRTAGS
+/GTAGS

@@ -2,6 +2,7 @@ package org.mrdlib.partnerContentManager.core;
 
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.partnerContentManager.core.model.*;
+import org.mrdlib.partnerContentManager.general.QuotaReachedException;
 
 import java.util.List;
 import java.util.Collection;
@@ -22,11 +23,15 @@ import org.apache.http.client.utils.URIBuilder;
 import com.owlike.genson.Genson;
 
 public class CoreApi {
+
+
     private static final String endpoint = "https://core.ac.uk/api-v2/";
     private static final String articleBatchPath = "articles/get";
     private static final String articleSearchPath = "articles/search";
     public static final int MAX_PAGE_SIZE = 100;
-    public static final int MAX_BATCH_SIZE = 100;
+    public static final int MAX_BATCH_SIZE = 90; // test fails for 100 for some reason
+    public static final int QUOTA_TIME_SEARCH = 10 * 1000;
+    public static final int QUOTA_TIME_GET = 10 * 1000;
 
     private String apiKey;
     private HttpClient http;
@@ -123,14 +128,12 @@ public class CoreApi {
 	// no listAll in API; alternative: try all IDs
 	List<SearchRequest> queries = new ArrayList<SearchRequest>();
 
-	String query = "year:" + year;
+	String query = "year:" + year; // TODO: try from, to syntax
 	// go through as many pages as possible
 	for (long i = 1; (i-1) * MAX_PAGE_SIZE < limit * MAX_PAGE_SIZE && queries.size() < MAX_BATCH_SIZE; i++) {
 	    SearchRequest search = new SearchRequest();
 	    int pageSize = (int)(i * MAX_PAGE_SIZE < limit ?
 				 MAX_PAGE_SIZE : limit - (i-1) * MAX_PAGE_SIZE);
-	    if (pageSize > 0 && pageSize != MAX_PAGE_SIZE)
-		System.out.println("PageSize: " + pageSize);
 	    if (pageSize > 0)
 		queries.add(search
 			    .query(query)
@@ -140,12 +143,10 @@ public class CoreApi {
 	    else
 		break;
 	} 
-	System.out.println(json.serialize(queries));
 
 	long startTime = System.currentTimeMillis();
 	HttpEntity entity = doRequest(articleSearchPath, json.serialize(queries),
 	    metadata, fulltext, citations, similar, duplicate, urls, faithfulMetadata);
-	System.out.println("Request took " + startTime / 1000 + "s");
 
 	ArticleSearchResponse[] responses = json.deserialize(entity.getContent(), ArticleSearchResponse[].class);
 
@@ -160,12 +161,13 @@ public class CoreApi {
 		List<Article> matches = response.getData();
 		// avoid duplicates
 		for (Article a : matches) {
-		    if (articles.containsKey(a))
-			System.out.println("Duplicate: " + a.getTitle());
-		    articles.putIfAbsent(a.getId(), a);
+		    articles.put(a.getId(), a);
 		}
+	    // TODO deal with other responses
+	    // especially quota
+	    } else if (status.equals(ArticleSearchResponse.TOO_MANY_QUERIES)) {
+		throw new QuotaReachedException(QUOTA_TIME_SEARCH);
 	    } else {
-		// TODO deal with other responses
 		throw new Exception("Error response from request: " + response.getStatus());
 	    }
 	}
@@ -176,20 +178,13 @@ public class CoreApi {
 	// cover the rest, via recursion
 	if (articles.size() < totalHits && (limit < 0 || articles.size() < limit)) { // articles left?
 	    long newLimit = (limit < 0 ? limit : limit - articles.size());
-	    System.out.println("articles:" + articles.size());
-	    System.out.println("newLimit: " + newLimit);
 	    long newOffset = offset + queries.size();
-	    System.out.println("queries: " + queries.size());
-	    System.out.println("newOffset: " + newOffset);
 	    Collection<Article> rest = listArticles(year, newOffset, newLimit,
 		metadata, fulltext, citations, similar, duplicate, urls, faithfulMetadata);
 	    for (Article a : rest) {
-		if (articles.containsKey(a))
-		    System.out.println("Duplicate: " + a.getTitle());
-		articles.putIfAbsent(a.getId(), a);
+		articles.put(a.getId(), a);
 	    }
 	}
-	System.out.println("Articles: " + articles.values().size());
 
 	return articles.values();
     }

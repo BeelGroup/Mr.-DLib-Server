@@ -1,6 +1,8 @@
 package org.mrdlib.partnerContentManager.core;
 
 import org.mrdlib.partnerContentManager.core.model.*;
+import org.mrdlib.partnerContentManager.general.QuotaReachedException;
+
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +36,7 @@ public class CoreApiTest {
 	api = new CoreApi();
     }
 
-    // @Test
+    @Test
     public void articleBatchRequest() throws Exception {
 	List<Integer> ids = Arrays.asList(new Integer[] {1});
 	List<Article> articles = api.getArticles(ids);
@@ -48,7 +50,7 @@ public class CoreApiTest {
 	assertEquals(a.getAuthors().get(0), "Ramsden, Anne");
     }
 
-    // @Test
+    @Test
     public void nonExistingArticleBatchRequest() throws Exception {
 	List<Integer> ids = Arrays.asList(new Integer[] {-1});
 	List<Article> articles = api.getArticles(ids);
@@ -60,24 +62,22 @@ public class CoreApiTest {
     @Test
     public void articleListRequest() throws Exception {
 	// test single page with limit
-	// Collection<Article> articles = api.listArticles(2017, 0, 10);
-	// assertEquals("simple fetching with limit", articles.size(), 10);
-	// for (Article a : articles) {
-	//     System.out.println("1: " + a.getTitle());
-	//     assertNotNull(a);
-	//     assertEquals("correct year", new Integer(2017), a.getYear());
-	// }
-	// // test page offset
-	// Collection<Article> first = articles;
-	// articles = api.listArticles(2017, 1, 10);
-	// assertEquals(10, articles.size());
-	// for (Article a : articles) {
-	//     System.out.println("2: " + a.getTitle());
-	//     assertNotNull(a);
-	//     assertEquals(new Integer(2017), a.getYear());
-	//     // should be distinct from first
-	//     assertFalse("fetching with offset: results should be distinct", first.contains(a));
-	// }
+	Collection<Article> articles = api.listArticles(2017, 0, 10);
+	assertEquals("simple fetching with limit", articles.size(), 10);
+	for (Article a : articles) {
+	    assertNotNull(a);
+	    assertEquals("correct year", new Integer(2017), a.getYear());
+	}
+	// test page offset
+	Collection<Article> first = articles;
+	articles = api.listArticles(2017, 1, 10);
+	assertEquals(10, articles.size());
+	for (Article a : articles) {
+	    assertNotNull(a);
+	    assertEquals(new Integer(2017), a.getYear());
+	    // should be distinct from first
+	    assertFalse("fetching with offset: results should be distinct", first.contains(a));
+	}
 	// paging
 	UncheckedConsumer<Integer> fetchNArticles = (Integer size) -> {
 	    Collection<Article> list = api.listArticles(2017, 0, size);
@@ -91,8 +91,26 @@ public class CoreApiTest {
 		assertFalse("no duplicates", other.contains(a));
 	    }
 	};
-	// fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * 2); // one reques
+	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * 2); // one request
 	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * (CoreApi.MAX_BATCH_SIZE + 1)); // multiple requests
+    }
+
+    @Test()
+    public void reachQuotaLimit() throws Exception {
+	try {
+	    long startTime = System.currentTimeMillis();
+	    for (int i = 0; i < 10; i++)
+		api.listArticles(2017, 0, 10);
+
+	    if (System.currentTimeMillis() - startTime < CoreApi.QUOTA_TIME_SEARCH)
+		fail("expected QuotaReachedException to be thrown");
+	    else
+		System.err.println("requests took to long to reach api limit; could not test quota");
+	} catch (QuotaReachedException e) {
+	    assertEquals(e.getWaitTime(), CoreApi.QUOTA_TIME_SEARCH);
+	    Thread.sleep(CoreApi.QUOTA_TIME_SEARCH);
+	    assertEquals(1, api.listArticles(2017, 0, 1).size());
+	}
     }
 
 }
