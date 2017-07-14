@@ -96,3 +96,10 @@ subprojects {
     sourceSets.main.java.srcDirs = ['../src/main/java']
     sourceSets.main.resources.srcDirs = ['../src/main/resources']
 }
+
+// print test output on console
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
