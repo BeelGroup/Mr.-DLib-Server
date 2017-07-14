@@ -301,9 +301,6 @@ public class Constants {
 
 	private String probabilitiesConfigPath;
 
-	private String mediatum;
-
-	private String mediatumCollectionLink;
 
 
 	// load the config file
