@@ -82,6 +82,7 @@ public class solrConnection {
 
 		// get related documents for the given document
 		query.setQuery(constants.getDocumentIdInSolr() + ":" + document.getDocumentId());
+		System.out.println(query);
 
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
@@ -89,15 +90,16 @@ public class solrConnection {
 		if (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases")) {
 			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getCbfFeatureType(),
 					logginginfo.getCbfFeatureCount());
-			query.setParam("mlt.fl", similarityParams + ", keywords, published_in");
+			query.setParam("mlt.fl", similarityParams);
 			query.setParam("mlt.df", "2");
 		}
 		// set display params
 		query.setParam("fl", "score,id");
-		// System.out.println(query);
+		System.out.println(query);
 		// System.out.println(timeNow);
 		try {
 			response = solr.query(query);
+			System.out.println(query);
 
 			SolrDocumentList docs = response.getResults();
 			// no related documents found
@@ -162,19 +164,20 @@ public class solrConnection {
 	 * @return a string which refers to the Solr column name for comparison
 	 */
 	private String getMltFL(String source, String type, String number) {
+		if(number.equals("0")) number = "copy";
 		String template = source + "_%s_" + number;
 		String uni = String.format(template, "unigrams");
 		String bi = String.format(template, "bigrams");
 		String tri = String.format(template, "trigrams");
 		switch (type) {
 		case "unibitri":
-			return uni + "," + bi + "," + tri;
+			return uni + ", " + bi + ", " + tri;
 		case "unibi":
-			return uni + "," + bi;
+			return uni + ", " + bi;
 		case "unitri":
-			return uni + "," + tri;
+			return uni + ", " + tri;
 		case "bitri":
-			return bi + "," + tri;
+			return bi + ", " + tri;
 		default:
 			return String.format(template, type + "s");
 

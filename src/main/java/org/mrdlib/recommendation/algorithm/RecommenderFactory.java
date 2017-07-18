@@ -159,7 +159,7 @@ public class RecommenderFactory {
 															// fallback.
 								else {
 									// Check presence and language of abstract
-									rdg = new RelatedDocumentsKeyphrases(con);
+									rdg = new RelatedDocumentsKeyphrasesRevised(con);
 									String abstLang = con.getAbstractDetails(requestDocument);
 									if (!abstLang.equals("en"))
 										// if not set algorithmLoggingInfo.type

@@ -1277,7 +1277,6 @@ public class DBConnection {
 		return persons;
 	}
 
-	
 	/**
 	 * 
 	 * Get a complete displayable Document by any customized field (returns only
@@ -1320,7 +1319,7 @@ public class DBConnection {
 				for (int i = 0; i < authors.size(); i++)
 					joiner.add(authors.get(i).getName());
 
-				if(authors.size() > 0){
+				if (authors.size() > 0) {
 					authorNames = joiner.toString();
 				}
 
@@ -1331,8 +1330,8 @@ public class DBConnection {
 
 				// create a new document with values from the database
 				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
-						rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn,
-						docAbstract, keywords, rs.getInt(constants.getYear()), "", "", "", constants);
+						rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn, docAbstract,
+						keywords, rs.getInt(constants.getYear()), "", "", "", constants);
 				if (rs.wasNull())
 					document.setYear(-1);
 
@@ -1363,7 +1362,6 @@ public class DBConnection {
 			}
 		}
 	}
-
 
 	/**
 	 * 
@@ -3263,6 +3261,7 @@ public class DBConnection {
 			}
 
 			}
+			System.out.println(query);
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 

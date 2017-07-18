@@ -2,7 +2,6 @@ package org.mrdlib.recommendation.algorithm;
 
 import java.util.Random;
 
-import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
 

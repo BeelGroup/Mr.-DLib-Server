@@ -1,6 +1,5 @@
 package org.mrdlib.recommendation.algorithm;
 
-import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
