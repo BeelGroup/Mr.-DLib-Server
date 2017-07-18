@@ -109,7 +109,6 @@ public class RecommenderFactory {
 	}
 
 	public static RelatedDocuments returnStandardDistributionRDG(DBConnection con, DisplayDocument requestDocument) {
-	    // return new Doc2VecRecommender(con);
 		Random random = new Random();
 
 		int randomRecommendationApproach = random.nextInt(10000);
@@ -160,7 +159,7 @@ public class RecommenderFactory {
 															// fallback.
 								else {
 									// Check presence and language of abstract
-									rdg = new RelatedDocumentsKeyphrases(con);
+									rdg = new RelatedDocumentsKeyphrasesRevised(con);
 									String abstLang = con.getAbstractDetails(requestDocument);
 									if (!abstLang.equals("en"))
 										// if not set algorithmLoggingInfo.type
