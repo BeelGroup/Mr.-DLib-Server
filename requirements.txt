@@ -1,0 +1,2 @@
+gensim # note: needed gfortran for that, blas-devel & atlas-devel
+scorched
