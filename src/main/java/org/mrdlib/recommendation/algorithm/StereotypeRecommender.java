@@ -4,6 +4,8 @@ import java.util.Random;
 
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.database.NoEntryException;
+import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
 
 public class StereotypeRecommender extends RelatedDocuments {
 
@@ -21,21 +23,27 @@ public class StereotypeRecommender extends RelatedDocuments {
 		this.con = con;
 		Random random = new Random();
 		String category = "";
-		switch(random.nextInt(4)){
-		case 0: category = "mix";
-		break;
-		case 1: category = "academic_writing";
-		break;
-		case 2: category = "research_methods";		break;
+		switch (random.nextInt(4)) {
+		case 0:
+			category = "mix";
+			break;
+		case 1:
+			category = "academic_writing";
+			break;
+		case 2:
+			category = "research_methods";
+			break;
 
-		case 3: category = "research_evaluation_and_peer_review";		break;
+		case 3:
+			category = "research_evaluation_and_peer_review";
+			break;
 
-		default: category = "mix";
+		default:
+			category = "mix";
 		}
 		algorithmLoggingInfo = new AlgorithmDetails("StereotypeRecommender", "stereotype", false, category);
 
 	}
-
 
 	@Override
 	/**
@@ -46,6 +54,9 @@ public class StereotypeRecommender extends RelatedDocuments {
 		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo);
 		try {
 			results = con.getStereotypeRecommendations(requestDocSet);
+		} catch (NoEntryException f) {
+			throw new NoRelatedDocumentsException(requestDocSet.getRequestedDocument().getDocumentId(),
+					requestDocSet.getRequestedDocument().getOriginalDocumentId());
 		} catch (Exception e) {
 			throw e;
 		}

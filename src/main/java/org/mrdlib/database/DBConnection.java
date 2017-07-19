@@ -37,8 +37,7 @@ import org.mrdlib.partnerContentManager.gesis.Abstract;
 import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.gesis.XMLDocument;
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
-
-
+import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
 import org.mrdlib.utils.Pair;
 
 /**
@@ -1428,23 +1427,28 @@ public class DBConnection {
 		}
 	}
 
-/**
+	/**
 	 * set given values for specific entries via batch update
 	 * 
-	 * @param talbeName wich table to update
-	 * @param idColumn which kind of ids are given
-	 * @param ids ids of documents to update
-	 * @param valueColumn which column to update
-	 * @param values values to set, in same order as id 
+	 * @param talbeName
+	 *            wich table to update
+	 * @param idColumn
+	 *            which kind of ids are given
+	 * @param ids
+	 *            ids of documents to update
+	 * @param valueColumn
+	 *            which column to update
+	 * @param values
+	 *            values to set, in same order as id
 	 */
-	public void setRowValues(String tableName, String idColumn, List<Object> ids, int idType, String valueColumn, List<Object> values, int valueType) throws Exception {
+	public void setRowValues(String tableName, String idColumn, List<Object> ids, int idType, String valueColumn,
+			List<Object> values, int valueType) throws Exception {
 		PreparedStatement stmt = null;
 		if (ids.size() != values.size()) {
 			throw new Exception("Values and IDs are not of equal length.");
 		}
 		try {
-			String query = "UPDATE " + tableName +
-				" SET " + valueColumn + " = ? " + " WHERE " + idColumn + " = ?";
+			String query = "UPDATE " + tableName + " SET " + valueColumn + " = ? " + " WHERE " + idColumn + " = ?";
 			stmt = con.prepareStatement(query);
 			for (int i = 0; i < ids.size(); i++) {
 				stmt.setObject(1, values.get(i), valueType);
@@ -1462,15 +1466,19 @@ public class DBConnection {
 	 * get database entries where given column is NULL
 	 * 
 	 * @paramName tableName table to access
-	 * @param columnName column to use for filtering
-	 * @param attributes database columns to read
-	 * @param limit limit; <=0 for no limit
+	 * @param columnName
+	 *            column to use for filtering
+	 * @param attributes
+	 *            database columns to read
+	 * @param limit
+	 *            limit; <=0 for no limit
 	 * @return matching documents
 	 */
-	public List<HashMap<String, Object>> getEntriesWithMissingValue(String tableName, String columnName, List<String> attributes, long limit) throws Exception {
+	public List<HashMap<String, Object>> getEntriesWithMissingValue(String tableName, String columnName,
+			List<String> attributes, long limit) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<HashMap<String,Object>> entries = new ArrayList<HashMap<String,Object>>();
+		List<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
 
 		try {
 			// get all information of a document stored in a database by the
@@ -1487,12 +1495,12 @@ public class DBConnection {
 
 			while (rs.next()) {
 				// create a simple document with values from the database
-				HashMap<String, Object> entry = new HashMap<String,Object>(attributes.size());
+				HashMap<String, Object> entry = new HashMap<String, Object>(attributes.size());
 				for (String attr : attributes) {
 					entry.put(attr, rs.getObject(attr));
 				}
 				entries.add(entry);
-			} 
+			}
 		} finally {
 			if (stmt != null)
 				stmt.close();
@@ -1502,20 +1510,21 @@ public class DBConnection {
 		return entries;
 	}
 
-	public List<DisplayDocument> getDocumentsWithMissingValues(String columnName, long limit) throws Exception{
-		List<String> attributes = Arrays.asList(new String[] { 
-			constants.getTitle(), constants.getDocumentId(),
-			 constants.getIdOriginal()});
-		List<HashMap<String, Object>> entries = getEntriesWithMissingValue(constants.getDocuments(), columnName, attributes, limit);
+	public List<DisplayDocument> getDocumentsWithMissingValues(String columnName, long limit) throws Exception {
+		List<String> attributes = Arrays
+				.asList(new String[] { constants.getTitle(), constants.getDocumentId(), constants.getIdOriginal() });
+		List<HashMap<String, Object>> entries = getEntriesWithMissingValue(constants.getDocuments(), columnName,
+				attributes, limit);
 
 		List<DisplayDocument> documents = new ArrayList<DisplayDocument>(entries.size());
 		for (HashMap<String, Object> entry : entries) {
 			DisplayDocument doc = new DisplayDocument(entry.get(constants.getTitle()).toString(),
-			 entry.get(constants.getDocumentId()).toString(), entry.get(constants.getIdOriginal()).toString());
-			 documents.add(doc);
+					entry.get(constants.getDocumentId()).toString(), entry.get(constants.getIdOriginal()).toString());
+			documents.add(doc);
 		}
 		return documents;
 	}
+
 	/**
 	 * Get the number of documents present in database (by searching for highest
 	 * ID
@@ -2765,23 +2774,31 @@ public class DBConnection {
 
 		int numberOfRelatedDocs = documentSet.getDesiredNumberFromAlgorithm();
 		AlgorithmDetails algorithmLoggingInfo = documentSet.getAlgorithmDetails();
-
+		List<String> allowedCollections = getAccessableCollections(documentSet.getRequestingPartnerId());
 		String query = "";
 		try {
 			stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-			query = "SELECT " + constants.getDocumentIdinStereotypeRecommendations() + " FROM "
-					+ constants.getStereotypeRecommendations() + " WHERE " + constants.getStereotypeCategory();
+			query = "SELECT " + constants.getStereotypeRecommendations() + "." + constants.getDocumentId() + " FROM "
+					+ constants.getStereotypeRecommendations() + " LEFT JOIN " + constants.getDocuments() + " ON "
+					+ constants.getDocuments() + "." + constants.getDocumentId() + "="
+					+ constants.getStereotypeRecommendations() + "." + constants.getDocumentId() + " WHERE "
+					+ constants.getCollectionID() + " IN (" + String.join(",", allowedCollections) + ") AND "
+					+ constants.getStereotypeCategory();
 			if (algorithmLoggingInfo.getCategory().equals("mix")) {
 				query += " NOT IN ('most_viewed', 'most_exported') ";
 			} else {
 				query += "='" + algorithmLoggingInfo.getCategory() + "'";
 			}
 			query += " ORDER BY RAND()";
-			// System.out.println(query);
+			System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			documentSet.setSuggested_label("Related Articles");
+
+			if (!rs.next())
+				throw new NoEntryException(documentSet.getRequestingPartnerId(), "Allowed collections for partner");
+			rs.beforeFirst();
 
 			if (rs.last()) {
 				int rows = rs.getRow();
@@ -2789,6 +2806,7 @@ public class DBConnection {
 				rs.beforeFirst();
 			}
 			int i = 0;
+
 			while (rs.next() && i < numberOfRelatedDocs) {
 				DisplayDocument relDocument = getDocumentBy(constants.getDocumentId(),
 						rs.getString(constants.getDocumentIdinStereotypeRecommendations()));
@@ -2797,6 +2815,7 @@ public class DBConnection {
 
 				// HARDCODED FOR COMPATABILITY
 				relDocument.setRelevanceScoreFromAlgorithm(1.00);
+
 				if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
 					if (constants.getEnvironment().equals("api"))
 						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
@@ -2806,13 +2825,18 @@ public class DBConnection {
 				} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 					fallback_url = constants.getCoreCollectionLink()
 							.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+				else if (relDocument.getCollectionShortName().contains(constants.getMediatum()))
+					fallback_url = constants.getMediatumCollectionLink()
+							.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+
 				relDocument.setFallbackUrl(fallback_url);
 				documentSet.addDocument(relDocument);
 				i++;
 			}
 			return documentSet;
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (!(e instanceof NoEntryException))
+				e.printStackTrace();
 			throw e;
 		} finally {
 			try {
@@ -3169,12 +3193,16 @@ public class DBConnection {
 
 	private AlgorithmDetails setRecommendationProvider(AlgorithmDetails algorithmDetails) {
 		String algorithmName = algorithmDetails.getName();
-		if(algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())){
-			algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", constants.getApplicationFullName()));
-			algorithmDetails.setRecommendationProviderId(getIdInApplications("core_recsys", constants.getApplicationId()));
-		}else{
-			algorithmDetails.setRecommendationProvider(getIdInApplications("mdl_recsys", constants.getApplicationFullName()));
-			algorithmDetails.setRecommendationProviderId(getIdInApplications("mdl_recsys", constants.getApplicationId()));
+		if (algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())) {
+			algorithmDetails
+					.setRecommendationProvider(getIdInApplications("core_recsys", constants.getApplicationFullName()));
+			algorithmDetails
+					.setRecommendationProviderId(getIdInApplications("core_recsys", constants.getApplicationId()));
+		} else {
+			algorithmDetails
+					.setRecommendationProvider(getIdInApplications("mdl_recsys", constants.getApplicationFullName()));
+			algorithmDetails
+					.setRecommendationProviderId(getIdInApplications("mdl_recsys", constants.getApplicationId()));
 		}
 		return algorithmDetails;
 	}
@@ -4379,34 +4407,30 @@ public class DBConnection {
 		return new Pair<List<Long>, List<Boolean>>(recommendationSetIds, shuffled);
 	}
 
-	/*public Boolean checkShuffled(Long id) {
-		String query = "SELECT " + constants.getRankAfterReRanking() + ", " + constants.getRankDelivered() + " FROM "
-				+ constants.getRecommendations() + " WHERE " + constants.getRecommendationSetsId() + "=?";
-		try (PreparedStatement stmt = con.prepareStatement(query)) {
-			stmt.setLong(1, id);
-			ResultSet rs = stmt.executeQuery();
-			List<Integer> rankAfterReRank = new ArrayList<Integer>();
-			List<Integer> rankDelivered = new ArrayList<Integer>();
-			while (rs.next()) {
-				rankAfterReRank.add(rs.getInt(constants.getRankAfterReRanking()));
-				rankDelivered.add(rs.getInt(constants.getRankDelivered()));
-			}
-			return !rankAfterReRank.equals(rankDelivered);
-		} catch (SQLException e) {
-			System.out.printf(query + " ?= %d", id);
-		}
-		return null;
-	}*/
+	/*
+	 * public Boolean checkShuffled(Long id) { String query = "SELECT " +
+	 * constants.getRankAfterReRanking() + ", " + constants.getRankDelivered() +
+	 * " FROM " + constants.getRecommendations() + " WHERE " +
+	 * constants.getRecommendationSetsId() + "=?"; try (PreparedStatement stmt =
+	 * con.prepareStatement(query)) { stmt.setLong(1, id); ResultSet rs =
+	 * stmt.executeQuery(); List<Integer> rankAfterReRank = new
+	 * ArrayList<Integer>(); List<Integer> rankDelivered = new
+	 * ArrayList<Integer>(); while (rs.next()) {
+	 * rankAfterReRank.add(rs.getInt(constants.getRankAfterReRanking()));
+	 * rankDelivered.add(rs.getInt(constants.getRankDelivered())); } return
+	 * !rankAfterReRank.equals(rankDelivered); } catch (SQLException e) {
+	 * System.out.printf(query + " ?= %d", id); } return null; }
+	 */
 
 	public List<Boolean> getShuffledFlagInDB(Long startingSet, Long endingSet) {
 		List<Boolean> shuffled = new ArrayList<Boolean>();
 		String query = "SELECT " + constants.getShuffled() + " FROM " + constants.getRecommendationAlgorithm()
 				+ " AS ra JOIN " + constants.getRecommendationSets() + " AS rs ON ra."
 				+ constants.getRecommendationAlgorithmId() + "= rs." + constants.getRecommendationAlgorithmId()
-				+ " RIGHT JOIN " + constants.getRecommendations() +" as r on r." 
-				+ constants.getRecommendationSetsId() + "=rs." + constants.getRecommendationSetsId()
-				+ " WHERE r." + constants.getRecommendationSetsId() + " BETWEEN ? AND ? GROUP BY r."
-				+ constants.getRecommendationSetsId() + " HAVING COUNT(r." + constants.getRecommendationId() + ")>0"; 
+				+ " RIGHT JOIN " + constants.getRecommendations() + " as r on r." + constants.getRecommendationSetsId()
+				+ "=rs." + constants.getRecommendationSetsId() + " WHERE r." + constants.getRecommendationSetsId()
+				+ " BETWEEN ? AND ? GROUP BY r." + constants.getRecommendationSetsId() + " HAVING COUNT(r."
+				+ constants.getRecommendationId() + ")>0";
 		try (PreparedStatement stmt = con.prepareStatement(query)) {
 			stmt.setLong(1, startingSet);
 			stmt.setLong(2, endingSet);
@@ -4435,7 +4459,7 @@ public class DBConnection {
 			stmt.setLong(1, id);
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
-				//System.out.println(id + " , " + rs.getString(1));
+				// System.out.println(id + " , " + rs.getString(1));
 				recommendationClass = rs.getString(constants.getRecommendationClass());
 				langRestriction = rs.getString(constants.getLanguageRestrictionInRecommenderAlgorithm());
 				shuffled = rs.getBoolean(constants.getShuffled());
@@ -4487,12 +4511,14 @@ public class DBConnection {
 			break;
 		}
 		case "stereotype": {
-			selectQuery += " AND " + constants.getStereotypeRecommendationDetailsId() + "=" + Long.toString(algorithmId);
+			selectQuery += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
+					+ Long.toString(algorithmId);
 			break;
 		}
 
 		case "most_popular": {
-			selectQuery += " AND " + constants.getMostPopularRecommendationDetailsId() + "=" + Long.toString(algorithmId);
+			selectQuery += " AND " + constants.getMostPopularRecommendationDetailsId() + "="
+					+ Long.toString(algorithmId);
 			break;
 		}
 
@@ -4507,7 +4533,7 @@ public class DBConnection {
 			System.out.println(query);
 			return (long) 0;
 		}
-		
+
 		String insertQuery = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
 		String columns = "";
 		String values = "";
@@ -4524,8 +4550,8 @@ public class DBConnection {
 				+ (recommendationClass.contains("random") ? "" : (", " + Long.toString(algorithmId))) + ", "
 				+ (newShuffledStatus ? "'Y' " : "'N' ") + ", '" + desiredNumber + "'";
 		insertQuery += (columns + ") VALUES(" + values + ")");
-		try (PreparedStatement insertStmt = con.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS);
-					) {
+		try (PreparedStatement insertStmt = con.prepareStatement(insertQuery,
+				PreparedStatement.RETURN_GENERATED_KEYS);) {
 			insertStmt.executeUpdate();
 			ResultSet insertResults = insertStmt.getGeneratedKeys();
 			if (insertResults.next()) {
@@ -4541,15 +4567,15 @@ public class DBConnection {
 	public Pair<Long, Boolean> updateRecommendationAlgorithmIdInRecomemndationSet(Pair<Long, Long> fixedPair) {
 		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
 				+ constants.getRecommendationAlgorithmId() + "=? WHERE " + constants.getRecommendationSetsId() + " =?";
-		try(PreparedStatement stmt = con.prepareStatement(query)){
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
 			stmt.setLong(1, fixedPair.getValue());
 			stmt.setLong(2, fixedPair.getKey());
 			stmt.executeUpdate();
-		}catch (SQLException e) {
+		} catch (SQLException e) {
 			System.out.println(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
 			return new Pair<Long, Boolean>(fixedPair.getKey(), false);
 		}
-			
+
 		return new Pair<Long, Boolean>(fixedPair.getKey(), true);
 	}
 

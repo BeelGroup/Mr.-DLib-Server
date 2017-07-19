@@ -40,6 +40,7 @@ public class CoreRecommender extends RelatedDocuments {
 		for(int i = 0; i<coreDocumentSet.getSize(); i++){
 			try{
 				DisplayDocument docFromDatabase  = con.getDocumentBy("id_original", coreDocumentSet.getDisplayDocument(i).getOriginalDocumentId());
+				docFromDatabase.setFallbackUrl("https://core.ac.uk/display/".concat(docFromDatabase.getOriginalDocumentId().split("-")[1]));
 				docList.add(docFromDatabase);
 			}catch(NoEntryException e){
 				DisplayDocument docToAdd = coreDocumentSet.getDisplayDocument(i);

@@ -82,7 +82,6 @@ public class solrConnection {
 
 		// get related documents for the given document
 		query.setQuery(constants.getDocumentIdInSolr() + ":" + document.getDocumentId());
-		System.out.println(query);
 
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
@@ -95,11 +94,8 @@ public class solrConnection {
 		}
 		// set display params
 		query.setParam("fl", "score,id");
-		System.out.println(query);
-		// System.out.println(timeNow);
 		try {
 			response = solr.query(query);
-			System.out.println(query);
 
 			SolrDocumentList docs = response.getResults();
 			// no related documents found
@@ -132,12 +128,10 @@ public class solrConnection {
 					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
-					// url = "http://api.mr-dlib.org/trial/recommendations/" +
-					// relDocument.getRecommendationId() +
-					// "/original_url?access_key=" +"hash"
-					// +"&format=direct_url_forward";
+					else if (relDocument.getCollectionShortName().contains(constants.getMediatum()))
+						fallback_url = constants.getMediatumCollectionLink()
+								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 
-					// relDocument.setClickUrl(url);
 					relDocument.setFallbackUrl(fallback_url);
 					// add it to the collection
 					relatedDocuments.addDocument(relDocument);
@@ -164,7 +158,8 @@ public class solrConnection {
 	 * @return a string which refers to the Solr column name for comparison
 	 */
 	private String getMltFL(String source, String type, String number) {
-		if(number.equals("0")) number = "copy";
+		if (number.equals("0"))
+			number = "copy";
 		String template = source + "_%s_" + number;
 		String uni = String.format(template, "unigrams");
 		String bi = String.format(template, "bigrams");
@@ -203,7 +198,7 @@ public class solrConnection {
 	 */
 	public DocumentSet getRandomDocumentSet(DocumentSet relatedDocuments, Boolean restrictLanguage, String seed)
 			throws Exception {
-		
+
 		DisplayDocument document = relatedDocuments.getRequestedDocument();
 		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
 		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
@@ -270,6 +265,9 @@ public class solrConnection {
 					} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+					else if (relDocument.getCollectionShortName().contains(constants.getMediatum()))
+						fallback_url = constants.getMediatumCollectionLink()
+								.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 
 					// url = "http://api.mr-dlib.org/trial/recommendations/" +
 					// relDocument.getRecommendationId() +
@@ -294,9 +292,9 @@ public class solrConnection {
 		DisplayDocument requestedDocument = relatedDocuments.getRequestedDocument();
 		AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
 		int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
-		
+
 		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
-		
+
 		String title = requestedDocument.getCleanTitle();
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
@@ -312,7 +310,7 @@ public class solrConnection {
 			queryHandler = "/search";
 		}
 		query.setRequestHandler(queryHandler);
-		query.setFilterQueries(constants.getCollectionID() + ":(" + String.join(" ", allowedCollections) +")");
+		query.setFilterQueries(constants.getCollectionID() + ":(" + String.join(" ", allowedCollections) + ")");
 		String fallback_url = "";
 
 		// get related documents for the given document title using the standard
@@ -332,34 +330,41 @@ public class solrConnection {
 
 			}
 
-			if(constants.getDebugModeOn()) System.out.println("set query with= " + queryString.toString());
+			if (constants.getDebugModeOn())
+				System.out.println("set query with= " + queryString.toString());
 			query.set("q", queryString.toString());
-			if(constants.getDebugModeOn()) System.out.println("set query with title: " + queryString.toString());
+			if (constants.getDebugModeOn())
+				System.out.println("set query with title: " + queryString.toString());
 		} else {
 			query.setQuery(title);
 
 		}
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
-		if(constants.getDebugModeOn()) System.out.println("max rows are: " + delimitedRows);
+		if (constants.getDebugModeOn())
+			System.out.println("max rows are: " + delimitedRows);
 		// set display params
 		query.setParam("fl", "score,id");
 
 		try {
-			if(constants.getDebugModeOn()) System.out.println("try to get the response from solr! The query looks like: " + query);
+			if (constants.getDebugModeOn())
+				System.out.println("try to get the response from solr! The query looks like: " + query);
 			response = solr.query(query);
-			if(constants.getDebugModeOn()) System.out.println("response seems to be: " + response.toString());
+			if (constants.getDebugModeOn())
+				System.out.println("response seems to be: " + response.toString());
 			SolrDocumentList docs = response.getResults();
-			if(constants.getDebugModeOn()) System.out.println("Query Time: " + Integer.toString(response.getQTime()));
+			if (constants.getDebugModeOn())
+				System.out.println("Query Time: " + Integer.toString(response.getQTime()));
 
 			// no related documents found
 			if (docs.isEmpty()) {
-				if(constants.getDebugModeOn()) System.out.println("docs.isEmpty() is true");
+				if (constants.getDebugModeOn())
+					System.out.println("docs.isEmpty() is true");
 				throw new NoRelatedDocumentsException("query was performed by title: " + title,
 						"query was performed by title: " + title);
 			} else {
-				if(constants.getDebugModeOn()) System.out.println("docs.isEmpty() is false");
-				long timeNow = System.currentTimeMillis();
+				if (constants.getDebugModeOn())
+					System.out.println("docs.isEmpty() is false");
 				relatedDocuments.setSuggested_label("Related Articles");
 				relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
 				// for each document add it to documentSet
@@ -382,6 +387,9 @@ public class solrConnection {
 					else if (oneRelatedDocument.getCollectionShortName().contains(constants.getCore()))
 						fallback_url = constants.getCoreCollectionLink()
 								.concat(oneRelatedDocument.getOriginalDocumentId().split("-")[1]);
+					else if (oneRelatedDocument.getCollectionShortName().contains(constants.getMediatum()))
+						fallback_url = constants.getMediatumCollectionLink()
+								.concat(oneRelatedDocument.getOriginalDocumentId().split("-")[1]);
 					else {
 						String titleAsUrl = URLEncoder.encode(title, "UTF-8");
 						fallback_url = "https://scholar.google.com/scholar?q=" + titleAsUrl;
@@ -396,8 +404,6 @@ public class solrConnection {
 					// System.out.println("added the related document with
 					// title: " + oneRelatedDocument.getTitle());
 				}
-				System.out.printf("Time for adding docs to list\t");
-				System.out.println(System.currentTimeMillis() - timeNow);
 			}
 		} catch (NoRelatedDocumentsException f) {
 			System.out.println("No related documents found related to " + title);

@@ -224,6 +224,7 @@ public class PostTitleData implements ExternalDocumentRepresentation {
 	public DisplayDocument convertToMDLDocument() {
 		DisplayDocument mdlDoc = new DisplayDocument();
 		mdlDoc.setOriginalDocumentId("core-" + this.getId());
+		mdlDoc.setFallbackUrl("https://core.ac.uk/display/".concat(this.getId()));
 		mdlDoc.setTitle(this.getTitle());
 		mdlDoc.setAuthorNames(String.join(", ", this.getAuthors()));
 		try {
