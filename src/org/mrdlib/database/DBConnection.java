@@ -1116,13 +1116,17 @@ public class DBConnection {
 		}
 	}
 	
+	/**
+	 * Returns all ids of documents of the content partner mediaTUM.
+	 * 
+	 * @return all ids of documents of the content partner mediaTUM
+	 */
 	public ArrayList<Long> getMediaTUMIdsInDatabase() {
 		ArrayList<Long> mediaTUMIds = new ArrayList<>();
 		
 		try {
 			Statement statement = con.createStatement();
 			
-			// ResultSet resultSet = statement.executeQuery("select * from document where id_original like '%mediatum%'");
 			ResultSet resultSet = statement.executeQuery("select * from document where id_original like '%mediatum%'");
 			
 			System.out.println(resultSet);
@@ -1139,6 +1143,23 @@ public class DBConnection {
 		}
 		
 		return mediaTUMIds;
+	}
+	
+	public boolean removeMediaTUMDocumentFromDatabase(long id) {
+		try {
+			Statement statement = con.createStatement();
+			
+			statement.execute("update document set title='This publication has been removed from Mr. DLib.', deleted=NOW() where id_original='mediatum-" + id + "'");
+		
+			// success
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			
+			// failure
+			return false;
+		}
 	}
 
 	/**
