@@ -183,8 +183,6 @@ public class Constants {
 	private String year;
 	private String type;
 	private String keywords;
-	private String license;
-	private String fulltextFormat;
 
 	// table collection
 	private String collectionID;
@@ -300,12 +298,6 @@ public class Constants {
 
 	// mendeleyCrawler settings
 	private String mendeleyConfigPath;
-
-	// email settings for the account used to send notifications
-	private String emailNotificationUsername;
-	private String emailNotificationPassword;
-	private String emailNotificationHost;
-	private String emailNotificationAddress;
 
 	private String probabilitiesConfigPath;
 
@@ -497,8 +489,6 @@ public class Constants {
 			this.year = prop.getProperty("year");
 			this.type = prop.getProperty("type");
 			this.keywords = prop.getProperty("keywords");
-			this.license = prop.getProperty("license");
-			this.fulltextFormat = prop.getProperty("fulltextFormat");
 
 			this.accessingOrganization = prop.getProperty("accessingOrganization");
 			this.accessedOrganization = prop.getProperty("accessedOrganization");
@@ -578,11 +568,6 @@ public class Constants {
 
 			this.numberOfRetries = Integer.parseInt(prop.getProperty("numberOfRetries"));
 			String debugModeOn = prop.getProperty("debugModeOn");
-
-			this.emailNotificationUsername = prop.getProperty("emailNotificationUsername");
-			this.emailNotificationPassword = prop.getProperty("emailNotificationPassword");
-			this.emailNotificationHost = prop.getProperty("emailNotificationHost");
-			this.emailNotificationAddress = prop.getProperty("emailNotificationAddress");
 
 			// map string true and false to boolean
 			if (debugModeOn.equals("true"))
@@ -1079,14 +1064,6 @@ public class Constants {
 		return keywords;
 	}
 
-	public String getLicense() {
-		return license;
-	}
-
-	public String getFulltextFormat() {
-		return fulltextFormat;
-	}
-
 	public String getLanguage() {
 		return language;
 	}
@@ -1490,21 +1467,5 @@ public class Constants {
 
 	public String getApplicationFullName() {
 		return applicationFullName;
-	}
-
-	public String getEmailNotificationUsername() {
-		return emailNotificationUsername;
-	}
-
-	public String getEmailNotificationPassword() {
-		return emailNotificationPassword;
-	}
-
-	public String getEmailNotificationHost() {
-		return emailNotificationHost;
-	}
-
-	public String getEmailNotificationAddress() {
-		return emailNotificationAddress;
 	}
 }

@@ -1,0 +1,6 @@
+<Context>
+	<ResourceLink name="jdbc/mrdlib" global="jdbc/mrdlib"
+		type="javax.sql.DataSource" />
+		<ResourceLink name="jdbc/mrdlib_copy" global="jdbc/mrdlib_copy"
+		type="javax.sql.DataSource" />
+</Context>

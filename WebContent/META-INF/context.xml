@@ -1,4 +1,0 @@
-<Context>
-	<ResourceLink name="jdbc/mrdlib" global="jdbc/mrdlib"
-		type="javax.sql.DataSource" />
-</Context>
