@@ -16,11 +16,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.Iterator;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -1430,7 +1430,49 @@ public class DBConnection {
 		}
 	}
 
-/**
+    public List<DisplayDocument> getDocumentsByIdSchema(String idSchema, long start, long batchsize) throws Exception {
+
+	// get all information of a document stored in a database by the
+	// value of a custom column
+	String query = String.format(
+	    "SELECT * FROM %1$s WHERE %2$s LIKE ? AND %3$s >= ? AND %3$s < ? LIMIT ?",
+	    constants.getDocuments(), constants.getIdOriginal(), constants.getDocumentId());
+	PreparedStatement stmt = con.prepareStatement(query);
+
+	stmt.setString(1, "%" + idSchema + "%");
+	stmt.setLong(2, start);
+	stmt.setLong(3, start + batchsize);
+	stmt.setLong(4, batchsize);
+
+	ResultSet rs = stmt.executeQuery();
+
+	List<DisplayDocument> results = new ArrayList<DisplayDocument>((int)batchsize);
+	
+	try {
+	    while(rs.next()) {
+		String title = rs.getString(constants.getTitle());
+		String publishedIn = rs.getString(constants.getPublishedId());
+
+		// create a new document with values from the database
+		DisplayDocument document = new DisplayDocument(String.valueOf(rs.getLong(constants.getDocumentId())),
+				rs.getString(constants.getIdOriginal()), title, publishedIn, rs.getInt(constants.getYear()), "",
+				constants);
+
+		// get the collection id and then the shortName of the
+		// collection
+		document.setLanguage(rs.getString(constants.getLanguage()));
+		document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
+		results.add(document);
+	    }
+	    return results;
+	} catch(SQLException e) {
+	    throw e;
+	} finally {
+	    rs.close();
+	}
+    }
+
+	/**
 	 * set given values for specific entries via batch update
 	 * 
 	 * @param talbeName wich table to update
@@ -1524,10 +1566,10 @@ public class DBConnection {
 	 * 
 	 * @return biggest document id present in database
 	 */
-	public int getBiggestIdFromDocuments() {
+	public long getBiggestIdFromDocuments() {
 		Statement stmt = null;
 		ResultSet rs = null;
-		int size = 0;
+		long size = 0;
 
 		try {
 			stmt = con.createStatement();
@@ -1536,7 +1578,7 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
-				size = rs.getInt("MAX(" + constants.getDocumentId() + ")");
+				size = rs.getLong("MAX(" + constants.getDocumentId() + ")");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

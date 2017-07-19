@@ -126,7 +126,7 @@ public class LanguageDetection {
 
 
         try {
-	        Constants constants = new Constants();
+	    Constants constants = new Constants();
             DBConnection connection = new DBConnection("jar");
             int processed = 0;
             SimpleDateFormat elapsed = new SimpleDateFormat("HH:mm:ss");

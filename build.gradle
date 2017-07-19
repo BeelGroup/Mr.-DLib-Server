@@ -70,7 +70,16 @@ allprojects {
 	compile 'javax.validation:validation-api:1.1.0.Final'
 	compile 'org.codehaus.woodstox:woodstox-core-asl:4.4.1'
 	compile 'org.apache.zookeeper:zookeeper:3.4.6'
-
+	testCompile 'junit:junit:4.12'
+	testCompile 'org.mockito:mockito-core:2.8.47'  
+    }
+    // print test output on console
+    test {
+	testLogging {
+	    events "passed", "skipped", "failed", "standardOut", "standardError"
+	    showStackTraces = true
+	    showExceptions = true
+	}
     }
 }
 
@@ -78,8 +87,6 @@ allprojects {
 dependencies {
     gretty 'org.apache.tomcat:tomcat-dbcp:8.0.23' // tomcat does not bring this
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:2.8.47'  
 }
 
 // create subprojects for e.g. jars for importers
@@ -97,9 +104,3 @@ subprojects {
     sourceSets.main.resources.srcDirs = ['../src/main/resources']
 }
 
-// print test output on console
-test {
-    testLogging {
-        events "passed", "skipped", "failed", "standardOut", "standardError"
-    }
-}

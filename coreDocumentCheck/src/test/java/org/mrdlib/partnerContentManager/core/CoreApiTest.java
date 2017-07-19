@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.function.Consumer;
-import java.util.function.Consumer;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,12 +35,15 @@ public class CoreApiTest {
 	api = new CoreApi();
     }
 
-    @Test
+    // @Test
     public void articleBatchRequest() throws Exception {
-	List<Integer> ids = Arrays.asList(new Integer[] {1});
+	List<Integer> ids = new ArrayList(CoreApi.MAX_BATCH_SIZE + 1);
+	for (int i = 1; i <= CoreApi.MAX_BATCH_SIZE + 1; i++) {
+	    ids.add(i);
+	}
 	List<Article> articles = api.getArticles(ids);
 
-	assertEquals(articles.size(), ids.size());
+	assertEquals(ids.size(), articles.size());
 
 	Article a = articles.get(0);
 	assertEquals(a.getTitle(), "The OU goes digital");
@@ -50,7 +52,7 @@ public class CoreApiTest {
 	assertEquals(a.getAuthors().get(0), "Ramsden, Anne");
     }
 
-    @Test
+    // @Test
     public void nonExistingArticleBatchRequest() throws Exception {
 	List<Integer> ids = Arrays.asList(new Integer[] {-1});
 	List<Article> articles = api.getArticles(ids);
@@ -59,7 +61,7 @@ public class CoreApiTest {
 	assertNull(articles.get(0));
     }
 
-    @Test
+    // @Test
     public void articleListRequest() throws Exception {
 	// test single page with limit
 	Collection<Article> articles = api.listArticles(2017, 0, 10);
@@ -95,7 +97,7 @@ public class CoreApiTest {
 	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * (CoreApi.MAX_BATCH_SIZE + 1)); // multiple requests
     }
 
-    @Test()
+    // @Test()
     public void reachQuotaLimit() throws Exception {
 	try {
 	    long startTime = System.currentTimeMillis();

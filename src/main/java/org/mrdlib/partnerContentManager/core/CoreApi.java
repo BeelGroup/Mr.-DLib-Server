@@ -69,7 +69,7 @@ public class CoreApi {
 
 	int code = res.getStatusLine().getStatusCode();
 	if (code != 200)
-	    throw new HttpException("Error while making request: HTTP Status " + code);
+	    throw new HttpException("Error while making request: HTTP Status " + code + ", caused by request " + post.toString());
 	HttpEntity entity = res.getEntity();
 	
 	return entity;
@@ -85,21 +85,31 @@ public class CoreApi {
      */
     public List<Article> getArticles(List<Integer> ids, boolean metadata, boolean fulltext, boolean citations, boolean similar, boolean duplicate, boolean urls, boolean faithfulMetadata) throws Exception {
 
-	HttpEntity entity = doRequest(articleBatchPath, json.serialize(ids),
-	    metadata, fulltext, citations, similar, duplicate, urls, faithfulMetadata);
+	int batches = ids.size() /  MAX_BATCH_SIZE;
+	if (ids.size() % MAX_BATCH_SIZE != 0) batches++;
+	List<Article> articles = new ArrayList<Article>(ids.size());
 
-	ArticleResponse[] responses = json.deserialize(entity.getContent(), ArticleResponse[].class);
+	for (int batch = 0; batch < batches; batch++) {
 
-	List<Article> articles = new ArrayList<Article>(responses.length);
-	for (ArticleResponse response : responses) {
-	    String status = response.getStatus();
-	    if (status.equals(ArticleResponse.OK))
-		articles.add(response.getData());
-	    else if (status.equals(ArticleResponse.NOT_FOUND))
-		articles.add(null);
-	    else
-		// TODO deal with other responses
-		throw new Exception("Error response from request: " + response.getStatus());
+	    int from = batch * MAX_BATCH_SIZE;
+	    int to = (batch+1) * MAX_BATCH_SIZE;
+	    List<Integer> batchIds = ids.subList(from, Math.min(ids.size(), to));
+
+	    HttpEntity entity = doRequest(articleBatchPath, json.serialize(batchIds),
+		metadata, fulltext, citations, similar, duplicate, urls, faithfulMetadata);
+
+	    ArticleResponse[] responses = json.deserialize(entity.getContent(), ArticleResponse[].class);
+
+	    for (ArticleResponse response : responses) {
+		String status = response.getStatus();
+		if (status.equals(ArticleResponse.OK))
+		    articles.add(response.getData());
+		else if (status.equals(ArticleResponse.NOT_FOUND))
+		    articles.add(null);
+		else
+		    // TODO deal with other responses
+		    throw new Exception("Error response from request: " + response.getStatus());
+	    }
 	}
 	return articles;
     }

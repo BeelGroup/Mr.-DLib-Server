@@ -1,0 +1,7 @@
+apply plugin: 'application'
+mainClassName = "org.mrdlib.partnerContentManager.core.DocumentCheck"
+run {
+    if(System.getProperty("exec.args") != null) {
+        args System.getProperty("exec.args").split()
+    } 
+}
