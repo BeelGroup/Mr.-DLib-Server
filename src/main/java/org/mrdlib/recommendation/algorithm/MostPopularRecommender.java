@@ -4,6 +4,8 @@ import java.util.Random;
 
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
+import org.mrdlib.database.NoEntryException;
+import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
 
 public class MostPopularRecommender extends RelatedDocuments {
 
@@ -40,6 +42,9 @@ public class MostPopularRecommender extends RelatedDocuments {
 		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo);
 		try {
 			results = con.getStereotypeRecommendations(requestDocSet);
+		} catch (NoEntryException f) {
+			throw new NoRelatedDocumentsException(requestDocSet.getRequestedDocument().getDocumentId(),
+					requestDocSet.getRequestedDocument().getOriginalDocumentId());
 		} catch (Exception e) {
 			throw e;
 		}

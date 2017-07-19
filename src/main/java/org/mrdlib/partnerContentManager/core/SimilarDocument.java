@@ -137,6 +137,7 @@ public DisplayDocument convertToMDLDocument() {
 	mdlDoc.setRelevanceScoreFromAlgorithm(this.getScore());
 	mdlDoc.setTitle(this.getTitle());
 	mdlDoc.setOriginalDocumentId("core-" + this.getId());
+	mdlDoc.setFallbackUrl("https://core.ac.uk/display/".concat(this.getId()));
 	mdlDoc.setAuthorNames(String.join(", ", this.getAuthors()));
 	try{
 		mdlDoc.setYear(Integer.parseInt(this.getYear()));
