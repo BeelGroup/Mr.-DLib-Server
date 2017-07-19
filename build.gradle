@@ -9,10 +9,19 @@ plugins {
 sourceSets.main.java.srcDirs = ['src/main/java']
 sourceSets.test.java.srcDirs = ['src/test/java']
 
+
+// server
+gretty {
+    servletContainer 'tomcat8'
+    enableNaming true // enable JNDI in tomcat
+}
+
 allprojects {
     repositories {
         jcenter()
     }
+    apply plugin: 'java'
+    // common dependencies
     dependencies {
     compile 'org.apache.tika:tika-parsers:1.15' // for language detection
     compile 'org.ow2.asm:asm-debug-all:5.0.4'
@@ -70,15 +79,12 @@ allprojects {
     }
 }
 
-// server
-gretty {
-    servletContainer 'tomcat8'
-    enableNaming true // enable JNDI in tomcat
-}
-
-
+// only server dependencies
 dependencies {
     gretty 'org.apache.tomcat:tomcat-dbcp:8.0.23' // tomcat does not bring this
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.8.47'  
 }
 
 // create subprojects for e.g. jars for importers
@@ -91,13 +97,7 @@ dependencies {
 
 // shared rules
 subprojects {
-    apply plugin: 'java'
     // relative location from subproject folder
-    dependencies {
-        // server libraries not needed
-        compile fileTree(dir: '../lib', include: '*.jar')
-        compile 'org.apache.tika:tika-parsers:1.15' // for language detection
-    }
     sourceSets.main.java.srcDirs = ['../src/main/java']
     sourceSets.main.resources.srcDirs = ['../src/main/resources']
 }
