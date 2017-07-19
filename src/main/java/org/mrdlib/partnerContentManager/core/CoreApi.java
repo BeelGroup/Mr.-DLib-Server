@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
 import org.apache.http.client.utils.URIBuilder;
@@ -32,18 +32,26 @@ public class CoreApi {
     public static final int MAX_BATCH_SIZE = 90; // test fails for 100 for some reason
     public static final int QUOTA_TIME_SEARCH = 10 * 1000;
     public static final int QUOTA_TIME_GET = 10 * 1000;
+    public static final int TIMEOUT = 10*1000;
 
     private String apiKey;
     private HttpClient http;
     private Genson json;
+    private RequestConfig config;
 
     public CoreApi() {
         apiKey = new Constants().getCoreAPIKey();
 	http = HttpClients.createDefault();
 	json = new Genson();
+	config = RequestConfig.custom()
+	    .setConnectionRequestTimeout(TIMEOUT)
+	    .setConnectTimeout(TIMEOUT)
+	    .setSocketTimeout(TIMEOUT)
+	    .build();
     }
 
     private HttpEntity doRequest(String path, String body, boolean metadata, boolean fulltext, boolean citations, boolean similar, boolean duplicate, boolean urls, boolean faithfulMetadata) throws Exception {
+	// TODO timeout
 
 	URIBuilder url = new URIBuilder(endpoint + path);
 	// don't write when equal to default value
@@ -64,6 +72,7 @@ public class CoreApi {
 	url.addParameter("apiKey", apiKey);
 
 	HttpPost post = new HttpPost(url.toString());
+	post.setConfig(config);
 	post.setEntity(new StringEntity(body, "UTF-8"));
 	HttpResponse res = http.execute(post);
 

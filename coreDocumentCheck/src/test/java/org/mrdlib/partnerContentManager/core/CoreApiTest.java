@@ -35,7 +35,7 @@ public class CoreApiTest {
 	api = new CoreApi();
     }
 
-    // @Test
+    @Test
     public void articleBatchRequest() throws Exception {
 	List<Integer> ids = new ArrayList(CoreApi.MAX_BATCH_SIZE + 1);
 	for (int i = 1; i <= CoreApi.MAX_BATCH_SIZE + 1; i++) {
@@ -52,7 +52,7 @@ public class CoreApiTest {
 	assertEquals(a.getAuthors().get(0), "Ramsden, Anne");
     }
 
-    // @Test
+    @Test
     public void nonExistingArticleBatchRequest() throws Exception {
 	List<Integer> ids = Arrays.asList(new Integer[] {-1});
 	List<Article> articles = api.getArticles(ids);

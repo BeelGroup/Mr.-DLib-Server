@@ -16,7 +16,6 @@ import static org.mockito.Mockito.*;
 
 public class CoreCheckTest {
 
-
     private DocumentCheck check;
 
     @Before

@@ -1,2 +1,2 @@
 rootProject.name = 'mdl-server'
-include 'languageDetection', 'coreDocumentCheck'
+include 'languageDetection', 'coreDocumentCheck', 'coreDocumentImport'
