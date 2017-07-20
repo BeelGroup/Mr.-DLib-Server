@@ -40,6 +40,8 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
 import org.mrdlib.utils.Pair;
 
+import main.java.org.mrdlib.partnerContentManager.mediatum.MediaTUMXMLDocument;
+
 /**
  * 
  * @author Millah
@@ -753,8 +755,11 @@ public class DBConnection {
 				// replace high commata
 				String valueString = replaceHighComma((String) value);
 				// ignore values which have no specific length
-				if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
-						|| columnName.equals(constants.getAbstr()))) {
+				if (!columnName.equals(constants.getType())
+						&& !columnName.equals(constants.getLicense())
+						&& !columnName.equals(constants.getFulltextFormat())
+						&& !columnName.equals(constants.getUnstructured())
+						&& !columnName.equals(constants.getAbstr())) {
 					// check for truncation error
 					if (valueString.length() > lengthMap.get(columnName))
 						System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
@@ -974,6 +979,185 @@ public class DBConnection {
 		}
 	}
 
+	public void insertMediaTUMDocument(MediaTUMXMLDocument document) throws Exception {
+		Statement stmt = null;
+		ResultSet rs = null;
+		PreparedStatement stateQueryDoc = null;
+		Long docKey = null;
+		LinkedHashSet<Person> authors = document.getAuthors();
+		Long[] authorKey = new Long[authors.size()];
+		// if (document.getAuthors().size() == 0)
+		// System.out.println(document.getDocumentPath() + ": " +
+		// document.getId() + ": No Authors!");
+
+		// query to check if document already exists
+		String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
+				+ constants.getIdOriginal() + " = '" + document.getId() + "'";
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(docExists);
+			// if there is a document with the same original id
+			if (rs.next()) {
+				System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
+				return;
+			}
+		} catch (Exception e) {
+			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				System.out.println(document.getDocumentPath() + ": " + document.getId());
+				throw e;
+			}
+		}
+		
+		// if the document does not exist, insert it including authors, collection,
+		// abstracts and so on
+		try {
+			Iterator<Person> it = authors.iterator();
+			
+			// for each person, insert in database and store related key
+			for (int i = 0; i < authors.size(); i++) {
+				Person author = it.next();
+				authorKey[i] = addPersonToDbIfNotExists(document, author);
+			}
+			
+			// query to insert all information to the documents table
+			String queryDoc = "INSERT INTO " + constants.getDocuments() + " (" + constants.getIdOriginal() + ", "
+					+ constants.getDocumentCollectionID() + ", " + constants.getTitle() + ", "
+					+ constants.getTitleClean() + ", " + constants.getPublishedId() + ", " + ""
+					+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
+					+ constants.getKeywords() + ", " + constants.getLicense() + ", " + constants.getFulltextFormat() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+			// get the collection id by its name, to store relation in documents
+			// table
+			Long collectionId = getCollectionIDByName(document, document.getCollection());
+
+			stateQueryDoc = con.prepareStatement(queryDoc, Statement.RETURN_GENERATED_KEYS);
+			
+			// set the values of the documents with the wrapper method which
+			// checks for null values etc
+			SetIfNull(document, stateQueryDoc, document.getId(), 1, "string", constants.getIdOriginal());
+			SetIfNull(document, stateQueryDoc, collectionId, 2, "long", constants.getDocumentCollectionID());
+			SetIfNull(document, stateQueryDoc, document.getTitle(), 3, "string", constants.getTitle());
+			SetIfNull(document, stateQueryDoc, document.getCleanTitle(), 4, "string", constants.getTitleClean());
+			SetIfNull(document, stateQueryDoc, document.getPublishedIn(), 5, "string", constants.getPublishedId());
+			
+			if (document.getLanguage().equals("NULL")) {
+				stateQueryDoc.setNull(6, java.sql.Types.VARCHAR, constants.getLanguage());
+			} else {
+				SetIfNull(document, stateQueryDoc, document.getLanguage(), 6, "string", constants.getLanguage());
+			}
+			
+			// if year is marked as not given, set it to NULL
+			if (document.getYear() == 0) {
+				stateQueryDoc.setNull(7, java.sql.Types.INTEGER, constants.getYear());
+			} else {
+				SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
+			}
+			
+			SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
+			SetIfNull(document, stateQueryDoc, document.getKeywordsAsString(), 9, "string", constants.getKeywords());
+			
+			if (document.getLicense().equals("NULL")) {
+				stateQueryDoc.setNull(10, java.sql.Types.VARCHAR, constants.getFulltextFormat());
+			} else {
+				SetIfNull(document, stateQueryDoc, document.getLicense(), 10, "string", constants.getLicense());
+			}
+			
+			SetIfNull(document, stateQueryDoc, document.getFullText(), 11, "string", constants.getFulltextFormat());
+			
+			stateQueryDoc.executeUpdate();
+
+			// get the key of the inserted document
+			try (ResultSet generatedKeys = stateQueryDoc.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					docKey = generatedKeys.getLong(1);
+				} else {
+					System.out.println(document.getDocumentPath() + ": " + document.getId());
+					throw new SQLException("Creating document failed, no ID obtained.");
+				}
+			}
+
+			// insert all author document relations with the related keys from
+			// author and document
+			for (int i = 0; i < authors.size(); i++) {
+				addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
+			}
+			
+			// insert every related abstract to the abstract table with the
+			// corresponding document id
+			for (int i = 0; i < document.getAbstracts().size(); i++) {
+				addMediaTUMAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+			}
+
+		} catch (SQLException sqle) {
+			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			throw sqle;
+		} catch (Exception e) {
+			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				stateQueryDoc.close();
+			} catch (SQLException e) {
+				System.out.println(document.getDocumentPath() + ": " + document.getId());
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Returns all ids of documents of the content partner mediaTUM.
+	 * 
+	 * @return all ids of documents of the content partner mediaTUM
+	 */
+	public ArrayList<Long> getMediaTUMIdsInDatabase() {
+		ArrayList<Long> mediaTUMIds = new ArrayList<>();
+		
+		try {
+			Statement statement = con.createStatement();
+			
+			ResultSet resultSet = statement.executeQuery("select * from document where id_original like '%mediatum%'");
+			
+			System.out.println(resultSet);
+			
+			while (resultSet.next()) {
+				String idOriginal = resultSet.getString("id_original");				
+				Long mediaTUMId = Long.parseLong(idOriginal.replace("mediatum-", ""));
+				
+				mediaTUMIds.add(mediaTUMId);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return mediaTUMIds;
+	}
+	
+	public boolean removeMediaTUMDocumentFromDatabase(long id) {
+		try {
+			Statement statement = con.createStatement();
+			
+			statement.execute("update document set title='This publication has been removed from Mr. DLib.', deleted=NOW() where id_original='mediatum-" + id + "'");
+		
+			// success
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			
+			// failure
+			return false;
+		}
+	}
+
 	/**
 	 * insert a JSONDocument to the database with all the related information
 	 * (like authors and so on) if it not already exists (based on the original
@@ -1170,6 +1354,41 @@ public class DBConnection {
 			// values
 			SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
 			SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
+			SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
+
+			stmt.executeUpdate();
+		} catch (Exception e) {
+			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+	}
+
+	private void addMediaTUMAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) throws Exception {
+		PreparedStatement stmt = null;
+		try {
+			// query which inserts the abstract information
+			String query = "INSERT INTO " + constants.getAbstracts() + " (" + constants.getAbstractDocumentId() + ", "
+					+ constants.getAbstractLanguage() + ", " + constants.getAbstr() + ") VALUES (?, ?, ?)";
+
+			stmt = con.prepareStatement(query);
+
+			// set values of abstract with wrapper method to check for null
+			// values
+			SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
+			
+			if (abstr.getLanguage().equals("NULL")) {
+				stmt.setNull(2, java.sql.Types.VARCHAR, constants.getAbstractLanguage());
+			} else {
+				SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
+			}
+			
 			SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
 
 			stmt.executeUpdate();
