@@ -79,11 +79,14 @@ def preprocess_documents(documents):
     >>> next(preprocess_documents(get_documents_from_solr(connect_to_mysql())))
     TaggedDocument(['introducing', 'mr', 'dlib', 'machine', 'readable', 'digital', 'library'], [1])
     '''
-    i = 0
+    # i = 0
     for doc in documents:
         title = doc['title']
         docId = doc['id']
         words = gensim.utils.simple_preprocess(title)
+        # i += 1
+        # if i > 50:
+        #     break
         yield gensim.models.doc2vec.TaggedDocument(words, [str(docId)]) # non-sequential int-tags seem to confuse gensim
             
 def build_model(data, language):
@@ -97,12 +100,24 @@ def query_similar(query, limit, model):
     results = model.docvecs.most_similar([vector], topn=limit)
     return [docId for docId, sim in results]
 
-def query_server(req, query):
+def related_docs(docId, limit, model):
+    results = model.docvecs.most_similar([str(docId)], topn=limit)
+    return [docId for docId, sim in results]
+
+def search_server(req, query):
     language = req.args.get('language', 'en')
     if language not in MODELS:
         return Response('No model for this language found.', status=501, mimetype='text/plain')
 
     results = query_similar(query, SIMILAR, MODELS[language])
+    return Response(json.dumps(results), mimetype='application/json')
+
+def related_server(req, docId):
+    language = req.args.get('language', 'en')
+    if language not in MODELS:
+        return Response('No model for this language found.', status=501, mimetype='text/plain')
+
+    results = related_docs(docId, SIMILAR, MODELS[language])
     return Response(json.dumps(results), mimetype='application/json')
 
 def train_model(language):
@@ -148,10 +163,11 @@ if __name__ == '__main__':
     SIMILAR=3
 
     ROUTES = Map([
-        Rule('/search/<query>', endpoint='query'),
-        Rule('/train', endpoint='train')
+        Rule('/search/<query>', endpoint='search'),
+        Rule('/train', endpoint='train'),
+        Rule('/similar/<docId>', endpoint='similar')
     ])
-    ENDPOINTS = { 'query': query_server, 'train': training_server }
+    ENDPOINTS = { 'search': search_server, 'train': training_server, 'similar': related_server }
 
     MODELS = {}
     CONFIG = read_config()
