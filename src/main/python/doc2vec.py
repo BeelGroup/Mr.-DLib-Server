@@ -15,6 +15,18 @@ from werkzeug.routing import Map, Rule
 
 import gensim
 
+# dump data to csv using
+# >mysqldump --user=root --password --host=localhost --tab=. --fields-terminated-by="," --fields-enclosed-by='"' --fields-escaped-by=\\ "mrdlib" "document_abstract"
+# (for abstracts)
+# and
+# >mysqldump --user=root --password --host=localhost --tab=. --fields-terminated-by="," --fields-enclosed-by='"' --fields-escaped-by=\\ "mrdlib" "document"
+# for documents
+
+# TODO
+# write tests & doc, run them
+# annoy indexer
+# deploy properly
+
 # test via doctest
 
 def read_config():
@@ -33,8 +45,8 @@ def read_config():
     config.read(CONFIG_LOCATION)
     return config['MrDlib']
 
-def connect_to_mysql():
-    ''' connect to mysql
+def open_data_source():
+    ''' open csv dump of table
     '''
     path = 'mysql+pymysql://{}:{}@{}/{}'.format(
         CONFIG['user'], CONFIG['password'], CONFIG['db_host'], CONFIG['db'])
@@ -43,9 +55,9 @@ def connect_to_mysql():
     return db
 
 
-def get_documents_from_db(db, language='en'):
+def get_documents(db, language='en'):
     ''' query for all documents with a language and stream relevant fields. Return as iterator.
-    >>> next(get_documents_from_db(connect_to_mysql()))
+    >>> next(get_documents(open_data_source()))
     {'title': 'Introducing Mr. DLib, a Machine-readable Digital Library', 'id': 1}
     '''
     metadata = MetaData(db)
@@ -76,7 +88,7 @@ def get_documents_from_db(db, language='en'):
 
 def preprocess_documents(documents):
     ''' convert documents to gensim's input format, lazily
-    >>> next(preprocess_documents(get_documents_from_solr(connect_to_mysql())))
+    >>> next(preprocess_documents(get_documents(open_data_source())))
     TaggedDocument(['introducing', 'mr', 'dlib', 'machine', 'readable', 'digital', 'library'], [1])
     '''
     # i = 0
@@ -108,22 +120,24 @@ def search_server(req, query):
     language = req.args.get('language', 'en')
     if language not in MODELS:
         return Response('No model for this language found.', status=501, mimetype='text/plain')
+    limit = req.args.get('limit', LIMIT)
 
-    results = query_similar(query, SIMILAR, MODELS[language])
+    results = query_similar(query, limit, MODELS[language])
     return Response(json.dumps(results), mimetype='application/json')
 
 def related_server(req, docId):
     language = req.args.get('language', 'en')
     if language not in MODELS:
         return Response('No model for this language found.', status=501, mimetype='text/plain')
+    limit = req.args.get('limit', LIMIT)
 
-    results = related_docs(docId, SIMILAR, MODELS[language])
+    results = related_docs(docId, limit, MODELS[language])
     return Response(json.dumps(results), mimetype='application/json')
 
 def train_model(language):
     print(f"Starting training doc2vec for {language} @ {datetime.datetime.now()}.")
-    db = connect_to_mysql()
-    docs = preprocess_documents(get_documents_from_db(db, language))
+    db = open_data_source()
+    docs = preprocess_documents(get_documents(db, language))
     model = build_model(docs, language)
 
     global MODELS
@@ -138,6 +152,18 @@ def training_server(req):
     thread = threading.Thread(target=train_model, args=(language,), daemon=False)
     thread.start()
     return Response('Started training.', status=200, mimetype='text/plain')
+
+def load_server(req):
+    if 'language' not in req.args:
+        return Response('Language parameter not provided.', status=400, mimetype='text/plain')
+    language = req.args.get('language', 'en')
+
+    global MODELS
+    try:
+        MODELS[language] = gensim.models.Doc2Vec.load(f"{OUTPUT_FILE}_{language}")
+        return Response('Model loaded.', status=200, mimetype='text/plain')
+    except Exception, e:
+        return Response('Could not load model: ' + str(e), status=500, mimetype='text/plain')
 
 
 def dispatch_request(request):
@@ -155,19 +181,25 @@ def wsgi_app(environ, start_response):
     return response(environ, start_response)
 
 if __name__ == '__main__':
-    global CONFIG_LOCATION, OUTPUT_FILE, BATCH_SIZE, DIMENSIONS, SIMILAR, MODELS, CONFIG, ROUTES, ENDPOINTS
+    global CONFIG_LOCATION, OUTPUT_FILE, BATCH_SIZE, DIMENSIONS, LIMIT, MODELS, CONFIG, ROUTES, ENDPOINTS
     CONFIG_LOCATION = '../resources/config.properties'
     OUTPUT_FILE = 'model'
     BATCH_SIZE = 1000
     DIMENSIONS=30
-    SIMILAR=3
+    LIMIT=3
 
     ROUTES = Map([
         Rule('/search/<query>', endpoint='search'),
         Rule('/train', endpoint='train'),
+        Rule('/load', endpoint='load'),
         Rule('/similar/<docId>', endpoint='similar')
     ])
-    ENDPOINTS = { 'search': search_server, 'train': training_server, 'similar': related_server }
+    ENDPOINTS = {
+        'search': search_server,
+        'similar': related_server, 
+        'train': training_server,
+        'load': load_server
+    }
 
     MODELS = {}
     CONFIG = read_config()
