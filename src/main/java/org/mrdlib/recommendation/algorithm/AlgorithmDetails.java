@@ -35,7 +35,7 @@ public class AlgorithmDetails {
 
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String category) {
 		this(name);
-		if (recommendationClass.equals("stereotype") && recommendationClass.equals("most_popular")) {
+		if (recommendationClass.equals("stereotype") || recommendationClass.equals("most_popular")) {
 			throw new UnknownException(
 					"This Algorithm Details constructor can only be used for Stereotype or Most Popular Recommendation approaches");
 		} else {

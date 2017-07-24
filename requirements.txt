@@ -2,3 +2,4 @@ gensim # note: needed gfortran for that, blas-devel & atlas-devel
 sqlalchemy
 pymysql
 werkzeug
+mod_wsgi
