@@ -1,4 +1,5 @@
 #!/bin/env python3
+# TODO: Refactor into server class
 import configparser
 import sys
 import os
@@ -83,7 +84,7 @@ def open_data_source(mode='abstract'):
 
 def close_data_source_csv(source):
     csvreader, csvfile = source
-    close(csvfile)
+    csvfile.close()
 
 
 def close_data_source(source):
@@ -144,7 +145,11 @@ def get_documents_from_dump(source, language, mode):
     get_text = itemgetter(int(CONFIG['abstractTextColumnIndex']))
 
     in_language = filter(lambda row: get_language(row) == language, csvreader)
-    samples = map(lambda row: {'text': get_text(row), 'id': get_document_id(row) }, in_language)
+    if MIN_TEXT_LENGTH > 0:
+        min_length = filter(lambda row: len(get_text(row)) > MIN_TEXT_LENGTH, in_language)
+    else:
+        min_length = in_language
+    samples = map(lambda row: {'text': get_text(row), 'id': get_document_id(row) }, min_length)
     return samples
 
 
@@ -169,7 +174,7 @@ def preprocess_documents(documents):
             
 
 def build_model(data, language):
-    model = gensim.models.doc2vec.Doc2Vec(size=DIMENSIONS, workers=4)
+    model = gensim.models.doc2vec.Doc2Vec(size=DIMENSIONS, workers=4, iter=20)
     model.build_vocab(data)
     model.intersect_word2vec_format(f"{VECTOR_FILE}_{language}", lockf=LOCK_VECTORS)
     return model
@@ -178,6 +183,31 @@ def train_model(model, data, language):
     model.train(data, total_examples=model.corpus_count, epochs=model.iter)
     model.save(f"{OUTPUT_FILE}_{language}")
     return model
+
+
+def test_model(model, data, test_limit=10, chance=0.3):
+    ranks = []
+    comparisons = []
+    i = 0
+    for doc in data:
+        import random
+        if random.random() > chance:
+            continue
+
+        similar = query_similar(doc['text'], LIMIT, model)
+        ids = [other['id'] for other in similar]
+        comparisons.append((doc['id'], ids))
+        if doc['id'] in ids:
+            rank = ids.index(doc['id'])
+            ranks.append(rank)
+        else:
+            ranks.append(-1)
+        i += 1
+        if i > test_limit:
+            break
+
+    import collections
+    return json.dumps(collections.Counter(ranks)) + "\n" + json.dumps(comparisons)
 
 
 def query_similar(query, limit, model):
@@ -247,8 +277,13 @@ def load_server(req):
 
     global MODELS
     try:
-        MODELS[language] = gensim.models.Doc2Vec.load(f"{OUTPUT_FILE}_{language}")
-        return Response('Model loaded.', status=200, mimetype='text/plain')
+        model = gensim.models.Doc2Vec.load(f"{OUTPUT_FILE}_{language}")
+        MODELS[language] = model
+        source = open_data_source()
+        docs = get_documents(source, language)
+        test = test_model(model, docs)
+        close_data_source(source)
+        return Response(f'Model loaded and tested: {test}', status=200, mimetype='text/plain') # 
     except Exception as e:
         return Response('Could not load model: ' + str(e), status=500, mimetype='text/plain')
 
@@ -271,7 +306,7 @@ def wsgi_app(environ, start_response):
 
 if __name__ == '__main__':
     global CONFIG_LOCATION, OUTPUT_FILE, BATCH_SIZE, DIMENSIONS, LIMIT, MODELS,\
-        CONFIG, ROUTES, ENDPOINTS, INPUT_FILE, VECTOR_FILE, LOCK_VECTORS
+        CONFIG, ROUTES, ENDPOINTS, INPUT_FILE, VECTOR_FILE, LOCK_VECTORS, MIN_TEXT_LENGTH
     CONFIG_LOCATION = '../resources/config.properties'
     OUTPUT_FILE = 'model'
     INPUT_FILE = 'dump'
@@ -280,6 +315,7 @@ if __name__ == '__main__':
     DIMENSIONS=50
     LIMIT=3
     LOCK_VECTORS=0.0 # don't change word vectors
+    MIN_TEXT_LENGTH=30
 
     ROUTES = Map([
         Rule('/search/<query>', endpoint='search'),

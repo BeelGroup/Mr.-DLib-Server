@@ -1,7 +1,8 @@
 package org.mrdlib.recommendation.framework;
 
 import java.util.List;
-import java.util.function;
+import java.util.Arrays;
+import java.util.function.Function;
 
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
@@ -11,6 +12,10 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpException;
+import org.apache.http.HttpEntity;
 
 import com.owlike.genson.Genson;
 
@@ -19,7 +24,7 @@ public class WebServiceConnection {
     private String searchPattern, documentPattern;
     private HttpClient http;
     private Genson json;
-    private Function<String, List<Recommendation>> parser;
+    private Function<String, List<WebServiceRecommendation>> parser;
 
     public WebServiceConnection (String searchPattern, String documentPattern) {
 	this.searchPattern = searchPattern;
@@ -28,7 +33,7 @@ public class WebServiceConnection {
 	this.genson = new Genson();
     }
 
-    public WebServiceConnection (String searchPattern, String documentPattern, Function<String, List<Recommendation>> parser) {
+    public WebServiceConnection (String searchPattern, String documentPattern, Function<String, List<WebServiceRecommendation>> parser) {
 	this.searchPattern = searchPattern;
 	this.documentPattern = documentPattern;
 	this.parser = parser;
@@ -36,18 +41,34 @@ public class WebServiceConnection {
 	this.http = HttpClients.createDefault();
     }
 
-    public static interface Recommendation{
-	public String getId();
-	public double getSimilarity();
+
+    private List<WebServiceRecommendation> sendDocumentQuery(String docId) {
+	String url = String.format(documentPattern, docId);
+	return sendQuery(url);
+
     }
 
-    private String sendDocumentQuery(String docId) {
+    private List<WebServiceRecommendation> sendSearchQuery(String query) {
+	String url = String.format(searchPattern, docId);
+	return sendQuery(url);
     }
 
-    private String sendSearchQuery(String query) {
-    }
+    private List<WebServiceRecommendation> sendQuery(String url) {
+	HttpGet req = new HttpGet(url);
+	HttpResponse res = http.execute(req);
+	int code = res.getStatusLine().getStatusCode();
 
-    private String sendQuery(String url) {
+	if (code != 200)
+	    throw new HttpException("Error while making request: HTTP Status " + code + ", caused by request " + post.toString());
+
+	HttpEntity entity = res.getEntity();
+	String body = entity.getContent();
+	List<WebServiceRecommendation> results;
+	if (parser == null)
+	    results = Arrays.toList(genson.deserialize(body, WebServiceRecommendation[].class));
+	else
+	    results = parser.apply(body);
+	return results;
     }
 
     /**
@@ -57,7 +78,7 @@ public class WebServiceConnection {
 
 	DisplayDocument document = relatedDocuments.getRequestedDocument();
 	AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
-	int delimitedRows = relatedDocuments.getDesiredNumberFromAlgorithm();
+	int limit = relatedDocuments.getDesiredNumberFromAlgorithm();
 	List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
 
 	DisplayDocument relDocument = new DisplayDocument();
@@ -65,7 +86,7 @@ public class WebServiceConnection {
 
 	try {
 	    // docs = document list;
-	    List<Recommendation> docs = "documents";
+	    List<WebServiceRecommendation> docs = sendDocumentQuery(document.getDocumentId());
 
 	    // no related documents found
 	    if (docs.isEmpty()) {
@@ -73,7 +94,7 @@ public class WebServiceConnection {
 	    } else {
 		relatedDocuments.setSuggested_label("Related Articles");
 		relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
-		for (int i = 0; i < docs.size(); i++) {
+		for (int i = 0; i < docs.size() && relatedDocuments.getSize() < limit; i++) {
 		    relDocument = con.getDocumentBy(constants.getDocumentId(), docs.get(i).getId());
 
 		    if (!allowedCollections.contains(relDocument.getCollectionId().toString())) {
