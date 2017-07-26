@@ -1,9 +1,4 @@
 import gensim
-import logging
-
-logger = logging.getLogger()
-logger.setLevel("INFO")
-logger.addHandler(logging.FileHandler("logs"))
 
 class Model:
     LOCK_VECTORS = 0.0

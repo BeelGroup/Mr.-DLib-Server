@@ -10,9 +10,7 @@ import logging
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 
-logger = logging.getLogger()
-logger.setLevel("INFO")
-logger.addHandler(logging.FileHandler("logs"))
+logger = logging.getLogger(__name__)
 
 class Server:
     LIMIT=6

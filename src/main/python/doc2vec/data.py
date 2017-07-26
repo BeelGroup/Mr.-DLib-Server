@@ -58,7 +58,7 @@ class DocumentDumpReader(DocumentReader):
             get_text = itemgetter(int(self.config['abstractTextColumnIndex']))
             min_text_length = DocumentDumpReader.MIN_TEXT_LENGTH # int(self.config['abstractMinTextLength'])
 
-            in_language = filter(lambda row: get_language(row) == language, csvreader)
+            in_language = filter(lambda row: get_language(row) == self.language, self.reader)
             if min_text_length > 0:
                 min_length = filter(lambda row: len(get_text(row)) > min_text_length, in_language)
             else:
@@ -78,6 +78,7 @@ class DocumentDumpReader(DocumentReader):
     def __next__(self):
         if not self.opened:
             raise Error("Reader not opened")
+        
 
         return next(self.documents)
 
