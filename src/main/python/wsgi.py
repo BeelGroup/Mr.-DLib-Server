@@ -1,1 +1,2 @@
-from doc2vec.doc2vec import wsgi_app as application
+from doc2vec.server import Server
+application = Server()
