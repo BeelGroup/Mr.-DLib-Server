@@ -3,9 +3,8 @@ package org.mrdlib.recommendation.algorithm;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.api.response.DocumentSet;
+import org.mrdlib.api.manager.Constants;
 import org.mrdlib.recommendation.framework.WebServiceConnection;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.message.BasicNameValuePair;
 
 public class Doc2VecRecommender extends RelatedDocuments {
 
@@ -16,26 +15,10 @@ public class Doc2VecRecommender extends RelatedDocuments {
     private static final int limit = 10;
     
     public Doc2VecRecommender(DBConnection con) {
-
         con = con;
 	constants = new Constants();
-        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "most_popular", true);
-	String searchPattern, documentPattern;
-	searchPattern = new URIBuilder()
-	    .setHost(constants.getDoc2VecServiceHost())
-	    .setPort(constants.getDoc2VecServicePort())
-	    .setPath(constants.getDoc2VecSearchRoute())
-	    .addParameter(new BasicNameValuePair("language", language))
-	    .addParameter(new BasicNameValuePair("limit", limit))
-	    .toString();
-	documentPattern = new URIBuilder()
-	    .setHost(constants.getDoc2VecServiceHost())
-	    .setPort(constants.getDoc2VecServicePort())
-	    .setPath(constants.getDoc2VecDocumentRoute())
-	    .addParameter(new BasicNameValuePair("language", language))
-	    .addParameter(new BasicNameValuePair("limit", limit))
-	    .toString();
-	service = new WebServiceConnection();
+        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "cbf", true, "abstract", "doc2vec pretrained, word vectors locked", "d=50,i=20");
+	service = new WebServiceConnection(constants.getDoc2VecSearchRoute(), constants.getDoc2VecDocumentRoute(), con);
     }
 
 
@@ -44,7 +27,7 @@ public class Doc2VecRecommender extends RelatedDocuments {
      * returns mostPopular documents from database
      */
     public DocumentSet getRelatedDocumentSet(DocumentSet requestDocSet) throws Exception {
-	
+	return service.getRelatedDocumentSetByDocument(requestDocSet);
     }
 
 }

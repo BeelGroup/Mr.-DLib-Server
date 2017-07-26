@@ -1,8 +1,8 @@
-packageorg.mrdlib.recommendation.framework;
+package org.mrdlib.recommendation.framework;
 
 public class WebServiceRecommendation{
 
-    public Recommendation() {}
+    public WebServiceRecommendation() {}
     private String id;
     private double similarity;
 

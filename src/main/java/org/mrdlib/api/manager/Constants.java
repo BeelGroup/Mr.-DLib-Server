@@ -21,6 +21,10 @@ public class Constants {
 	// api keys
 	private String coreAPIKey;
 
+    // service paths
+    private String doc2vecSearchRoute;
+    private String doc2vecDocumentRoute;
+
 	// db connection properties
 	private String dbClass;
 	private String db;
@@ -318,6 +322,9 @@ public class Constants {
 
 			this.coreAPIKey = prop.getProperty("coreAPIKey");
 
+			this.doc2vecSearchRoute = prop.getProperty("doc2vecSearchRoute");
+			this.doc2vecDocumentRoute = prop.getProperty("doc2vecDocumentRoute");
+
 			this.dbClass = prop.getProperty("dbClass");
 			this.db = prop.getProperty("db");
 			this.url = prop.getProperty("url");
@@ -591,6 +598,14 @@ public class Constants {
 	public String getCoreAPIKey() {
 		return coreAPIKey;
 	}
+
+    public String getDoc2VecSearchRoute() {
+	return doc2vecSearchRoute;
+    }
+
+    public String getDoc2VecDocumentRoute() {
+	return doc2vecDocumentRoute;
+    }
 
 	public String getDataQualityPerson() {
 		return dataQualityPerson;

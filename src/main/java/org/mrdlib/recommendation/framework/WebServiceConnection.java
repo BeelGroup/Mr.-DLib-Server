@@ -1,5 +1,6 @@
 package org.mrdlib.recommendation.framework;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -24,50 +25,53 @@ public class WebServiceConnection {
     private String searchPattern, documentPattern;
     private HttpClient http;
     private Genson json;
-    private Function<String, List<WebServiceRecommendation>> parser;
+    private DBConnection con;
+    private final String language = "en";
+    private Constants constants;
+    private Function<InputStream, List<WebServiceRecommendation>> parser;
 
-    public WebServiceConnection (String searchPattern, String documentPattern) {
+    public WebServiceConnection (String searchPattern, String documentPattern, DBConnection con) {
 	this.searchPattern = searchPattern;
 	this.documentPattern = documentPattern;
 	this.http = HttpClients.createDefault();
-	this.genson = new Genson();
+	this.json = new Genson();
+	this.con = con;
+	this.constants = new Constants();
     }
 
-    public WebServiceConnection (String searchPattern, String documentPattern, Function<String, List<WebServiceRecommendation>> parser) {
-	this.searchPattern = searchPattern;
-	this.documentPattern = documentPattern;
+    public WebServiceConnection (String searchPattern, String documentPattern, Function<InputStream, List<WebServiceRecommendation>> parser, DBConnection con) {
+	this(searchPattern, documentPattern, con);
 	this.parser = parser;
-	this.genson = new Genson();
-	this.http = HttpClients.createDefault();
     }
 
 
-    private List<WebServiceRecommendation> sendDocumentQuery(String docId) {
-	String url = String.format(documentPattern, docId);
+    private List<WebServiceRecommendation> sendDocumentQuery(String docId, String language, int limit) throws Exception {
+	System.out.println("formatting " + documentPattern);
+	System.out.printf("args: %s %s %d %n", docId, language, limit);
+	String url = String.format(documentPattern, docId, language, limit);
 	return sendQuery(url);
 
     }
 
-    private List<WebServiceRecommendation> sendSearchQuery(String query) {
-	String url = String.format(searchPattern, docId);
+    private List<WebServiceRecommendation> sendSearchQuery(String query, String language, int limit) throws Exception {
+	String url = String.format(searchPattern, query, language, limit);
 	return sendQuery(url);
     }
 
-    private List<WebServiceRecommendation> sendQuery(String url) {
+    private List<WebServiceRecommendation> sendQuery(String url) throws Exception {
 	HttpGet req = new HttpGet(url);
 	HttpResponse res = http.execute(req);
 	int code = res.getStatusLine().getStatusCode();
 
 	if (code != 200)
-	    throw new HttpException("Error while making request: HTTP Status " + code + ", caused by request " + post.toString());
+	    throw new HttpException("Error while making request: HTTP Status " + code + ", caused by request " + req.toString());
 
 	HttpEntity entity = res.getEntity();
-	String body = entity.getContent();
 	List<WebServiceRecommendation> results;
 	if (parser == null)
-	    results = Arrays.toList(genson.deserialize(body, WebServiceRecommendation[].class));
+	    results = Arrays.asList(json.deserialize(entity.getContent(), WebServiceRecommendation[].class));
 	else
-	    results = parser.apply(body);
+	    results = parser.apply(entity.getContent());
 	return results;
     }
 
@@ -86,14 +90,13 @@ public class WebServiceConnection {
 
 	try {
 	    // docs = document list;
-	    List<WebServiceRecommendation> docs = sendDocumentQuery(document.getDocumentId());
+	    List<WebServiceRecommendation> docs = sendDocumentQuery(document.getDocumentId(), language, limit);
 
 	    // no related documents found
 	    if (docs.isEmpty()) {
 		throw new NoRelatedDocumentsException(document.getOriginalDocumentId(), document.getDocumentId());
 	    } else {
 		relatedDocuments.setSuggested_label("Related Articles");
-		relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
 		for (int i = 0; i < docs.size() && relatedDocuments.getSize() < limit; i++) {
 		    relDocument = con.getDocumentBy(constants.getDocumentId(), docs.get(i).getId());
 
@@ -127,6 +130,7 @@ public class WebServiceConnection {
 		    // add it to the collection
 		    relatedDocuments.addDocument(relDocument);
 		}
+		relatedDocuments.setNumberOfReturnedResults(docs.size());
 	    }
 	} catch (Exception e) {
 	    throw e;
