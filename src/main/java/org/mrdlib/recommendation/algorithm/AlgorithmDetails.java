@@ -9,9 +9,10 @@ public class AlgorithmDetails {
 	private boolean languageRestriction;
 
 	private boolean contentBased;
-	private String cbfTextFields;
+	private String cbfTextFields; // enum, see database: content_fields_input_document
+	private String ngramType; // enum, see database
 	private String cbfFeatureType;
-	private String cbfFeatureCount;
+	private String cbfFeatureCount; // this is a smallint, don't be fooled
 	private String queryParser;
 
 	private boolean humanCuratedRecommendations = false;
@@ -35,7 +36,7 @@ public class AlgorithmDetails {
 
 	public AlgorithmDetails(String name, String recommendationClass, boolean languageRestriction, String category) {
 		this(name);
-		if (recommendationClass.equals("stereotype") || recommendationClass.equals("most_popular")) {
+		if (!(recommendationClass.equals("stereotype") || recommendationClass.equals("most_popular"))) {
 			throw new UnknownException(
 					"This Algorithm Details constructor can only be used for Stereotype or Most Popular Recommendation approaches");
 		} else {
@@ -119,6 +120,13 @@ public class AlgorithmDetails {
 	public String getCategory() {
 		return category;
 	}
+
+    public String getNgramType() {
+	return ngramType;
+    }
+    public void setNgramType(String value) {
+	this.ngramType = value; 
+    }
 
 	/**
 	 * @param name

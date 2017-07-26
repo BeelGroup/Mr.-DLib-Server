@@ -109,78 +109,78 @@ public class RecommenderFactory {
 	}
 
 	public static RelatedDocuments returnStandardDistributionRDG(DBConnection con, DisplayDocument requestDocument) {
-	    return new Doc2VecRecommender(con);
-		// Random random = new Random();
+	    // return new Doc2VecRecommender(con);
+		Random random = new Random();
 
-		// int randomRecommendationApproach = random.nextInt(10000);
+		int randomRecommendationApproach = random.nextInt(10000);
 
-		// Probabilities probs = new Probabilities();
-		// int cumulative = probs.getRandomDocumentRecommender();
+		Probabilities probs = new Probabilities();
+		int cumulative = probs.getRandomDocumentRecommender();
 
-		// try {
-		// 	// CASE: Completely random
-		// 	if (randomRecommendationApproach < cumulative)
-		// 		rdg = new RandomDocumentRecommender(con);
-		// 	else {
-		// 		// CASE: Random with lang restriction
-		// 		cumulative += probs.getRandomDocumentRecommenderLanguageRestricted();
-		// 		if (randomRecommendationApproach < cumulative)
-		// 			rdg = new RandomDocumentRecommenderLanguageRestricted(con);
-		// 		else {
-		// 			cumulative += probs.getStereotypeRecommender(); // CASE:
-		// 															// Stereotype
-		// 			if (randomRecommendationApproach < cumulative)
-		// 				rdg = new StereotypeRecommender(con);
-		// 			else {
-		// 				cumulative += probs.getMostPopular();
-		// 				if (randomRecommendationApproach < cumulative)
-		// 					rdg = new MostPopularRecommender(con);
-		// 				else {
-		// 					cumulative += probs.getRelatedDocumentsFromSolr(); // CASE:
-		// 																		// metadata
-		// 																		// based
-		// 																		// from
-		// 																		// SOLR
-		// 					if (randomRecommendationApproach < cumulative)
-		// 						rdg = new RelatedDocumentsMLT(con);
-		// 					else {
-		// 						String language = requestDocument.getLanguage(); // Validity
-		// 																			// of
-		// 																			// keyphrase
-		// 																			// algo
-		// 																			// depends
-		// 																			// on
-		// 																			// language.
-		// 																			// So
-		// 																			// check
-		// 																			// language
-		// 						if (language == null || !language.equals("en"))
-		// 							rdg = getFallback(con); // If not english,
-		// 													// use
-		// 													// fallback.
-		// 						else {
-		// 							// Check presence and language of abstract
-		// 							rdg = new RelatedDocumentsKeyphrases(con);
-		// 							String abstLang = con.getAbstractDetails(requestDocument);
-		// 							if (!abstLang.equals("en"))
-		// 								// if not set algorithmLoggingInfo.type
-		// 								// to title only
-		// 								rdg.algorithmLoggingInfo.setCbfTextFields("title_keywords_published_in");
-		// 							// otherwise leave it unset.
-		// 						}
-		// 					}
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// } catch (Exception e) {
-		// 	if (rdg != null) {
-		// 		e.printStackTrace();
-		// 		System.out.println(rdg.getClass().getName() + " has failed to initialize");
-		// 	}
-		// 	throw new UnknownException(e, true);
-		// }
-		// return rdg;
+		try {
+			// CASE: Completely random
+			if (randomRecommendationApproach < cumulative)
+				rdg = new RandomDocumentRecommender(con);
+			else {
+				// CASE: Random with lang restriction
+				cumulative += probs.getRandomDocumentRecommenderLanguageRestricted();
+				if (randomRecommendationApproach < cumulative)
+					rdg = new RandomDocumentRecommenderLanguageRestricted(con);
+				else {
+					cumulative += probs.getStereotypeRecommender(); // CASE:
+																	// Stereotype
+					if (randomRecommendationApproach < cumulative)
+						rdg = new StereotypeRecommender(con);
+					else {
+						cumulative += probs.getMostPopular();
+						if (randomRecommendationApproach < cumulative)
+							rdg = new MostPopularRecommender(con);
+						else {
+							cumulative += probs.getRelatedDocumentsFromSolr(); // CASE:
+																				// metadata
+																				// based
+																				// from
+																				// SOLR
+							if (randomRecommendationApproach < cumulative)
+								rdg = new RelatedDocumentsMLT(con);
+							else {
+								String language = requestDocument.getLanguage(); // Validity
+																					// of
+																					// keyphrase
+																					// algo
+																					// depends
+																					// on
+																					// language.
+																					// So
+																					// check
+																					// language
+								if (language == null || !language.equals("en"))
+									rdg = getFallback(con); // If not english,
+															// use
+															// fallback.
+								else {
+									// Check presence and language of abstract
+									rdg = new RelatedDocumentsKeyphrases(con);
+									String abstLang = con.getAbstractDetails(requestDocument);
+									if (!abstLang.equals("en"))
+										// if not set algorithmLoggingInfo.type
+										// to title only
+										rdg.algorithmLoggingInfo.setCbfTextFields("title_keywords_published_in");
+									// otherwise leave it unset.
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			if (rdg != null) {
+				e.printStackTrace();
+				System.out.println(rdg.getClass().getName() + " has failed to initialize");
+			}
+			throw new UnknownException(e, true);
+		}
+		return rdg;
 	}
 
 }

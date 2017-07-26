@@ -55,6 +55,7 @@ class Server:
                 return self.endpoints[endpoint](request, **values)
             except Exception as e:
                 logger.error(f"Request {request} failed with error: {e}")
+                return Response(f"Request failed with error: {e}", status=500, mimetype='text/plain')
         else:
             return Response('Route not found.', status=404, mimetype='text/plain')
 
@@ -63,7 +64,7 @@ class Server:
         language = req.args.get('language', 'en')
         if language not in self.models:
             return Response('No model for this language found.', status=501, mimetype='text/plain')
-        limit = req.args.get('limit', Server.LIMIT)
+        limit = int(req.args.get('limit', Server.LIMIT))
         model = self.models[language]
         vector = model.infer(query)
         results = model.similar(vector, limit)
@@ -75,7 +76,7 @@ class Server:
         language = req.args.get('language', 'en')
         if language not in self.models:
             return Response('No model for this language found.', status=501, mimetype='text/plain')
-        limit = req.args.get('limit', Server.LIMIT)
+        limit = int(req.args.get('limit', Server.LIMIT))
         model = self.models[language]
         try:
             vector = model.lookup(docId)

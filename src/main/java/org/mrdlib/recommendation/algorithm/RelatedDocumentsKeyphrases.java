@@ -63,7 +63,8 @@ public class RelatedDocumentsKeyphrases extends RelatedDocumentsMLT {
 		algorithmLoggingInfo.setCbfTextFields("title" + (abstracts ? "_abstract" : "") + "_keywords_published_in");
 		System.out.println("title" + (abstracts ? "_abstract" : "") + "_keywords_published_in");
 		algorithmLoggingInfo.setName("RelatedDocumentsFromSolrWithKeyphrases");
-		algorithmLoggingInfo.setCbfFeatureType(name);
+		algorithmLoggingInfo.setCbfFeatureType("keyphrases");
+		algorithmLoggingInfo.setNgramType(name);
 	}
 
 	@Override

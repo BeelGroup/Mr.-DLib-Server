@@ -3601,8 +3601,7 @@ public class DBConnection {
 		String queryType = "";
 		if (!inputIsDocument)
 			queryType = recommenderDetails.getQueryParser();
-		boolean keyphrases = !(recommenderDetails.getCbfFeatureCount() == null)
-				&& !recommenderDetails.getCbfFeatureType().equals("terms");
+		boolean keyphrases = recommenderDetails.getCbfFeatureType().equals("keyphrases");
 
 		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE ("
 				+ constants.getInputType() + " =? OR ( " + constants.getInputType() + " IS NULL AND ? IS NULL)) AND ("
@@ -3612,7 +3611,7 @@ public class DBConnection {
 				+ "= ? OR ( " + constants.getCbfFields() + " IS NULL AND ? IS NULL))";
 
 		if (keyphrases) {
-			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getCbfFeatureType() + "'";
+			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getNgramType() + "'";
 		}
 		if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
 			query += " AND " + constants.getSearchMode() + " = '" + queryType + "'";
@@ -3625,11 +3624,11 @@ public class DBConnection {
 			if ((recommenderDetails.getCbfFeatureCount() == null))
 				stmt.setString(3, null);
 			else
-				stmt.setString(3, (keyphrases ? "keyphrases" : "terms"));
+			    stmt.setString(3, recommenderDetails.getCbfFeatureType());
 			if ((recommenderDetails.getCbfFeatureCount() == null))
 				stmt.setString(4, null);
 			else
-				stmt.setString(4, (keyphrases ? "keyphrases" : "terms"));
+			    stmt.setString(4, recommenderDetails.getCbfFeatureType());
 
 			stmt.setString(5, recommenderDetails.getCbfFeatureCount());
 			stmt.setString(6, recommenderDetails.getCbfFeatureCount());
@@ -3650,7 +3649,7 @@ public class DBConnection {
 				String values = "?,?,?,?";
 				if (keyphrases) {
 					columns += ", " + constants.getCbfNgramType();
-					values += ", '" + recommenderDetails.getCbfFeatureType() + "'";
+					values += ", '" + recommenderDetails.getNgramType() + "'";
 				}
 				if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
 					columns += ", " + constants.getSearchMode();
@@ -3663,7 +3662,7 @@ public class DBConnection {
 					if ((recommenderDetails.getCbfFeatureCount() == null))
 						stmtInsert.setString(1, null);
 					else
-						stmtInsert.setString(1, (keyphrases ? "keyphrases" : "terms"));
+					    stmtInsert.setString(1, recommenderDetails.getCbfFeatureType());
 					stmtInsert.setString(2, (inputIsDocument ? "document" : "query"));
 					stmtInsert.setString(3, recommenderDetails.getCbfFeatureCount());
 					stmtInsert.setString(4, recommenderDetails.getCbfTextFields());

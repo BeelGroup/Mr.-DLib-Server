@@ -98,12 +98,15 @@ public class WebServiceConnection {
 	    } else {
 		relatedDocuments.setSuggested_label("Related Articles");
 		for (int i = 0; i < docs.size() && relatedDocuments.getSize() < limit; i++) {
+		    System.out.println("Got recommendations:");
+		    System.out.println(docs.get(i).getId() + " - " + docs.get(i).getSimilarity());
 		    relDocument = con.getDocumentBy(constants.getDocumentId(), docs.get(i).getId());
 
-		    if (!allowedCollections.contains(relDocument.getCollectionId().toString())) {
-			System.out.println("Recommendation not in accessable connections.");
-			continue;
-		    }
+		    // TODO handle this
+		    // if (!allowedCollections.contains(relDocument.getCollectionId().toString())) {
+		    // 	System.out.println("Recommendation not in accessable connections.");
+		    // 	continue;
+		    // }
 
 		    relDocument.setSuggestedRank(i + 1);
 

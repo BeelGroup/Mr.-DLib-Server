@@ -17,7 +17,7 @@ public class Doc2VecRecommender extends RelatedDocuments {
     public Doc2VecRecommender(DBConnection con) {
         con = con;
 	constants = new Constants();
-        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "cbf", true, "abstract", "doc2vec pretrained, word vectors locked", "d=50,i=20");
+        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "cbf", true, "abstract", "embedding", "50");
 	service = new WebServiceConnection(constants.getDoc2VecSearchRoute(), constants.getDoc2VecDocumentRoute(), con);
     }
 
@@ -27,6 +27,7 @@ public class Doc2VecRecommender extends RelatedDocuments {
      * returns mostPopular documents from database
      */
     public DocumentSet getRelatedDocumentSet(DocumentSet requestDocSet) throws Exception {
+	requestDocSet.setAlgorithmDetails(algorithmLoggingInfo);
 	return service.getRelatedDocumentSetByDocument(requestDocSet);
     }
 
