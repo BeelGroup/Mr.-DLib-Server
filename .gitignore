@@ -24,3 +24,5 @@ build/
 /GRTAGS
 /GTAGS
 /src/main/python/model_en
+/kst-config.txt
+*.pyc
