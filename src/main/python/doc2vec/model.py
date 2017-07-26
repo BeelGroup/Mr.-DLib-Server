@@ -1,10 +1,15 @@
 import gensim
+import logging
+
+logger = logging.getLogger()
+logger.setLevel("INFO")
+logger.addHandler(logging.FileHandler("logs"))
 
 class Model:
     LOCK_VECTORS = 0.0
     WORKERS = 4
     EPOCHS = 20
-    DIMENSIONS=50
+    DIMENSIONS=100
     def __init__(self):
         self.data = self.model = None
 

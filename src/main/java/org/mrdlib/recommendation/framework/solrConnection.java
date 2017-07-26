@@ -87,7 +87,7 @@ public class solrConnection {
 		query.setRows(delimitedRows);
 		// if rec_approach is Keyphrases: override default mlt.fl
 		if (logginginfo.getName().equals("RelatedDocumentsFromSolrWithKeyphrases")) {
-			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getCbfFeatureType(),
+			String similarityParams = getMltFL(logginginfo.getCbfTextFields(), logginginfo.getNgramType(),
 					logginginfo.getCbfFeatureCount());
 			query.setParam("mlt.fl", similarityParams);
 			query.setParam("mlt.df", "2");
