@@ -8,6 +8,7 @@ class Model:
     def __init__(self):
         self.data = self.model = None
 
+
     def preprocess(self, document_reader):
         self.data = document_reader
         return self
@@ -40,7 +41,7 @@ class Model:
         if not self.model:
             raise Error("No model built.")
 
-        docs = self.data.open()
+        docs = self.data.open(repetitions=self.model.iter)
         self.model.train(map(self._transform, docs),
                          total_examples=self.model.corpus_count, epochs=self.model.iter)
 
