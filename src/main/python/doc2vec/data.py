@@ -18,9 +18,10 @@ class DocumentReader:
         self.mode = mode
         self.language = language
         self.opened = False
+        self.prep = None
         
     
-    def open(self, repetitions=1):
+    def open(self, preprocessing=None):
         ''' opening should prepare the object for iterating through documents from the beginning
         
         Parameters
@@ -28,9 +29,12 @@ class DocumentReader:
         repetitions - int : automatically jump to the beginning again when at end of iterator this often; useful when iterator is used as parameter for training with multiple epochs
         '''
         if self.opened:
-            raise Error("Reader already opened.")
+            raise Exception("Reader already opened.")
         self.opened = True
-        self.repetitions = repetitions
+        if preprocessing is None:
+            self.prep = lambda x: x
+        else:
+            self.prep = preprocessing
         return self
 
 
@@ -38,27 +42,16 @@ class DocumentReader:
         ''' close db connection / file handle / ...
         '''
         if not self.opened:
-            raise Error("Reader already closed")
+            raise Exception("Reader already closed")
         self.opened = False 
         return self
 
 
     def __iter__(self):
-        ''' subclasses only need to implement __next__ to support iterator interface
-        '''
-        if self.opened:
-            return self
-        else:
-            raise Error("Must open DocumentReader before iterating.")
-
-
-    def __next__(self):
-        ''' DocumentReader instances are iterable, should deliver {'id', 'text'} elements
-        
-        this method should honor self.repetitions set by self.open()
+        ''' return iterable through data; each call should return a valid iterable that starts from the beginning
+        iterators should deliver {'id', 'text'} elements
         '''
         raise NotImplementedError()
-
 
 
 class DocumentDumpReader(DocumentReader):
@@ -68,15 +61,27 @@ class DocumentDumpReader(DocumentReader):
 
     def __init__(self, mode, language, fname, config):
         super().__init__(mode, language)
-        self.csv = self.reader = self.documents = None
+        self.csv = self.reader = self.documents = self.prep = None
         self.fname = fname
         self.config = config
-        self.repetitions = 0
 
 
-    def open(self, repetitions=1):
-        super().open()
+    def open(self, preprocessing=None):
+        ''' 
+        '''
+        super().open(preprocessing)
         self.csv = open(self.fname, newline='')
+        return self
+
+
+    def close(self):
+        super().close()
+        self.csv.close()
+        return self
+
+
+    def __iter__(self):
+        self.csv.seek(0)
         self.reader = csv.reader(self.csv, escapechar='\\')
 
         if self.mode == 'abstract':
@@ -93,29 +98,6 @@ class DocumentDumpReader(DocumentReader):
                 min_length = in_language
 
             samples = map(lambda row: {'text': get_text(row), 'id': get_document_id(row) }, min_length)
-            self.documents = samples
-
-
-        return self
-
-
-    def close(self):
-        super().close()
-        self.csv.close()
-
-
-    def __next__(self):
-        if not self.opened:
-            raise Error("Reader not opened")
-
-        # repeat iterating through csv
-        try:
-            result = next(self.documents)
-            return result
-        except StopIteration:
-            if self.repetitions > 1:
-                self.close()
-                self.open(self.repetitions - 1)
-                return self.__next__()
-            else:
-                raise StopIteration()
+            return map(self.prep, samples)
+        else:
+            raise NotImplementedError()

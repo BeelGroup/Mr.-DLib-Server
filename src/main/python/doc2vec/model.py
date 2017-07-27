@@ -3,7 +3,7 @@ from gensim.similarities.index import AnnoyIndexer
 
 class Model:
     LOCK_VECTORS = 0.0
-    WORKERS = 4
+    WORKERS = 8
     EPOCHS = 20
     DIMENSIONS=100
     NUM_TREES = 100
@@ -27,11 +27,11 @@ class Model:
 
     def build(self, pretrained_vectors=None):
         if not self.data:
-            raise Error("No data entered to train model on.")
+            raise Exception("No data entered to train model on.")
 
         self.model = gensim.models.doc2vec.Doc2Vec(size=Model.DIMENSIONS, workers=Model.WORKERS, iter=Model.EPOCHS)
-        docs = self.data.open()
-        self.model.build_vocab(map(self._transform, docs))
+        docs = self.data.open(self._transform)
+        self.model.build_vocab(docs)
         self.data.close()
 
         if pretrained_vectors:
@@ -42,11 +42,10 @@ class Model:
 
     def train(self, fname):
         if not self.model:
-            raise Error("No model built.")
+            raise Exception("No model built.")
 
-        docs = self.data.open(repetitions=self.model.iter)
-        self.model.train(map(self._transform, docs),
-                         total_examples=self.model.corpus_count, epochs=self.model.iter)
+        docs = self.data.open(self._transform)
+        self.model.train(docs, total_examples=self.model.corpus_count, epochs=self.model.iter)
 
         self.model.save(fname)
 
@@ -70,7 +69,7 @@ class Model:
 
     def lookup(self, tag):
         if not self.model:
-            raise Error("No model built/loaded.")
+            raise Exception("No model built/loaded.")
 
         if tag not in self.model.docvecs:
             raise KeyError("No document with this tag found..")
@@ -80,7 +79,7 @@ class Model:
 
     def infer(self, text):
         if not self.model:
-            raise Error("No model built/loaded.")
+            raise Exception("No model built/loaded.")
 
         words = gensim.utils.simple_preprocess(text)
         return self.model.infer_vector(words)
@@ -88,7 +87,7 @@ class Model:
 
     def similar(self, vector, limit):
         if not self.model:
-            raise Error("No model built/loaded.")
+            raise Exception("No model built/loaded.")
         
         results = self.model.docvecs.most_similar([vector], topn=limit)
         return [ {'id': docId, 'similarity': sim } for docId, sim in results]
