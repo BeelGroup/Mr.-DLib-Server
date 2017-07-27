@@ -1,12 +1,15 @@
 import gensim
+from gensim.similarities.index import AnnoyIndexer
 
 class Model:
     LOCK_VECTORS = 0.0
     WORKERS = 4
     EPOCHS = 20
     DIMENSIONS=100
+    NUM_TREES = 100
+
     def __init__(self):
-        self.data = self.model = None
+        self.data = self.model = self.index = None
 
 
     def preprocess(self, document_reader):
@@ -46,6 +49,10 @@ class Model:
                          total_examples=self.model.corpus_count, epochs=self.model.iter)
 
         self.model.save(fname)
+
+        # build annoy indexer
+        self.index = AnnoyIndexer(self.model, Model.NUM_TREES)
+        self.index.save(f"{fname}.index")
         return self
 
 
@@ -53,6 +60,11 @@ class Model:
     def load(fname):
         model = Model()
         model.model = gensim.models.Doc2Vec.load(fname)
+
+        model.index = AnnoyIndexer()
+        model.index.load(f"{fname}.index")
+        model.index.model = model.model
+
         return model
 
 
@@ -80,28 +92,3 @@ class Model:
         
         results = self.model.docvecs.most_similar([vector], topn=limit)
         return [ {'id': docId, 'similarity': sim } for docId, sim in results]
-
-
-# def test_model(model, data, test_limit=10, chance=0.3):
-#     ranks = []
-#     comparisons = []
-#     i = 0
-#     for doc in data:
-#         import random
-#         if random.random() > chance:
-#             continue
-
-#         similar = query_similar(doc['text'], LIMIT, model)
-#         ids = [other['id'] for other in similar]
-#         comparisons.append((doc['id'], ids))
-#         if doc['id'] in ids:
-#             rank = ids.index(doc['id'])
-#             ranks.append(rank)
-#         else:
-#             ranks.append(-1)
-#         i += 1
-#         if i > test_limit:
-#             break
-
-#     import collections
-#     return json.dumps(collections.Counter(ranks)) + "\n" + json.dumps(comparisons)

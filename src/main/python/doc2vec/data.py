@@ -1,10 +1,18 @@
 import csv
 from operator import itemgetter
 
-
 class DocumentReader:
+    ''' Abstract class for accessing documents (titles, abstracts, combined) from MrDlib.
+    '''
 
     def __init__(self, mode, language):
+        ''' Create a wrapper around DB Access / CSV Dumps / ... that returns text & ids, laoading them lazily.
+
+        Parameters
+        ----------
+        mode - 'abstract' | 'title' | 'combined' : what data to load
+        language - iso language code : restrict documents to this language
+        '''
         if mode != 'abstract':
             raise NotImplementedError(f"Mode not implemented: {mode}")
         self.mode = mode
@@ -12,14 +20,23 @@ class DocumentReader:
         self.opened = False
         
     
-    def open(self):
+    def open(self, repetitions=1):
+        ''' opening should prepare the object for iterating through documents from the beginning
+        
+        Parameters
+        ----------
+        repetitions - int : automatically jump to the beginning again when at end of iterator this often; useful when iterator is used as parameter for training with multiple epochs
+        '''
         if self.opened:
             raise Error("Reader already opened.")
         self.opened = True
+        self.repetitions = repetitions
         return self
 
 
     def close(self):
+        ''' close db connection / file handle / ...
+        '''
         if not self.opened:
             raise Error("Reader already closed")
         self.opened = False 
@@ -27,6 +44,8 @@ class DocumentReader:
 
 
     def __iter__(self):
+        ''' subclasses only need to implement __next__ to support iterator interface
+        '''
         if self.opened:
             return self
         else:
@@ -34,11 +53,17 @@ class DocumentReader:
 
 
     def __next__(self):
+        ''' DocumentReader instances are iterable, should deliver {'id', 'text'} elements
+        
+        this method should honor self.repetitions set by self.open()
+        '''
         raise NotImplementedError()
 
 
 
 class DocumentDumpReader(DocumentReader):
+    '''
+    '''
     MIN_TEXT_LENGTH=50
 
     def __init__(self, mode, language, fname, config):
@@ -53,7 +78,6 @@ class DocumentDumpReader(DocumentReader):
         super().open()
         self.csv = open(self.fname, newline='')
         self.reader = csv.reader(self.csv, escapechar='\\')
-        self.repetitions = repetitions
 
         if self.mode == 'abstract':
             get_language = itemgetter(int(self.config['abstractLanguageDetectedColumnIndex']))
@@ -89,7 +113,7 @@ class DocumentDumpReader(DocumentReader):
             result = next(self.documents)
             return result
         except StopIteration:
-            if repetitions > 1:
+            if self.repetitions > 1:
                 self.close()
                 self.open(self.repetitions - 1)
                 return self.__next__()
