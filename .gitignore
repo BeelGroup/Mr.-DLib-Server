@@ -1,4 +1,4 @@
-/bin/
+bin/
 /target
 *.classpath
 *.project
@@ -8,10 +8,19 @@
 .settings/*
 *.name
 *.config
-resources/config.properties
-git status
-/build/
+build/
 */WEB-INF/*.jar
 *.eml
 *.iml
+*.class
 .idea/
+/.gradle
+.vscode
+# files containing passwords
+/src/main/resources/config.properties
+/tomcat.xml
+*.*~
+/GPATH
+/GRTAGS
+/GTAGS
+/src/main/python/model_en
