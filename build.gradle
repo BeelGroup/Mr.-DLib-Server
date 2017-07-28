@@ -15,6 +15,7 @@ gretty {
     servletContainer 'tomcat8'
     enableNaming true // enable JNDI in tomcat
     integrationTestTask = 'test'
+    httpPort = 9000
 }
 
 allprojects {

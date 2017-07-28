@@ -48,7 +48,7 @@ public class ServerTest {
 		URIBuilder url = new URIBuilder()
 			.setScheme("http")
 			.setHost("localhost")
-			.setPort(8080)
+			.setPort(9000)
 			.setPath("/mdl-server/documents/" + query + "/related_documents");
 		HttpGet get = new HttpGet(url.build());
 		HttpResponse res = http.execute(get);
