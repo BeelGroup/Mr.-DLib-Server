@@ -53,7 +53,7 @@ public class RecommendationSetService {
 	/**
 	 * This method accepts recommendation_set received POST acknowledgments and
 	 * logs in our database. It returns the actual link which was to be viewed
-	 * 
+	 * Currently we do not log this Confirmation of receipt event in our database.
 	 * @param recommendationSetId
 	 *            The recommendation Set ID created during the initial
 	 *            recommendation process
@@ -65,23 +65,12 @@ public class RecommendationSetService {
 	 */
 	@POST
 	@Path("{recommendationSetId:[0-9]+}/confirmation_of_receipt")
-	public Response dopostAcknowledgeRecommendationReceipt(@PathParam("recommendationSetId") String recommendationSetId,
-			@QueryParam("access_key") String accessKey) throws Exception {
-		Boolean accessKeyCheck = false;
-		if (!accessKey.matches("[0-9a-z]+"))
-			System.out.println(accessKey);
-		try {
-			if (!accessKey.matches("[0-9a-z]+"))
-				throw new InvalidAccessKeyException();
-			accessKeyCheck = con.checkAccessKey(recommendationSetId, accessKey, true);
-			if (accessKeyCheck)
-				con.logRecommendationSetReceivedAcknowledgement(recommendationSetId, requestRecieved);
-			else
-				throw new InvalidAccessKeyException();
+	public Response dopostAcknowledgeRecommendationReceipt(@PathParam("recommendationSetId") String recommendationSetId)
+		throws Exception {
+		try{
+			con.logRecommendationSetReceivedAcknowledgement(recommendationSetId, requestRecieved);
 		} catch (NoEntryException e) {
 			statusReportSet.addStatusReport(e.getStatusReport());
-		} catch (InvalidAccessKeyException g) {
-			statusReportSet.addStatusReport(g.getStatusReport());
 		} catch (SQLException e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		} finally {
