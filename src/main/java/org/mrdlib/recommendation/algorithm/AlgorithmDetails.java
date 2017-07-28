@@ -24,6 +24,8 @@ public class AlgorithmDetails {
 	private String recommendationProvider;
 	private String recommendationProviderId;
 
+	public AlgorithmDetails() {} // needed for unmarshalling
+
 	public AlgorithmDetails(String name) {
 		this.name = name;
 	}

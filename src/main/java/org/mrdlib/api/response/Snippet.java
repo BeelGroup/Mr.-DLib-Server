@@ -24,6 +24,9 @@ public class Snippet implements Serializable {
 	private String format;
 	private String clickUrl;
 
+	public Snippet() {
+	}
+
 	public Snippet(String clickUrl, String title, String authorNames, String publishedIn, int year, String format) {
 		this.format = format;
 		this.clickUrl = clickUrl;
