@@ -102,18 +102,20 @@ class Server:
         thread.start()
         return Response('Started training.', status=200, mimetype='text/plain')
 
+    def load_model_task(self, language):
+        logger.info(f"Starting loading model for {language} @ {datetime.datetime.now()}")
+        self.models[language] = Model.load(f"model_{language}")
+        logger.info(f"Loaded model for {language} @ {datetime.datetime.now()}")
+
 
     def load(self, req):
         if 'language' not in req.args:
             return Response('Language parameter not provided.', status=400, mimetype='text/plain')
         language = req.args.get('language', 'en')
 
-        try:
-            self.models[language] = Model.load(f"model_{language}")
-            logger.info(f"Loaded model {language}")
-            return Response(f'Model loaded.', status=200, mimetype='text/plain') # 
-        except Exception as e:
-            return Response('Could not load model: ' + str(e), status=500, mimetype='text/plain')
+        thread = threading.Thread(target=self.load_model_task, args=(language,), daemon=False)
+        thread.start()
+        return Response(f'Started loading model.', status=200, mimetype='text/plain') 
 
 
     def __call__(self, environ, start_response):
