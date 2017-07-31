@@ -21,13 +21,13 @@ public class CoreImportTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-	importer = new DocumentImport();
+		importer = new DocumentImport();
     }
 
     @Test
     public void testDocumentInDB() throws Exception {
-	assertTrue(importer.hasDocumentInDB(10000));
-	assertFalse(importer.hasDocumentInDB(42));
+		assertTrue(importer.hasDocumentInDB(10000));
+		assertFalse(importer.hasDocumentInDB(42));
     }
 
 }
