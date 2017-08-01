@@ -14,6 +14,8 @@ sourceSets.test.java.srcDirs = ['src/test/java']
 gretty {
     servletContainer 'tomcat8'
     enableNaming true // enable JNDI in tomcat
+    integrationTestTask = 'test'
+    httpPort = 9000
 }
 
 allprojects {

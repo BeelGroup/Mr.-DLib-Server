@@ -347,5 +347,11 @@ public class DisplayDocument implements Serializable {
 	public void setFinalScore(double finalScore) {
 		this.debugDetails.setFinalScore(finalScore);
 	}
+
+    @Override
+    public String toString(){
+	return String.format("title=%s, authors=%s, year=%d, docId=%s, id_org=%s",
+			     getTitle(), getAuthorNames(), getYear(), getDocumentId(), getOriginalDocumentId());
+    }
 	
 }

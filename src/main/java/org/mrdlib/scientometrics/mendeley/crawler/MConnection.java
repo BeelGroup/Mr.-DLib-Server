@@ -75,7 +75,7 @@ public class MConnection {
 		int lastSuccessId = mconfig.getLastSuccessfullId();
 
 		//get the number of documents for batch processing
-		int numberOfDocuments = con.getBiggestIdFromDocuments();
+		long numberOfDocuments = con.getBiggestIdFromDocuments();
 
 		//if the process was finished, stop
 		if (lastSuccessId >= numberOfDocuments) {
