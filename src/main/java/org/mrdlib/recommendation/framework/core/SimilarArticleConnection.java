@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mrdlib.api.manager.Constants;
-import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.partnerContentManager.core.*;
 import org.apache.http.HttpEntity;
@@ -104,7 +103,9 @@ public class SimilarArticleConnection {
 	public String searchByTitle(String title) throws ClientProtocolException, IOException {
 		HttpClient httpclient = HttpClients.createDefault();
 		HttpPost httppost = new HttpPost(
-				"https://core.ac.uk:443/api-v2/articles/similar?limit=10&metadata=true&fulltext=false&citations=false&similar=false&duplicate=false&urls=false&faithfulMetadata=false&apiKey=VS69J25GmeWsZiAjMHTvlX3oh1ntONQw");
+				"https://core.ac.uk:443/api-v2/articles/similar?limit=10&metadata=true"
+				+ "&fulltext=false&citations=false&similar=false&duplicate=false&urls=false&faithfulMetadata=false&apiKey="
+				+ apiKey);
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>(1);
 		params.add(new BasicNameValuePair("text", title));
