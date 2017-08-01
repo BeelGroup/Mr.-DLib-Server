@@ -84,34 +84,34 @@ public class DocumentCheck
 			long start = 0;
 			if (args.length >= 2) 
 				start = Long.parseLong(args[1]);
-			System.out.println("Starting with batch " + start);
 			FileWriter progress = new FileWriter(filename, true);
 			DocumentCheck check = new DocumentCheck();
 			long batches = check.getBatchesForAllDocuments();
 			SimpleDateFormat elapsed = new SimpleDateFormat("HH:mm:ss");
 			elapsed.setTimeZone(TimeZone.getTimeZone("UTC"));
 			for (long batch = start; batch < batches; batch++) {
-				System.out.printf("Starting batch %d...%n", batch);
-				long time = System.currentTimeMillis();
 				List<DisplayDocument> docs = check.getCoreDocumentsBatch(batch);
 				List<Integer> ids = check.getCoreIdsFromDocuments(docs);
 				if (ids.size() != 0) {
-					List<Article> articles = check.api.getArticles(ids);
-					if (ids.size() != articles.size()) {
-						throw new Exception("Missing document in query results: " + articles.toString() + " vs " + ids.toString());
-					}
-					for (int i = 0; i < articles.size(); i++) {
-						if (articles.get(i) == null) {
-							progress.append("-" + articles.get(i).getId() + System.lineSeparator());
+					try {
+						List<Article> articles = check.api.getArticles(ids);
+						if (ids.size() != articles.size()) {
+							throw new Exception("Missing document in query results: " + articles.toString() + " vs " + ids.toString());
 						}
+						for (int i = 0; i < articles.size(); i++) {
+							if (articles.get(i) == null) {
+								progress.append("-" + ids.get(i) + System.lineSeparator());
+							}
+						}
+					} catch(Exception e) {
+						progress.append("!" + batch + " " + e + System.lineSeparator());
+						progress.flush();
+						continue;
 					}
 				}
-				time = System.currentTimeMillis() - time;
-				System.out.printf("Finished batch in %s.%n", elapsed.format(time));
 				progress.append("+" + batch + System.lineSeparator());
 				progress.flush();
 			}
-			System.out.println("Finished processing documents.");
 			progress.close();
 		} catch (Exception e) {
 			e.printStackTrace();
