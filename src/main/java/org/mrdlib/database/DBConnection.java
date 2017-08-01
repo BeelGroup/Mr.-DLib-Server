@@ -3234,6 +3234,7 @@ public class DBConnection {
     }
 
     private AlgorithmDetails setRecommendationProvider(AlgorithmDetails algorithmDetails) {
+    if(algorithmDetails==null) return null;
 	String algorithmName = algorithmDetails.getName();
 	if(algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())){
 	    algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", constants.getApplicationFullName()));

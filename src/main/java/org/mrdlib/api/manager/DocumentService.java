@@ -187,10 +187,10 @@ public class DocumentService {
 						if (constants.getDebugModeOn())
 							System.out.println(
 									"lets now try if this matches a pattern in our database. In that case, we have a 404 error");
-
 						Boolean prefixMatch = con.matchCollectionPattern(inputQuery, partnerId);
 						requestDocument = new DisplayDocument();
 						requestDocument.setTitle(inputQuery);
+						String originalInputQuery = inputQuery;
 						inputQuery = inputQuery
 								.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\|\\'|\\;", " ");
 						requestDocument.setCleanTitle(inputQuery);
@@ -200,8 +200,8 @@ public class DocumentService {
 							// lucene does not like these chars
 							System.out.println("requestDocument: " + requestDocument.getTitle());
 						} else {
-							requestDocument.setDocumentId(inputQuery);
-							throw new NoEntryException(inputQuery);
+							requestDocument.setDocumentId(originalInputQuery);
+							throw new NoEntryException(originalInputQuery);
 						}
 					}
 				}
