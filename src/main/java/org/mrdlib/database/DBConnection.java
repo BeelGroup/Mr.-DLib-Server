@@ -3625,7 +3625,9 @@ public class DBConnection {
 	String queryType = "";
 	if (!inputIsDocument)
 	    queryType = recommenderDetails.getQueryParser();
-	boolean keyphrases = recommenderDetails.getCbfFeatureType().equals("keyphrases");
+	System.out.println(recommenderDetails.getCbfFeatureType());
+	boolean keyphrases = recommenderDetails.getCbfFeatureType()!= null &&
+			recommenderDetails.getCbfFeatureType().equals("keyphrases");
 
 	String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE ("
 	    + constants.getInputType() + " =? OR ( " + constants.getInputType() + " IS NULL AND ? IS NULL)) AND ("

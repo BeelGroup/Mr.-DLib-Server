@@ -80,7 +80,7 @@ public class RecommenderFactory {
 		Boolean requestIsFromJabref = checkAccessToCoreAPI(appId, con);
 
 		if (requestIsFromJabref) {
-			if (random.nextInt(3) >0 )
+			if (random.nextInt(3) == 0 )
 				return new CoreSearch(con);
 			else
 				return returnStandardQueryByTitleRDG(con, random);
