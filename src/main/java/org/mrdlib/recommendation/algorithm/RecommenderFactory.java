@@ -11,6 +11,27 @@ import org.mrdlib.database.NoEntryException;
 public class RecommenderFactory {
 	static RelatedDocuments rdg;
 
+	public static RelatedDocuments getAlgorithmById(String id, DBConnection con) throws Exception {
+		switch(id) {
+		case "random":
+			return new RandomDocumentRecommender(con);
+		case "random_language":
+			return new RandomDocumentRecommenderLanguageRestricted(con);
+		case "most_popular":
+			return new MostPopularRecommender(con);
+		case "stereotype":
+			return new StereotypeRecommender(con);
+		case "mlt":
+			return new RelatedDocumentsMLT(con);
+		case "keyphrases":
+			return new RelatedDocumentsKeyphrasesRevised(con);
+		case "doc2vec":
+			return new Doc2VecRecommender(con);
+		default:
+			throw new Exception("Unknown algorithm: " + id);
+		}
+	}
+
 	/**
 	 * Initializes a fallback recommender
 	 * 
