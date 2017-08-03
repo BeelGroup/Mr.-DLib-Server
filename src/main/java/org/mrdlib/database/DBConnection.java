@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.Random;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -1654,6 +1655,12 @@ public class DBConnection {
 	}
 	return documentDataList;
     }
+
+	public List<DisplayDocument> getRandomDocuments(int batchSize) {
+		int max = getBiggestIdFromDocuments();
+		int start = new Random().nextInt(max - batchSize);
+		return getDocumentDataInBatches(start, batchSize);
+	}
 
     /**
      * 

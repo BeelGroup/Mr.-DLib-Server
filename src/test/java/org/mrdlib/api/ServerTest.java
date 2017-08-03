@@ -1,6 +1,7 @@
 package org.mrdlib.api;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.ArrayList;
 import javax.xml.bind.JAXBContext;
@@ -31,6 +32,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import org.mrdlib.api.response.*;
+import org.mrdlib.database.DBConnection;
 
 @RunWith(Parameterized.class)
 public class ServerTest {
@@ -38,6 +40,7 @@ public class ServerTest {
 	private List<String> documentIds, searchQueries, originalIds;
 	private Logger logger;
 
+	private static final int TEST_QUERIES = 10;
 	private static final String[] queries = {"1", "digital", "csa-sa-196000531"};
 	private static final String[] algorithms = {
 		null, "most_popular", "mlt", "random", "stereotype",
@@ -45,18 +48,27 @@ public class ServerTest {
 	};
 
 	@Parameter(0)
-	public String query;
+	public DisplayDocument doc;
 	@Parameter(1)
+	public String query;
+	@Parameter(2)
 	public String algorithm;
 
-	@Parameters(name="{index}: /documents/{0}/related_documents?algorithm_id={1}")
-	public static Collection<Object[]> data() {
+	@Parameters(name="{index}: /documents/{1}/related_documents?algorithm_id={2}")
+	public static Collection<Object[]> data() throws Exception {
+		// test by querying a set of random documents in three different ways
+		// let test access queried document to account for restrictions of algorithms
 		List<Object[]> options = new ArrayList<Object[]>();
-		for (String q : queries) {
+		DBConnection con = new DBConnection("jar");
+		List<DisplayDocument> docs = con.getRandomDocuments(TEST_QUERIES);
+		for (DisplayDocument d : docs) {
 			for (String a : algorithms) {
-				options.add(new Object[] { q, a });
+				options.add(new Object[] { d, d.getOriginalDocumentId(), a });
+				options.add(new Object[] { d, d.getDocumentId(), a });
+				options.add(new Object[] { d, d.getTitle(), a });
 			}
 		}
+		con.close();
 		return options;
 	}
 
@@ -67,7 +79,7 @@ public class ServerTest {
 		logger = LoggerFactory.getLogger(ServerTest.class);
 	}
 
-	private void testRootElement(RootElement result) throws Exception {
+	private void testRootElement(RootElement result, boolean ensureStatusOk) throws Exception {
 		assertNotNull(result);
 		StatusReportSet status = result.getStatusReportSet();
 		assertNotNull(status);
@@ -76,10 +88,12 @@ public class ServerTest {
 		assertNotNull(reports);
 		StatusReport report = reports.get(0);
 		assertNotNull(report);
-		assertEquals(200, report.getStatusCode());
-		DocumentSet documents = result.getDocumentSet();
-		assertNotNull(documents);
-		assertThat(documents.getSize(), greaterThan(0));
+		if (ensureStatusOk) {
+			assertEquals(200, report.getStatusCode());
+			DocumentSet documents = result.getDocumentSet();
+			assertNotNull(documents);
+			assertThat(documents.getSize(), greaterThan(0));
+		}
 	}
 
 	private RootElement fetchRootElement(String query, String algorithmId) throws Exception {
@@ -117,20 +131,30 @@ public class ServerTest {
 			throw new Exception("Unknown algorithm: " + algorithm);
 		}
 	}
+	private static final List<String> languageRestrictedAlgorithms = Arrays.asList(new String[] { "keyphrases", "doc2vec", "random_language" });
+	private static final List<String> englishRestrictedAlgorithms = Arrays.asList(new String[] { "keyphrases", "doc2vec", });
 
 	@Test
 	public void requestRecommendation() throws Exception {
 		logger.debug("Querying for {} with algorithm_id = {}", query, algorithm);
+		
 		RootElement result = fetchRootElement(query,algorithm);
-		testRootElement(result);
-		if (algorithm != null) {
-			String algoName = result
-				.getDocumentSet()
-				.getDebugDetailsPerSet()
-				.getAlgoDetails()
-				.getName();
-		    String expected = getAlgorithmClassName(algorithm);
-			assertEquals(expected, algoName);
+		if (languageRestrictedAlgorithms.contains(algorithm) && doc.getLanguage() == null ||
+			(englishRestrictedAlgorithms.contains(algorithm) && !doc.getLanguage().equals("en"))) {
+			testRootElement(result, false);
+			List<StatusReport> status = result.getStatusReportSet().getStatusReportList();
+			assertThat(status, hasItem(hasProperty("statusCode", equalTo(204))));
+		} else {
+			testRootElement(result, true);
+			if (algorithm != null) {
+				String algoName = result
+					.getDocumentSet()
+					.getDebugDetailsPerSet()
+					.getAlgoDetails()
+					.getName();
+				String expected = getAlgorithmClassName(algorithm);
+				assertEquals(expected, algoName);
+			}
 		}
 	}
 
