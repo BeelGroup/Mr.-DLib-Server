@@ -9,23 +9,22 @@ import org.mrdlib.database.DBConnection;
 import org.mrdlib.database.NoEntryException;
 
 public class RecommenderFactory {
-	static RelatedDocuments rdg;
 
-	public static RelatedDocuments getAlgorithmById(String id, DBConnection con) throws Exception {
+	public static RelatedDocuments getAlgorithmById(Algorithm id, DBConnection con) throws Exception {
 		switch(id) {
-		case "random":
+		case RANDOM_DOCUMENT:
 			return new RandomDocumentRecommender(con);
-		case "random_language":
+		case RANDOM_LANGUAGE_RESTRICTED:
 			return new RandomDocumentRecommenderLanguageRestricted(con);
-		case "most_popular":
-			return new MostPopularRecommender(con);
-		case "stereotype":
-			return new StereotypeRecommender(con);
-		case "mlt":
+		case FROM_SOLR:
 			return new RelatedDocumentsMLT(con);
-		case "keyphrases":
+		case STEREOTYPE:
+			return new StereotypeRecommender(con);
+		case MOST_POPULAR:
+			return new MostPopularRecommender(con);
+		case FROM_SOLR_WITH_KEYPHRASES:
 			return new RelatedDocumentsKeyphrasesRevised(con);
-		case "doc2vec":
+		case DOC2VEC:
 			return new Doc2VecRecommender(con);
 		default:
 			throw new Exception("Unknown algorithm: " + id);
@@ -130,69 +129,25 @@ public class RecommenderFactory {
 	}
 
 	public static RelatedDocuments returnStandardDistributionRDG(DBConnection con, DisplayDocument requestDocument) {
-		Random random = new Random();
-
-		int randomRecommendationApproach = random.nextInt(10000);
-
+		RelatedDocuments rdg = null;
 		Probabilities probs = new Probabilities();
-		int cumulative = probs.getRandomDocumentRecommender();
+		Algorithm choice = probs.next();
 
 		try {
-			// CASE: Completely random
-			if (randomRecommendationApproach < cumulative)
-				rdg = new RandomDocumentRecommender(con);
-			else {
-				// CASE: Random with lang restriction
-				cumulative += probs.getRandomDocumentRecommenderLanguageRestricted();
-				if (randomRecommendationApproach < cumulative)
-					rdg = new RandomDocumentRecommenderLanguageRestricted(con);
-				else {
-					cumulative += probs.getStereotypeRecommender(); // CASE:
-																	// Stereotype
-					if (randomRecommendationApproach < cumulative)
-						rdg = new StereotypeRecommender(con);
-					else {
-						cumulative += probs.getMostPopular();
-						if (randomRecommendationApproach < cumulative)
-							rdg = new MostPopularRecommender(con);
-						else {
-							cumulative += probs.getRelatedDocumentsFromSolr(); // CASE:
-																				// metadata
-																				// based
-																				// from
-																				// SOLR
-							if (randomRecommendationApproach < cumulative)
-								rdg = new RelatedDocumentsMLT(con);
-							else {
-								String language = requestDocument.getLanguage(); // Validity
-																					// of
-																					// keyphrase
-																					// algo
-																					// depends
-																					// on
-																					// language.
-																					// So
-																					// check
-																					// language
-								if (language == null || !language.equals("en"))
-									rdg = getFallback(con); // If not english,
-															// use
-															// fallback.
-								else {
-									// Check presence and language of abstract
-									rdg = new RelatedDocumentsKeyphrasesRevised(con);
-									String abstLang = con.getAbstractDetails(requestDocument);
-									if (!abstLang.equals("en"))
-										// if not set algorithmLoggingInfo.type
-										// to title only
-										rdg.algorithmLoggingInfo.setCbfTextFields("title_keywords_published_in");
-									// otherwise leave it unset.
-								}
-							}
-						}
-					}
+			rdg = getAlgorithmById(choice,con);
+			if (choice == Algorithm.FROM_SOLR_WITH_KEYPHRASES ||
+				choice == Algorithm.DOC2VEC) {
+
+				String language = requestDocument.getLanguage(); 
+				if (language == null || !language.equals("en")) {
+					rdg = getFallback(con); 
+				} else if (choice == Algorithm.FROM_SOLR_WITH_KEYPHRASES &&
+					!con.getAbstractDetails(requestDocument).equals("en")) {
+					// if abstract not english set algorithmLoggingInfo.type to title only
+					rdg.algorithmLoggingInfo.setCbfTextFields("title_keywords_published_in");
 				}
 			}
+			return rdg;
 		} catch (Exception e) {
 			if (rdg != null) {
 				e.printStackTrace();
@@ -200,7 +155,6 @@ public class RecommenderFactory {
 			}
 			throw new UnknownException(e, true);
 		}
-		return rdg;
 	}
 
 }

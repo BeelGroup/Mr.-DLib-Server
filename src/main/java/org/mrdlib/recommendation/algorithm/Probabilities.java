@@ -3,103 +3,88 @@ package org.mrdlib.recommendation.algorithm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.List;
+import java.util.Random;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.mrdlib.api.manager.Constants;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Probabilities {
+	private Logger logger;
 	private Constants constants = new Constants();
 	private String path = constants.getProbabilitiesPath();
+	private Random random;
+	private static final int TOTAL = 10000;
 
 	// probabilities for recommenders
-	private int randomDocumentRecommender;
-	private int randomDocumentRecommenderLanguageRestricted;
-	private int relatedDocumentsFromSolr;
-	private int relatedDocumentsFromSolrWithKeyphrases;
-	private int stereotypeRecommender;
-	private int mostPopular;
+	private List<Integer> probs = new ArrayList<Integer>();
 
-	// the constructor loads the probablities from the probabilities.properties
-	// file
+	/**
+	 * fallback - first one, always
+	 */
+	private void reset() {
+		probs.clear();
+		probs.add(TOTAL);
+		for (int i = 1; i < Algorithm.values().length; i++)
+			probs.add(0);
+	}
+
+	/** 
+	 * the constructor loads the probablities from the probabilities.properties file
+	 */
 	public Probabilities() {
-
+		random = new Random();
 		Properties prop = new Properties();
 		InputStream input = null;
+		logger = LoggerFactory.getLogger(Probabilities.class);
 
 		try {
 			input = getClass().getClassLoader().getResourceAsStream(path);
 			prop.load(input);
 
-			// get the probability values
-			this.randomDocumentRecommender = Integer.parseInt(prop.getProperty("RandomDocumentRecommender"));
-			this.randomDocumentRecommenderLanguageRestricted = Integer
-					.parseInt(prop.getProperty("RandomDocumentRecommenderLanguageRestricted"));
-			this.relatedDocumentsFromSolr = Integer.parseInt(prop.getProperty("RelatedDocumentsFromSolr"));
-			this.relatedDocumentsFromSolrWithKeyphrases = Integer
-					.parseInt(prop.getProperty("RelatedDocumentsFromSolrWithKeyphrases"));
-			this.stereotypeRecommender = Integer.parseInt(prop.getProperty("StereotypeRecommender"));
-			this.mostPopular = Integer.parseInt(prop.getProperty("MostPopularRecommender"));
-
-			if ((this.randomDocumentRecommender + this.randomDocumentRecommenderLanguageRestricted
-					+ this.stereotypeRecommender + this.relatedDocumentsFromSolr
-					+ this.relatedDocumentsFromSolrWithKeyphrases + this.mostPopular) != 10000) {
-				this.randomDocumentRecommender = 0;
-				this.randomDocumentRecommenderLanguageRestricted = 0;
-				this.relatedDocumentsFromSolr = 10000;
-				this.relatedDocumentsFromSolrWithKeyphrases = 0;
-				this.stereotypeRecommender = 0;
-				this.mostPopular = 0;
-				System.out.println("Probabilities do not sum up to 100%: Defaulting to Backup algorithm");
+			int sum = 0;
+			for (Algorithm choice : Algorithm.values()) {
+				int probability = Integer.parseInt(prop.getProperty(choice.name()));
+				this.probs.add(probability);
+				sum += probability;
+			}
+			if (sum != TOTAL) {
+				logger.error("Probabilities do not sum up ({}, should be {}), falling back to default.", sum, TOTAL);
+				reset();
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			logger.error("Could not read probabilites; falling back to default.", ex);
+			reset();
 		} finally {
 			if (input != null) {
 				try {
 					input.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					logger.error("Could not close file.", e);
 				}
 			}
 		}
 	}
 
-	/*
-	 * Getter for probability of Random Document Recommender
+	/**
+	 * generate random next choice
 	 */
-	public int getRandomDocumentRecommender() {
-		return randomDocumentRecommender;
+	public Algorithm next() {
+		int num = random.nextInt(TOTAL);
+		int cum = 0;
+		for (int i = 0; i < Algorithm.values().length; i++) {
+			cum += probs.get(i);
+			if (num < cum) {
+				return Algorithm.values()[i];
+			}
+		}
+		throw new Error("Math failed us. This doesn't add up.");
 	}
 
-	/*
-	 * Getter for probability of Random Document Recommender Language Restricted
-	 */
-	public int getRandomDocumentRecommenderLanguageRestricted() {
-		return randomDocumentRecommenderLanguageRestricted;
-	}
 
-	/*
-	 * Getter for probability of LuceneMLT
-	 */
-	public int getRelatedDocumentsFromSolr() {
-		return relatedDocumentsFromSolr;
-	}
-
-	/*
-	 * Getter for probability of Keyphrase Approach
-	 */
-	public int getRelatedDocumentsFromSolrWithKeyphrases() {
-		return relatedDocumentsFromSolrWithKeyphrases;
-	}
-
-	/*
-	 * Getter for probability of Stereotype Recommender
-	 */
-	public int getStereotypeRecommender() {
-		return stereotypeRecommender;
-	}
-
-	public int getMostPopular() {
-		// TODO Auto-generated method stub
-		return mostPopular;
-	}
 }

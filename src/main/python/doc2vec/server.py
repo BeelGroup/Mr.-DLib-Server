@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Server:
     LIMIT=6
+    LANGUAGES=['en']
     def __init__(self):
         self.routes = Map([
             Rule('/search/<query>', endpoint='search'),
@@ -60,8 +61,13 @@ class Server:
 
     def search(self, req, query):
         language = req.args.get('language', 'en')
+
+        if language not in Server.LANGUAGES:
+            return Response('Language code not valid / supported', status=400, mimetype='text/plain')
+
         if language not in self.models:
             return Response('No model for this language found.', status=501, mimetype='text/plain')
+
         limit = int(req.args.get('limit', Server.LIMIT))
         model = self.models[language]
         vector = model.infer(query)
@@ -72,8 +78,13 @@ class Server:
 
     def related(self, req, docId):
         language = req.args.get('language', 'en')
+
+        if language not in Server.LANGUAGES:
+            return Response('Language code not valid / supported', status=400, mimetype='text/plain')
+
         if language not in self.models:
             return Response('No model for this language found.', status=501, mimetype='text/plain')
+
         limit = int(req.args.get('limit', Server.LIMIT))
         model = self.models[language]
         try:
@@ -98,6 +109,9 @@ class Server:
             return Response('Language parameter not provided.', status=400, mimetype='text/plain')
 
         language = req.args.get('language', 'en')
+        if language not in Server.LANGUAGES:
+            return Response('Language code not valid / supported', status=400, mimetype='text/plain')
+
         thread = threading.Thread(target=self.train_model_task, args=(language,), daemon=False)
         thread.start()
         return Response('Started training.', status=200, mimetype='text/plain')
@@ -111,7 +125,11 @@ class Server:
     def load(self, req):
         if 'language' not in req.args:
             return Response('Language parameter not provided.', status=400, mimetype='text/plain')
+
         language = req.args.get('language', 'en')
+
+        if language not in Server.LANGUAGES:
+            return Response('Language code not valid / supported', status=400, mimetype='text/plain')
 
         thread = threading.Thread(target=self.load_model_task, args=(language,), daemon=False)
         thread.start()

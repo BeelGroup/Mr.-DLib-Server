@@ -19,6 +19,7 @@ import org.mrdlib.api.response.StatusReportSet;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.database.NoEntryException;
 import org.mrdlib.recommendation.algorithm.RecommenderFactory;
+import org.mrdlib.recommendation.algorithm.Algorithm;
 import org.mrdlib.recommendation.algorithm.RelatedDocuments;
 import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
 import org.mrdlib.recommendation.ranking.ApplyRanking;
@@ -184,8 +185,8 @@ public class DocumentService {
 		return documentset;
 	}
 
-	private DocumentSet executeAlgorithmById(String id, DocumentSet documentset, DisplayDocument requestDocument) throws Exception {
-		RelatedDocuments algorithm = RecommenderFactory.getAlgorithmById(id, con);
+	private DocumentSet executeAlgorithmById(Algorithm algo, DocumentSet documentset, DisplayDocument requestDocument) throws Exception {
+		RelatedDocuments algorithm = RecommenderFactory.getAlgorithmById(algo, con);
 		documentset.setRequestedDocument(requestDocument);
 		documentset.setDesiredNumberFromAlgorithm(ar.getNumberOfCandidatesToReRank());
 		documentset = algorithm.getRelatedDocumentSet(documentset);
@@ -287,9 +288,14 @@ public class DocumentService {
 				if (algorithmId == null || algorithmId.equals("")) {
 					documentset = executeAlgorithmRandomly(requestDocument,requestByTitle, documentset);
 				} else {
-					documentset = executeAlgorithmById(algorithmId,documentset,requestDocument);
+					Algorithm algo = Algorithm.valueOf(algorithmId);
+					documentset = executeAlgorithmById(algo,documentset,requestDocument);
 				}
-			} catch(NoRelatedDocumentsException e) {
+			} catch(IllegalArgumentException e) {
+				StatusReport status = new StatusReport(400, String.format("Invalid algorithm id specified: {}", algorithmId));
+				statusReportSet.addStatusReport(status);
+			} catch(Exception e) {
+				logger.warn("Could not execute algorithm {} for query {}", algorithmId, inputQuery, e);
 				documentset.getDocumentList().clear();
 			}
 
@@ -336,7 +342,7 @@ public class DocumentService {
 		rootElement.setDocumentSet(documentset);
 		rootElement.setStatusReportSet(statusReportSet);
 		logger.info("added stuff to root element");
-		logger.info("requestByTitle is: {}");
+		logger.info("requestByTitle is: {}", requestByTitle);
 		logger.info("Try to do the logging stuff");
 
 		try {
