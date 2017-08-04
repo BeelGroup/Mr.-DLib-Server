@@ -46,7 +46,7 @@ public class DocumentService {
 	private RootElement rootElement = null;
 	private StatusReportSet statusReportSet = null;
 	private ApplyRanking ar = null;
-	private Logger logger;
+	private Logger logger = LoggerFactory.getLogger(DocumentService.class);
 
 	public DocumentService() {
 		// get the time the request came in for statistic
@@ -55,7 +55,6 @@ public class DocumentService {
 		constants = new Constants();
 		rootElement = new RootElement();
 		statusReportSet = new StatusReportSet();
-		logger = LoggerFactory.getLogger(DocumentService.class);
 		try {
 			con = new DBConnection("tomcat");
 			ar = new ApplyRanking(con);
@@ -84,37 +83,40 @@ public class DocumentService {
 		 */
 		try {
 			// get the requested document from the database by mdl ID
-			logger.info("try int");
+			logger.trace("try int");
 			Integer.parseInt(inputQuery);
 			requestDocument = con.getDocumentBy(constants.getDocumentId(), inputQuery);
+			logger.trace("{} got recognized as documentId", inputQuery);
 			return requestDocument;
 		} catch (NoEntryException e) { // inputQuery is integer id, but no such document found
 			requestDocument = new DisplayDocument();
 			requestDocument.setDocumentId(inputQuery);
 			throw e;
 		} catch (NumberFormatException e) {
-			logger.info("int failed");
+			logger.trace("int failed");
 			try {
-				logger.info("try origonal id");
+				logger.trace("try origonal id");
 				// get the requested document from the database by its
 				// Original ID
 				requestDocument = con.getDocumentBy(constants.getIdOriginal(), inputQuery);
+				logger.trace("{} got recognized as originalId", inputQuery);
 				return requestDocument;
 			} catch (NoEntryException e1) {
-				logger.info("original id failed");
+				logger.trace("original id failed");
 				// The encoding does not work for / so we convert them
 				// by our own on JabRef side
 				inputQuery = inputQuery.replaceAll("convbckslsh", "/");
-				logger.info("searching the database for a document with title");
+				logger.trace("searching the database for a document with title");
 				try {
 					// get the requested document from the database by its
 					// title
 					requestDocument = con.getDocumentBy(constants.getTitle(), inputQuery);
-					logger.info("The Document is in our Database!");
+					logger.trace("The Document is in our Database!");
+					logger.trace("{} got recognized as title", inputQuery);
 					return requestDocument;
 				} catch (Exception e2) {
-					logger.info("it seems there is no document in our database with this title");
-					logger.info("trying if this matches a pattern in our database. In that case, we have a 404 error");
+					logger.trace("it seems there is no document in our database with this title");
+					logger.trace("trying if this matches a pattern in our database. In that case, we have a 404 error");
 					Boolean prefixMatch = con.matchCollectionPattern(inputQuery, partnerId);
 					requestDocument = new DisplayDocument();
 					requestDocument.setTitle(inputQuery);
@@ -125,7 +127,7 @@ public class DocumentService {
 					if (!prefixMatch) {
 						inputQuery = inputQuery.toLowerCase();
 						// lucene does not like these chars
-						logger.info("requestDocument: {}", requestDocument.getTitle());
+						logger.trace("requestDocument: {}", requestDocument.getTitle());
 						return null;
 					} else {
 						requestDocument.setDocumentId(originalInputQuery);
@@ -147,9 +149,9 @@ public class DocumentService {
 		// left
 		while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 			try {
-				logger.info("trying to get the algorithm from the factory");
+				logger.trace("trying to get the algorithm from the factory");
 				relatedDocumentGenerator = RecommenderFactory.getRandomRDG(con, documentset, requestByTitle);
-				logger.info("chosen algorithm: {}", relatedDocumentGenerator.algorithmLoggingInfo.getName());
+				logger.trace("chosen algorithm: {}", relatedDocumentGenerator.algorithmLoggingInfo.getName());
 
 				documentset.setRequestedDocument(requestDocument);
 				documentset.setDesiredNumberFromAlgorithm(ar.getNumberOfCandidatesToReRank());
@@ -158,7 +160,7 @@ public class DocumentService {
 				validAlgorithmFlag = true;
 				// If no related documents are present, redo the algorithm
 			} catch (NoRelatedDocumentsException e) {
-				logger.info("algorithmLoggingInfo: {}", relatedDocumentGenerator.algorithmLoggingInfo);
+				logger.trace("algorithmLoggingInfo: {}", relatedDocumentGenerator.algorithmLoggingInfo);
 				validAlgorithmFlag = false;
 				numberOfAttempts++;
 				if (requestByTitle) {
@@ -169,16 +171,16 @@ public class DocumentService {
 
 		if (validAlgorithmFlag) {
 			if (numberOfAttempts > 0) {
-				logger.info("We retried {} times for document {}", numberOfAttempts, requestDocument.getDocumentId());
+				logger.trace("We retried {} times for document {}", numberOfAttempts, requestDocument.getDocumentId());
 				documentset.setRequestedDocument(requestDocument);
 			}
 		} else {
-			logger.info("Using fallback recommender");
+			logger.trace("Using fallback recommender");
 			relatedDocumentGenerator = RecommenderFactory.getFallback(con);
 			try {
 				documentset = relatedDocumentGenerator.getRelatedDocumentSet(documentset);
 			} catch (NoRelatedDocumentsException e) {
-				logger.info("No related documents in fallback either");
+				logger.trace("No related documents in fallback either");
 				documentset.setRequestedDocument(requestDocument);
 			}
 		}
@@ -211,7 +213,7 @@ public class DocumentService {
 											 @QueryParam("app_version") String appVersion,
 											 @QueryParam("app_lang") String appLang,
 											 @QueryParam("algorithm_id") String algorithmId) {
-		logger.info("started getRelatedDocumentSet with input: {}", inputQuery);
+		logger.info("started getRelatedDocumentSet with input: {}?{}", request.getRequestURL(), request.getQueryString());
 
 		String ipAddress = request.getHeader("X-FORWARDED-FOR");
 		if (ipAddress == null) {
@@ -251,13 +253,13 @@ public class DocumentService {
 							appVerified = con.verifyLinkAppOrg(applicationId, partnerId);
 						if (!appVerified)
 							statusReportSet.addStatusReport(new StatusReport(401, "Application_id " + appName
-									+ " is not linked with organization_id: " + partnerName));
+																			 + " is not linked with organization_id: " + partnerName));
 					}
 					partnerId = con.getIdInApplications(appName, constants.getOrganizationInApplication());
 
 				} catch (NoEntryException e) {
 					statusReportSet.addStatusReport(new StatusReport(401,
-							"The application with name: " + appName + " has not been registered with Mr. DLib"));
+																	 "The application with name: " + appName + " has not been registered with Mr. DLib"));
 				}
 			}
 
@@ -294,12 +296,10 @@ public class DocumentService {
 			} catch(IllegalArgumentException e) {
 				StatusReport status = new StatusReport(400, String.format("Invalid algorithm id specified: {}", algorithmId));
 				statusReportSet.addStatusReport(status);
-			} catch(Exception e) {
-				logger.warn("Could not execute algorithm {} for query {}", algorithmId, inputQuery, e);
-				documentset.getDocumentList().clear();
 			}
 
-			logger.info("Do the documentset stuff");
+
+			logger.trace("Do the documentset stuff");
 
 			timeAfterExecution = System.currentTimeMillis();
 
@@ -312,38 +312,42 @@ public class DocumentService {
 				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
 				documentset.setRankDelivered();
 				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
-
 			} else {
-				if (!requestByTitle) {
+				throw new NoRelatedDocumentsException(requestDocument.getDocumentId(),
+													  requestDocument.getOriginalDocumentId());
+			}
 
-					statusReportSet.addStatusReport(new StatusReport(204,
-							"No related documents found for document id: " + requestDocument.getDocumentId()
-									+ " (original document id : " + requestDocument.getOriginalDocumentId() + ")"));
-				} else {
-					statusReportSet.addStatusReport(new StatusReport(204, "Documents related to query by title ("
-							+ requestDocument.getTitle() + " ) were not found"));
-				}
+		} catch(NoRelatedDocumentsException e) {
+			logger.info("{} returned no related documents for {}", algorithmId, inputQuery);
+			if (!requestByTitle) {
+
+				statusReportSet.addStatusReport(new StatusReport(204,
+																 "No related documents found for document id: " + requestDocument.getDocumentId()
+																 + " (original document id : " + requestDocument.getOriginalDocumentId() + ")"));
+			} else {
+				statusReportSet.addStatusReport(new StatusReport(204, "Documents related to query by title ("
+																 + requestDocument.getTitle() + " ) were not found"));
 			}
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
 			statusReportSet.addStatusReport(new StatusReport(404, "No such document with document id "
-					+ requestDocument.getDocumentId() + " exists in our database"));
+															 + requestDocument.getDocumentId() + " exists in our database"));
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
-			e.printStackTrace();
+			logger.warn("Caught exception while handling {}", inputQuery, e);
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
 			statusReportSet.addStatusReport(new StatusReport(200, new StatusMessage("ok", "en")));
 
-		logger.info("Did the documentset stuff");
+		logger.trace("Did the documentset stuff");
 
 		// add both the status message and the related document to the xml
 		rootElement.setDocumentSet(documentset);
 		rootElement.setStatusReportSet(statusReportSet);
-		logger.info("added stuff to root element");
-		logger.info("requestByTitle is: {}", requestByTitle);
-		logger.info("Try to do the logging stuff");
+		logger.trace("added stuff to root element");
+		logger.trace("requestByTitle is: {}", requestByTitle);
+		logger.trace("Try to do the logging stuff");
 
 		try {
 			// log all the statistic about this execution
@@ -358,21 +362,20 @@ public class DocumentService {
 
 			for (DisplayDocument doc : documentset.getDocumentList()) {
 				String url = "https://" + constants.getEnvironment() + ".mr-dlib.org/v1/recommendations/"
-						+ doc.getRecommendationId() + "/original_url?access_key=" + documentset.getAccessKeyHash()
-						+ "&format=direct_url_forward";
+					+ doc.getRecommendationId() + "/original_url?access_key=" + documentset.getAccessKeyHash()
+					+ "&format=direct_url_forward";
 				if(appName != null){
 					url += "&app_id=" + appName;
 				}
 				doc.setClickUrl(url);
 			}
 		} catch (Exception e) {
-			logger.info("nullpointer caught");
-			e.printStackTrace();
+			logger.warn("Caught exception while logging query {}", inputQuery, e);
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 		}
 
 		try {
-			logger.info("try to close the db con");
+			logger.trace("try to close the db con");
 			if (con != null)
 				con.close();
 		} catch (Exception e) {
@@ -387,7 +390,7 @@ public class DocumentService {
 			// the database or solr index."
 			// + " This is happening most likely because you didn't changed the
 			// config file properly, mysql or solr could also be down.");
-			e.printStackTrace();
+			logger.error("Null pointer while setting debug details for query {}", inputQuery, e);
 		}
 
 		if (!constants.getDebugModeOn()) {
@@ -408,6 +411,7 @@ public class DocumentService {
 			rootElement.setDocumentSet(null);
 		}
 		return rootElement;
+
 	}
 
 }

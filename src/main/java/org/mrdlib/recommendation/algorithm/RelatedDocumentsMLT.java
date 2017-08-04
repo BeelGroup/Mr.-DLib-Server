@@ -48,9 +48,6 @@ public class RelatedDocumentsMLT extends RelatedDocuments {
 			// Query solr using the defaults set in solrConfig.xml
 			requestDoc.setAlgorithmDetails(algorithmLoggingInfo);
 			return scon.getRelatedDocumentSetByDocument(requestDoc);
-		} catch (NoRelatedDocumentsException f) {
-			System.out.println("No related documents for doc_id " + requestDoc.getRequestedDocument().getDocumentId());
-			throw f;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;

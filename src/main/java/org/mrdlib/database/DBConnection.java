@@ -27,6 +27,9 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
@@ -50,6 +53,7 @@ import org.mrdlib.utils.Pair;
  */
 public class DBConnection {
 
+	private Logger logger;
     private Connection con = null;
     private Constants constants = new Constants();
     Context ctx = null;
@@ -57,6 +61,7 @@ public class DBConnection {
     private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
 
     public DBConnection(String type) throws Exception {
+	logger = LoggerFactory.getLogger(DBConnection.class);
 	Statement stmt = null;
 	ResultSet rs = null;
 	ResultSet rs2 = null;
@@ -80,7 +85,7 @@ public class DBConnection {
 	    fillMap(rs2);
 	    // rs3 = stmt.executeQuery("SHOW VARIABLES LIKE '%collation%'");
 	    // while (rs3.next())
-	    // System.out.println(rs3.getString("Variable_name") + " : " +
+	    // logger.debug(rs3.getString("Variable_name") + " : " +
 	    // rs3.getString("Value"));
 	    // rs3 = stmt.executeQuery("SHOW COLUMNS FROM " +
 	    // constants.getPersons());
@@ -157,9 +162,9 @@ public class DBConnection {
 	    DataSource ds = (DataSource) envContext.lookup("jdbc/" + constants.getDb());
 	    con = ds.getConnection();
 	} catch (Exception e) {
-	    System.out.println("Exception in Database connection via tomcat");
+	    logger.debug("Exception in Database connection via tomcat");
 	    if (con == null)
-		System.out.println("No connection");
+		logger.debug("No connection");
 	    e.printStackTrace();
 	    throw e;
 	}
@@ -177,7 +182,7 @@ public class DBConnection {
 	    con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
 					      constants.getPassword());
 	} catch (Exception e) {
-	    System.out.println("Exception in Database connection via jar");
+	    logger.debug("Exception in Database connection via jar");
 	    e.printStackTrace();
 	}
 	return con;
@@ -255,7 +260,7 @@ public class DBConnection {
 	}
 
 	if (bibId == -1)
-	    System.out.println("new Combination: " + metric + ", " + dataType + ", " + dataSource);
+	    logger.debug("new Combination: " + metric + ", " + dataType + ", " + dataSource);
 
 	try {
 	    // insertion query
@@ -462,7 +467,7 @@ public class DBConnection {
 			authorKey = rs2.getLong(1);
 
 		} catch (SQLException e) {
-		    System.out.println(document.getDocumentPath() + ": " + document.getId());
+		    logger.debug(document.getDocumentPath() + ": " + document.getId());
 		    throw e;
 		} finally {
 		    rs.close();
@@ -473,10 +478,10 @@ public class DBConnection {
 		// get the key of the already present author
 		authorKey = (long) rs.getInt(constants.getPersonID());
 	} catch (SQLException sqle) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw sqle;
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw e;
 	} finally {
 	    try {
@@ -578,7 +583,7 @@ public class DBConnection {
 			authorKey = rs2.getLong(1);
 
 		} catch (SQLException e) {
-		    System.out.println(
+		    logger.debug(
 				       document.getDocumentPath() + ": " + document.getIdentifier() + "SetIfNulladdPersonToDB");
 		    e.printStackTrace();
 		    throw e;
@@ -591,10 +596,10 @@ public class DBConnection {
 		// get the key of the already present author
 		authorKey = (long) rs.getInt(constants.getPersonID());
 	} catch (SQLException sqle) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB1");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB1");
 	    throw sqle;
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB2");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB2");
 	    e.printStackTrace();
 	    throw e;
 	} finally {
@@ -635,7 +640,7 @@ public class DBConnection {
 
 	    stmt.executeUpdate(query);
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw e;
 	} finally {
 	    try {
@@ -673,7 +678,7 @@ public class DBConnection {
 
 	    stmt.executeUpdate(query);
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonDocRel");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonDocRel");
 	    throw e;
 	} finally {
 	    try {
@@ -712,7 +717,7 @@ public class DBConnection {
 	    if (rs.next())
 		id = rs.getLong(constants.getCollectionID());
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw e;
 	} finally {
 	    try {
@@ -758,7 +763,7 @@ public class DBConnection {
 		      || columnName.equals(constants.getAbstr()))) {
 		    // check for truncation error
 		    if (valueString.length() > lengthMap.get(columnName))
-			System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
 					   + columnName + " because too long!");
 		}
 		value = (T) valueString;
@@ -784,7 +789,7 @@ public class DBConnection {
 		stmt.setObject(index, value);
 
 	} catch (SQLException e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw e;
 	}
 	return stmt;
@@ -821,7 +826,7 @@ public class DBConnection {
 		      || columnName.equals(constants.getAbstr()))) {
 		    // check for truncation error
 		    if (valueString.length() > lengthMap.get(columnName))
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
 					   + columnName + " because too long!");
 		}
 		value = (T) valueString;
@@ -848,7 +853,7 @@ public class DBConnection {
 		stmt.setObject(index, value);
 
 	} catch (SQLException e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + " SetIfNullMethod");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + " SetIfNullMethod");
 	    throw e;
 	}
 	return stmt;
@@ -871,7 +876,7 @@ public class DBConnection {
 	LinkedHashSet<Person> authors = document.getAuthors();
 	Long[] authorKey = new Long[authors.size()];
 	// if (document.getAuthors().size() == 0)
-	// System.out.println(document.getDocumentPath() + ": " +
+	// logger.debug(document.getDocumentPath() + ": " +
 	// document.getId() + ": No Authors!");
 
 	// query to check if document already exists
@@ -882,11 +887,11 @@ public class DBConnection {
 	    rs = stmt.executeQuery(docExists);
 	    // if there is a document with the same original id
 	    if (rs.next()) {
-		System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
+		logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
 		return;
 	    }
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw e;
 	} finally {
 	    try {
@@ -895,7 +900,7 @@ public class DBConnection {
 		if (rs != null)
 		    rs.close();
 	    } catch (SQLException e) {
-		System.out.println(document.getDocumentPath() + ": " + document.getId());
+		logger.debug(document.getDocumentPath() + ": " + document.getId());
 		throw e;
 	    }
 	}
@@ -943,7 +948,7 @@ public class DBConnection {
 		if (generatedKeys.next()) {
 		    docKey = generatedKeys.getLong(1);
 		} else {
-		    System.out.println(document.getDocumentPath() + ": " + document.getId());
+		    logger.debug(document.getDocumentPath() + ": " + document.getId());
 		    throw new SQLException("Creating document failed, no ID obtained.");
 		}
 	    }
@@ -960,16 +965,16 @@ public class DBConnection {
 	    }
 
 	} catch (SQLException sqle) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw sqle;
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw e;
 	} finally {
 	    try {
 		stateQueryDoc.close();
 	    } catch (SQLException e) {
-		System.out.println(document.getDocumentPath() + ": " + document.getId());
+		logger.debug(document.getDocumentPath() + ": " + document.getId());
 		throw e;
 	    }
 	}
@@ -992,7 +997,7 @@ public class DBConnection {
 	LinkedHashSet<Person> authors = document.getAuthors();
 	Long[] authorKey = new Long[authors.size()];
 	if (document.getAuthors().size() == 0)
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + ": No Authors!");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": No Authors!");
 
 	// query to check if document already exists
 	String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
@@ -1003,11 +1008,11 @@ public class DBConnection {
 	    rs = stmt.executeQuery(docExists);
 	    // if there is a document with the same original id
 	    if (rs.next()) {
-		System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + ": Double Entry");
+		logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Double Entry");
 		return;
 	    }
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDoc");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDoc");
 	    throw e;
 	} finally {
 	    try {
@@ -1075,7 +1080,7 @@ public class DBConnection {
 		if (generatedKeys.next()) {
 		    docKey = generatedKeys.getLong(1);
 		} else {
-		    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier());
+		    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier());
 		    throw new SQLException("Creating document failed, no ID obtained.");
 		}
 	    }
@@ -1092,17 +1097,17 @@ public class DBConnection {
 	    }
 
 	} catch (SQLException sqle) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer1");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer1");
 	    throw sqle;
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer2");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer2");
 	    e.printStackTrace();
 	    throw e;
 	} finally {
 	    try {
 		stateQueryDoc.close();
 	    } catch (SQLException e) {
-		System.out.println(
+		logger.debug(
 				   document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer3");
 		throw e;
 	    }
@@ -1175,7 +1180,7 @@ public class DBConnection {
 
 	    stmt.executeUpdate();
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getId());
+	    logger.debug(document.getDocumentPath() + ": " + document.getId());
 	    throw e;
 	} finally {
 	    try {
@@ -1215,7 +1220,7 @@ public class DBConnection {
 
 	    stmt.executeUpdate();
 	} catch (Exception e) {
-	    System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addAbsToDoc");
+	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addAbsToDoc");
 	    throw e;
 	} finally {
 	    try {
@@ -1344,12 +1349,12 @@ public class DBConnection {
 	    } else
 		throw new NoEntryException(id);
 	} catch (SQLException e) {
-	    System.out.println("SQL Exception");
+	    logger.debug("SQL Exception");
 	    throw e;
 	} catch (NoEntryException e) {
 	    throw e;
 	} catch (Exception e) {
-	    System.out.println("Regualar exception");
+	    logger.debug("Regualar exception");
 	    throw e;
 	} finally {
 	    try {
@@ -1687,7 +1692,7 @@ public class DBConnection {
 	    stmt.executeUpdate();
 
 	} catch (Exception e) {
-	    System.out.println(query);
+	    logger.debug(query);
 	    e.printStackTrace();
 	} finally {
 	    try {
@@ -1785,7 +1790,7 @@ public class DBConnection {
 	    if (noEntryExceptionRecorded) {
 		stmt.setNull(1, java.sql.Types.BIGINT);
 		if (constants.getDebugModeOn())
-		    System.out.println("No entry exception woohoo");
+		    logger.debug("No entry exception woohoo");
 	    } else {
 		stmt.setString(1, referenceId);
 	    }
@@ -1878,7 +1883,7 @@ public class DBConnection {
      * documentset.getNumberOfReturnedResults() + ", " + documentset.getSize() +
      * ", 'system', '" + accessKeyHash + "');";
      * 
-     * System.out.println(query); stmt = con.prepareStatement(query,
+     * logger.debug(query); stmt = con.prepareStatement(query,
      * Statement.RETURN_GENERATED_KEYS); stmt.executeUpdate();
      * 
      * // get the autogenerated key back rs = stmt.getGeneratedKeys(); if
@@ -2047,7 +2052,7 @@ public class DBConnection {
 		stmt.executeUpdate(query);
 		int clickCount = updateClicksInRecommendationSet(recommendationId);
 		if (clickCount == 0) {
-		    System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
+		    logger.debug("Something went wrong in the updateClicksInRecommendationSet function");
 		}
 	    }
 
@@ -2091,7 +2096,7 @@ public class DBConnection {
 	    query = "SELECT click_count, " + constants.getDeliveredRecommendations() + " FROM "
 		+ constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId() + " = "
 		+ recommendationSetId;
-	    // System.out.println(query);
+	    // logger.debug(query);
 	    stmt = con.createStatement();
 	    rs = stmt.executeQuery(query);
 	    if (rs.next()) {
@@ -2108,9 +2113,9 @@ public class DBConnection {
 	    stmt.executeUpdate(ctrUpdate);
 	    return 1;
 	} catch (SQLException e) {
-	    System.out.println(updateQuery);
-	    System.out.println(query);
-	    System.out.println(ctrUpdate);
+	    logger.debug(updateQuery);
+	    logger.debug(query);
+	    logger.debug(ctrUpdate);
 	    e.printStackTrace();
 	    return 0;
 	} finally {
@@ -2145,8 +2150,8 @@ public class DBConnection {
 		return rs.getInt(constants.getRecommendationSetIdInRecommendations());
 	    }
 	} catch (SQLException e) {
-	    System.out.println(query);
-	    System.out.println("Didn't get recommendationSetId from Recommendations for id" + recommendationId);
+	    logger.debug(query);
+	    logger.debug("Didn't get recommendationSetId from Recommendations for id" + recommendationId);
 	} finally {
 	    try {
 		if (stmt != null)
@@ -2454,7 +2459,7 @@ public class DBConnection {
 	    + " < " + (start + batchsize) + " AND P.data_quality IS NULL GROUP BY DP."
 	    + constants.getPersonIDInDocPers() + ";";
 
-	System.out.println(query);
+	logger.debug(query);
 	try {
 	    stmt = con.createStatement();
 	    rs = stmt.executeQuery(query);
@@ -2841,7 +2846,7 @@ public class DBConnection {
 		query += "='" + algorithmLoggingInfo.getCategory() + "'";
 	    }
 	    query += " ORDER BY RAND()";
-	    System.out.println(query);
+	    logger.debug(query);
 	    rs = stmt.executeQuery(query);
 
 	    documentSet.setSuggested_label("Related Articles");
@@ -2933,7 +2938,7 @@ public class DBConnection {
 
 	try {
 	    stmt = con.createStatement();
-	    // System.out.println(query);
+	    // logger.debug(query);
 	    rs = stmt.executeQuery(query);
 	    switch (gramity) {
 
@@ -3012,7 +3017,7 @@ public class DBConnection {
 	    }
 	    }
 	} catch (Exception e) {
-	    System.out.println(e);
+	    logger.debug("query failed", e);
 	    throw e;
 	} finally {
 	    try {
@@ -3280,7 +3285,7 @@ public class DBConnection {
 
 	// get the hashmap which has the details of the recommendation algorithm
 	AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
-	// System.out.println(recommenderDetails.getQueryParser());
+	// logger.debug(recommenderDetails.getQueryParser());
 
 	String recommendationClass = recommenderDetails.getRecommendationClass();
 	Boolean fallback = recommenderDetails.isFallback();
@@ -3335,7 +3340,7 @@ public class DBConnection {
 	    }
 
 	    }
-	    System.out.println(query);
+	    logger.debug(query);
 	    stmt = con.createStatement();
 	    rs = stmt.executeQuery(query);
 	    
@@ -3414,7 +3419,7 @@ public class DBConnection {
 	    + constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
 	    + "',?,?,?,?,?,?,?,?,?,?,?,?);";
 	
-	// System.out.println(query);
+	// logger.debug(query);
 	
 	try {
 	    stmt = con.prepareStatement(query);
@@ -3451,7 +3456,7 @@ public class DBConnection {
 
 	} catch (Exception e) {
 	    e.printStackTrace();
-	    System.out.println(query);
+	    logger.debug(query);
 	    throw e;
 	} finally {
 	    try {
@@ -3514,7 +3519,7 @@ public class DBConnection {
 	    } else
 		stmt.setInt(4, document.getRankAfterShuffling());
 
-	    // System.out.println(query);
+	    // logger.debug(query);
 	    stmt.executeUpdate();
 
 	    // get the autogenerated key back
@@ -3588,7 +3593,7 @@ public class DBConnection {
 	    rs = stmt.executeQuery(query);
 	    if (rs.next()) {
 		stereotypeId = rs.getInt(tableRowId);
-		// System.out.println(tableName + ":" + stereotypeId);
+		// logger.debug(tableName + ":" + stereotypeId);
 	    } else {
 		if (stmt != null)
 		    stmt.close();
@@ -3597,14 +3602,14 @@ public class DBConnection {
 		query = "INSERT INTO " + tableName + "(" + tableCategoryName + ") VALUES('"
 		    + recommenderDetails.getCategory() + "')";
 		stmt = con.createStatement();
-		// System.out.println(query);
+		// logger.debug(query);
 		stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 
 		// get the autogenerated key back
 		rs = stmt.getGeneratedKeys();
 		if (rs.next())
 		    stereotypeId = rs.getInt(1);
-		// System.out.println(stereotypeId);
+		// logger.debug(stereotypeId);
 	    }
 	} catch (SQLException e) {
 	    e.printStackTrace();
@@ -3632,7 +3637,7 @@ public class DBConnection {
 	String queryType = "";
 	if (!inputIsDocument)
 	    queryType = recommenderDetails.getQueryParser();
-	System.out.println(recommenderDetails.getCbfFeatureType());
+	logger.debug(recommenderDetails.getCbfFeatureType());
 	boolean keyphrases = recommenderDetails.getCbfFeatureType()!= null &&
 			recommenderDetails.getCbfFeatureType().equals("keyphrases");
 
@@ -3706,7 +3711,7 @@ public class DBConnection {
 		    if (rs.next())
 			cbfId = rs.getInt(1);
 		}
-		// System.out.println(cbfId);
+		// logger.debug(cbfId);
 	    }
 	} catch (SQLException e) {
 	    e.printStackTrace();
@@ -3846,13 +3851,13 @@ public class DBConnection {
 	    stmt.executeQuery(query);
 
 	} catch (Exception e) {
-	    System.out.println(e);
+	    logger.debug("query failed", e);
 	} finally {
 	    try {
 		if (stmt != null)
 		    stmt.close();
 	    } catch (SQLException e) {
-		System.out.println(e);
+			logger.debug("query failed", e);
 	    }
 	}
 
@@ -3886,13 +3891,13 @@ public class DBConnection {
 	    stmt.executeUpdate(query);
 
 	} catch (Exception e) {
-	    System.out.println(e);
+	    logger.debug("query failed", e);
 	} finally {
 	    try {
 		if (stmt != null)
 		    stmt.close();
 	    } catch (SQLException e) {
-		System.out.println(e);
+			logger.debug("query failed", e);
 	    }
 	}
 
@@ -3917,18 +3922,18 @@ public class DBConnection {
 
 	try {
 	    stmt = con.createStatement();
-	    // System.out.println(query);
+	    // logger.debug(query);
 	    stmt.executeUpdate(query);
 
 	} catch (Exception e) {
-	    System.out.println(query);
-	    System.out.println(e);
+	    logger.debug(query);
+	    logger.debug("query failed", e);
 	} finally {
 	    try {
 		if (stmt != null)
 		    stmt.close();
 	    } catch (SQLException e) {
-		System.out.println(e);
+			logger.debug("query failed", e);
 	    }
 	}
 
@@ -4033,7 +4038,7 @@ public class DBConnection {
 	ResultSet rs = null;
 	String query = "SELECT COUNT(*) FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
 	    + "`='" + language + "'";
-	// System.out.println(query);
+	// logger.debug(query);
 
 	try {
 	    stmt = con.createStatement();
@@ -4069,7 +4074,7 @@ public class DBConnection {
 	ResultSet rs = null;
 	String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
 	    + "`='" + language + "' LIMIT " + offset + ",500";
-	// System.out.println(query);
+	// logger.debug(query);
 	List<SimpleEntry<Long, Abstract>> abstractList = new ArrayList<AbstractMap.SimpleEntry<Long, Abstract>>();
 	try {
 	    stmt = con.createStatement();
@@ -4092,7 +4097,7 @@ public class DBConnection {
 		e.printStackTrace();
 	    }
 	}
-	System.out.println("Didn't return normally");
+	logger.debug("Didn't return normally");
 	return null;
     }
 
@@ -4124,7 +4129,7 @@ public class DBConnection {
 	    stmt.executeUpdate();
 	    return 1;
 	} catch (SQLException e) {
-	    System.out.println(stmt.toString());
+	    logger.debug(stmt.toString());
 	    e.printStackTrace();
 	    return -1;
 	} finally {
@@ -4202,8 +4207,8 @@ public class DBConnection {
 		} catch (NumberFormatException f) {
 		    String documentId = getDocumentIdFromURL(entry.getKey());
 		    if (documentId.equals("No such document in database")) {
-			System.out.println("This URL has no assosciated document in our database:");
-			System.out.println(entry.getKey());
+			logger.debug("This URL has no assosciated document in our database:");
+			logger.debug(entry.getKey());
 			continue;
 		    }
 		    stmt.setInt(1, Integer.parseInt(documentId));
@@ -4212,7 +4217,7 @@ public class DBConnection {
 		stmt.executeUpdate();
 	    }
 	} catch (SQLException e) {
-	    System.out.println(query);
+	    logger.debug(query);
 	    e.printStackTrace();
 	    return false;
 	}
@@ -4322,9 +4327,9 @@ public class DBConnection {
 	    }
 
 	} catch (SQLException e) {
-	    System.out.println("SQL Exception in getApplicationId");
-	    System.out.println("Query: " + query);
-	    System.out.println("Argument: " + appName);
+	    logger.debug("SQL Exception in getApplicationId");
+	    logger.debug("Query: " + query);
+	    logger.debug("Argument: " + appName);
 	    throw new NoEntryException(appName, "Application");
 	}
     }
@@ -4343,9 +4348,9 @@ public class DBConnection {
 	    }
 
 	} catch (SQLException e) {
-	    System.out.println("SQL Exception in getApplicationId");
-	    System.out.println("Query: " + query);
-	    System.out.println("Argument: " + orgName);
+	    logger.debug("SQL Exception in getApplicationId");
+	    logger.debug("Query: " + query);
+	    logger.debug("Argument: " + orgName);
 	    throw new NoEntryException(orgName, "Organization");
 	}
     }
@@ -4363,9 +4368,9 @@ public class DBConnection {
 		throw new NoEntryException(applicationId, "Application");
 	    }
 	} catch (SQLException e) {
-	    System.out.println("SQL Exception in getApplicationId");
-	    System.out.println("Query: " + query);
-	    System.out.println("Argument: " + applicationId);
+	    logger.debug("SQL Exception in getApplicationId");
+	    logger.debug("Query: " + query);
+	    logger.debug("Argument: " + applicationId);
 	    throw new NoEntryException(applicationId, "Application");
 	}
     }
@@ -4388,7 +4393,7 @@ public class DBConnection {
 	    }
 	} catch (SQLException e) {
 	    if (constants.getDebugModeOn())
-		System.out.println("The query that broke the system is:" + query);
+		logger.debug("The query that broke the system is:" + query);
 	    return false;
 	}
 	Boolean match = false;
@@ -4419,8 +4424,8 @@ public class DBConnection {
 		if (allowedCollections.isEmpty())
 		    allowedCollections.add("2");
 	    } catch (SQLException e) {
-		System.out.println("Error in SQL query execution in getAccessableCollections method. Details:");
-		System.out.println(query + "\n " + "?=" + accessingOrganization);
+		logger.debug("Error in SQL query execution in getAccessableCollections method. Details:");
+		logger.debug(query + "\n " + "?=" + accessingOrganization);
 		allowedCollections = new ArrayList<String>();
 		allowedCollections.add("2");
 	    }
@@ -4510,7 +4515,7 @@ public class DBConnection {
 	    stmt.setLong(1, id);
 	    ResultSet rs = stmt.executeQuery();
 	    if (rs.next()) {
-		//System.out.println(id + " , " + rs.getString(1));
+		//logger.debug(id + " , " + rs.getString(1));
 		recommendationClass = rs.getString(constants.getRecommendationClass());
 		langRestriction = rs.getString(constants.getLanguageRestrictionInRecommenderAlgorithm());
 		shuffled = rs.getBoolean(constants.getShuffled());
@@ -4539,7 +4544,7 @@ public class DBConnection {
 		    bibRerankingId = rs.getLong("reranking_bibliometric_reranking_details");
 	    }
 	} catch (SQLException e) {
-	    System.out.println(query + " ? = " + Long.toString(id));
+	    logger.debug(query + " ? = " + Long.toString(id));
 	    e.printStackTrace();
 	    return (long) 0;
 	}
@@ -4581,7 +4586,7 @@ public class DBConnection {
 		return result.getLong(constants.getRecommendationAlgorithmId());
 	    }
 	} catch (SQLException e) {
-	    System.out.println(query);
+	    logger.debug(query);
 	    return (long) 0;
 	}
 		
@@ -4609,7 +4614,7 @@ public class DBConnection {
 		return insertResults.getLong(1);
 	    }
 	} catch (SQLException e) {
-	    System.out.println(insertQuery);
+	    logger.debug(insertQuery);
 	    e.printStackTrace();
 	}
 	return (long) -2;
@@ -4623,7 +4628,7 @@ public class DBConnection {
 	    stmt.setLong(2, fixedPair.getKey());
 	    stmt.executeUpdate();
 	} catch (SQLException e) {
-	    System.out.println(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
+	    logger.debug(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
 	    return new Pair<Long, Boolean>(fixedPair.getKey(), false);
 	}
 

@@ -16,6 +16,8 @@ import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * 
  * @author Millah
@@ -24,6 +26,7 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
  *
  */
 public class solrConnection {
+	private Logger logger = LoggerFactory.getLogger(solrConnection.class);
 	private Constants constants = new Constants();
 	private SolrClient solr = null;
 	private DBConnection con;
@@ -138,7 +141,7 @@ public class solrConnection {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("test: " + e.getStackTrace());
+			logger.debug("test: " + e.getStackTrace());
 			throw e;
 		}
 
@@ -281,7 +284,7 @@ public class solrConnection {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("test: " + e.getStackTrace());
+			logger.debug("test: " + e.getStackTrace());
 			throw e;
 		}
 		return relatedDocuments;
@@ -331,10 +334,10 @@ public class solrConnection {
 			}
 
 			if (constants.getDebugModeOn())
-				System.out.println("set query with= " + queryString.toString());
+				logger.debug("set query with= " + queryString.toString());
 			query.set("q", queryString.toString());
 			if (constants.getDebugModeOn())
-				System.out.println("set query with title: " + queryString.toString());
+				logger.debug("set query with title: " + queryString.toString());
 		} else {
 			query.setQuery(title);
 
@@ -342,29 +345,29 @@ public class solrConnection {
 		// return only "delimitedRows" much
 		query.setRows(delimitedRows);
 		if (constants.getDebugModeOn())
-			System.out.println("max rows are: " + delimitedRows);
+			logger.debug("max rows are: " + delimitedRows);
 		// set display params
 		query.setParam("fl", "score,id");
 
 		try {
 			if (constants.getDebugModeOn())
-				System.out.println("try to get the response from solr! The query looks like: " + query);
+				logger.debug("try to get the response from solr! The query looks like: " + query);
 			response = solr.query(query);
 			if (constants.getDebugModeOn())
-				System.out.println("response seems to be: " + response.toString());
+				logger.debug("response seems to be: " + response.toString());
 			SolrDocumentList docs = response.getResults();
 			if (constants.getDebugModeOn())
-				System.out.println("Query Time: " + Integer.toString(response.getQTime()));
+				logger.debug("Query Time: " + Integer.toString(response.getQTime()));
 
 			// no related documents found
 			if (docs.isEmpty()) {
 				if (constants.getDebugModeOn())
-					System.out.println("docs.isEmpty() is true");
+					logger.debug("docs.isEmpty() is true");
 				throw new NoRelatedDocumentsException("query was performed by title: " + title,
 						"query was performed by title: " + title);
 			} else {
 				if (constants.getDebugModeOn())
-					System.out.println("docs.isEmpty() is false");
+					logger.debug("docs.isEmpty() is false");
 				relatedDocuments.setSuggested_label("Related Articles");
 				relatedDocuments.setNumberOfReturnedResults(docs.getNumFound());
 				// for each document add it to documentSet
@@ -393,7 +396,7 @@ public class solrConnection {
 					else {
 						String titleAsUrl = URLEncoder.encode(title, "UTF-8");
 						fallback_url = "https://scholar.google.com/scholar?q=" + titleAsUrl;
-						System.out.println("the fallback url is: " + fallback_url);
+						logger.debug("the fallback url is: " + fallback_url);
 					}
 
 					oneRelatedDocument.setFallbackUrl(fallback_url);
@@ -401,12 +404,12 @@ public class solrConnection {
 
 					// add it to the collection
 					relatedDocuments.addDocument(oneRelatedDocument);
-					// System.out.println("added the related document with
+					// logger.debug("added the related document with
 					// title: " + oneRelatedDocument.getTitle());
 				}
 			}
 		} catch (NoRelatedDocumentsException f) {
-			System.out.println("No related documents found related to " + title);
+			logger.debug("No related documents found related to " + title);
 			throw f;
 		}
 

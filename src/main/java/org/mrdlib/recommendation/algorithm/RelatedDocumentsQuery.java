@@ -48,10 +48,7 @@ public class RelatedDocumentsQuery extends RelatedDocuments {
 			// Query solr using the defaults set in solrConfig.xml
 			requestDoc.setAlgorithmDetails(algorithmLoggingInfo);
 			return scon.getDocumentsFromSolrByQuery(requestDoc);
-		} catch (NoRelatedDocumentsException f) {
-			System.out.println("No related documents for document with title: " + requestDoc.getRequestedDocument().getTitle());
-			throw f;
-		} catch (Exception e) {
+		}  catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		} /*

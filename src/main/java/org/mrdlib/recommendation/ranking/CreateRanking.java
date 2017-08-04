@@ -18,6 +18,8 @@ import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.database.DBConnection;
 import org.mrdlib.partnerContentManager.gesis.Person;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * 
  * @author Millah
@@ -30,6 +32,7 @@ import org.mrdlib.partnerContentManager.gesis.Person;
 
 public class CreateRanking {
 
+	private Logger logger = LoggerFactory.getLogger(CreateRanking.class);
 	DBConnection con = null;
 	Constants constants = null;
 
@@ -64,13 +67,13 @@ public class CreateRanking {
 		// get every document which has readership data
 		documentList = con.getRankingValueDocuments(bibIdSimple);
 
-		System.out.println(documentList.size());
+		logger.debug("{}", documentList.size());
 		for (int i = 0; i < documentList.size(); i++) {
 			current = documentList.get(i);
 
 			// print the current progress in 10.000 steps
 			if (i % 10000 == 0)
-				System.out.println(i + "/" + documentList.size());
+				logger.debug(i + "/" + documentList.size());
 
 			try {
 				// get the published year of the paper
@@ -94,7 +97,7 @@ public class CreateRanking {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("finished");
+		logger.debug("finished");
 	}
 
 	/**
@@ -118,14 +121,14 @@ public class CreateRanking {
 
 		// get every document which has readership data
 		documentList = con.getRankingValueDocuments(bibliometricIdSimple);
-		System.out.println(documentList.size());
+		logger.debug("{}", documentList.size());
 
 		for (int i = 0; i < documentList.size(); i++) {
 			current = documentList.get(i);
 
 			// print the current progress in 10.000 steps
 			if (i % 10000 == 0)
-				System.out.println(i + "/" + documentList.size());
+				logger.debug(i + "/" + documentList.size());
 
 			try {
 				// get the number of authors per document
@@ -172,8 +175,8 @@ public class CreateRanking {
 
 		for (int k = 0; k < numberOfAuthors; k = k + batchsize) {
 
-			System.out.println(k + "/" + numberOfAuthors);
-			System.out.println(numberOfBib);
+			logger.debug(k + "/" + numberOfAuthors);
+			logger.debug("{}", numberOfBib);
 			personIds = con.getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(k, batchsize, bibliometricId);
 
 			for (int i = 0; i < personIds.size(); i++) {
@@ -207,7 +210,7 @@ public class CreateRanking {
 				}
 			}
 		}
-		System.out.println("created: " + numberOfBib);
+		logger.debug("created: " + numberOfBib);
 	}
 
 	/**
@@ -233,12 +236,12 @@ public class CreateRanking {
 		}
 
 		int[] range = con.getRangeFromBibAuthors(bibliometricIdSimple);
-		System.out.println(range[0] + ", " + range[1]);
+		logger.debug(range[0] + ", " + range[1]);
 
 		for (int k = range[0]; k <= range[1]; k = k + 2000) {
 			personList = con.getAllPersonsInBatchesIfBibliometricId(bibliometricIdSimple, k, 2000);
 
-			System.out.println((k - range[0]) + "/" + (range[1] - range[0]));
+			logger.debug((k - range[0]) + "/" + (range[1] - range[0]));
 
 			for (int i = 0; i < personList.size(); i++) {
 				documentList.clear();
@@ -267,7 +270,7 @@ public class CreateRanking {
 
 			}
 		}
-		System.out.println("inserted:" + hadHIndex);
+		logger.debug("inserted:" + hadHIndex);
 	}
 
 	public void fixMetric(int bibliometricIdToFix, int bibliometricIdToCalc) {
@@ -293,10 +296,10 @@ public class CreateRanking {
 						+ " WHERE " + constants.getBibliometricDocumentsId() + " = " + bibDocId;
 
 			}
-			//System.out.println(query);
+			//logger.debug(query);
 			con.executeUpdate(query);
 		}
-		System.out.println("Deleted: " + count + "/" + docIds.size());
+		logger.debug("Deleted: " + count + "/" + docIds.size());
 	}
 
 	public double hIndex(Double[] citations) {
@@ -343,7 +346,7 @@ public class CreateRanking {
 			}
 
 		} catch (Exception e) {
-			System.out.println(path.toString());
+			logger.debug(path.toString());
 			e.printStackTrace();
 		}
 

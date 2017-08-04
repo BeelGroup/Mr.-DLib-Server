@@ -200,7 +200,6 @@ public class ApplyRanking {
 
 				count = documentSet.calculateCountOfBibliometricValue();
 
-				System.out.println(count);
 				if (count < 5) {
 					documentSet.setFallbackRanking(true);
 					if (rndRank > 11) {

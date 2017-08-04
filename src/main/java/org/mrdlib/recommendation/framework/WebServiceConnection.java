@@ -18,6 +18,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpException;
 import org.apache.http.HttpEntity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.owlike.genson.Genson;
 
 public class WebServiceConnection {
@@ -29,6 +32,7 @@ public class WebServiceConnection {
     private final String language = "en";
     private Constants constants;
     private Function<InputStream, List<WebServiceRecommendation>> parser;
+	private Logger logger = LoggerFactory.getLogger(WebServiceConnection.class);
 
     public WebServiceConnection (String searchPattern, String documentPattern, DBConnection con) {
 		this.searchPattern = searchPattern;
@@ -88,6 +92,7 @@ public class WebServiceConnection {
 		String fallback_url = "";
 
 	    List<WebServiceRecommendation> docs = sendDocumentQuery(document.getDocumentId(), language, limitBuffer);
+		logger.info("Requesting {} documents from web service; returned {}; need {}", limitBuffer, docs.size(), limit);
 
 	    // no related documents found
 	    if (docs.isEmpty()) {
@@ -126,6 +131,7 @@ public class WebServiceConnection {
 				// add it to the collection
 				relatedDocuments.addDocument(relDocument);
 			}
+			logger.info("Filtered returned documents; {} remaining", relatedDocuments.getSize());
 
 			if (relatedDocuments.getSize() < limit) {
 				throw new NoRelatedDocumentsException(document.getDocumentId(), document.getOriginalDocumentId());

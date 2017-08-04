@@ -77,9 +77,6 @@ public class RelatedDocumentsKeyphrasesRevised extends RelatedDocumentsMLT {
 			requestDoc.setAlgorithmDetails(algorithmLoggingInfo);
 			// Query solr for the related documents
 			return scon.getRelatedDocumentSetByDocument(requestDoc);
-		} catch (NoRelatedDocumentsException f) {
-			System.out.println("No related documents for doc_id " + requestDoc.getRequestedDocument().getDocumentId());
-			throw f;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
