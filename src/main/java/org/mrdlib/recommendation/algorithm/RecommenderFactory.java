@@ -3,6 +3,7 @@ package org.mrdlib.recommendation.algorithm;
 import java.util.Random;
 
 import org.mrdlib.api.manager.UnknownException;
+import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.response.DocumentSet;
 import org.mrdlib.database.DBConnection;
@@ -132,19 +133,24 @@ public class RecommenderFactory {
 		RelatedDocuments rdg = null;
 		Probabilities probs = new Probabilities();
 		Algorithm choice = probs.next();
+		Constants constants = new Constants();
 
 		try {
 			rdg = getAlgorithmById(choice,con);
-			if (choice == Algorithm.FROM_SOLR_WITH_KEYPHRASES ||
-				choice == Algorithm.DOC2VEC) {
-
+			if (choice == Algorithm.FROM_SOLR_WITH_KEYPHRASES) {
 				String language = requestDocument.getLanguage(); 
 				if (language == null || !language.equals("en")) {
 					rdg = getFallback(con); 
 				} else if (choice == Algorithm.FROM_SOLR_WITH_KEYPHRASES &&
-					!con.getAbstractDetails(requestDocument).equals("en")) {
+						   !con.getAbstractDetails(requestDocument, constants.getAbstractLanguage()).equals("en")) {
 					// if abstract not english set algorithmLoggingInfo.type to title only
 					rdg.algorithmLoggingInfo.setCbfTextFields("title_keywords_published_in");
+				}
+			} else if (choice == Algorithm.DOC2VEC) {
+				// get detected language of abstract
+				String language = con.getAbstractDetails(requestDocument, constants.getLanguageDetected());
+				if (language == null || !language.equals("en")) {
+					rdg = getFallback(con);
 				}
 			}
 			return rdg;

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 class Server:
     LIMIT=6
     LANGUAGES=['en']
+    AUTO_LOAD=['en']
     def __init__(self):
         self.routes = Map([
             Rule('/search/<query>', endpoint='search'),
@@ -31,6 +32,9 @@ class Server:
         self.models = {}
         self.config = None
         self.read_config()
+
+        for language in Server.AUTO_LOAD:
+            self.load_model_task(language)
         
     def read_config(self, fname='config.properties'):
         ''' Read standard config file or file given by command line argument. Return as dictionary. Also parse other command line arguments.

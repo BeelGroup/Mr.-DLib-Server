@@ -3036,13 +3036,13 @@ public class DBConnection {
      *         ex.: 'en', 'de', else 'NONE'
      * @throws Exception
      */
-    public String getAbstractDetails(DisplayDocument requestDocument) throws Exception {
+    public String getAbstractDetails(DisplayDocument requestDocument, String field) throws Exception {
 	Statement stmt = null;
 	ResultSet rs = null;
 
 	// Select query to lookup abstract language using the documentId from
 	// the document_abstracts table
-	String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts()
+	String query = "SELECT `" + field + "` AS lang FROM " + constants.getAbstracts()
 	    + " WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
 
 	try {
