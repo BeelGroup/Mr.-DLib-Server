@@ -25,6 +25,10 @@ import com.owlike.genson.Genson;
 
 public class WebServiceConnection {
 
+
+	private static final double BUFFER_FACTOR = 2.0;
+	private static final int MIN_RELATED_DOCUMENTS = 3;
+
     private String searchPattern, documentPattern;
     private HttpClient http;
     private Genson json;
@@ -85,7 +89,7 @@ public class WebServiceConnection {
 		DisplayDocument document = relatedDocuments.getRequestedDocument();
 		AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
 		int limit = relatedDocuments.getDesiredNumberFromAlgorithm();
-		int limitBuffer = limit * 2; // get more documents because they may not be in the right collection
+		int limitBuffer = (int) (limit * BUFFER_FACTOR); // get more documents because they may not be in the right collection
 		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
 
 		DisplayDocument relDocument = new DisplayDocument();
@@ -133,7 +137,7 @@ public class WebServiceConnection {
 			}
 			logger.info("Filtered returned documents; {} remaining", relatedDocuments.getSize());
 
-			if (relatedDocuments.getSize() < limit) {
+			if (relatedDocuments.getSize() < MIN_RELATED_DOCUMENTS) {
 				throw new NoRelatedDocumentsException(document.getDocumentId(), document.getOriginalDocumentId());
 			}
 			relatedDocuments.setNumberOfReturnedResults(relatedDocuments.getSize());

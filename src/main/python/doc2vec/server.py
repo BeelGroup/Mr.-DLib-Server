@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Server:
     LIMIT=6
-    LANGUAGES=['en']
+    LANGUAGES=['en', 'de']
     AUTO_LOAD=['en']
     def __init__(self):
         self.routes = Map([
