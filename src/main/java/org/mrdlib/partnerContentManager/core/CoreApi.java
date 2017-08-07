@@ -160,6 +160,7 @@ public class CoreApi {
 					// TODO deal with other responses
 					throw new Exception("Error response from request: " + response.getStatus());
 			}
+			Thread.sleep(QUOTA_TIME_GET);
 		}
 		return articles;
 	}
@@ -238,6 +239,7 @@ public class CoreApi {
 		if (articles.size() < totalHits && (limit < 0 || articles.size() < limit)) { // articles left?
 			long newLimit = (limit < 0 ? limit : limit - articles.size());
 			long newOffset = offset + queries.size();
+			Thread.sleep(QUOTA_TIME_SEARCH);
 			Collection<Article> rest = listArticles(year, newOffset, newLimit, params);
 			for (Article a : rest) {
 				articles.put(a.getId(), a);
