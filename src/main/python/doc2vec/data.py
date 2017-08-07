@@ -84,20 +84,29 @@ class DocumentDumpReader(DocumentReader):
         self.csv.seek(0)
         self.reader = csv.reader(self.csv, escapechar='\\')
 
+        get_language = get_document_id = get_text = None
+
         if self.mode == 'abstract':
             get_language = itemgetter(int(self.config['abstractLanguageDetectedColumnIndex']))
             get_document_id = itemgetter(int(self.config['abstractDocumentIdColumnIndex']))
             get_text = itemgetter(int(self.config['abstractTextColumnIndex']))
-            min_text_length = DocumentDumpReader.MIN_TEXT_LENGTH # int(self.config['abstractMinTextLength'])
 
-            in_language = filter(lambda row: get_language(row) == self.language, self.reader)
+        elif self.mode == 'title':
+            get_language = itemgetter(int(self.config['titleLanguageDetectedColumnIndex']))
+            get_document_id = itemgetter(int(self.config['titleDocumentIdColumnIndex']))
+            get_text = itemgetter(int(self.config['titleTextColumnIndex']))
 
-            if min_text_length > 0:
-                min_length = filter(lambda row: len(get_text(row)) > min_text_length, in_language)
-            else:
-                min_length = in_language
-
-            samples = map(lambda row: {'text': get_text(row), 'id': get_document_id(row) }, min_length)
-            return map(self.prep, samples)
         else:
             raise NotImplementedError()
+
+        min_text_length = DocumentDumpReader.MIN_TEXT_LENGTH # int(self.config['abstractMinTextLength'])
+
+        in_language = filter(lambda row: get_language(row) == self.language, self.reader)
+
+        if min_text_length > 0:
+            min_length = filter(lambda row: len(get_text(row)) > min_text_length, in_language)
+        else:
+            min_length = in_language
+
+        samples = map(lambda row: {'text': get_text(row), 'id': get_document_id(row) }, min_length)
+        return map(self.prep, samples)

@@ -5,8 +5,7 @@ class Model:
     LOCK_VECTORS = 0.0 # modify word embeddings or not
     WORKERS = 8
     EPOCHS = 20 
-    # TODO: test more dimensions now that we are doing delete_temporary_training_data
-    DIMENSIONS = 50 # more dimensions let server run out of memory
+    DIMENSIONS = 300 
     NUM_TREES = 10 # for nearest neighbor approximation; TODO: test different tree sizes; benchmark
     INDEX = False 
     MIN_COUNT = 5
