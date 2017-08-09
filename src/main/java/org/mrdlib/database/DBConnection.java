@@ -61,56 +61,56 @@ public class DBConnection {
     private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
 
     public DBConnection(String type) throws Exception {
-	logger = LoggerFactory.getLogger(DBConnection.class);
-	Statement stmt = null;
-	ResultSet rs = null;
-	ResultSet rs2 = null;
-	ResultSet rs3 = null;
-	try {
-	    // choose the type of the database connection. Used by tomcat or by
-	    // a jar file?
-	    if (type.equals("jar"))
-		createConnectionJar();
-	    else if (type.equals("tomcat"))
-		createConnectionTomcat();
-	    else
-		createConnectionJar();
-	    stmt = con.createStatement();
-	    stmt.executeQuery("SET NAMES 'latin1'");
+		logger = LoggerFactory.getLogger(DBConnection.class);
+		Statement stmt = null;
+		ResultSet rs = null;
+		ResultSet rs2 = null;
+		ResultSet rs3 = null;
+		try {
+			// choose the type of the database connection. Used by tomcat or by
+			// a jar file?
+			if (type.equals("jar"))
+				createConnectionJar();
+			else if (type.equals("tomcat"))
+				createConnectionTomcat();
+			else
+				createConnectionJar();
+			stmt = con.createStatement();
+			stmt.executeQuery("SET NAMES 'latin1'");
 
-	    // get all the lengths of the database fields and store it in a map
-	    rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
-	    fillMap(rs);
-	    rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getAbstracts());
-	    fillMap(rs2);
-	    // rs3 = stmt.executeQuery("SHOW VARIABLES LIKE '%collation%'");
-	    // while (rs3.next())
-	    // logger.debug(rs3.getString("Variable_name") + " : " +
-	    // rs3.getString("Value"));
-	    // rs3 = stmt.executeQuery("SHOW COLUMNS FROM " +
-	    // constants.getPersons());
-	    // fillMap(rs3);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-		if (rs2 != null)
-		    rs2.close();
-		if (rs3 != null)
-		    rs3.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+			// get all the lengths of the database fields and store it in a map
+			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());
+			fillMap(rs);
+			rs2 = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getAbstracts());
+			fillMap(rs2);
+			// rs3 = stmt.executeQuery("SHOW VARIABLES LIKE '%collation%'");
+			// while (rs3.next())
+			// logger.debug(rs3.getString("Variable_name") + " : " +
+			// rs3.getString("Value"));
+			// rs3 = stmt.executeQuery("SHOW COLUMNS FROM " +
+			// constants.getPersons());
+			// fillMap(rs3);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				if (rs2 != null)
+					rs2.close();
+				if (rs3 != null)
+					rs3.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
     }
 
     public Connection getConnection() {
-	return con;
+		return con;
     }
 
     /**
@@ -121,19 +121,19 @@ public class DBConnection {
      * @throws SQLException
      */
     private void fillMap(ResultSet rs) throws SQLException {
-	String result = "";
-	try {
-	    while (rs.next()) {
-		// exclude special fields which do not have a length
-		result = rs.getString("Type");
-		if (!result.startsWith("enum") && result.contains("(")) {
-		    lengthMap.put(rs.getString("Field"),
-				  Integer.parseInt(result.substring(result.indexOf("(") + 1, result.indexOf(")"))));
+		String result = "";
+		try {
+			while (rs.next()) {
+				// exclude special fields which do not have a length
+				result = rs.getString("Type");
+				if (!result.startsWith("enum") && result.contains("(")) {
+					lengthMap.put(rs.getString("Field"),
+								  Integer.parseInt(result.substring(result.indexOf("(") + 1, result.indexOf(")"))));
+				}
+			}
+		} catch (SQLException e) {
+			throw e;
 		}
-	    }
-	} catch (SQLException e) {
-	    throw e;
-	}
     }
 
     /**
@@ -141,12 +141,12 @@ public class DBConnection {
      */
     @Override
     protected void finalize() throws Throwable {
-	con.close();
-	super.finalize();
+		con.close();
+		super.finalize();
     }
 
     public void close() throws SQLException {
-	con.close();
+		con.close();
     }
 
     /**
@@ -156,19 +156,19 @@ public class DBConnection {
      * @throws Exception
      */
     public Connection createConnectionTomcat() throws Exception {
-	try {
-	    Context initContext = new InitialContext();
-	    Context envContext = (Context) initContext.lookup("java:comp/env");
-	    DataSource ds = (DataSource) envContext.lookup("jdbc/" + constants.getDb());
-	    con = ds.getConnection();
-	} catch (Exception e) {
-	    logger.debug("Exception in Database connection via tomcat");
-	    if (con == null)
-		logger.debug("No connection");
-	    e.printStackTrace();
-	    throw e;
-	}
-	return con;
+		try {
+			Context initContext = new InitialContext();
+			Context envContext = (Context) initContext.lookup("java:comp/env");
+			DataSource ds = (DataSource) envContext.lookup("jdbc/" + constants.getDb());
+			con = ds.getConnection();
+		} catch (Exception e) {
+			logger.debug("Exception in Database connection via tomcat");
+			if (con == null)
+				logger.debug("No connection");
+			e.printStackTrace();
+			throw e;
+		}
+		return con;
     }
 
     /**
@@ -177,15 +177,15 @@ public class DBConnection {
      * @throws Exception
      */
     public Connection createConnectionJar() throws Exception {
-	try {
-	    Class.forName(constants.getDbClass());
-	    con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
-					      constants.getPassword());
-	} catch (Exception e) {
-	    logger.debug("Exception in Database connection via jar");
-	    e.printStackTrace();
-	}
-	return con;
+		try {
+			Class.forName(constants.getDbClass());
+			con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
+											  constants.getPassword());
+		} catch (Exception e) {
+			logger.debug("Exception in Database connection via jar");
+			e.printStackTrace();
+		}
+		return con;
     }
 
     /**
@@ -199,36 +199,36 @@ public class DBConnection {
      */
 
     public int getBibId(String metric, String dataType, String dataSource) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
-	int bibId = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+		int bibId = -1;
 
-	try {
-	    // Select query for lookup in the database
-	    stmt = con.createStatement();
-	    String query = "SELECT " + constants.getBibliometricId() + " FROM " + constants.getBibliometrics()
-		+ " WHERE " + constants.getMetric() + "='" + metric + "' AND " + constants.getDataType() + "='"
-		+ dataType + "' AND " + constants.getDataSource() + "='" + dataSource + "'";
+		try {
+			// Select query for lookup in the database
+			stmt = con.createStatement();
+			String query = "SELECT " + constants.getBibliometricId() + " FROM " + constants.getBibliometrics()
+				+ " WHERE " + constants.getMetric() + "='" + metric + "' AND " + constants.getDataType() + "='"
+				+ dataType + "' AND " + constants.getDataSource() + "='" + dataSource + "'";
 
-	    rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery(query);
 
-	    if (rs.next()) {
-		bibId = rs.getInt(constants.getBibliometricId());
-	    }
+			if (rs.next()) {
+				bibId = rs.getInt(constants.getBibliometricId());
+			}
 
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return bibId;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return bibId;
     }
 
     /**
@@ -248,39 +248,39 @@ public class DBConnection {
      * @throws Exception
      */
     public void writeAuthorBibliometricsInDatabase(int id, String metric, String dataType, String dataSource,
-						   double value) {
-	PreparedStatement stmt = null;
-	String query = "";
-	int bibId = -1;
+												   double value) {
+		PreparedStatement stmt = null;
+		String query = "";
+		int bibId = -1;
 
-	try {
-	    bibId = getBibId(metric, dataType, dataSource);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+		try {
+			bibId = getBibId(metric, dataType, dataSource);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-	if (bibId == -1)
-	    logger.debug("new Combination: " + metric + ", " + dataType + ", " + dataSource);
+		if (bibId == -1)
+			logger.debug("new Combination: " + metric + ", " + dataType + ", " + dataSource);
 
-	try {
-	    // insertion query
-	    query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers() + ", "
-		+ constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
-		+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
+		try {
+			// insertion query
+			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers() + ", "
+				+ constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
+				+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
 
-	    stmt = con.prepareStatement(query);
-	    stmt.executeUpdate();
+			stmt = con.prepareStatement(query);
+			stmt.executeUpdate();
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
     }
 
     /**
@@ -296,28 +296,28 @@ public class DBConnection {
      * @throws Exception
      */
     public void writeAuthorBibliometricsInDatabase(int id, int bibId, double value) {
-	PreparedStatement stmt = null;
-	String query = "";
+		PreparedStatement stmt = null;
+		String query = "";
 
-	try {
-	    // insertion query
-	    query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers() + ", "
-		+ constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
-		+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
+		try {
+			// insertion query
+			query = "INSERT INTO " + constants.getBibPersons() + " (" + constants.getPersonIdInBibliometricPers() + ", "
+				+ constants.getBibliometricIdInBibliometricPers() + ", " + constants.getMetricValuePers()
+				+ ") VALUES (" + id + ", " + bibId + ", " + value + ");";
 
-	    stmt = con.prepareStatement(query);
-	    stmt.executeUpdate();
+			stmt = con.prepareStatement(query);
+			stmt.executeUpdate();
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
     }
 
     /**
@@ -329,38 +329,38 @@ public class DBConnection {
      * @throws Exception
      */
     public Person getPersonById(Long authorID) throws Exception {
-	Person person = null;
-	Statement stmt = null;
-	ResultSet rs = null;
+		Person person = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	// the query to get the person
-	String query = "SELECT " + constants.getFirstname() + "," + constants.getMiddlename() + ","
-	    + constants.getSurname() + "," + constants.getUnstructured() + " FROM " + constants.getPersons()
-	    + " WHERE " + constants.getPersonID() + " = '" + authorID + "'";
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		// the query to get the person
+		String query = "SELECT " + constants.getFirstname() + "," + constants.getMiddlename() + ","
+			+ constants.getSurname() + "," + constants.getUnstructured() + " FROM " + constants.getPersons()
+			+ " WHERE " + constants.getPersonID() + " = '" + authorID + "'";
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    if (rs.next()) {
-		// create a new object person with the retrieved data
-		person = new Person(Integer.parseInt(authorID + ""), rs.getString(constants.getFirstname()),
-				    rs.getString(constants.getMiddlename()), rs.getString(constants.getSurname()),
-				    rs.getString(constants.getUnstructured()));
-	    }
+			if (rs.next()) {
+				// create a new object person with the retrieved data
+				person = new Person(Integer.parseInt(authorID + ""), rs.getString(constants.getFirstname()),
+									rs.getString(constants.getMiddlename()), rs.getString(constants.getSurname()),
+									rs.getString(constants.getUnstructured()));
+			}
 
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return person;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return person;
     }
 
     /**
@@ -370,13 +370,13 @@ public class DBConnection {
      * @return escaped text
      */
     public String replaceHighComma(String text) {
-	if (text != null)
-	    if (text.contains("'"))
-		return text.replace("'", "''");
-	    else
-		return text;
-	else
-	    return null;
+		if (text != null)
+			if (text.contains("'"))
+				return text.replace("'", "''");
+			else
+				return text;
+		else
+			return null;
     }
 
     /**
@@ -394,105 +394,105 @@ public class DBConnection {
      * @throws SQLException
      */
     public Long addPersonToDbIfNotExists(XMLDocument document, Person author) throws SQLException {
-	PreparedStatement stateAuthorExists = null;
-	PreparedStatement stateInsertAuthor = null;
-	ResultSet rs = null;
-	Long authorKey = null;
-	int count = 1;
+		PreparedStatement stateAuthorExists = null;
+		PreparedStatement stateInsertAuthor = null;
+		ResultSet rs = null;
+		Long authorKey = null;
+		int count = 1;
 
-	// replace highComma (for eg O'Donnel) to make it queryable
-	String firstname = replaceHighComma(author.getFirstname());
-	String middlename = replaceHighComma(author.getMiddlename());
-	String surname = replaceHighComma(author.getSurname());
-	String unstructured = replaceHighComma(author.getUnstructured());
+		// replace highComma (for eg O'Donnel) to make it queryable
+		String firstname = replaceHighComma(author.getFirstname());
+		String middlename = replaceHighComma(author.getMiddlename());
+		String surname = replaceHighComma(author.getSurname());
+		String unstructured = replaceHighComma(author.getUnstructured());
 
-	// the query to retrieve already present authors. In Database firstname,
-	// middlename, surname and unstructured form a unique key to massivly
-	// increase performance
-	// the ? marks a variable which is yet to set and must be checked for
-	// null values
-	String queryAuthorExists = "SELECT " + constants.getPersonID() + " FROM " + constants.getPersons() + " WHERE "
-	    + constants.getFirstname() + (firstname == null ? " is null" : " = ? ") + " AND "
-	    + constants.getMiddlename() + (middlename == null ? " is null" : " = ? ") + " AND "
-	    + constants.getSurname() + (surname == null ? " is null" : " = ? ") + " AND "
-	    + constants.getUnstructured() + (unstructured == null ? " is null" : " = ? ");
-
-	try {
-	    stateAuthorExists = con.prepareStatement(queryAuthorExists, Statement.RETURN_GENERATED_KEYS);
-
-	    // if not null insert true value for the corresponding ? (which is
-	    // represented by count)
-	    if (firstname != null)
-		stateAuthorExists.setString(count++, firstname);
-
-	    if (middlename != null)
-		stateAuthorExists.setString(count++, middlename);
-
-	    if (author.getFirstname() != null)
-		stateAuthorExists.setString(count++, surname);
-
-	    if (unstructured != null)
-		stateAuthorExists.setString(count++, unstructured);
-
-	    rs = stateAuthorExists.executeQuery();
-
-	    // if it is a new author not already present in the database
-	    if (!rs.next()) {
-		ResultSet rs2 = null;
-
-		// query to insert the author
-		// the ? marks a variable which is yet to set and must be
-		// checked for null values
-		String queryAuthor = "INSERT INTO " + constants.getPersons() + " (" + constants.getFirstname() + ", "
-		    + constants.getMiddlename() + ", " + constants.getSurname() + ", " + constants.getUnstructured()
-		    + ")" + "VALUES (?, ?, ?, ?)";
+		// the query to retrieve already present authors. In Database firstname,
+		// middlename, surname and unstructured form a unique key to massivly
+		// increase performance
+		// the ? marks a variable which is yet to set and must be checked for
+		// null values
+		String queryAuthorExists = "SELECT " + constants.getPersonID() + " FROM " + constants.getPersons() + " WHERE "
+			+ constants.getFirstname() + (firstname == null ? " is null" : " = ? ") + " AND "
+			+ constants.getMiddlename() + (middlename == null ? " is null" : " = ? ") + " AND "
+			+ constants.getSurname() + (surname == null ? " is null" : " = ? ") + " AND "
+			+ constants.getUnstructured() + (unstructured == null ? " is null" : " = ? ");
 
 		try {
-		    stateInsertAuthor = con.prepareStatement(queryAuthor, Statement.RETURN_GENERATED_KEYS);
+			stateAuthorExists = con.prepareStatement(queryAuthorExists, Statement.RETURN_GENERATED_KEYS);
 
-		    // handle null values and other preprocessing stuff
-		    SetIfNull(document, stateInsertAuthor, author.getFirstname(), 1, "string",
-			      constants.getFirstname());
-		    SetIfNull(document, stateInsertAuthor, author.getMiddlename(), 2, "string",
-			      constants.getMiddlename());
-		    SetIfNull(document, stateInsertAuthor, author.getSurname(), 3, "string", constants.getSurname());
-		    SetIfNull(document, stateInsertAuthor, author.getUnstructured(), 4, "string",
-			      constants.getUnstructured());
+			// if not null insert true value for the corresponding ? (which is
+			// represented by count)
+			if (firstname != null)
+				stateAuthorExists.setString(count++, firstname);
 
-		    stateInsertAuthor.executeUpdate();
+			if (middlename != null)
+				stateAuthorExists.setString(count++, middlename);
 
-		    // get the autogenerated key back
-		    rs2 = stateInsertAuthor.getGeneratedKeys();
-		    if (rs2.next())
-			authorKey = rs2.getLong(1);
+			if (author.getFirstname() != null)
+				stateAuthorExists.setString(count++, surname);
 
-		} catch (SQLException e) {
-		    logger.debug(document.getDocumentPath() + ": " + document.getId());
-		    throw e;
+			if (unstructured != null)
+				stateAuthorExists.setString(count++, unstructured);
+
+			rs = stateAuthorExists.executeQuery();
+
+			// if it is a new author not already present in the database
+			if (!rs.next()) {
+				ResultSet rs2 = null;
+
+				// query to insert the author
+				// the ? marks a variable which is yet to set and must be
+				// checked for null values
+				String queryAuthor = "INSERT INTO " + constants.getPersons() + " (" + constants.getFirstname() + ", "
+					+ constants.getMiddlename() + ", " + constants.getSurname() + ", " + constants.getUnstructured()
+					+ ")" + "VALUES (?, ?, ?, ?)";
+
+				try {
+					stateInsertAuthor = con.prepareStatement(queryAuthor, Statement.RETURN_GENERATED_KEYS);
+
+					// handle null values and other preprocessing stuff
+					SetIfNull(document, stateInsertAuthor, author.getFirstname(), 1, "string",
+							  constants.getFirstname());
+					SetIfNull(document, stateInsertAuthor, author.getMiddlename(), 2, "string",
+							  constants.getMiddlename());
+					SetIfNull(document, stateInsertAuthor, author.getSurname(), 3, "string", constants.getSurname());
+					SetIfNull(document, stateInsertAuthor, author.getUnstructured(), 4, "string",
+							  constants.getUnstructured());
+
+					stateInsertAuthor.executeUpdate();
+
+					// get the autogenerated key back
+					rs2 = stateInsertAuthor.getGeneratedKeys();
+					if (rs2.next())
+						authorKey = rs2.getLong(1);
+
+				} catch (SQLException e) {
+					logger.debug(document.getDocumentPath() + ": " + document.getId());
+					throw e;
+				} finally {
+					rs.close();
+					rs2.close();
+					stateInsertAuthor.close();
+				}
+			} else
+				// get the key of the already present author
+				authorKey = (long) rs.getInt(constants.getPersonID());
+		} catch (SQLException sqle) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw sqle;
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw e;
 		} finally {
-		    rs.close();
-		    rs2.close();
-		    stateInsertAuthor.close();
+			try {
+				stateAuthorExists.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
-	    } else
-		// get the key of the already present author
-		authorKey = (long) rs.getInt(constants.getPersonID());
-	} catch (SQLException sqle) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw sqle;
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw e;
-	} finally {
-	    try {
-		stateAuthorExists.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return authorKey;
+		return authorKey;
     }
 
     /**
@@ -510,108 +510,108 @@ public class DBConnection {
      * @throws SQLException
      */
     public Long addPersonToDbIfNotExists(JSONDocument document, Person author) throws SQLException {
-	PreparedStatement stateAuthorExists = null;
-	PreparedStatement stateInsertAuthor = null;
-	ResultSet rs = null;
-	Long authorKey = null;
-	int count = 1;
+		PreparedStatement stateAuthorExists = null;
+		PreparedStatement stateInsertAuthor = null;
+		ResultSet rs = null;
+		Long authorKey = null;
+		int count = 1;
 
-	// replace highComma (for eg O'Donnel) to make it queryable
-	String firstname = replaceHighComma(author.getFirstname());
-	String middlename = replaceHighComma(author.getMiddlename());
-	String surname = replaceHighComma(author.getSurname());
-	String unstructured = replaceHighComma(author.getUnstructured());
+		// replace highComma (for eg O'Donnel) to make it queryable
+		String firstname = replaceHighComma(author.getFirstname());
+		String middlename = replaceHighComma(author.getMiddlename());
+		String surname = replaceHighComma(author.getSurname());
+		String unstructured = replaceHighComma(author.getUnstructured());
 
-	// the query to retrieve already present authors. In Database firstname,
-	// middlename, surname and unstructured form a unique key to massivly
-	// increase performance
-	// the ? marks a variable which is yet to set and must be checked for
-	// null values
-	String queryAuthorExists = "SELECT " + constants.getPersonID() + " FROM " + constants.getPersons() + " WHERE "
-	    + constants.getFirstname() + (firstname == null ? " is null" : " = ? ") + " AND "
-	    + constants.getMiddlename() + (middlename == null ? " is null" : " = ? ") + " AND "
-	    + constants.getSurname() + (surname == null ? " is null" : " = ? ") + " AND "
-	    + constants.getUnstructured() + (unstructured == null ? " is null" : " = ? ");
-
-	try {
-	    stateAuthorExists = con.prepareStatement(queryAuthorExists, Statement.RETURN_GENERATED_KEYS);
-
-	    // if not null insert true value for the corresponding ? (which is
-	    // represented by count)
-	    if (firstname != null)
-		stateAuthorExists.setString(count++, firstname);
-
-	    if (middlename != null)
-		stateAuthorExists.setString(count++, middlename);
-
-	    if (author.getFirstname() != null)
-		stateAuthorExists.setString(count++, surname);
-
-	    if (unstructured != null)
-		stateAuthorExists.setString(count++, unstructured);
-
-	    rs = stateAuthorExists.executeQuery();
-
-	    // if it is a new author not already present in the database
-	    if (!rs.next()) {
-		ResultSet rs2 = null;
-
-		// query to insert the author
-		// the ? marks a variable which is yet to set and must be
-		// checked for null values
-		String queryAuthor = "INSERT INTO " + constants.getPersons() + " (" + constants.getFirstname() + ", "
-		    + constants.getMiddlename() + ", " + constants.getSurname() + ", " + constants.getUnstructured()
-		    + ")" + "VALUES (?, ?, ?, ?)";
+		// the query to retrieve already present authors. In Database firstname,
+		// middlename, surname and unstructured form a unique key to massivly
+		// increase performance
+		// the ? marks a variable which is yet to set and must be checked for
+		// null values
+		String queryAuthorExists = "SELECT " + constants.getPersonID() + " FROM " + constants.getPersons() + " WHERE "
+			+ constants.getFirstname() + (firstname == null ? " is null" : " = ? ") + " AND "
+			+ constants.getMiddlename() + (middlename == null ? " is null" : " = ? ") + " AND "
+			+ constants.getSurname() + (surname == null ? " is null" : " = ? ") + " AND "
+			+ constants.getUnstructured() + (unstructured == null ? " is null" : " = ? ");
 
 		try {
-		    stateInsertAuthor = con.prepareStatement(queryAuthor, Statement.RETURN_GENERATED_KEYS);
+			stateAuthorExists = con.prepareStatement(queryAuthorExists, Statement.RETURN_GENERATED_KEYS);
 
-		    // handle null values and other preprocessing stuff
-		    SetIfNull(document, stateInsertAuthor, author.getFirstname(), 1, "string",
-			      constants.getFirstname());
-		    SetIfNull(document, stateInsertAuthor, author.getMiddlename(), 2, "string",
-			      constants.getMiddlename());
-		    SetIfNull(document, stateInsertAuthor, author.getSurname(), 3, "string", constants.getSurname());
-		    SetIfNull(document, stateInsertAuthor, author.getUnstructured(), 4, "string",
-			      constants.getUnstructured());
+			// if not null insert true value for the corresponding ? (which is
+			// represented by count)
+			if (firstname != null)
+				stateAuthorExists.setString(count++, firstname);
 
-		    stateInsertAuthor.executeUpdate();
+			if (middlename != null)
+				stateAuthorExists.setString(count++, middlename);
 
-		    // get the autogenerated key back
-		    rs2 = stateInsertAuthor.getGeneratedKeys();
-		    if (rs2.next())
-			authorKey = rs2.getLong(1);
+			if (author.getFirstname() != null)
+				stateAuthorExists.setString(count++, surname);
 
-		} catch (SQLException e) {
-		    logger.debug(
-				       document.getDocumentPath() + ": " + document.getIdentifier() + "SetIfNulladdPersonToDB");
-		    e.printStackTrace();
-		    throw e;
+			if (unstructured != null)
+				stateAuthorExists.setString(count++, unstructured);
+
+			rs = stateAuthorExists.executeQuery();
+
+			// if it is a new author not already present in the database
+			if (!rs.next()) {
+				ResultSet rs2 = null;
+
+				// query to insert the author
+				// the ? marks a variable which is yet to set and must be
+				// checked for null values
+				String queryAuthor = "INSERT INTO " + constants.getPersons() + " (" + constants.getFirstname() + ", "
+					+ constants.getMiddlename() + ", " + constants.getSurname() + ", " + constants.getUnstructured()
+					+ ")" + "VALUES (?, ?, ?, ?)";
+
+				try {
+					stateInsertAuthor = con.prepareStatement(queryAuthor, Statement.RETURN_GENERATED_KEYS);
+
+					// handle null values and other preprocessing stuff
+					SetIfNull(document, stateInsertAuthor, author.getFirstname(), 1, "string",
+							  constants.getFirstname());
+					SetIfNull(document, stateInsertAuthor, author.getMiddlename(), 2, "string",
+							  constants.getMiddlename());
+					SetIfNull(document, stateInsertAuthor, author.getSurname(), 3, "string", constants.getSurname());
+					SetIfNull(document, stateInsertAuthor, author.getUnstructured(), 4, "string",
+							  constants.getUnstructured());
+
+					stateInsertAuthor.executeUpdate();
+
+					// get the autogenerated key back
+					rs2 = stateInsertAuthor.getGeneratedKeys();
+					if (rs2.next())
+						authorKey = rs2.getLong(1);
+
+				} catch (SQLException e) {
+					logger.debug(
+								 document.getDocumentPath() + ": " + document.getIdentifier() + "SetIfNulladdPersonToDB");
+					e.printStackTrace();
+					throw e;
+				} finally {
+					rs.close();
+					rs2.close();
+					stateInsertAuthor.close();
+				}
+			} else
+				// get the key of the already present author
+				authorKey = (long) rs.getInt(constants.getPersonID());
+		} catch (SQLException sqle) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB1");
+			throw sqle;
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB2");
+			e.printStackTrace();
+			throw e;
 		} finally {
-		    rs.close();
-		    rs2.close();
-		    stateInsertAuthor.close();
+			try {
+				stateAuthorExists.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
-	    } else
-		// get the key of the already present author
-		authorKey = (long) rs.getInt(constants.getPersonID());
-	} catch (SQLException sqle) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB1");
-	    throw sqle;
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB2");
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    try {
-		stateAuthorExists.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return authorKey;
+		return authorKey;
     }
 
     /**
@@ -628,28 +628,28 @@ public class DBConnection {
      * @throws Exception
      */
     public void addPersonDocumentRelation(XMLDocument document, Long documentId, Long authorId, int rank)
-	throws Exception {
-	Statement stmt = null;
-	try {
-	    stmt = con.createStatement();
+		throws Exception {
+		Statement stmt = null;
+		try {
+			stmt = con.createStatement();
 
-	    // query for insert person - document relation
-	    String query = "INSERT INTO " + constants.getDocPers() + " (" + constants.getDocumentIDInDocPers() + ", "
-		+ constants.getPersonIDInDocPers() + ", " + constants.getRank() + ") VALUES (" + documentId + ", "
-		+ authorId + ", " + rank + ");";
+			// query for insert person - document relation
+			String query = "INSERT INTO " + constants.getDocPers() + " (" + constants.getDocumentIDInDocPers() + ", "
+				+ constants.getPersonIDInDocPers() + ", " + constants.getRank() + ") VALUES (" + documentId + ", "
+				+ authorId + ", " + rank + ");";
 
-	    stmt.executeUpdate(query);
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+			stmt.executeUpdate(query);
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
     }
 
     /**
@@ -666,28 +666,28 @@ public class DBConnection {
      * @throws Exception
      */
     public void addPersonDocumentRelation(JSONDocument document, Long documentId, Long authorId, int rank)
-	throws Exception {
-	Statement stmt = null;
-	try {
-	    stmt = con.createStatement();
+		throws Exception {
+		Statement stmt = null;
+		try {
+			stmt = con.createStatement();
 
-	    // query for insert person - document relation
-	    String query = "INSERT INTO " + constants.getDocPers() + " (" + constants.getDocumentIDInDocPers() + ", "
-		+ constants.getPersonIDInDocPers() + ", " + constants.getRank() + ") VALUES (" + documentId + ", "
-		+ authorId + ", " + rank + ");";
+			// query for insert person - document relation
+			String query = "INSERT INTO " + constants.getDocPers() + " (" + constants.getDocumentIDInDocPers() + ", "
+				+ constants.getPersonIDInDocPers() + ", " + constants.getRank() + ") VALUES (" + documentId + ", "
+				+ authorId + ", " + rank + ");";
 
-	    stmt.executeUpdate(query);
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonDocRel");
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+			stmt.executeUpdate(query);
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonDocRel");
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
     }
 
     /**
@@ -701,35 +701,35 @@ public class DBConnection {
      * @throws SQLException
      */
     public Long getCollectionIDByName(XMLDocument document, String collectionName) throws SQLException {
-	Statement stmt = null;
-	ResultSet rs = null;
-	Long id = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		Long id = null;
 
-	// query to select the collectionName
-	String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
-	    + constants.getCollectionShortName() + " = '" + collectionName + "'";
+		// query to select the collectionName
+		String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
+			+ constants.getCollectionShortName() + " = '" + collectionName + "'";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // get first collection id
-	    if (rs.next())
-		id = rs.getLong(constants.getCollectionID());
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return id;
+			// get first collection id
+			if (rs.next())
+				id = rs.getLong(constants.getCollectionID());
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return id;
     }
 
     /**
@@ -752,47 +752,47 @@ public class DBConnection {
      * @throws SQLException
      */
     public <T> PreparedStatement SetIfNull(XMLDocument document, PreparedStatement stmt, T value, int index,
-					   String type, String columnName) throws SQLException {
+										   String type, String columnName) throws SQLException {
 
-	try {
-	    if (value instanceof String) {
-		// replace high commata
-		String valueString = replaceHighComma((String) value);
-		// ignore values which have no specific length
-		if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
-		      || columnName.equals(constants.getAbstr()))) {
-		    // check for truncation error
-		    if (valueString.length() > lengthMap.get(columnName))
-			logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
-					   + columnName + " because too long!");
+		try {
+			if (value instanceof String) {
+				// replace high commata
+				String valueString = replaceHighComma((String) value);
+				// ignore values which have no specific length
+				if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
+					  || columnName.equals(constants.getAbstr()))) {
+					// check for truncation error
+					if (valueString.length() > lengthMap.get(columnName))
+						logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
+									 + columnName + " because too long!");
+				}
+				value = (T) valueString;
+			}
+			if (value == null) {
+				// set special null value for String types
+				if (type.equals("string"))
+					stmt.setNull(index, java.sql.Types.VARCHAR);
+				// set special null values for integer types
+				else if (type.equals("int") || type.equals("long"))
+					stmt.setNull(index, java.sql.Types.INTEGER);
+				// the year has to be handles seperatly. Since int cannot be
+				// null, a 0 is used. if a zero is set, the year in the database
+				// has to be null
+			} else if (columnName.equals(constants.getYear())) {
+				if (((Integer) value) == 0)
+					stmt.setNull(index, java.sql.Types.INTEGER);
+				// otherwise use real value
+				else
+					stmt.setObject(index, value);
+				// otherwise use real value
+			} else
+				stmt.setObject(index, value);
+
+		} catch (SQLException e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw e;
 		}
-		value = (T) valueString;
-	    }
-	    if (value == null) {
-		// set special null value for String types
-		if (type.equals("string"))
-		    stmt.setNull(index, java.sql.Types.VARCHAR);
-		// set special null values for integer types
-		else if (type.equals("int") || type.equals("long"))
-		    stmt.setNull(index, java.sql.Types.INTEGER);
-		// the year has to be handles seperatly. Since int cannot be
-		// null, a 0 is used. if a zero is set, the year in the database
-		// has to be null
-	    } else if (columnName.equals(constants.getYear())) {
-		if (((Integer) value) == 0)
-		    stmt.setNull(index, java.sql.Types.INTEGER);
-		// otherwise use real value
-		else
-		    stmt.setObject(index, value);
-		// otherwise use real value
-	    } else
-		stmt.setObject(index, value);
-
-	} catch (SQLException e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw e;
-	}
-	return stmt;
+		return stmt;
     }
 
     /**
@@ -815,48 +815,48 @@ public class DBConnection {
      * @throws SQLException
      */
     public <T> PreparedStatement SetIfNull(JSONDocument document, PreparedStatement stmt, T value, int index,
-					   String type, String columnName) throws SQLException {
+										   String type, String columnName) throws SQLException {
 
-	try {
-	    if (value instanceof String) {
-		// replace high commata
-		String valueString = replaceHighComma((String) value);
-		// ignore values which have no specific length
-		if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
-		      || columnName.equals(constants.getAbstr()))) {
-		    // check for truncation error
-		    if (valueString.length() > lengthMap.get(columnName))
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
-					   + columnName + " because too long!");
+		try {
+			if (value instanceof String) {
+				// replace high commata
+				String valueString = replaceHighComma((String) value);
+				// ignore values which have no specific length
+				if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
+					  || columnName.equals(constants.getAbstr()))) {
+					// check for truncation error
+					if (valueString.length() > lengthMap.get(columnName))
+						logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
+									 + columnName + " because too long!");
+				}
+				value = (T) valueString;
+			}
+
+			if (value == null) {
+				// set special null value for String types
+				if (type.equals("string"))
+					stmt.setNull(index, java.sql.Types.VARCHAR);
+				// set special null values for integer types
+				else if (type.equals("int") || type.equals("long"))
+					stmt.setNull(index, java.sql.Types.INTEGER);
+				// the year has to be handles seperatly. Since int cannot be
+				// null, a 0 is used. if a zero is set, the year in the database
+				// has to be null
+			} else if (columnName.equals(constants.getYear())) {
+				if ((Integer) value == 0)
+					stmt.setNull(index, java.sql.Types.INTEGER);
+				// otherwise use real value
+				else
+					stmt.setObject(index, value);
+				// otherwise use real value
+			} else
+				stmt.setObject(index, value);
+
+		} catch (SQLException e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + " SetIfNullMethod");
+			throw e;
 		}
-		value = (T) valueString;
-	    }
-
-	    if (value == null) {
-		// set special null value for String types
-		if (type.equals("string"))
-		    stmt.setNull(index, java.sql.Types.VARCHAR);
-		// set special null values for integer types
-		else if (type.equals("int") || type.equals("long"))
-		    stmt.setNull(index, java.sql.Types.INTEGER);
-		// the year has to be handles seperatly. Since int cannot be
-		// null, a 0 is used. if a zero is set, the year in the database
-		// has to be null
-	    } else if (columnName.equals(constants.getYear())) {
-		if ((Integer) value == 0)
-		    stmt.setNull(index, java.sql.Types.INTEGER);
-		// otherwise use real value
-		else
-		    stmt.setObject(index, value);
-		// otherwise use real value
-	    } else
-		stmt.setObject(index, value);
-
-	} catch (SQLException e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + " SetIfNullMethod");
-	    throw e;
-	}
-	return stmt;
+		return stmt;
     }
 
     /**
@@ -869,115 +869,115 @@ public class DBConnection {
      * @throws Exception
      */
     public void insertDocument(XMLDocument document) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
-	PreparedStatement stateQueryDoc = null;
-	Long docKey = null;
-	LinkedHashSet<Person> authors = document.getAuthors();
-	Long[] authorKey = new Long[authors.size()];
-	// if (document.getAuthors().size() == 0)
-	// logger.debug(document.getDocumentPath() + ": " +
-	// document.getId() + ": No Authors!");
+		Statement stmt = null;
+		ResultSet rs = null;
+		PreparedStatement stateQueryDoc = null;
+		Long docKey = null;
+		LinkedHashSet<Person> authors = document.getAuthors();
+		Long[] authorKey = new Long[authors.size()];
+		// if (document.getAuthors().size() == 0)
+		// logger.debug(document.getDocumentPath() + ": " +
+		// document.getId() + ": No Authors!");
 
-	// query to check if document already exists
-	String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
-	    + constants.getIdOriginal() + " = '" + document.getId() + "'";
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(docExists);
-	    // if there is a document with the same original id
-	    if (rs.next()) {
-		logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
-		return;
-	    }
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		logger.debug(document.getDocumentPath() + ": " + document.getId());
-		throw e;
-	    }
-	}
-
-	// if the document dont exists, insert it including authors, collection,
-	// abstracts and so on
-	try {
-	    Iterator<Person> it = authors.iterator();
-
-	    // for each person, insert in database and store related key
-	    for (int i = 0; i < authors.size(); i++) {
-		Person author = it.next();
-		authorKey[i] = addPersonToDbIfNotExists(document, author);
-	    }
-
-	    // query to insert all information to the documents table
-	    String queryDoc = "INSERT INTO " + constants.getDocuments() + " (" + constants.getIdOriginal() + ", "
-		+ constants.getDocumentCollectionID() + ", " + constants.getTitle() + ", "
-		+ constants.getTitleClean() + ", " + constants.getPublishedId() + ", " + ""
-		+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
-		+ constants.getKeywords() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-	    // get the collection id by its name, to store relation in documents
-	    // table
-	    Long collectionId = getCollectionIDByName(document, document.getCollection());
-
-	    stateQueryDoc = con.prepareStatement(queryDoc, Statement.RETURN_GENERATED_KEYS);
-
-	    // set the values of the documents with the wrapper method which
-	    // checks for null values etc
-	    SetIfNull(document, stateQueryDoc, document.getId(), 1, "string", constants.getIdOriginal());
-	    SetIfNull(document, stateQueryDoc, collectionId, 2, "long", constants.getDocumentCollectionID());
-	    SetIfNull(document, stateQueryDoc, document.getTitle(), 3, "string", constants.getTitle());
-	    SetIfNull(document, stateQueryDoc, document.getCleanTitle(), 4, "string", constants.getTitleClean());
-	    SetIfNull(document, stateQueryDoc, document.getPublishedIn(), 5, "string", constants.getPublishedId());
-	    SetIfNull(document, stateQueryDoc, document.getLanguage(), 6, "string", constants.getLanguage());
-	    SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
-	    SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
-	    SetIfNull(document, stateQueryDoc, document.getKeywordsAsString(), 9, "string", constants.getKeywords());
-
-	    stateQueryDoc.executeUpdate();
-
-	    // get the key of the inserted document
-	    try (ResultSet generatedKeys = stateQueryDoc.getGeneratedKeys()) {
-		if (generatedKeys.next()) {
-		    docKey = generatedKeys.getLong(1);
-		} else {
-		    logger.debug(document.getDocumentPath() + ": " + document.getId());
-		    throw new SQLException("Creating document failed, no ID obtained.");
+		// query to check if document already exists
+		String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
+			+ constants.getIdOriginal() + " = '" + document.getId() + "'";
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(docExists);
+			// if there is a document with the same original id
+			if (rs.next()) {
+				logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
+				return;
+			}
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				logger.debug(document.getDocumentPath() + ": " + document.getId());
+				throw e;
+			}
 		}
-	    }
 
-	    // insert every related abstract to the abstract table with the
-	    // corresponding document id
-	    for (int i = 0; i < document.getAbstracts().size(); i++)
-		addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+		// if the document dont exists, insert it including authors, collection,
+		// abstracts and so on
+		try {
+			Iterator<Person> it = authors.iterator();
 
-	    // insert all author document relations with the related keys from
-	    // author and document
-	    for (int i = 0; i < authors.size(); i++) {
-		addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
-	    }
+			// for each person, insert in database and store related key
+			for (int i = 0; i < authors.size(); i++) {
+				Person author = it.next();
+				authorKey[i] = addPersonToDbIfNotExists(document, author);
+			}
 
-	} catch (SQLException sqle) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw sqle;
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw e;
-	} finally {
-	    try {
-		stateQueryDoc.close();
-	    } catch (SQLException e) {
-		logger.debug(document.getDocumentPath() + ": " + document.getId());
-		throw e;
-	    }
-	}
+			// query to insert all information to the documents table
+			String queryDoc = "INSERT INTO " + constants.getDocuments() + " (" + constants.getIdOriginal() + ", "
+				+ constants.getDocumentCollectionID() + ", " + constants.getTitle() + ", "
+				+ constants.getTitleClean() + ", " + constants.getPublishedId() + ", " + ""
+				+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
+				+ constants.getKeywords() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+			// get the collection id by its name, to store relation in documents
+			// table
+			Long collectionId = getCollectionIDByName(document, document.getCollection());
+
+			stateQueryDoc = con.prepareStatement(queryDoc, Statement.RETURN_GENERATED_KEYS);
+
+			// set the values of the documents with the wrapper method which
+			// checks for null values etc
+			SetIfNull(document, stateQueryDoc, document.getId(), 1, "string", constants.getIdOriginal());
+			SetIfNull(document, stateQueryDoc, collectionId, 2, "long", constants.getDocumentCollectionID());
+			SetIfNull(document, stateQueryDoc, document.getTitle(), 3, "string", constants.getTitle());
+			SetIfNull(document, stateQueryDoc, document.getCleanTitle(), 4, "string", constants.getTitleClean());
+			SetIfNull(document, stateQueryDoc, document.getPublishedIn(), 5, "string", constants.getPublishedId());
+			SetIfNull(document, stateQueryDoc, document.getLanguage(), 6, "string", constants.getLanguage());
+			SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
+			SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
+			SetIfNull(document, stateQueryDoc, document.getKeywordsAsString(), 9, "string", constants.getKeywords());
+
+			stateQueryDoc.executeUpdate();
+
+			// get the key of the inserted document
+			try (ResultSet generatedKeys = stateQueryDoc.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					docKey = generatedKeys.getLong(1);
+				} else {
+					logger.debug(document.getDocumentPath() + ": " + document.getId());
+					throw new SQLException("Creating document failed, no ID obtained.");
+				}
+			}
+
+			// insert every related abstract to the abstract table with the
+			// corresponding document id
+			for (int i = 0; i < document.getAbstracts().size(); i++)
+				addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+
+			// insert all author document relations with the related keys from
+			// author and document
+			for (int i = 0; i < authors.size(); i++) {
+				addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
+			}
+
+		} catch (SQLException sqle) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw sqle;
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				stateQueryDoc.close();
+			} catch (SQLException e) {
+				logger.debug(document.getDocumentPath() + ": " + document.getId());
+				throw e;
+			}
+		}
     }
 
     /**
@@ -990,128 +990,128 @@ public class DBConnection {
      * @throws Exception
      */
     public void insertDocument(JSONDocument document) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
-	PreparedStatement stateQueryDoc = null;
-	Long docKey = null;
-	LinkedHashSet<Person> authors = document.getAuthors();
-	Long[] authorKey = new Long[authors.size()];
-	if (document.getAuthors().size() == 0)
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": No Authors!");
+		Statement stmt = null;
+		ResultSet rs = null;
+		PreparedStatement stateQueryDoc = null;
+		Long docKey = null;
+		LinkedHashSet<Person> authors = document.getAuthors();
+		Long[] authorKey = new Long[authors.size()];
+		if (document.getAuthors().size() == 0)
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": No Authors!");
 
-	// query to check if document already exists
-	String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
-	    + constants.getIdOriginal() + " = '" + document.getIdentifier() + "'";
+		// query to check if document already exists
+		String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
+			+ constants.getIdOriginal() + " = '" + document.getIdentifier() + "'";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(docExists);
-	    // if there is a document with the same original id
-	    if (rs.next()) {
-		logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Double Entry");
-		return;
-	    }
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDoc");
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		System.out
-		    .println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocOutsideCon");
-		throw e;
-	    }
-	}
-
-	// if the document doesn't exists, insert it including authors,
-	// collection,
-	// abstracts and so on
-	try {
-	    Iterator<Person> it = authors.iterator();
-
-	    // for each person, insert in database and store related key
-	    for (int i = 0; i < authors.size(); i++) {
-		Person author = it.next();
-		authorKey[i] = addPersonToDbIfNotExists(document, author);
-	    }
-
-	    // query to insert all information to the documents table
-	    String queryDoc = "INSERT INTO " + constants.getDocuments() + " (" + constants.getIdOriginal() + ", "
-		+ constants.getDocumentCollectionID() + ", " + constants.getTitle() + ", "
-		+ constants.getTitleClean() + ", " + constants.getPublishedId() + ", " + ""
-		+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
-		+ constants.getKeywords() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-	    // get the collection id by its name, to store relation in documents
-	    // table
-	    // Long collectionId = getCollectionIDByName(document,
-	    // document.getCollection());
-
-	    stateQueryDoc = con.prepareStatement(queryDoc, Statement.RETURN_GENERATED_KEYS);
-
-	    // set the values of the documents with the wrapper method which
-	    // checks for null values etc
-	    SetIfNull(document, stateQueryDoc, document.getIdentifier(), 1, "string", constants.getIdOriginal());
-	    // SetIfNull(document, stateQueryDoc, collectionId, 2, "long",
-	    // constants.getDocumentCollectionID());
-	    SetIfNull(document, stateQueryDoc, document.getRepository(), 2, "long",
-		      constants.getDocumentCollectionID());
-	    SetIfNull(document, stateQueryDoc, document.getTitle(), 3, "string", constants.getTitle());
-	    SetIfNull(document, stateQueryDoc, document.getCleanTitle(), 4, "string", constants.getTitleClean());
-	    SetIfNull(document, stateQueryDoc, null, 5, "string", constants.getPublishedId());
-	    SetIfNull(document, stateQueryDoc, null, 6, "string", constants.getLanguage());
-	    // SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int",
-	    // constants.getYear());
-	    SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
-	    SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
-	    // SetIfNull(document, stateQueryDoc,
-	    // document.getKeywordsAsString(), 9, "string",
-	    // constants.getKeywords());
-	    SetIfNull(document, stateQueryDoc, null, 9, "string", constants.getKeywords());
-
-	    stateQueryDoc.executeUpdate();
-
-	    // get the key of the inserted document
-	    try (ResultSet generatedKeys = stateQueryDoc.getGeneratedKeys()) {
-		if (generatedKeys.next()) {
-		    docKey = generatedKeys.getLong(1);
-		} else {
-		    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier());
-		    throw new SQLException("Creating document failed, no ID obtained.");
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(docExists);
+			// if there is a document with the same original id
+			if (rs.next()) {
+				logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Double Entry");
+				return;
+			}
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDoc");
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				System.out
+					.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocOutsideCon");
+				throw e;
+			}
 		}
-	    }
 
-	    // insert every related abstract to the abstract table with the
-	    // corresponding document id
-	    for (int i = 0; i < document.getAbstracts().size(); i++)
-		addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+		// if the document doesn't exists, insert it including authors,
+		// collection,
+		// abstracts and so on
+		try {
+			Iterator<Person> it = authors.iterator();
 
-	    // insert all author document relations with the related keys from
-	    // author and document
-	    for (int i = 0; i < authors.size(); i++) {
-		addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
-	    }
+			// for each person, insert in database and store related key
+			for (int i = 0; i < authors.size(); i++) {
+				Person author = it.next();
+				authorKey[i] = addPersonToDbIfNotExists(document, author);
+			}
 
-	} catch (SQLException sqle) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer1");
-	    throw sqle;
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer2");
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    try {
-		stateQueryDoc.close();
-	    } catch (SQLException e) {
-		logger.debug(
-				   document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer3");
-		throw e;
-	    }
-	}
+			// query to insert all information to the documents table
+			String queryDoc = "INSERT INTO " + constants.getDocuments() + " (" + constants.getIdOriginal() + ", "
+				+ constants.getDocumentCollectionID() + ", " + constants.getTitle() + ", "
+				+ constants.getTitleClean() + ", " + constants.getPublishedId() + ", " + ""
+				+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
+				+ constants.getKeywords() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+			// get the collection id by its name, to store relation in documents
+			// table
+			// Long collectionId = getCollectionIDByName(document,
+			// document.getCollection());
+
+			stateQueryDoc = con.prepareStatement(queryDoc, Statement.RETURN_GENERATED_KEYS);
+
+			// set the values of the documents with the wrapper method which
+			// checks for null values etc
+			SetIfNull(document, stateQueryDoc, document.getIdentifier(), 1, "string", constants.getIdOriginal());
+			// SetIfNull(document, stateQueryDoc, collectionId, 2, "long",
+			// constants.getDocumentCollectionID());
+			SetIfNull(document, stateQueryDoc, document.getRepository(), 2, "long",
+					  constants.getDocumentCollectionID());
+			SetIfNull(document, stateQueryDoc, document.getTitle(), 3, "string", constants.getTitle());
+			SetIfNull(document, stateQueryDoc, document.getCleanTitle(), 4, "string", constants.getTitleClean());
+			SetIfNull(document, stateQueryDoc, null, 5, "string", constants.getPublishedId());
+			SetIfNull(document, stateQueryDoc, null, 6, "string", constants.getLanguage());
+			// SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int",
+			// constants.getYear());
+			SetIfNull(document, stateQueryDoc, document.getYear(), 7, "int", constants.getYear());
+			SetIfNull(document, stateQueryDoc, document.getType(), 8, "string", constants.getType());
+			// SetIfNull(document, stateQueryDoc,
+			// document.getKeywordsAsString(), 9, "string",
+			// constants.getKeywords());
+			SetIfNull(document, stateQueryDoc, null, 9, "string", constants.getKeywords());
+
+			stateQueryDoc.executeUpdate();
+
+			// get the key of the inserted document
+			try (ResultSet generatedKeys = stateQueryDoc.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					docKey = generatedKeys.getLong(1);
+				} else {
+					logger.debug(document.getDocumentPath() + ": " + document.getIdentifier());
+					throw new SQLException("Creating document failed, no ID obtained.");
+				}
+			}
+
+			// insert every related abstract to the abstract table with the
+			// corresponding document id
+			for (int i = 0; i < document.getAbstracts().size(); i++)
+				addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+
+			// insert all author document relations with the related keys from
+			// author and document
+			for (int i = 0; i < authors.size(); i++) {
+				addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
+			}
+
+		} catch (SQLException sqle) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer1");
+			throw sqle;
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer2");
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				stateQueryDoc.close();
+			} catch (SQLException e) {
+				logger.debug(
+							 document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer3");
+				throw e;
+			}
+		}
     }
 
     /**
@@ -1123,33 +1123,33 @@ public class DBConnection {
      * @throws SQLException
      */
     public String getCollectionShortNameById(Long id) throws SQLException {
-	Statement stmt = null;
-	ResultSet rs = null;
-	String name = "";
+		Statement stmt = null;
+		ResultSet rs = null;
+		String name = "";
 
-	// query to obtain the short name of the collection by its id
-	String query = "SELECT " + constants.getCollectionShortName() + " FROM " + constants.getCollections()
-	    + " WHERE " + constants.getCollectionID() + " = '" + id + "'";
+		// query to obtain the short name of the collection by its id
+		String query = "SELECT " + constants.getCollectionShortName() + " FROM " + constants.getCollections()
+			+ " WHERE " + constants.getCollectionID() + " = '" + id + "'";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    if (rs.next())
-		name = rs.getString(constants.getCollectionShortName());
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return name;
+			if (rs.next())
+				name = rs.getString(constants.getCollectionShortName());
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return name;
     }
 
     /**
@@ -1164,32 +1164,32 @@ public class DBConnection {
      * @throws Exception
      */
     private void addAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) throws Exception {
-	PreparedStatement stmt = null;
-	try {
-	    // query which inserts the abstract information
-	    String query = "INSERT INTO " + constants.getAbstracts() + " (" + constants.getAbstractDocumentId() + ", "
-		+ constants.getAbstractLanguage() + ", " + constants.getAbstr() + ") VALUES (?, ?, ?)";
+		PreparedStatement stmt = null;
+		try {
+			// query which inserts the abstract information
+			String query = "INSERT INTO " + constants.getAbstracts() + " (" + constants.getAbstractDocumentId() + ", "
+				+ constants.getAbstractLanguage() + ", " + constants.getAbstr() + ") VALUES (?, ?, ?)";
 
-	    stmt = con.prepareStatement(query);
+			stmt = con.prepareStatement(query);
 
-	    // set values of abstract with wrapper method to check for null
-	    // values
-	    SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
-	    SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
-	    SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
+			// set values of abstract with wrapper method to check for null
+			// values
+			SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
+			SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
+			SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
 
-	    stmt.executeUpdate();
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getId());
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+			stmt.executeUpdate();
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
     }
 
     /**
@@ -1204,32 +1204,32 @@ public class DBConnection {
      * @throws Exception
      */
     private void addAbstractToDocument(JSONDocument document, Abstract abstr, Long docKey) throws Exception {
-	PreparedStatement stmt = null;
-	try {
-	    // query which inserts the abstract information
-	    String query = "INSERT INTO " + constants.getAbstracts() + " (" + constants.getAbstractDocumentId() + ", "
-		+ constants.getAbstractLanguage() + ", " + constants.getAbstr() + ") VALUES (?, ?, ?)";
+		PreparedStatement stmt = null;
+		try {
+			// query which inserts the abstract information
+			String query = "INSERT INTO " + constants.getAbstracts() + " (" + constants.getAbstractDocumentId() + ", "
+				+ constants.getAbstractLanguage() + ", " + constants.getAbstr() + ") VALUES (?, ?, ?)";
 
-	    stmt = con.prepareStatement(query);
+			stmt = con.prepareStatement(query);
 
-	    // set values of abstract with wrapper method to check for null
-	    // values
-	    SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
-	    SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
-	    SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
+			// set values of abstract with wrapper method to check for null
+			// values
+			SetIfNull(document, stmt, docKey, 1, "long", constants.getAbstractDocumentId());
+			SetIfNull(document, stmt, abstr.getLanguage(), 2, "string", constants.getAbstractLanguage());
+			SetIfNull(document, stmt, abstr.getContent(), 3, "string", constants.getAbstr());
 
-	    stmt.executeUpdate();
-	} catch (Exception e) {
-	    logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addAbsToDoc");
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+			stmt.executeUpdate();
+		} catch (Exception e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addAbsToDoc");
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
     }
 
     /**
@@ -1240,46 +1240,46 @@ public class DBConnection {
      * @throws Exception
      */
     public List<Person> getPersonsByDocumentID(String i) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
-	List<Person> persons = new ArrayList<Person>();
-	Person person = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		List<Person> persons = new ArrayList<Person>();
+		Person person = null;
 
-	// query to select all author of a given document
-	String query = "SELECT " + constants.getPersonIDInDocPers() + ", " + constants.getRank() + " FROM "
-	    + constants.getDocPers() + " WHERE " + constants.getDocumentIDInDocPers() + " = '" + i + "'";
+		// query to select all author of a given document
+		String query = "SELECT " + constants.getPersonIDInDocPers() + ", " + constants.getRank() + " FROM "
+			+ constants.getDocPers() + " WHERE " + constants.getDocumentIDInDocPers() + " = '" + i + "'";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // for each person obtained from the database, add it to the list of
-	    // authors which will be returned
-	    while (rs.next()) {
-		// for each id obtained, get the complete person and store it in
-		// the list
-		person = getPersonById(rs.getLong(constants.getPersonIDInDocPers()));
-		person.setPosition(rs.getInt(constants.getRank()));
-		if (person != null)
-		    persons.add(person);
-	    }
+			// for each person obtained from the database, add it to the list of
+			// authors which will be returned
+			while (rs.next()) {
+				// for each id obtained, get the complete person and store it in
+				// the list
+				person = getPersonById(rs.getLong(constants.getPersonIDInDocPers()));
+				person.setPosition(rs.getInt(constants.getRank()));
+				if (person != null)
+					persons.add(person);
+			}
 
-	    persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
-		.collect(Collectors.toList());
+			persons = persons.stream().sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
+				.collect(Collectors.toList());
 
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return persons;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return persons;
     }
 
     /**
@@ -1296,76 +1296,76 @@ public class DBConnection {
      * @throws Exception
      */
     public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
-	DisplayDocument document = null;
-	String authorNames = null;
-	StringJoiner joiner = new StringJoiner(", ");
-	PreparedStatement stmt = null;
-	ResultSet rs = null;
-	String title = null;
-	String publishedIn = null;
-	String keywords = "";
-	String docAbstract = null;
+		DisplayDocument document = null;
+		String authorNames = null;
+		StringJoiner joiner = new StringJoiner(", ");
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String title = null;
+		String publishedIn = null;
+		String keywords = "";
+		String docAbstract = null;
 
-	try {
+		try {
 
-	    // get all information of a document stored in a database by the
-	    // value of a custom column
-	    String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " = ?";
-	    stmt = con.prepareStatement(query);
-	    stmt.setString(1, id);
+			// get all information of a document stored in a database by the
+			// value of a custom column
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " = ?";
+			stmt = con.prepareStatement(query);
+			stmt.setString(1, id);
 
-	    rs = stmt.executeQuery();
-	    // if there is a document
-	    if (rs.next()) {
+			rs = stmt.executeQuery();
+			// if there is a document
+			if (rs.next()) {
 
-		// concatenate each author to a single string with ',' as
-		// seperator.
-		List<Person> authors = getPersonsByDocumentID((rs.getString(constants.getDocumentId())));
-		for (int i = 0; i < authors.size(); i++)
-		    joiner.add(authors.get(i).getName());
+				// concatenate each author to a single string with ',' as
+				// seperator.
+				List<Person> authors = getPersonsByDocumentID((rs.getString(constants.getDocumentId())));
+				for (int i = 0; i < authors.size(); i++)
+					joiner.add(authors.get(i).getName());
 
-		if(authors.size() > 0){
-		    authorNames = joiner.toString();
+				if(authors.size() > 0){
+					authorNames = joiner.toString();
+				}
+
+				title = rs.getString(constants.getTitle());
+				publishedIn = rs.getString(constants.getPublishedId());
+				keywords = rs.getString(constants.getKeywords());
+				docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
+
+				// create a new document with values from the database
+				document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
+											   rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn,
+											   docAbstract, keywords, rs.getInt(constants.getYear()), "", "", "", constants);
+				if (rs.wasNull())
+					document.setYear(-1);
+
+				// get the collection id and then the shortName of the
+				// collection
+				document.setLanguage(rs.getString(constants.getLanguage()));
+				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
+				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
+				return document;
+			} else
+				throw new NoEntryException(id);
+		} catch (SQLException e) {
+			logger.debug("SQL Exception");
+			throw e;
+		} catch (NoEntryException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.debug("Regualar exception");
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
-
-		title = rs.getString(constants.getTitle());
-		publishedIn = rs.getString(constants.getPublishedId());
-		keywords = rs.getString(constants.getKeywords());
-		docAbstract = getDocAbstractById(rs.getString(constants.getDocumentId()));
-
-		// create a new document with values from the database
-		document = new DisplayDocument("", String.valueOf(rs.getLong(constants.getDocumentId())),
-					       rs.getString(constants.getIdOriginal()), 0, title, authorNames, publishedIn,
-					       docAbstract, keywords, rs.getInt(constants.getYear()), "", "", "", constants);
-		if (rs.wasNull())
-		    document.setYear(-1);
-
-		// get the collection id and then the shortName of the
-		// collection
-		document.setLanguage(rs.getString(constants.getLanguage()));
-		document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
-		document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
-		return document;
-	    } else
-		throw new NoEntryException(id);
-	} catch (SQLException e) {
-	    logger.debug("SQL Exception");
-	    throw e;
-	} catch (NoEntryException e) {
-	    throw e;
-	} catch (Exception e) {
-	    logger.debug("Regualar exception");
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
     }
 
 
@@ -1382,98 +1382,98 @@ public class DBConnection {
      * @throws Exception
      */
     public DisplayDocument getPureDocumentBy(String columnName, String id) throws Exception {
-	DisplayDocument document = null;
-	Statement stmt = null;
-	ResultSet rs = null;
-	String title = null;
-	String publishedIn = null;
+		DisplayDocument document = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String title = null;
+		String publishedIn = null;
 
-	try {
-	    stmt = con.createStatement();
+		try {
+			stmt = con.createStatement();
 
-	    // get all information of a document stored in a database by the
-	    // value of a custom column
-	    String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " = '" + id + "'";
+			// get all information of a document stored in a database by the
+			// value of a custom column
+			String query = "SELECT * FROM " + constants.getDocuments() + " WHERE " + columnName + " = '" + id + "'";
 
-	    rs = stmt.executeQuery(query);
-	    // if there is a document
-	    if (rs.next()) {
+			rs = stmt.executeQuery(query);
+			// if there is a document
+			if (rs.next()) {
 
-		title = rs.getString(constants.getTitle());
-		publishedIn = rs.getString(constants.getPublishedId());
+				title = rs.getString(constants.getTitle());
+				publishedIn = rs.getString(constants.getPublishedId());
 
-		// create a new document with values from the database
-		document = new DisplayDocument(String.valueOf(rs.getLong(constants.getDocumentId())),
-					       rs.getString(constants.getIdOriginal()), title, publishedIn, rs.getInt(constants.getYear()), "",
-					       constants);
-		if (rs.wasNull())
-		    document.setYear(-1);
+				// create a new document with values from the database
+				document = new DisplayDocument(String.valueOf(rs.getLong(constants.getDocumentId())),
+											   rs.getString(constants.getIdOriginal()), title, publishedIn, rs.getInt(constants.getYear()), "",
+											   constants);
+				if (rs.wasNull())
+					document.setYear(-1);
 
-		// get the collection id and then the shortName of the
-		// collection
-		document.setLanguage(rs.getString(constants.getLanguage()));
-		document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
-		return document;
-	    } else
-		throw new NoEntryException(id);
-	} catch (SQLException e) {
-	    throw e;
-	} catch (NoEntryException e) {
-	    throw e;
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+				// get the collection id and then the shortName of the
+				// collection
+				document.setLanguage(rs.getString(constants.getLanguage()));
+				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
+				return document;
+			} else
+				throw new NoEntryException(id);
+		} catch (SQLException e) {
+			throw e;
+		} catch (NoEntryException e) {
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
     }
 
     public List<DisplayDocument> getDocumentsByIdSchema(String idSchema, long start, long batchsize) throws Exception {
 
-	// get all information of a document stored in a database by the
-	// value of a custom column
-	String query = String.format(
-				     "SELECT * FROM %1$s WHERE %2$s LIKE ? AND %3$s >= ? AND %3$s < ? LIMIT ?",
-				     constants.getDocuments(), constants.getIdOriginal(), constants.getDocumentId());
-	PreparedStatement stmt = con.prepareStatement(query);
+		// get all information of a document stored in a database by the
+		// value of a custom column
+		String query = String.format(
+									 "SELECT * FROM %1$s WHERE %2$s LIKE ? AND %3$s >= ? AND %3$s < ? LIMIT ?",
+									 constants.getDocuments(), constants.getIdOriginal(), constants.getDocumentId());
+		PreparedStatement stmt = con.prepareStatement(query);
 
-	stmt.setString(1, "%" + idSchema + "%");
-	stmt.setLong(2, start);
-	stmt.setLong(3, start + batchsize);
-	stmt.setLong(4, batchsize);
+		stmt.setString(1, "%" + idSchema + "%");
+		stmt.setLong(2, start);
+		stmt.setLong(3, start + batchsize);
+		stmt.setLong(4, batchsize);
 
-	ResultSet rs = stmt.executeQuery();
+		ResultSet rs = stmt.executeQuery();
 
-	List<DisplayDocument> results = new ArrayList<DisplayDocument>((int)batchsize);
+		List<DisplayDocument> results = new ArrayList<DisplayDocument>((int)batchsize);
 	
-	try {
-	    while(rs.next()) {
-		String title = rs.getString(constants.getTitle());
-		String publishedIn = rs.getString(constants.getPublishedId());
+		try {
+			while(rs.next()) {
+				String title = rs.getString(constants.getTitle());
+				String publishedIn = rs.getString(constants.getPublishedId());
 
-		// create a new document with values from the database
-		DisplayDocument document = new DisplayDocument(String.valueOf(rs.getLong(constants.getDocumentId())),
-							       rs.getString(constants.getIdOriginal()), title, publishedIn, rs.getInt(constants.getYear()), "",
-							       constants);
+				// create a new document with values from the database
+				DisplayDocument document = new DisplayDocument(String.valueOf(rs.getLong(constants.getDocumentId())),
+															   rs.getString(constants.getIdOriginal()), title, publishedIn, rs.getInt(constants.getYear()), "",
+															   constants);
 
-		// get the collection id and then the shortName of the
-		// collection
-		document.setLanguage(rs.getString(constants.getLanguage()));
-		document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
-		results.add(document);
-	    }
-	    return results;
-	} catch(SQLException e) {
-	    throw e;
-	} finally {
-	    rs.close();
-	}
+				// get the collection id and then the shortName of the
+				// collection
+				document.setLanguage(rs.getString(constants.getLanguage()));
+				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
+				results.add(document);
+			}
+			return results;
+		} catch(SQLException e) {
+			throw e;
+		} finally {
+			rs.close();
+		}
     }
 
     /**
@@ -1491,25 +1491,25 @@ public class DBConnection {
      *            values to set, in same order as id
      */
     public void setRowValues(String tableName, String idColumn, List<Object> ids, int idType, String valueColumn,
-			     List<Object> values, int valueType) throws Exception {
-	PreparedStatement stmt = null;
-	if (ids.size() != values.size()) {
-	    throw new Exception("Values and IDs are not of equal length.");
-	}
-	try {
-	    String query = "UPDATE " + tableName +
-		" SET " + valueColumn + " = ? " + " WHERE " + idColumn + " = ?";
-	    stmt = con.prepareStatement(query);
-	    for (int i = 0; i < ids.size(); i++) {
-		stmt.setObject(1, values.get(i), valueType);
-		stmt.setObject(2, ids.get(i), idType);
-		stmt.addBatch();
-	    }
-	    stmt.executeBatch();
-	} finally {
-	    if (stmt != null)
-		stmt.close();
-	}
+							 List<Object> values, int valueType) throws Exception {
+		PreparedStatement stmt = null;
+		if (ids.size() != values.size()) {
+			throw new Exception("Values and IDs are not of equal length.");
+		}
+		try {
+			String query = "UPDATE " + tableName +
+				" SET " + valueColumn + " = ? " + " WHERE " + idColumn + " = ?";
+			stmt = con.prepareStatement(query);
+			for (int i = 0; i < ids.size(); i++) {
+				stmt.setObject(1, values.get(i), valueType);
+				stmt.setObject(2, ids.get(i), idType);
+				stmt.addBatch();
+			}
+			stmt.executeBatch();
+		} finally {
+			if (stmt != null)
+				stmt.close();
+		}
     }
 
     /**
@@ -1525,54 +1525,54 @@ public class DBConnection {
      * @return matching documents
      */
     public List<HashMap<String, Object>> getEntriesWithMissingValue(String tableName, String columnName,
-								    List<String> attributes, long limit) throws Exception {
-	PreparedStatement stmt = null;
-	ResultSet rs = null;
-	List<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
+																	List<String> attributes, long limit) throws Exception {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<HashMap<String, Object>> entries = new ArrayList<HashMap<String, Object>>();
 
-	try {
-	    // get all information of a document stored in a database by the
-	    // value of a custom column
-	    String query = "SELECT * FROM " + tableName + " WHERE " + columnName + " IS NULL";
-	    if (limit > 0) {
-		query += " LIMIT ?";
-	    }
-	    stmt = con.prepareStatement(query);
-	    if (limit > 0) {
-		stmt.setLong(1, limit);
-	    }
-	    rs = stmt.executeQuery();
+		try {
+			// get all information of a document stored in a database by the
+			// value of a custom column
+			String query = "SELECT * FROM " + tableName + " WHERE " + columnName + " IS NULL";
+			if (limit > 0) {
+				query += " LIMIT ?";
+			}
+			stmt = con.prepareStatement(query);
+			if (limit > 0) {
+				stmt.setLong(1, limit);
+			}
+			rs = stmt.executeQuery();
 
-	    while (rs.next()) {
-		// create a simple document with values from the database
-		HashMap<String, Object> entry = new HashMap<String, Object>(attributes.size());
-		for (String attr : attributes) {
-		    entry.put(attr, rs.getObject(attr));
+			while (rs.next()) {
+				// create a simple document with values from the database
+				HashMap<String, Object> entry = new HashMap<String, Object>(attributes.size());
+				for (String attr : attributes) {
+					entry.put(attr, rs.getObject(attr));
+				}
+				entries.add(entry);
+			}
+		} finally {
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
 		}
-		entries.add(entry);
-	    }
-	} finally {
-	    if (stmt != null)
-		stmt.close();
-	    if (rs != null)
-		rs.close();
-	}
-	return entries;
+		return entries;
     }
 
     public List<DisplayDocument> getDocumentsWithMissingValues(String columnName, long limit) throws Exception{
-	List<String> attributes = Arrays.asList(new String[] { 
-		constants.getTitle(), constants.getDocumentId(),
-		constants.getIdOriginal()});
-	List<HashMap<String, Object>> entries = getEntriesWithMissingValue(constants.getDocuments(), columnName, attributes, limit);
+		List<String> attributes = Arrays.asList(new String[] { 
+				constants.getTitle(), constants.getDocumentId(),
+				constants.getIdOriginal()});
+		List<HashMap<String, Object>> entries = getEntriesWithMissingValue(constants.getDocuments(), columnName, attributes, limit);
 
-	List<DisplayDocument> documents = new ArrayList<DisplayDocument>(entries.size());
-	for (HashMap<String, Object> entry : entries) {
-	    DisplayDocument doc = new DisplayDocument(entry.get(constants.getTitle()).toString(),
-						      entry.get(constants.getDocumentId()).toString(), entry.get(constants.getIdOriginal()).toString());
-	    documents.add(doc);
-	}
-	return documents;
+		List<DisplayDocument> documents = new ArrayList<DisplayDocument>(entries.size());
+		for (HashMap<String, Object> entry : entries) {
+			DisplayDocument doc = new DisplayDocument(entry.get(constants.getTitle()).toString(),
+													  entry.get(constants.getDocumentId()).toString(), entry.get(constants.getIdOriginal()).toString());
+			documents.add(doc);
+		}
+		return documents;
     }
     /**
      * Get the number of documents present in database (by searching for highest
@@ -1581,32 +1581,32 @@ public class DBConnection {
      * @return biggest document id present in database
      */
     public int getBiggestIdFromDocuments() {
-	Statement stmt = null;
-	ResultSet rs = null;
-	int size = 0;
+		Statement stmt = null;
+		ResultSet rs = null;
+		int size = 0;
 	
-	try {
-	    stmt = con.createStatement();
-	    // query for returnning biggest id
-	    String query = "SELECT MAX(" + constants.getDocumentId() + ") FROM " + constants.getDocuments();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			// query for returnning biggest id
+			String query = "SELECT MAX(" + constants.getDocumentId() + ") FROM " + constants.getDocuments();
+			rs = stmt.executeQuery(query);
 
-	    while (rs.next()) {
-		size = rs.getInt("MAX(" + constants.getDocumentId() + ")");
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return size;
+			while (rs.next()) {
+				size = rs.getInt("MAX(" + constants.getDocumentId() + ")");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return size;
     }
 
     /**
@@ -1621,44 +1621,44 @@ public class DBConnection {
      *         start+batchsize
      */
     public List<DisplayDocument> getDocumentDataInBatches(int start, int batchsize) {
-	List<DisplayDocument> documentDataList = new ArrayList<DisplayDocument>();
-	DisplayDocument newDocument = new DisplayDocument();
+		List<DisplayDocument> documentDataList = new ArrayList<DisplayDocument>();
+		DisplayDocument newDocument = new DisplayDocument();
 
-	Statement stmt = null;
-	ResultSet rs = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	try {
-	    stmt = con.createStatement();
-	    // query for getting Id, originalId and Title between ids start and
-	    // start+batchsize
-	    String query = "SELECT " + constants.getDocumentId() + ", " + constants.getIdOriginal() + ", "
-		+ constants.getTitle() + ", " + constants.getYear() + " FROM " + constants.getDocuments()
-		+ " WHERE " + constants.getDocumentId() + " >= " + start + " AND " + constants.getDocumentId()
-		+ " < " + (start + batchsize);
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			// query for getting Id, originalId and Title between ids start and
+			// start+batchsize
+			String query = "SELECT " + constants.getDocumentId() + ", " + constants.getIdOriginal() + ", "
+				+ constants.getTitle() + ", " + constants.getYear() + " FROM " + constants.getDocuments()
+				+ " WHERE " + constants.getDocumentId() + " >= " + start + " AND " + constants.getDocumentId()
+				+ " < " + (start + batchsize);
+			rs = stmt.executeQuery(query);
 
-	    // add the retrieved documentData to the list
-	    while (rs.next()) {
-		newDocument = new DisplayDocument(rs.getString(constants.getTitle()),
-						  rs.getString(constants.getDocumentId()), rs.getString(constants.getIdOriginal()));
-		newDocument.setYear(rs.getInt(constants.getYear()));
-		if (rs.wasNull())
-		    newDocument.setYear(-1);
-		documentDataList.add(newDocument);
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return documentDataList;
+			// add the retrieved documentData to the list
+			while (rs.next()) {
+				newDocument = new DisplayDocument(rs.getString(constants.getTitle()),
+												  rs.getString(constants.getDocumentId()), rs.getString(constants.getIdOriginal()));
+				newDocument.setYear(rs.getInt(constants.getYear()));
+				if (rs.wasNull())
+					newDocument.setYear(-1);
+				documentDataList.add(newDocument);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documentDataList;
     }
 
 	public List<DisplayDocument> getRandomDocuments(int batchSize) {
@@ -1679,29 +1679,29 @@ public class DBConnection {
      *            value of the external id
      */
     public void writeIdentifiersInDatabase(int id, String externalName, String externalId) {
-	PreparedStatement stmt = null;
-	String query = "";
-	try {
+		PreparedStatement stmt = null;
+		String query = "";
+		try {
 
-	    // query to insert the external id's
-	    query = "INSERT IGNORE INTO " + constants.getExternalIds() + " (" + constants.getDocumentIdInExternalIds()
-		+ ", " + constants.getExternalName() + ", " + constants.getExternalId() + ") VALUES (" + id + ", '"
-		+ externalName + "', '" + externalId + "');";
+			// query to insert the external id's
+			query = "INSERT IGNORE INTO " + constants.getExternalIds() + " (" + constants.getDocumentIdInExternalIds()
+				+ ", " + constants.getExternalName() + ", " + constants.getExternalId() + ") VALUES (" + id + ", '"
+				+ externalName + "', '" + externalId + "');";
 
-	    stmt = con.prepareStatement(query);
-	    stmt.executeUpdate();
+			stmt = con.prepareStatement(query);
+			stmt.executeUpdate();
 
-	} catch (Exception e) {
-	    logger.debug(query);
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
+		} catch (Exception e) {
+			logger.debug(query);
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
     }
 
     /**
@@ -1723,127 +1723,127 @@ public class DBConnection {
      * @throws Exception
      */
     private int logEvent(String referenceId, RootElement rootElement, String requestType) throws Exception {
-	PreparedStatement stmt = null;
-	ResultSet rs = null;
-	int loggingId = -1;
-	String statusCode = "";
-	String debugMessage = "";
-	Boolean noEntryExceptionRecorded = false;
-	DocumentSet documentSet = rootElement.getDocumentSet();
-	Long requestTime = documentSet.getStartTime();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		int loggingId = -1;
+		String statusCode = "";
+		String debugMessage = "";
+		Boolean noEntryExceptionRecorded = false;
+		DocumentSet documentSet = rootElement.getDocumentSet();
+		Long requestTime = documentSet.getStartTime();
 
-	String referenceColumnName = "";
-	switch (requestType) {
-	case "related_documents": {
-	    referenceColumnName = constants.getDocumentIdInLogging();
-	    if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
-		noEntryExceptionRecorded = true;
-	    break;
-	}
-	case "url_for_recommended_document": {
-	    referenceColumnName = constants.getRecommendationIdInLogging();
-	    if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
-		noEntryExceptionRecorded = true;
+		String referenceColumnName = "";
+		switch (requestType) {
+		case "related_documents": {
+			referenceColumnName = constants.getDocumentIdInLogging();
+			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+				noEntryExceptionRecorded = true;
+			break;
+		}
+		case "url_for_recommended_document": {
+			referenceColumnName = constants.getRecommendationIdInLogging();
+			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+				noEntryExceptionRecorded = true;
 
-	    break;
-	}
-	case "search_by_title": {
-	    referenceColumnName = constants.getTitleSearchIdInLogging();
-	    break;
-	}
-	}
+			break;
+		}
+		case "search_by_title": {
+			referenceColumnName = constants.getTitleSearchIdInLogging();
+			break;
+		}
+		}
 
-	// if there occured multiple errors error
-	if (rootElement.getStatusReportSet().getSize() > 1) {
-	    for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++) {
-		// gather every message
-		debugMessage = debugMessage
-		    + rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugMessage();
-	    }
-	    // set status code to mutiple errors
-	    statusCode = "207";
-	} else {
-	    // if theres only one report (either error or 200, gather it
-	    StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
-	    statusCode = statusReport.getStatusCode() + "";
+		// if there occured multiple errors error
+		if (rootElement.getStatusReportSet().getSize() > 1) {
+			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++) {
+				// gather every message
+				debugMessage = debugMessage
+					+ rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugMessage();
+			}
+			// set status code to mutiple errors
+			statusCode = "207";
+		} else {
+			// if theres only one report (either error or 200, gather it
+			StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
+			statusCode = statusReport.getStatusCode() + "";
 
-	    debugMessage = statusReport.getDebugMessage();
-	}
+			debugMessage = statusReport.getDebugMessage();
+		}
 
-	try {
-	    // insertion query
-	    String query = "INSERT INTO " + constants.getLoggings() + " (" + constants.getRequest() + ", "
-		+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
-		+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
-		+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIpHash()
-		+ ", " + constants.getIp() + ", " + constants.getRequestingAppId() + ", "
-		+ constants.getProcessingAppId() + ", " + constants.getAppVersion() + ", " + constants.getAppLang()
-		+ ") VALUES ('";
-	    query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
-		+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
-		+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
+		try {
+			// insertion query
+			String query = "INSERT INTO " + constants.getLoggings() + " (" + constants.getRequest() + ", "
+				+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
+				+ constants.getResponseDelivered() + ", " + constants.getProcessingTimeTotal() + ", "
+				+ constants.getStatusCode() + ", " + constants.getDebugDetails() + ", " + constants.getIpHash()
+				+ ", " + constants.getIp() + ", " + constants.getRequestingAppId() + ", "
+				+ constants.getProcessingAppId() + ", " + constants.getAppVersion() + ", " + constants.getAppLang()
+				+ ") VALUES ('";
+			query += requestType + "', ?, '" + new Timestamp(requestTime) + "', '"
+				+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
+				+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
 
-	    stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
-	    // if there was noEntryException, then set referenceId to NULL, else
-	    // carry on
-	    if (noEntryExceptionRecorded) {
-		stmt.setNull(1, java.sql.Types.BIGINT);
-		if (constants.getDebugModeOn())
-		    logger.debug("No entry exception woohoo");
-	    } else {
-		stmt.setString(1, referenceId);
-	    }
+			// if there was noEntryException, then set referenceId to NULL, else
+			// carry on
+			if (noEntryExceptionRecorded) {
+				stmt.setNull(1, java.sql.Types.BIGINT);
+				if (constants.getDebugModeOn())
+					logger.debug("No entry exception woohoo");
+			} else {
+				stmt.setString(1, referenceId);
+			}
 
-	    String ipAddress = documentSet.getIpAddress();
+			String ipAddress = documentSet.getIpAddress();
 
-	    stmt.setString(4, ipAddress);
-	    stmt.setString(5, documentSet.getRequestingAppId());
-	    String processingAppId;
-	    try {
-		processingAppId = documentSet.getAlgorithmDetails().getRecommendationProviderId();
-	    } catch (NullPointerException e) {
-		processingAppId = null;
-	    }
-	    stmt.setString(6, processingAppId);
-	    stmt.setString(7, documentSet.getAppVersion());
-	    stmt.setString(8, documentSet.getAppLang());
+			stmt.setString(4, ipAddress);
+			stmt.setString(5, documentSet.getRequestingAppId());
+			String processingAppId;
+			try {
+				processingAppId = documentSet.getAlgorithmDetails().getRecommendationProviderId();
+			} catch (NullPointerException e) {
+				processingAppId = null;
+			}
+			stmt.setString(6, processingAppId);
+			stmt.setString(7, documentSet.getAppVersion());
+			stmt.setString(8, documentSet.getAppLang());
 
-	    try {
-		String saltedIp = "mld" + ipAddress;
-		MessageDigest m = MessageDigest.getInstance("MD5");
-		m.update(saltedIp.getBytes(), 0, saltedIp.length());
-		String ipHash = new BigInteger(1, m.digest()).toString(16);
-		stmt.setString(3, ipHash);
-	    } catch (Exception e) {
-		e.printStackTrace();
-	    }
+			try {
+				String saltedIp = "mld" + ipAddress;
+				MessageDigest m = MessageDigest.getInstance("MD5");
+				m.update(saltedIp.getBytes(), 0, saltedIp.length());
+				String ipHash = new BigInteger(1, m.digest()).toString(16);
+				stmt.setString(3, ipHash);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
-	    // if the debugMessage was empty, set database type to null
+			// if the debugMessage was empty, set database type to null
 
-	    if (debugMessage == null || debugMessage.isEmpty()) {
-		stmt.setNull(2, java.sql.Types.VARCHAR);
-	    } else
-		stmt.setString(2, debugMessage);
+			if (debugMessage == null || debugMessage.isEmpty()) {
+				stmt.setNull(2, java.sql.Types.VARCHAR);
+			} else
+				stmt.setString(2, debugMessage);
 
-	    stmt.executeUpdate();
+			stmt.executeUpdate();
 
-	    // get the autogenerated key back
-	    rs = stmt.getGeneratedKeys();
-	    if (rs.next())
-		loggingId = rs.getInt(1);
+			// get the autogenerated key back
+			rs = stmt.getGeneratedKeys();
+			if (rs.next())
+				loggingId = rs.getInt(1);
 
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return loggingId;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return loggingId;
     }
 
     /**
@@ -1915,41 +1915,41 @@ public class DBConnection {
      *             if SQL errors occur
      */
     public List<String> getReferencesFromRecommendation(String recommendationId, Boolean needDocumentId)
-	throws Exception {
-	String docId = "dummy";
-	String referenceId = "dummy";
-	List<String> references = new ArrayList<String>();
-	Statement stmt = null;
-	ResultSet rs = null;
-	try {
-	    // Select query for lookup in the database
-	    stmt = con.createStatement();
-	    String query = "SELECT * FROM " + constants.getRecommendations() + " WHERE "
-		+ constants.getRecommendationId() + " = '" + recommendationId + "'";
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		docId = rs.getString(constants.getDocumentIdInRecommendations());
-		referenceId = rs.getString(constants.getExternalOriginalDocumentId());
-	    } else {
-		throw new NoEntryException(recommendationId);
-	    }
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	} catch (NoEntryException f) {
-	    throw f;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	references.add(docId);
-	references.add(referenceId);
-	return references;
+		throws Exception {
+		String docId = "dummy";
+		String referenceId = "dummy";
+		List<String> references = new ArrayList<String>();
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			// Select query for lookup in the database
+			stmt = con.createStatement();
+			String query = "SELECT * FROM " + constants.getRecommendations() + " WHERE "
+				+ constants.getRecommendationId() + " = '" + recommendationId + "'";
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				docId = rs.getString(constants.getDocumentIdInRecommendations());
+				referenceId = rs.getString(constants.getExternalOriginalDocumentId());
+			} else {
+				throw new NoEntryException(recommendationId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (NoEntryException f) {
+			throw f;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		references.add(docId);
+		references.add(referenceId);
+		return references;
     }
 
     /**
@@ -1970,49 +1970,49 @@ public class DBConnection {
      * @throws SQLException
      */
     public Boolean checkAccessKey(String Id, String accessKey, boolean recommendationSet)
-	throws SQLException, NoEntryException {
-	Statement stmt = null;
-	ResultSet rs = null;
-	String accessKeyInDb = "";
-	try {
-	    stmt = con.createStatement();
+		throws SQLException, NoEntryException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		String accessKeyInDb = "";
+		try {
+			stmt = con.createStatement();
 
-	    // Select query to lookup accesskey for the recommendationId in the
-	    // database
-	    String query = "SELECT " + constants.getAccessKey() + " FROM " + constants.getRecommendationSets()
-		+ " WHERE " + constants.getRecommendationSetsId() + " IN (";
-	    if (recommendationSet) {
-		query += Id + ")";
-	    } else {
-		query += "SELECT " + constants.getRecommendationSetIdInRecommendations() + " FROM "
-		    + constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " = " + Id
-		    + ")";
-	    }
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		accessKeyInDb = rs.getString(constants.getAccessKey());
-	    } else {
-		throw new NoEntryException(Id, "recommendation");
-	    }
+			// Select query to lookup accesskey for the recommendationId in the
+			// database
+			String query = "SELECT " + constants.getAccessKey() + " FROM " + constants.getRecommendationSets()
+				+ " WHERE " + constants.getRecommendationSetsId() + " IN (";
+			if (recommendationSet) {
+				query += Id + ")";
+			} else {
+				query += "SELECT " + constants.getRecommendationSetIdInRecommendations() + " FROM "
+					+ constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " = " + Id
+					+ ")";
+			}
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				accessKeyInDb = rs.getString(constants.getAccessKey());
+			} else {
+				throw new NoEntryException(Id, "recommendation");
+			}
 
-	    // Compare accessKey in our database against the one which was
-	    // submitted in the clickURL
-	    return accessKeyInDb.contentEquals(accessKey);
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	    throw e;
-	} catch (NoEntryException f) {
-	    throw f;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+			// Compare accessKey in our database against the one which was
+			// submitted in the clickURL
+			return accessKeyInDb.contentEquals(accessKey);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (NoEntryException f) {
+			throw f;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
     }
 
     /**
@@ -2032,42 +2032,42 @@ public class DBConnection {
      * @throws SQLException
      */
     public Boolean logRecommendationClick(String recommendationId, RootElement rootElement, Boolean accessKeyCheck)
-	throws Exception {
-	Statement stmt = null;
-	int loggingId = -1;
-	try {
+		throws Exception {
+		Statement stmt = null;
+		int loggingId = -1;
+		try {
 
-	    loggingId = logEvent(recommendationId, rootElement, "url_for_recommended_document");
+			loggingId = logEvent(recommendationId, rootElement, "url_for_recommended_document");
 
-	    if (accessKeyCheck) {
-		stmt = con.createStatement();
+			if (accessKeyCheck) {
+				stmt = con.createStatement();
 
-		// Update query to set the time at which a recommendation was
-		// clicked
-		String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked()
-		    + " =  IF( " + constants.getClicked() + " IS NULL, '"
-		    + new Timestamp(rootElement.getDocumentSet().getStartTime()) + "', " + constants.getClicked()
-		    + ") WHERE " + constants.getRecommendationId() + " = " + recommendationId;
+				// Update query to set the time at which a recommendation was
+				// clicked
+				String query = "UPDATE " + constants.getRecommendations() + " SET " + constants.getClicked()
+					+ " =  IF( " + constants.getClicked() + " IS NULL, '"
+					+ new Timestamp(rootElement.getDocumentSet().getStartTime()) + "', " + constants.getClicked()
+					+ ") WHERE " + constants.getRecommendationId() + " = " + recommendationId;
 
-		stmt.executeUpdate(query);
-		int clickCount = updateClicksInRecommendationSet(recommendationId);
-		if (clickCount == 0) {
-		    logger.debug("Something went wrong in the updateClicksInRecommendationSet function");
+				stmt.executeUpdate(query);
+				int clickCount = updateClicksInRecommendationSet(recommendationId);
+				if (clickCount == 0) {
+					logger.debug("Something went wrong in the updateClicksInRecommendationSet function");
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
-	    }
 
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-
-	return loggingId > 0;
+		return loggingId > 0;
     }
 
     /**
@@ -2077,57 +2077,57 @@ public class DBConnection {
      * @return
      */
     private int updateClicksInRecommendationSet(String recommendationId) {
-	Statement stmt = null;
-	ResultSet rs = null;
-	int recommendationSetId = getRecommendationSetIdFromRecommendationId(recommendationId);
-	if (recommendationSetId == -1)
-	    return 0;
-	String updateQuery = "UPDATE " + constants.getRecommendationSets() + " SET click_count = (SELECT COUNT(*) FROM "
-	    + constants.getRecommendations() + " WHERE " + constants.getRecommendationSetIdInRecommendations()
-	    + "= " + recommendationSetId + " AND " + constants.getClicked() + " IS NOT NULL)  WHERE "
-	    + constants.getRecommendationSetsId() + "=" + recommendationSetId;
-	String query = "";
-	String ctrUpdate = "";
-	try {
-	    stmt = con.createStatement();
-	    stmt.executeUpdate(updateQuery);
-	    if (stmt != null)
-		stmt.close();
-	    query = "SELECT click_count, " + constants.getDeliveredRecommendations() + " FROM "
-		+ constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId() + " = "
-		+ recommendationSetId;
-	    // logger.debug(query);
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		ctrUpdate = "UPDATE " + constants.getRecommendationSets() + " SET ctr ='"
-		    + ((float) rs.getInt("click_count")
-		       / (float) rs.getInt(constants.getDeliveredRecommendations()))
-		    + "' WHERE " + constants.getRecommendationSetsId() + "=" + recommendationSetId;
-	    }
-	    if (stmt != null)
-		stmt.close();
-	    if (rs != null)
-		rs.close();
-	    stmt = con.createStatement();
-	    stmt.executeUpdate(ctrUpdate);
-	    return 1;
-	} catch (SQLException e) {
-	    logger.debug(updateQuery);
-	    logger.debug(query);
-	    logger.debug(ctrUpdate);
-	    e.printStackTrace();
-	    return 0;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
+		Statement stmt = null;
+		ResultSet rs = null;
+		int recommendationSetId = getRecommendationSetIdFromRecommendationId(recommendationId);
+		if (recommendationSetId == -1)
+			return 0;
+		String updateQuery = "UPDATE " + constants.getRecommendationSets() + " SET click_count = (SELECT COUNT(*) FROM "
+			+ constants.getRecommendations() + " WHERE " + constants.getRecommendationSetIdInRecommendations()
+			+ "= " + recommendationSetId + " AND " + constants.getClicked() + " IS NOT NULL)  WHERE "
+			+ constants.getRecommendationSetsId() + "=" + recommendationSetId;
+		String query = "";
+		String ctrUpdate = "";
+		try {
+			stmt = con.createStatement();
+			stmt.executeUpdate(updateQuery);
+			if (stmt != null)
+				stmt.close();
+			query = "SELECT click_count, " + constants.getDeliveredRecommendations() + " FROM "
+				+ constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId() + " = "
+				+ recommendationSetId;
+			// logger.debug(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				ctrUpdate = "UPDATE " + constants.getRecommendationSets() + " SET ctr ='"
+					+ ((float) rs.getInt("click_count")
+					   / (float) rs.getInt(constants.getDeliveredRecommendations()))
+					+ "' WHERE " + constants.getRecommendationSetsId() + "=" + recommendationSetId;
+			}
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
+			stmt = con.createStatement();
+			stmt.executeUpdate(ctrUpdate);
+			return 1;
+		} catch (SQLException e) {
+			logger.debug(updateQuery);
+			logger.debug(query);
+			logger.debug(ctrUpdate);
+			e.printStackTrace();
+			return 0;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 
     }
 
@@ -2138,31 +2138,31 @@ public class DBConnection {
      * @return
      */
     private int getRecommendationSetIdFromRecommendationId(String recommendationId) {
-	Statement stmt = null;
-	ResultSet rs = null;
-	String query = "SELECT " + constants.getRecommendationSetIdInRecommendations() + " FROM "
-	    + constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " ='"
-	    + recommendationId + "'";
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		return rs.getInt(constants.getRecommendationSetIdInRecommendations());
-	    }
-	} catch (SQLException e) {
-	    logger.debug(query);
-	    logger.debug("Didn't get recommendationSetId from Recommendations for id" + recommendationId);
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "SELECT " + constants.getRecommendationSetIdInRecommendations() + " FROM "
+			+ constants.getRecommendations() + " WHERE " + constants.getRecommendationId() + " ='"
+			+ recommendationId + "'";
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				return rs.getInt(constants.getRecommendationSetIdInRecommendations());
+			}
+		} catch (SQLException e) {
+			logger.debug(query);
+			logger.debug("Didn't get recommendationSetId from Recommendations for id" + recommendationId);
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return -1;
     }
 
     /*
@@ -2229,45 +2229,45 @@ public class DBConnection {
      * @throws Exception
      */
     public int getRankingValueAuthor(String authorId, String metric, String dataType, String dataSource)
-	throws SQLException {
-	Statement stmt = null;
-	ResultSet rs = null;
-	int metricValue = -1;
+		throws SQLException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		int metricValue = -1;
 
-	// selection query
-	/*
-	 * String query = "SELECT " + constants.getPersonIdInBibliometricPers()
-	 * + ", " + constants.getBibliometricPersonsId() + ", " +
-	 * constants.getMetricValuePers() + " FROM " + constants.getBibPersons()
-	 * + " WHERE " + constants.getMetricPers() + " = '" + metric + "' AND "
-	 * + constants.getDataTypePers() + " = '" + dataType + "' AND " +
-	 * constants.getDataSourcePers() + " = '" + dataSource + "' AND " +
-	 * constants.getPersonID() + " = " + authorId + ";";
-	 */
-	String query = "";
+		// selection query
+		/*
+		 * String query = "SELECT " + constants.getPersonIdInBibliometricPers()
+		 * + ", " + constants.getBibliometricPersonsId() + ", " +
+		 * constants.getMetricValuePers() + " FROM " + constants.getBibPersons()
+		 * + " WHERE " + constants.getMetricPers() + " = '" + metric + "' AND "
+		 * + constants.getDataTypePers() + " = '" + dataType + "' AND " +
+		 * constants.getDataSourcePers() + " = '" + dataSource + "' AND " +
+		 * constants.getPersonID() + " = " + authorId + ";";
+		 */
+		String query = "";
 
-	try {
+		try {
 
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // get the data from the result set
-	    if (rs.next())
-		metricValue = rs.getInt(constants.getMetricValuePers());
+			// get the data from the result set
+			if (rs.next())
+				metricValue = rs.getInt(constants.getMetricValuePers());
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return metricValue;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return metricValue;
     }
 
     /**
@@ -2282,42 +2282,42 @@ public class DBConnection {
      * @throws Exception
      */
     public List<DisplayDocument> getRankingValueDocuments(int bibliometricId) {
-	List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
-	DisplayDocument newDocument = null;
-	Statement stmt = null;
-	ResultSet rs = null;
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
+		DisplayDocument newDocument = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	try {
-	    stmt = con.createStatement();
+		try {
+			stmt = con.createStatement();
 
-	    String query = "SELECT " + constants.getDocumentIdInBibliometricDoc() + ", "
-		+ constants.getBibliometricDocumentsId() + ", " + constants.getMetricValue() + " FROM "
-		+ constants.getBibDocuments() + " WHERE " + constants.getBibliometricIdInBibliometricDocument()
-		+ " = '" + bibliometricId + "';";
+			String query = "SELECT " + constants.getDocumentIdInBibliometricDoc() + ", "
+				+ constants.getBibliometricDocumentsId() + ", " + constants.getMetricValue() + " FROM "
+				+ constants.getBibDocuments() + " WHERE " + constants.getBibliometricIdInBibliometricDocument()
+				+ " = '" + bibliometricId + "';";
 
-	    rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery(query);
 
-	    // add the retrieved documentData to the list and add all the data
-	    while (rs.next()) {
-		newDocument = new DisplayDocument();
-		newDocument.setBibScore(rs.getInt(constants.getMetricValue()));
-		newDocument.setDocumentId(rs.getString(constants.getDocumentIdInBibliometricDoc()));
-		documentList.add(newDocument);
-	    }
+			// add the retrieved documentData to the list and add all the data
+			while (rs.next()) {
+				newDocument = new DisplayDocument();
+				newDocument.setBibScore(rs.getInt(constants.getMetricValue()));
+				newDocument.setDocumentId(rs.getString(constants.getDocumentIdInBibliometricDoc()));
+				documentList.add(newDocument);
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return documentList;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documentList;
     }
 
     /**
@@ -2340,44 +2340,44 @@ public class DBConnection {
      * @throws Exception
      */
     public List<Person> getRankingValueAuthorsInBatches(int bibliometricId, int start, int batchsize) {
-	List<Person> authorDataList = new ArrayList<Person>();
-	Person newPerson = null;
-	Statement stmt = null;
-	ResultSet rs = null;
+		List<Person> authorDataList = new ArrayList<Person>();
+		Person newPerson = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	try {
-	    stmt = con.createStatement();
+		try {
+			stmt = con.createStatement();
 
-	    // selection query
+			// selection query
 
-	    String query = "SELECT " + constants.getPersonIdInBibliometricPers() + ", "
-		+ constants.getBibliometricPersonsId() + ", " + constants.getMetricValuePers() + " FROM "
-		+ constants.getBibPersons() + " WHERE " + constants.getBibliometricId() + " = '" + bibliometricId
-		+ "' AND " + constants.getPersonID() + " >= " + start + " AND " + constants.getPersonID() + " < "
-		+ (start + batchsize) + ";";
+			String query = "SELECT " + constants.getPersonIdInBibliometricPers() + ", "
+				+ constants.getBibliometricPersonsId() + ", " + constants.getMetricValuePers() + " FROM "
+				+ constants.getBibPersons() + " WHERE " + constants.getBibliometricId() + " = '" + bibliometricId
+				+ "' AND " + constants.getPersonID() + " >= " + start + " AND " + constants.getPersonID() + " < "
+				+ (start + batchsize) + ";";
 
-	    rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery(query);
 
-	    // add the retrieved person to the list
-	    while (rs.next()) {
-		newPerson = new Person();
-		newPerson.setRankingValue(rs.getInt(constants.getMetricValuePers()));
-		newPerson.setId(rs.getInt(constants.getPersonIdInBibliometricPers()));
-		authorDataList.add(newPerson);
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return authorDataList;
+			// add the retrieved person to the list
+			while (rs.next()) {
+				newPerson = new Person();
+				newPerson.setRankingValue(rs.getInt(constants.getMetricValuePers()));
+				newPerson.setId(rs.getInt(constants.getPersonIdInBibliometricPers()));
+				authorDataList.add(newPerson);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return authorDataList;
     }
 
     /**
@@ -2392,42 +2392,42 @@ public class DBConnection {
      * @throws Exception
      */
     public List<Person> getAllPersonsInBatches(int start, int batchsize) {
-	List<Person> personList = new ArrayList<Person>();
-	Person person = null;
-	Statement stmt = null;
-	ResultSet rs = null;
+		List<Person> personList = new ArrayList<Person>();
+		Person person = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	// the query to get the persons
-	String query = "SELECT " + constants.getPersonID() + "," + constants.getFirstname() + ","
-	    + constants.getMiddlename() + "," + constants.getSurname() + "," + constants.getUnstructured()
-	    + " FROM " + constants.getPersons() + " WHERE " + constants.getPersonID() + " >= " + start + " AND "
-	    + constants.getPersonID() + " < " + (start + batchsize) + ";";
+		// the query to get the persons
+		String query = "SELECT " + constants.getPersonID() + "," + constants.getFirstname() + ","
+			+ constants.getMiddlename() + "," + constants.getSurname() + "," + constants.getUnstructured()
+			+ " FROM " + constants.getPersons() + " WHERE " + constants.getPersonID() + " >= " + start + " AND "
+			+ constants.getPersonID() + " < " + (start + batchsize) + ";";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // add the person to the list
-	    while (rs.next()) {
-		person = new Person(rs.getInt(constants.getPersonID()), rs.getString(constants.getFirstname()),
-				    rs.getString(constants.getMiddlename()), rs.getString(constants.getSurname()),
-				    rs.getString(constants.getUnstructured()));
-		personList.add(person);
-	    }
+			// add the person to the list
+			while (rs.next()) {
+				person = new Person(rs.getInt(constants.getPersonID()), rs.getString(constants.getFirstname()),
+									rs.getString(constants.getMiddlename()), rs.getString(constants.getSurname()),
+									rs.getString(constants.getUnstructured()));
+				personList.add(person);
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return personList;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return personList;
     }
 
     /**
@@ -2443,46 +2443,46 @@ public class DBConnection {
      * @throws Exception
      */
     public List<Integer> getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(int start, int batchsize,
-										       int bibliometricId) {
-	List<Integer> personList = new ArrayList<Integer>();
-	Integer personId = null;
-	Statement stmt = null;
-	ResultSet rs = null;
+																					   int bibliometricId) {
+		List<Integer> personList = new ArrayList<Integer>();
+		Integer personId = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	// the query to get the persons
-	String query = "SELECT DP." + constants.getPersonIDInDocPers() + " FROM " + constants.getDocPers() + " DP JOIN "
-	    + constants.getBibDocuments() + " BD ON DP." + constants.getDocumentIDInDocPers() + "= BD."
-	    + constants.getDocumentIdInBibliometricDoc() + " JOIN " + constants.getPersons() + " P ON P."
-	    + constants.getPersonID() + "= DP." + constants.getPersonIDInDocPers() + " WHERE "
-	    + constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND DP."
-	    + constants.getPersonIDInDocPers() + " >= " + start + " AND DP." + constants.getPersonIDInDocPers()
-	    + " < " + (start + batchsize) + " AND P.data_quality IS NULL GROUP BY DP."
-	    + constants.getPersonIDInDocPers() + ";";
+		// the query to get the persons
+		String query = "SELECT DP." + constants.getPersonIDInDocPers() + " FROM " + constants.getDocPers() + " DP JOIN "
+			+ constants.getBibDocuments() + " BD ON DP." + constants.getDocumentIDInDocPers() + "= BD."
+			+ constants.getDocumentIdInBibliometricDoc() + " JOIN " + constants.getPersons() + " P ON P."
+			+ constants.getPersonID() + "= DP." + constants.getPersonIDInDocPers() + " WHERE "
+			+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND DP."
+			+ constants.getPersonIDInDocPers() + " >= " + start + " AND DP." + constants.getPersonIDInDocPers()
+			+ " < " + (start + batchsize) + " AND P.data_quality IS NULL GROUP BY DP."
+			+ constants.getPersonIDInDocPers() + ";";
 
-	logger.debug(query);
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		logger.debug(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // add the person to the list
-	    while (rs.next()) {
-		personId = rs.getInt(constants.getPersonIDInDocPers());
-		personList.add(personId);
-	    }
+			// add the person to the list
+			while (rs.next()) {
+				personId = rs.getInt(constants.getPersonIDInDocPers());
+				personList.add(personId);
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return personList;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return personList;
     }
 
     /**
@@ -2500,189 +2500,189 @@ public class DBConnection {
      * @throws Exception
      */
     public List<Person> getAllPersonsInBatchesIfBibliometricId(int bibliometricId, int start, int batchsize) {
-	List<Person> personList = new ArrayList<Person>();
-	Statement stmt = null;
-	ResultSet rs = null;
+		List<Person> personList = new ArrayList<Person>();
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	// the query to get the persons
-	String query = "SELECT " + constants.getPersonIdInBibliometricPers() + " FROM " + constants.getBibPersons()
-	    + " WHERE " + constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId + " AND "
-	    + constants.getBibliometricPersonsId() + " >= " + start + " AND " + constants.getBibliometricPersonsId()
-	    + " < " + (start + batchsize) + ";";
+		// the query to get the persons
+		String query = "SELECT " + constants.getPersonIdInBibliometricPers() + " FROM " + constants.getBibPersons()
+			+ " WHERE " + constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId + " AND "
+			+ constants.getBibliometricPersonsId() + " >= " + start + " AND " + constants.getBibliometricPersonsId()
+			+ " < " + (start + batchsize) + ";";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // add the person to the list
-	    while (rs.next()) {
-		personList.add(new Person(rs.getInt(constants.getPersonIdInBibliometricPers())));
-	    }
+			// add the person to the list
+			while (rs.next()) {
+				personList.add(new Person(rs.getInt(constants.getPersonIdInBibliometricPers())));
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return personList;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return personList;
     }
 
     public List<Integer> getAllDocumentsWithBadAuthorsAndSpecificBibliometric(int bibliometricId) {
-	List<Integer> docIds = new ArrayList<Integer>();
-	Statement stmt = null;
-	ResultSet rs = null;
+		List<Integer> docIds = new ArrayList<Integer>();
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	String query = "SELECT BD." + constants.getDocumentIdInBibliometricDoc() + " FROM " + constants.getPersons()
-	    + " P JOIN " + constants.getDocPers() + " DP ON P." + constants.getPersonID() + " = DP."
-	    + constants.getPersonIDInDocPers() + " JOIN " + constants.getBibDocuments() + " BD on BD."
-	    + constants.getDocumentIdInBibliometricDoc() + " = DP." + constants.getDocumentIDInDocPers()
-	    + " WHERE data_quality = 'invalid' AND BD." + constants.getBibliometricIdInBibliometricDocument()
-	    + " = " + bibliometricId;
+		String query = "SELECT BD." + constants.getDocumentIdInBibliometricDoc() + " FROM " + constants.getPersons()
+			+ " P JOIN " + constants.getDocPers() + " DP ON P." + constants.getPersonID() + " = DP."
+			+ constants.getPersonIDInDocPers() + " JOIN " + constants.getBibDocuments() + " BD on BD."
+			+ constants.getDocumentIdInBibliometricDoc() + " = DP." + constants.getDocumentIDInDocPers()
+			+ " WHERE data_quality = 'invalid' AND BD." + constants.getBibliometricIdInBibliometricDocument()
+			+ " = " + bibliometricId;
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    while (rs.next()) {
-		docIds.add(rs.getInt(constants.getDocumentIdInBibliometricDoc()));
-	    }
+			while (rs.next()) {
+				docIds.add(rs.getInt(constants.getDocumentIdInBibliometricDoc()));
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return docIds;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return docIds;
     }
 
     public int getBibDocId(int docId, int bibliometricId) {
-	int bibDocId = -1;
-	Statement stmt = null;
-	ResultSet rs = null;
+		int bibDocId = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	String query = "SELECT " + constants.getBibliometricDocumentsId() + " FROM " + constants.getBibDocuments()
-	    + " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = " + docId + " AND "
-	    + constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId;
+		String query = "SELECT " + constants.getBibliometricDocumentsId() + " FROM " + constants.getBibDocuments()
+			+ " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = " + docId + " AND "
+			+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId;
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    if (rs.next()) {
-		bibDocId = rs.getInt(constants.getBibliometricDocumentsId());
-	    }
+			if (rs.next()) {
+				bibDocId = rs.getInt(constants.getBibliometricDocumentsId());
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return bibDocId;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return bibDocId;
     }
 
     public int getBibDocSum(int docId, int bibliometricId) {
-	int value = -1;
-	Statement stmt = null;
-	ResultSet rs = null;
+		int value = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	String query = "SELECT sum(BP.value) as sumOfvalue FROM document D JOIN document_person PD ON PD.document_id = D."
-	    + constants.getDocumentId() + " JOIN bibliometric_person BP ON BP.person_id = PD.person_id "
-	    + "WHERE D." + constants.getDocumentId() + " = " + docId + " and BP.bibliometric_id= " + bibliometricId
-	    + " GROUP BY D." + constants.getDocumentId();
+		String query = "SELECT sum(BP.value) as sumOfvalue FROM document D JOIN document_person PD ON PD.document_id = D."
+			+ constants.getDocumentId() + " JOIN bibliometric_person BP ON BP.person_id = PD.person_id "
+			+ "WHERE D." + constants.getDocumentId() + " = " + docId + " and BP.bibliometric_id= " + bibliometricId
+			+ " GROUP BY D." + constants.getDocumentId();
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    if (rs.next()) {
-		value = rs.getInt("sumOfvalue");
-	    }
+			if (rs.next()) {
+				value = rs.getInt("sumOfvalue");
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return value;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return value;
     }
 
     public void executeUpdate(String query) {
-	Statement stmt = null;
+		Statement stmt = null;
 
-	try {
-	    stmt = con.createStatement();
-	    stmt.executeUpdate(query);
+		try {
+			stmt = con.createStatement();
+			stmt.executeUpdate(query);
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
     }
 
     public double getBibDocAvg(int docId, int bibliometricId) {
-	double value = -1;
-	Statement stmt = null;
-	ResultSet rs = null;
+		double value = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	String query = "SELECT avg(value)/count(DP.person_id) as avgOfvalue FROM bibliometric_document BD JOIN document_person DP ON "
-	    + "DP.document_id = BD.document_id WHERE BD.document_id = " + docId + " and BD.bibliometric_id= "
-	    + bibliometricId + " GROUP BY BD.document_id";
+		String query = "SELECT avg(value)/count(DP.person_id) as avgOfvalue FROM bibliometric_document BD JOIN document_person DP ON "
+			+ "DP.document_id = BD.document_id WHERE BD.document_id = " + docId + " and BD.bibliometric_id= "
+			+ bibliometricId + " GROUP BY BD.document_id";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    if (rs.next()) {
-		value = rs.getFloat("avgOfvalue");
-	    }
+			if (rs.next()) {
+				value = rs.getFloat("avgOfvalue");
+			}
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return value;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return value;
     }
 
     /**
@@ -2696,39 +2696,39 @@ public class DBConnection {
      * @throws Exception
      */
     public DocumentSet getDocumentsByPersonId(int id) {
-	Statement stmt = null;
-	ResultSet rs = null;
-	DocumentSet documents = new DocumentSet();
+		Statement stmt = null;
+		ResultSet rs = null;
+		DocumentSet documents = new DocumentSet();
 
-	// query to select all documents of a given author
-	String query = "SELECT " + constants.getDocumentIDInDocPers() + " FROM " + constants.getDocPers() + " WHERE "
-	    + constants.getPersonIDInDocPers() + " = '" + id + "'";
+		// query to select all documents of a given author
+		String query = "SELECT " + constants.getDocumentIDInDocPers() + " FROM " + constants.getDocPers() + " WHERE "
+			+ constants.getPersonIDInDocPers() + " = '" + id + "'";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // for each document obtained from the database, add it to the list
-	    // of documents which will be returned
-	    while (rs.next()) {
-		// for each id obtained, get the complete document and store it
-		// in the list
-		documents.addDocument(
-				      getDocumentBy(constants.getDocumentId(), rs.getString(constants.getDocumentIDInDocPers())));
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return documents;
+			// for each document obtained from the database, add it to the list
+			// of documents which will be returned
+			while (rs.next()) {
+				// for each id obtained, get the complete document and store it
+				// in the list
+				documents.addDocument(
+									  getDocumentBy(constants.getDocumentId(), rs.getString(constants.getDocumentIDInDocPers())));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documents;
     }
 
     /**
@@ -2738,33 +2738,33 @@ public class DBConnection {
      * @return int, biggest author id
      */
     public int getBiggestIdFromAuthors() {
-	Statement stmt = null;
-	ResultSet rs = null;
-	int size = 0;
+		Statement stmt = null;
+		ResultSet rs = null;
+		int size = 0;
 
-	try {
-	    stmt = con.createStatement();
-	    // query for returnning biggest id
-	    String query = "SELECT MAX(" + constants.getPersonID() + ") FROM " + constants.getPersons();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			// query for returnning biggest id
+			String query = "SELECT MAX(" + constants.getPersonID() + ") FROM " + constants.getPersons();
+			rs = stmt.executeQuery(query);
 
-	    // get the data from the result set
-	    while (rs.next()) {
-		size = rs.getInt("MAX(" + constants.getPersonID() + ")");
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return size;
+			// get the data from the result set
+			while (rs.next()) {
+				size = rs.getInt("MAX(" + constants.getPersonID() + ")");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return size;
     }
 
     /**
@@ -2777,36 +2777,36 @@ public class DBConnection {
      * @return int, biggest BibPers id
      */
     public int[] getRangeFromBibAuthors(int bibliometricId) {
-	int[] range = new int[2];
-	Statement stmt = null;
-	ResultSet rs = null;
+		int[] range = new int[2];
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	try {
-	    stmt = con.createStatement();
-	    // query for returnning biggest id
-	    String query = "SELECT MAX(" + constants.getBibliometricPersonsId() + "), MIN("
-		+ constants.getBibliometricPersonsId() + ") FROM " + constants.getBibPersons() + " WHERE "
-		+ constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId;
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			// query for returnning biggest id
+			String query = "SELECT MAX(" + constants.getBibliometricPersonsId() + "), MIN("
+				+ constants.getBibliometricPersonsId() + ") FROM " + constants.getBibPersons() + " WHERE "
+				+ constants.getBibliometricIdInBibliometricPers() + " = " + bibliometricId;
+			rs = stmt.executeQuery(query);
 
-	    // get the data from the result set
-	    while (rs.next()) {
-		range[0] = rs.getInt("MIN(" + constants.getBibliometricPersonsId() + ")");
-		range[1] = rs.getInt("MAX(" + constants.getBibliometricPersonsId() + ")");
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return range;
+			// get the data from the result set
+			while (rs.next()) {
+				range[0] = rs.getInt("MIN(" + constants.getBibliometricPersonsId() + ")");
+				range[1] = rs.getInt("MAX(" + constants.getBibliometricPersonsId() + ")");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return range;
     }
 
     /**
@@ -2824,84 +2824,84 @@ public class DBConnection {
      * @throws Exception
      */
     public DocumentSet getStereotypeRecommendations(DocumentSet documentSet) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	int numberOfRelatedDocs = documentSet.getDesiredNumberFromAlgorithm();
-	AlgorithmDetails algorithmLoggingInfo = documentSet.getAlgorithmDetails();
-	List<String> allowedCollections = getAccessableCollections(documentSet.getRequestingPartnerId());
-	String query = "";
-	try {
-	    stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+		int numberOfRelatedDocs = documentSet.getDesiredNumberFromAlgorithm();
+		AlgorithmDetails algorithmLoggingInfo = documentSet.getAlgorithmDetails();
+		List<String> allowedCollections = getAccessableCollections(documentSet.getRequestingPartnerId());
+		String query = "";
+		try {
+			stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-	    query = "SELECT " + constants.getStereotypeRecommendations() + "." + constants.getDocumentId() + " FROM "
-		+ constants.getStereotypeRecommendations() + " LEFT JOIN " + constants.getDocuments() + " ON "
-		+ constants.getDocuments() + "." + constants.getDocumentId() + "="
-		+ constants.getStereotypeRecommendations() + "." + constants.getDocumentId() + " WHERE "
-		+ constants.getCollectionID() + " IN (" + String.join(",", allowedCollections) + ") AND "
-		+ constants.getStereotypeCategory();
-	    if (algorithmLoggingInfo.getCategory().equals("mix")) {
-		query += " NOT IN ('most_viewed', 'most_exported') ";
-	    } else {
-		query += "='" + algorithmLoggingInfo.getCategory() + "'";
-	    }
-	    query += " ORDER BY RAND()";
-	    logger.debug(query);
-	    rs = stmt.executeQuery(query);
+			query = "SELECT " + constants.getStereotypeRecommendations() + "." + constants.getDocumentId() + " FROM "
+				+ constants.getStereotypeRecommendations() + " LEFT JOIN " + constants.getDocuments() + " ON "
+				+ constants.getDocuments() + "." + constants.getDocumentId() + "="
+				+ constants.getStereotypeRecommendations() + "." + constants.getDocumentId() + " WHERE "
+				+ constants.getCollectionID() + " IN (" + String.join(",", allowedCollections) + ") AND "
+				+ constants.getStereotypeCategory();
+			if (algorithmLoggingInfo.getCategory().equals("mix")) {
+				query += " NOT IN ('most_viewed', 'most_exported') ";
+			} else {
+				query += "='" + algorithmLoggingInfo.getCategory() + "'";
+			}
+			query += " ORDER BY RAND()";
+			logger.debug(query);
+			rs = stmt.executeQuery(query);
 
-	    documentSet.setSuggested_label("Related Articles");
+			documentSet.setSuggested_label("Related Articles");
 
-	    if (!rs.next())
-		throw new NoEntryException(documentSet.getRequestingPartnerId(), "Allowed collections for partner");
-	    rs.beforeFirst();
+			if (!rs.next())
+				throw new NoEntryException(documentSet.getRequestingPartnerId(), "Allowed collections for partner");
+			rs.beforeFirst();
 
-	    if (rs.last()) {
-		int rows = rs.getRow();
-		documentSet.setNumberOfReturnedResults(rows);
-		rs.beforeFirst();
-	    }
-	    int i = 0;
+			if (rs.last()) {
+				int rows = rs.getRow();
+				documentSet.setNumberOfReturnedResults(rows);
+				rs.beforeFirst();
+			}
+			int i = 0;
 
-	    while (rs.next() && i < numberOfRelatedDocs) {
-		DisplayDocument relDocument = getDocumentBy(constants.getDocumentId(),
-							    rs.getString(constants.getDocumentIdinStereotypeRecommendations()));
-		relDocument.setSuggestedRank(rs.getRow());
-		String fallback_url = "";
+			while (rs.next() && i < numberOfRelatedDocs) {
+				DisplayDocument relDocument = getDocumentBy(constants.getDocumentId(),
+															rs.getString(constants.getDocumentIdinStereotypeRecommendations()));
+				relDocument.setSuggestedRank(rs.getRow());
+				String fallback_url = "";
 
-		// HARDCODED FOR COMPATABILITY
-		relDocument.setRelevanceScoreFromAlgorithm(1.00);
-		if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
-		    if (constants.getEnvironment().equals("api"))
-			fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
-		    else
-			fallback_url = constants.getGesisBetaCollectionLink()
-			    .concat(relDocument.getOriginalDocumentId());
-		} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
-		    fallback_url = constants.getCoreCollectionLink()
-			.concat(relDocument.getOriginalDocumentId().split("-")[1]);
-		else if (relDocument.getCollectionShortName().contains(constants.getMediatum()))
-		    fallback_url = constants.getMediatumCollectionLink()
-			.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+				// HARDCODED FOR COMPATABILITY
+				relDocument.setRelevanceScoreFromAlgorithm(1.00);
+				if (relDocument.getCollectionShortName().equals(constants.getGesis())) {
+					if (constants.getEnvironment().equals("api"))
+						fallback_url = constants.getGesisCollectionLink().concat(relDocument.getOriginalDocumentId());
+					else
+						fallback_url = constants.getGesisBetaCollectionLink()
+							.concat(relDocument.getOriginalDocumentId());
+				} else if (relDocument.getCollectionShortName().contains(constants.getCore()))
+					fallback_url = constants.getCoreCollectionLink()
+						.concat(relDocument.getOriginalDocumentId().split("-")[1]);
+				else if (relDocument.getCollectionShortName().contains(constants.getMediatum()))
+					fallback_url = constants.getMediatumCollectionLink()
+						.concat(relDocument.getOriginalDocumentId().split("-")[1]);
 
-		relDocument.setFallbackUrl(fallback_url);
-		documentSet.addDocument(relDocument);
-		i++;
-	    }
-	    return documentSet;
-	} catch (Exception e) {
-	    if (!(e instanceof NoEntryException))
-		e.printStackTrace();
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+				relDocument.setFallbackUrl(fallback_url);
+				documentSet.addDocument(relDocument);
+				i++;
+			}
+			return documentSet;
+		} catch (Exception e) {
+			if (!(e instanceof NoEntryException))
+				e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
 
     }
 
@@ -2929,107 +2929,107 @@ public class DBConnection {
      *             if database connection fails
      */
     public int getMinimumNumberOfKeyphrases(String documentId, String gramity, String source) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	String query = "SELECT " + constants.getGramity() + ", count FROM " + constants.getKeyphrases() + " WHERE "
-	    + constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getSourceInKeyphrases()
-	    + "=" + (source.contains("abstract") ? "'title_and_abstract'" : "'title'");
+		String query = "SELECT " + constants.getGramity() + ", count FROM " + constants.getKeyphrases() + " WHERE "
+			+ constants.getDocumentIdInKeyphrases() + "=" + documentId + " AND " + constants.getSourceInKeyphrases()
+			+ "=" + (source.contains("abstract") ? "'title_and_abstract'" : "'title'");
 
-	try {
-	    stmt = con.createStatement();
-	    // logger.debug(query);
-	    rs = stmt.executeQuery(query);
-	    switch (gramity) {
+		try {
+			stmt = con.createStatement();
+			// logger.debug(query);
+			rs = stmt.executeQuery(query);
+			switch (gramity) {
 
-		// if allgrams, return minimum of unigrams, bigrams and trigrams
-	    case "unibitri": {
-		Integer[] values = { 0, 0, 0 };
+				// if allgrams, return minimum of unigrams, bigrams and trigrams
+			case "unibitri": {
+				Integer[] values = { 0, 0, 0 };
 
-		while (rs.next())
-		    values[rs.getInt("gramity") - 1] = rs.getInt("count");
-		return Collections.min(Arrays.asList(values));
-	    }
+				while (rs.next())
+					values[rs.getInt("gramity") - 1] = rs.getInt("count");
+				return Collections.min(Arrays.asList(values));
+			}
 
-		// return minimum between unigrams and bigrams
-	    case "unibi": {
-		Integer[] values = { 0, 0 };
-		while (rs.next()) {
-		    int gramityNumber = rs.getInt("gramity");
-		    if (gramityNumber < 3)
-			values[gramityNumber - 1] = rs.getInt("count");
+				// return minimum between unigrams and bigrams
+			case "unibi": {
+				Integer[] values = { 0, 0 };
+				while (rs.next()) {
+					int gramityNumber = rs.getInt("gramity");
+					if (gramityNumber < 3)
+						values[gramityNumber - 1] = rs.getInt("count");
+				}
+				return Collections.min(Arrays.asList(values));
+			}
+
+				// return minimum between bigrams and trigrams
+			case "bitri": {
+				Integer[] values = { 0, 0 };
+				while (rs.next()) {
+					int gramityNumber = rs.getInt("gramity");
+					if (gramityNumber > 1)
+						values[gramityNumber - 2] = rs.getInt("count");
+				}
+				return Collections.min(Arrays.asList(values));
+			}
+
+				// return minimum between unigrams and trigrams
+			case "unitri": {
+				Integer[] values = { 0, 0 };
+				while (rs.next()) {
+					int gramityNumber = rs.getInt("gramity");
+					switch (gramityNumber) {
+					case 1:
+						values[0] = rs.getInt("count");
+					case 3:
+						values[1] = rs.getInt("count");
+					}
+				}
+				return Collections.min(Arrays.asList(values));
+			}
+
+				// return unigram count
+			case "unigram": {
+				while (rs.next()) {
+					if (rs.getInt("gramity") == 1)
+						return rs.getInt("count");
+				}
+				return 0;
+			}
+
+				// return bigram count
+			case "bigram": {
+				while (rs.next()) {
+					if (rs.getInt("gramity") == 2)
+						return rs.getInt("count");
+
+				}
+				return 0;
+			}
+
+				// return trigram count
+			case "trigram": {
+				while (rs.next()) {
+					if (rs.getInt("gramity") == 3)
+						return rs.getInt("count");
+				}
+				return 0;
+			}
+			}
+		} catch (Exception e) {
+			logger.debug("query failed", e);
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
-		return Collections.min(Arrays.asList(values));
-	    }
-
-		// return minimum between bigrams and trigrams
-	    case "bitri": {
-		Integer[] values = { 0, 0 };
-		while (rs.next()) {
-		    int gramityNumber = rs.getInt("gramity");
-		    if (gramityNumber > 1)
-			values[gramityNumber - 2] = rs.getInt("count");
-		}
-		return Collections.min(Arrays.asList(values));
-	    }
-
-		// return minimum between unigrams and trigrams
-	    case "unitri": {
-		Integer[] values = { 0, 0 };
-		while (rs.next()) {
-		    int gramityNumber = rs.getInt("gramity");
-		    switch (gramityNumber) {
-		    case 1:
-			values[0] = rs.getInt("count");
-		    case 3:
-			values[1] = rs.getInt("count");
-		    }
-		}
-		return Collections.min(Arrays.asList(values));
-	    }
-
-		// return unigram count
-	    case "unigram": {
-		while (rs.next()) {
-		    if (rs.getInt("gramity") == 1)
-			return rs.getInt("count");
-		}
-		return 0;
-	    }
-
-		// return bigram count
-	    case "bigram": {
-		while (rs.next()) {
-		    if (rs.getInt("gramity") == 2)
-			return rs.getInt("count");
-
-		}
-		return 0;
-	    }
-
-		// return trigram count
-	    case "trigram": {
-		while (rs.next()) {
-		    if (rs.getInt("gramity") == 3)
-			return rs.getInt("count");
-		}
-		return 0;
-	    }
-	    }
-	} catch (Exception e) {
-	    logger.debug("query failed", e);
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return -1;
+		return -1;
     }
 
     /**
@@ -3042,35 +3042,35 @@ public class DBConnection {
      * @throws Exception
      */
     public String getAbstractDetails(DisplayDocument requestDocument, String field) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	// Select query to lookup abstract language using the documentId from
-	// the document_abstracts table
-	String query = "SELECT `" + field + "` AS lang FROM " + constants.getAbstracts()
-	    + " WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
+		// Select query to lookup abstract language using the documentId from
+		// the document_abstracts table
+		String query = "SELECT `" + field + "` AS lang FROM " + constants.getAbstracts()
+			+ " WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		return rs.getString("lang");
-	    } else {
-		return "NONE";
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				return rs.getString("lang");
+			} else {
+				return "NONE";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
 
     }
 
@@ -3084,47 +3084,47 @@ public class DBConnection {
      */
 
     public String getDocAbstractById(String docId) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
-	String docAbstract = null;
-	String[] arr;
-	String abstrct = "";
+		Statement stmt = null;
+		ResultSet rs = null;
+		String docAbstract = null;
+		String[] arr;
+		String abstrct = "";
 
-	// Select query to lookup abstract language using the documentId from
-	// the document_abstracts table
-	String query = "SELECT `" + constants.getAbstr() + "` FROM " + constants.getAbstracts() + " WHERE "
-	    + constants.getAbstractDocumentId() + " = '" + docId + "'";
+		// Select query to lookup abstract language using the documentId from
+		// the document_abstracts table
+		String query = "SELECT `" + constants.getAbstr() + "` FROM " + constants.getAbstracts() + " WHERE "
+			+ constants.getAbstractDocumentId() + " = '" + docId + "'";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		docAbstract = rs.getString(constants.getAbstr());
-		arr = docAbstract.split("\\s+");
-		if (arr.length > 35) {
-		    for (int i = 0; i < 35; i++) {
-			abstrct = abstrct + " " + arr[i];
-		    }
-		    abstrct = abstrct + " ...";
-		} else
-		    abstrct = docAbstract;
-		return abstrct;
-	    } else {
-		return null;
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				docAbstract = rs.getString(constants.getAbstr());
+				arr = docAbstract.split("\\s+");
+				if (arr.length > 35) {
+					for (int i = 0; i < 35; i++) {
+						abstrct = abstrct + " " + arr[i];
+					}
+					abstrct = abstrct + " ...";
+				} else
+					abstrct = docAbstract;
+				return abstrct;
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
 
     }
 
@@ -3137,125 +3137,125 @@ public class DBConnection {
      * @throws Exception
      */
     public DocumentSet logRecommendationDeliveryNew(String referenceId, RootElement rootElement, Boolean requestByTitle)
-	throws Exception {
-	PreparedStatement stmt = null;
-	ResultSet rs = null;
-	int recommendationSetId = -1;
-	int loggingId = -1;
-	DocumentSet documentset = rootElement.getDocumentSet();
-	String accessKeyString = "mdl" + documentset.getStartTime();
-	String accessKeyHash = "";
+		throws Exception {
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		int recommendationSetId = -1;
+		int loggingId = -1;
+		DocumentSet documentset = rootElement.getDocumentSet();
+		String accessKeyString = "mdl" + documentset.getStartTime();
+		String accessKeyHash = "";
 
-	try {
-	    MessageDigest m = MessageDigest.getInstance("MD5");
-	    m.update(accessKeyString.getBytes(), 0, accessKeyString.length());
-	    accessKeyHash = new BigInteger(1, m.digest()).toString(16);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
-	documentset.setAccessKeyHash(accessKeyHash);
-	documentset.setAlgorithmDetails(setRecommendationProvider(documentset.getAlgorithmDetails()));
-	loggingId = logEvent(referenceId, rootElement, requestByTitle ? "search_by_title" : "related_documents");
-
-	if (documentset.getSize() > 0) {
-	    documentset = logRecommendationAlgorithmNew(documentset);
-
-	    try {
-		// insertion query
-		String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
-		    + constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
-		    + "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
-		    + constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
-		    + constants.getPreparationTime() + ", " + constants.getRecFrameworkTime() + ", "
-		    + constants.getPostProcessingTime() + ", " + constants.getAccessKey() + ", "
-		    + constants.getMinimumRelevanceScoreDisplay() + ", "
-		    + constants.getMaximumRelevanceScoreDisplay() + ", " + constants.getMeanRelevanceScoreDisplay()
-		    + ", " + constants.getMedianRelevanceScoreDisplay() + ", "
-		    + constants.getModeRelevanceScoreDisplay() + ", " + constants.getMinimumFinalScoreDisplay()
-		    + ", " + constants.getMaximumFinalScoreDisplay() + ", " + constants.getMeanFinalScoreDisplay()
-		    + ", " + constants.getMedianFinalScoreDisplay() + ", " + constants.getModeFinalScoreDisplay()
-		    + ", " + constants.getExternalRecommendationSetId() + ", " + constants.getExternalAlgorithmId()
-		    + ") VALUES (" + loggingId + ", " + documentset.getRecommendationAlgorithmId() + ", "
-		    + (documentset.isFallback() ? "'Y'" : "'N'") + ", " + documentset.getNumberOfReturnedResults()
-		    + ", " + documentset.getSize() + ", 'system', '" + documentset.getAfterAlgorithmChoosingTime()
-		    + "', '" + documentset.getAfterAlgorithmExecutionTime() + "', '"
-		    + documentset.getAfterRerankTime() + "', '" + accessKeyHash
-		    + "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-
-		stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-
-		for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
-
-		    if (currentStats.getType().equals("relevance")) {
-			stmt.setDouble(1, currentStats.getRankVMin());
-			stmt.setDouble(2, currentStats.getRankVMax());
-			stmt.setDouble(3, currentStats.getRankVMean());
-			stmt.setDouble(4, currentStats.getRankVMedian());
-
-			if (currentStats.getRankVMode() == -1) {
-			    stmt.setNull(5, java.sql.Types.FLOAT);
-			} else
-			    stmt.setDouble(5, currentStats.getRankVMode());
-
-		    } else if (currentStats.getType().equals("final")) {
-			stmt.setDouble(6, currentStats.getRankVMin());
-			stmt.setDouble(7, currentStats.getRankVMax());
-			stmt.setDouble(8, currentStats.getRankVMean());
-			stmt.setDouble(9, currentStats.getRankVMedian());
-
-			if (currentStats.getRankVMode() == -1) {
-			    stmt.setNull(10, java.sql.Types.FLOAT);
-			} else
-			    stmt.setDouble(10, currentStats.getRankVMode());
-		    }
-		}
-		stmt.setString(11, documentset.getExternalRecommendationSetId());
-		stmt.setString(12, documentset.getExternalAlgorithmId());
-		stmt.executeUpdate();
-
-		// get the autogenerated key back
-		rs = stmt.getGeneratedKeys();
-		if (rs.next())
-		    recommendationSetId = rs.getInt(1);
-
-		// set the generated key as recommendation set id
-		documentset.setRecommendationSetId(recommendationSetId + "");
-
-		for (int i = 0; i < documentset.getSize(); i++) {
-		    DisplayDocument current = documentset.getDisplayDocument(i);
-		    // log each single recommendation
-		    current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
-		}
-
-		if (!documentset.getReRankingCombination().equals("standard_only"))
-		    logRankingStatistics(documentset);
-
-	    } catch (Exception e) {
-		throw e;
-	    } finally {
 		try {
-		    if (stmt != null)
-			stmt.close();
-		} catch (SQLException e) {
-		    e.printStackTrace();
-		    throw e;
+			MessageDigest m = MessageDigest.getInstance("MD5");
+			m.update(accessKeyString.getBytes(), 0, accessKeyString.length());
+			accessKeyHash = new BigInteger(1, m.digest()).toString(16);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-	    }
-	}
-	return documentset;
+		documentset.setAccessKeyHash(accessKeyHash);
+		documentset.setAlgorithmDetails(setRecommendationProvider(documentset.getAlgorithmDetails()));
+		loggingId = logEvent(referenceId, rootElement, requestByTitle ? "search_by_title" : "related_documents");
+
+		if (documentset.getSize() > 0) {
+			documentset = logRecommendationAlgorithmNew(documentset);
+
+			try {
+				// insertion query
+				String query = "INSERT INTO " + constants.getRecommendationSets() + " ("
+					+ constants.getLoggingIdInRecommendationSets() + ", " + "recommendation_algorithm_id" + ", "
+					+ "fallback" + ", " + constants.getNumberOfReturnedResults() + ", "
+					+ constants.getDeliveredRecommendations() + ", " + constants.getTrigger() + ", "
+					+ constants.getPreparationTime() + ", " + constants.getRecFrameworkTime() + ", "
+					+ constants.getPostProcessingTime() + ", " + constants.getAccessKey() + ", "
+					+ constants.getMinimumRelevanceScoreDisplay() + ", "
+					+ constants.getMaximumRelevanceScoreDisplay() + ", " + constants.getMeanRelevanceScoreDisplay()
+					+ ", " + constants.getMedianRelevanceScoreDisplay() + ", "
+					+ constants.getModeRelevanceScoreDisplay() + ", " + constants.getMinimumFinalScoreDisplay()
+					+ ", " + constants.getMaximumFinalScoreDisplay() + ", " + constants.getMeanFinalScoreDisplay()
+					+ ", " + constants.getMedianFinalScoreDisplay() + ", " + constants.getModeFinalScoreDisplay()
+					+ ", " + constants.getExternalRecommendationSetId() + ", " + constants.getExternalAlgorithmId()
+					+ ") VALUES (" + loggingId + ", " + documentset.getRecommendationAlgorithmId() + ", "
+					+ (documentset.isFallback() ? "'Y'" : "'N'") + ", " + documentset.getNumberOfReturnedResults()
+					+ ", " + documentset.getSize() + ", 'system', '" + documentset.getAfterAlgorithmChoosingTime()
+					+ "', '" + documentset.getAfterAlgorithmExecutionTime() + "', '"
+					+ documentset.getAfterRerankTime() + "', '" + accessKeyHash
+					+ "', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+				stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
+				for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+
+					if (currentStats.getType().equals("relevance")) {
+						stmt.setDouble(1, currentStats.getRankVMin());
+						stmt.setDouble(2, currentStats.getRankVMax());
+						stmt.setDouble(3, currentStats.getRankVMean());
+						stmt.setDouble(4, currentStats.getRankVMedian());
+
+						if (currentStats.getRankVMode() == -1) {
+							stmt.setNull(5, java.sql.Types.FLOAT);
+						} else
+							stmt.setDouble(5, currentStats.getRankVMode());
+
+					} else if (currentStats.getType().equals("final")) {
+						stmt.setDouble(6, currentStats.getRankVMin());
+						stmt.setDouble(7, currentStats.getRankVMax());
+						stmt.setDouble(8, currentStats.getRankVMean());
+						stmt.setDouble(9, currentStats.getRankVMedian());
+
+						if (currentStats.getRankVMode() == -1) {
+							stmt.setNull(10, java.sql.Types.FLOAT);
+						} else
+							stmt.setDouble(10, currentStats.getRankVMode());
+					}
+				}
+				stmt.setString(11, documentset.getExternalRecommendationSetId());
+				stmt.setString(12, documentset.getExternalAlgorithmId());
+				stmt.executeUpdate();
+
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					recommendationSetId = rs.getInt(1);
+
+				// set the generated key as recommendation set id
+				documentset.setRecommendationSetId(recommendationSetId + "");
+
+				for (int i = 0; i < documentset.getSize(); i++) {
+					DisplayDocument current = documentset.getDisplayDocument(i);
+					// log each single recommendation
+					current.setRecommendationId(logRecommendationsNew(current, documentset) + "");
+				}
+
+				if (!documentset.getReRankingCombination().equals("standard_only"))
+					logRankingStatistics(documentset);
+
+			} catch (Exception e) {
+				throw e;
+			} finally {
+				try {
+					if (stmt != null)
+						stmt.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					throw e;
+				}
+			}
+		}
+		return documentset;
     }
 
     private AlgorithmDetails setRecommendationProvider(AlgorithmDetails algorithmDetails) {
-    if(algorithmDetails==null) return null;
-	String algorithmName = algorithmDetails.getName();
-	if(algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())){
-	    algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", constants.getApplicationFullName()));
-	    algorithmDetails.setRecommendationProviderId(getIdInApplications("core_recsys", constants.getApplicationId()));
-	}else{
-	    algorithmDetails.setRecommendationProvider(getIdInApplications("mdl_recsys", constants.getApplicationFullName()));
-	    algorithmDetails.setRecommendationProviderId(getIdInApplications("mdl_recsys", constants.getApplicationId()));
-	}
-	return algorithmDetails;
+		if(algorithmDetails==null) return null;
+		String algorithmName = algorithmDetails.getName();
+		if(algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())){
+			algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", constants.getApplicationFullName()));
+			algorithmDetails.setRecommendationProviderId(getIdInApplications("core_recsys", constants.getApplicationId()));
+		}else{
+			algorithmDetails.setRecommendationProvider(getIdInApplications("mdl_recsys", constants.getApplicationFullName()));
+			algorithmDetails.setRecommendationProviderId(getIdInApplications("mdl_recsys", constants.getApplicationId()));
+		}
+		return algorithmDetails;
     }
 
     /**
@@ -3279,193 +3279,193 @@ public class DBConnection {
      * @throws Exception
      */
     private DocumentSet logRecommendationAlgorithmNew(DocumentSet documentset) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
-	int recommendationAlgorithmId = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+		int recommendationAlgorithmId = -1;
 
-	// get the hashmap which has the details of the recommendation algorithm
-	AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
-	// logger.debug(recommenderDetails.getQueryParser());
+		// get the hashmap which has the details of the recommendation algorithm
+		AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
+		// logger.debug(recommenderDetails.getQueryParser());
 
-	String recommendationClass = recommenderDetails.getRecommendationClass();
-	Boolean fallback = recommenderDetails.isFallback();
-	int recommendationClassId = -1;
+		String recommendationClass = recommenderDetails.getRecommendationClass();
+		Boolean fallback = recommenderDetails.isFallback();
+		int recommendationClassId = -1;
 
-	try {
-	    switch (recommendationClass) {
-	    case "cbf": {
-		recommendationClassId = getCbfId(recommenderDetails);
-		break;
-	    }
-	    case "stereotype": {
-		recommendationClassId = getStereotypesId(recommenderDetails);
-		break;
-	    }
-	    case "most_popular": {
-		recommendationClassId = getMostPopularId(recommenderDetails);
-		break;
-	    }
-	    }
-	    int rerankingBibId = logBibReranking(documentset);
+		try {
+			switch (recommendationClass) {
+			case "cbf": {
+				recommendationClassId = getCbfId(recommenderDetails);
+				break;
+			}
+			case "stereotype": {
+				recommendationClassId = getStereotypesId(recommenderDetails);
+				break;
+			}
+			case "most_popular": {
+				recommendationClassId = getMostPopularId(recommenderDetails);
+				break;
+			}
+			}
+			int rerankingBibId = logBibReranking(documentset);
 
-	    // search for an exact match of the algorithm in the table
-	    String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
-		+ constants.getRecommendationAlgorithm() + " WHERE ";
-	    query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
-		+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
-		+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND " + constants.getShuffled()
-		+ "='" + (documentset.isShuffled() ? "Y" : "N") + "' AND " + constants.getBibReRankingApplied()
-		+ "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
-		+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
-		+ documentset.getDesiredNumberFromAlgorithm() + "'";
-	    if (rerankingBibId > 0) {
-		query += " AND " /* constants.getBibReRankingId */ + "reranking_bibliometric_reranking_details" + "="
-		    + Integer.toString(rerankingBibId);
-	    }
-	    switch (recommendationClass) {
-	    case "cbf": {
-		query += " AND " + constants.getCbfId() + "=" + Integer.toString(recommendationClassId);
-		break;
-	    }
-	    case "stereotype": {
-		query += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
-		    + Integer.toString(recommendationClassId);
-		break;
-	    }
+			// search for an exact match of the algorithm in the table
+			String query = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
+				+ constants.getRecommendationAlgorithm() + " WHERE ";
+			query += constants.getRecommendationClass() + "='" + recommenderDetails.getRecommendationClass() + "' AND "
+				+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='"
+				+ (recommenderDetails.isLanguageRestriction() ? "Y" : "N") + "' AND " + constants.getShuffled()
+				+ "='" + (documentset.isShuffled() ? "Y" : "N") + "' AND " + constants.getBibReRankingApplied()
+				+ "=" + ((rerankingBibId > 0) ? "'Y'" : "'N'") + " AND "
+				+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
+				+ documentset.getDesiredNumberFromAlgorithm() + "'";
+			if (rerankingBibId > 0) {
+				query += " AND " /* constants.getBibReRankingId */ + "reranking_bibliometric_reranking_details" + "="
+					+ Integer.toString(rerankingBibId);
+			}
+			switch (recommendationClass) {
+			case "cbf": {
+				query += " AND " + constants.getCbfId() + "=" + Integer.toString(recommendationClassId);
+				break;
+			}
+			case "stereotype": {
+				query += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
+					+ Integer.toString(recommendationClassId);
+				break;
+			}
 
-	    case "most_popular": {
-		query += " AND " + constants.getMostPopularRecommendationDetailsId() + "="
-		    + Integer.toString(recommendationClassId);
-		break;
-	    }
+			case "most_popular": {
+				query += " AND " + constants.getMostPopularRecommendationDetailsId() + "="
+					+ Integer.toString(recommendationClassId);
+				break;
+			}
 
-	    }
-	    logger.debug(query);
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+			}
+			logger.debug(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 	    
-	    // if found, get the id of the exact match
-	    if (rs.next()) {
-		recommendationAlgorithmId = rs.getInt(constants.getRecommendationAlgorithmId());
-	    } else {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
+			// if found, get the id of the exact match
+			if (rs.next()) {
+				recommendationAlgorithmId = rs.getInt(constants.getRecommendationAlgorithmId());
+			} else {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
 
-		// Insert the row into the table
-		query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
-		String columns = "";
-		String values = "";
+				// Insert the row into the table
+				query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
+				String columns = "";
+				String values = "";
 		
-		columns += constants.getRecommendationClass() + ", "
-		    + constants.getLanguageRestrictionInRecommenderAlgorithm() + ", "
-		    + constants.getBibReRankingApplied()
-		    + ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
-		    + (recommendationClass.contains("random") ? ""
-		       : (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
-		    + ", " + constants.getShuffled() + ", "
-		    + constants.getDesiredRecommendationsInRecommendationAlgorithms();
-		values += "'" + recommenderDetails.getRecommendationClass() + "', "
-		    + (recommenderDetails.isLanguageRestriction() ? "'same_language_only'" : "'N'") + ", "
-		    + ((rerankingBibId > 0) ? "'Y'" : "'N'")
-		    + ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
-		    + (recommendationClass.contains("random") ? ""
-		       : (", " + Integer.toString(recommendationClassId)))
-		    + ", " + (documentset.isShuffled() ? "'Y' " : "'N' ") + ", '"
-		    + documentset.getDesiredNumberFromAlgorithm() + "'";
-		query += (columns + ") VALUES(" + values + ")");
+				columns += constants.getRecommendationClass() + ", "
+					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + ", "
+					+ constants.getBibReRankingApplied()
+					+ ((rerankingBibId > 0) ? (", " + "reranking_bibliometric_reranking_details") : "")
+					+ (recommendationClass.contains("random") ? ""
+					   : (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
+					+ ", " + constants.getShuffled() + ", "
+					+ constants.getDesiredRecommendationsInRecommendationAlgorithms();
+				values += "'" + recommenderDetails.getRecommendationClass() + "', "
+					+ (recommenderDetails.isLanguageRestriction() ? "'same_language_only'" : "'N'") + ", "
+					+ ((rerankingBibId > 0) ? "'Y'" : "'N'")
+					+ ((rerankingBibId > 0) ? (", " + Integer.toString(rerankingBibId)) : "")
+					+ (recommendationClass.contains("random") ? ""
+					   : (", " + Integer.toString(recommendationClassId)))
+					+ ", " + (documentset.isShuffled() ? "'Y' " : "'N' ") + ", '"
+					+ documentset.getDesiredNumberFromAlgorithm() + "'";
+				query += (columns + ") VALUES(" + values + ")");
 		
-		stmt = con.createStatement();
-		stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
-		rs = stmt.getGeneratedKeys();
+				stmt = con.createStatement();
+				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+				rs = stmt.getGeneratedKeys();
 		
-		// Get back the generated keys
-		if (rs.next())
-		    recommendationAlgorithmId = rs.getInt(1);
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
+				// Get back the generated keys
+				if (rs.next())
+					recommendationAlgorithmId = rs.getInt(1);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
 	
-	// return the algorithm Id
-	documentset.setRecommendationAlgorithmId(recommendationAlgorithmId);
-	documentset.setFallback(fallback);
-	return documentset;
+		// return the algorithm Id
+		documentset.setRecommendationAlgorithmId(recommendationAlgorithmId);
+		documentset.setFallback(fallback);
+		return documentset;
     }
     
     private void logRankingStatistics(DocumentSet documentset) throws Exception {
-	PreparedStatement stmt = null;
+		PreparedStatement stmt = null;
 	
-	String query = "INSERT INTO " + constants.getRecommendationStatisticsReRankingBibliometric() + " ("
-	    + constants.getRecommendationStatisticsRecommendationSetId() + ", "
-	    + constants.getPercentageOfRecommendationsWithBibliometricDisplay() + ", "
-	    + constants.getMinimumBibDisplay() + ", " + constants.getMaximumBibDisplay() + ", "
-	    + constants.getMeanBibDisplay() + ", " + constants.getMedianBibDisplay() + ", "
-	    + constants.getModeBibDisplay() + ", "
-	    + constants.getPercentageOfRecommendationsWithBibliometricRerank() + ", "
-	    + constants.getMinimumBibRerank() + ", " + constants.getMaximumBibRerank() + ", "
-	    + constants.getMeanBibRerank() + ", " + constants.getMedianBibRerank() + ", "
-	    + constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
-	    + "',?,?,?,?,?,?,?,?,?,?,?,?);";
+		String query = "INSERT INTO " + constants.getRecommendationStatisticsReRankingBibliometric() + " ("
+			+ constants.getRecommendationStatisticsRecommendationSetId() + ", "
+			+ constants.getPercentageOfRecommendationsWithBibliometricDisplay() + ", "
+			+ constants.getMinimumBibDisplay() + ", " + constants.getMaximumBibDisplay() + ", "
+			+ constants.getMeanBibDisplay() + ", " + constants.getMedianBibDisplay() + ", "
+			+ constants.getModeBibDisplay() + ", "
+			+ constants.getPercentageOfRecommendationsWithBibliometricRerank() + ", "
+			+ constants.getMinimumBibRerank() + ", " + constants.getMaximumBibRerank() + ", "
+			+ constants.getMeanBibRerank() + ", " + constants.getMedianBibRerank() + ", "
+			+ constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
+			+ "',?,?,?,?,?,?,?,?,?,?,?,?);";
 	
-	// logger.debug(query);
+		// logger.debug(query);
 	
-	try {
-	    stmt = con.prepareStatement(query);
+		try {
+			stmt = con.prepareStatement(query);
 	    
-	    for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
 		
-		if (currentStats.getType().equals("bibliometricDisplay")) {
-		    stmt.setDouble(1, currentStats.getPercentageRankingValue());
-		    stmt.setDouble(2, currentStats.getRankVMin());
-		    stmt.setDouble(3, currentStats.getRankVMax());
-		    stmt.setDouble(4, currentStats.getRankVMean());
-		    stmt.setDouble(5, currentStats.getRankVMedian());
+				if (currentStats.getType().equals("bibliometricDisplay")) {
+					stmt.setDouble(1, currentStats.getPercentageRankingValue());
+					stmt.setDouble(2, currentStats.getRankVMin());
+					stmt.setDouble(3, currentStats.getRankVMax());
+					stmt.setDouble(4, currentStats.getRankVMean());
+					stmt.setDouble(5, currentStats.getRankVMedian());
 		    
-		    if (currentStats.getRankVMode() == -1) {
-			stmt.setNull(6, java.sql.Types.FLOAT);
-		    } else
-			stmt.setDouble(6, currentStats.getRankVMode());
+					if (currentStats.getRankVMode() == -1) {
+						stmt.setNull(6, java.sql.Types.FLOAT);
+					} else
+						stmt.setDouble(6, currentStats.getRankVMode());
 		    
-		} else if (currentStats.getType().equals("bibliometricRerank")) {
-		    stmt.setDouble(7, currentStats.getPercentageRankingValue());
-		    stmt.setDouble(8, currentStats.getRankVMin());
-		    stmt.setDouble(9, currentStats.getRankVMax());
-		    stmt.setDouble(10, currentStats.getRankVMean());
-		    stmt.setDouble(11, currentStats.getRankVMedian());
+				} else if (currentStats.getType().equals("bibliometricRerank")) {
+					stmt.setDouble(7, currentStats.getPercentageRankingValue());
+					stmt.setDouble(8, currentStats.getRankVMin());
+					stmt.setDouble(9, currentStats.getRankVMax());
+					stmt.setDouble(10, currentStats.getRankVMean());
+					stmt.setDouble(11, currentStats.getRankVMedian());
 
-		    if (currentStats.getRankVMode() == -1) {
-			stmt.setNull(12, java.sql.Types.FLOAT);
-		    } else
-			stmt.setDouble(12, currentStats.getRankVMode());
+					if (currentStats.getRankVMode() == -1) {
+						stmt.setNull(12, java.sql.Types.FLOAT);
+					} else
+						stmt.setDouble(12, currentStats.getRankVMode());
+				}
+			}
+
+			stmt.executeUpdate();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.debug(query);
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
 		}
-	    }
-
-	    stmt.executeUpdate();
-
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    logger.debug(query);
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
     }
 
     /**
@@ -3480,66 +3480,66 @@ public class DBConnection {
      * @throws Exception
      */
     public int logRecommendationsNew(DisplayDocument document, DocumentSet documentset) throws Exception {
-	PreparedStatement stmt = null;
-	ResultSet rs = null;
-	int recommendationId = -1;
-	Double maxRelevanceScorePerSet = 0.0;
-	for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
-	    if (currentStats.getType().equals("relevance"))
-		maxRelevanceScorePerSet = currentStats.getRankVMax();
-	}
-	try {
-	    // insertion query
-	    String query = "INSERT INTO " + constants.getRecommendations() + " ("
-		+ constants.getDocumentIdInRecommendations() + ", " + constants.getExternalOriginalDocumentId()
-		+ ", " + constants.getRecommendationSetIdInRecommendations() + ", "
-		+ constants.getRankAfterAlgorithm() + ", " + constants.getRankAfterReRanking() + ", "
-		+ constants.getRankAfterShuffling() + ", " + constants.getRankDelivered() + ", "
-		+ constants.getTextRelevanceScoreInRecommendations() + ", " + constants.getFinalRankingScore()
-		+ ", " + constants.getRelativeRelevanceScore() + ") VALUES (" + "?,?, "
-		+ documentset.getRecommendationSetId() + ", '" + document.getRankAfterAlgorithm() + "', ?, ?, '"
-		+ document.getRankDelivered() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
-		+ document.getFinalScore() + "'" + ", '"
-		+ ((double) document.getRelevanceScoreFromAlgorithm() / maxRelevanceScorePerSet) + "')";
-	    stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-	    if (document.getDocumentId() == null) {
-		stmt.setString(1, null);
-		stmt.setString(2, document.getOriginalDocumentId());
-	    } else {
-		stmt.setString(1, document.getDocumentId());
-		stmt.setString(2, null);
-	    }
-	    if (document.getRankAfterReRanking() == -1) {
-		stmt.setNull(3, java.sql.Types.SMALLINT);
-	    } else
-		stmt.setInt(3, document.getRankAfterReRanking());
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		int recommendationId = -1;
+		Double maxRelevanceScorePerSet = 0.0;
+		for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
+			if (currentStats.getType().equals("relevance"))
+				maxRelevanceScorePerSet = currentStats.getRankVMax();
+		}
+		try {
+			// insertion query
+			String query = "INSERT INTO " + constants.getRecommendations() + " ("
+				+ constants.getDocumentIdInRecommendations() + ", " + constants.getExternalOriginalDocumentId()
+				+ ", " + constants.getRecommendationSetIdInRecommendations() + ", "
+				+ constants.getRankAfterAlgorithm() + ", " + constants.getRankAfterReRanking() + ", "
+				+ constants.getRankAfterShuffling() + ", " + constants.getRankDelivered() + ", "
+				+ constants.getTextRelevanceScoreInRecommendations() + ", " + constants.getFinalRankingScore()
+				+ ", " + constants.getRelativeRelevanceScore() + ") VALUES (" + "?,?, "
+				+ documentset.getRecommendationSetId() + ", '" + document.getRankAfterAlgorithm() + "', ?, ?, '"
+				+ document.getRankDelivered() + "', '" + document.getRelevanceScoreFromAlgorithm() + "', '"
+				+ document.getFinalScore() + "'" + ", '"
+				+ ((double) document.getRelevanceScoreFromAlgorithm() / maxRelevanceScorePerSet) + "')";
+			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+			if (document.getDocumentId() == null) {
+				stmt.setString(1, null);
+				stmt.setString(2, document.getOriginalDocumentId());
+			} else {
+				stmt.setString(1, document.getDocumentId());
+				stmt.setString(2, null);
+			}
+			if (document.getRankAfterReRanking() == -1) {
+				stmt.setNull(3, java.sql.Types.SMALLINT);
+			} else
+				stmt.setInt(3, document.getRankAfterReRanking());
 
-	    if (document.getRankAfterShuffling() == -1) {
-		stmt.setNull(4, java.sql.Types.SMALLINT);
-	    } else
-		stmt.setInt(4, document.getRankAfterShuffling());
+			if (document.getRankAfterShuffling() == -1) {
+				stmt.setNull(4, java.sql.Types.SMALLINT);
+			} else
+				stmt.setInt(4, document.getRankAfterShuffling());
 
-	    // logger.debug(query);
-	    stmt.executeUpdate();
+			// logger.debug(query);
+			stmt.executeUpdate();
 
-	    // get the autogenerated key back
-	    rs = stmt.getGeneratedKeys();
-	    if (rs.next())
-		recommendationId = rs.getInt(1);
+			// get the autogenerated key back
+			rs = stmt.getGeneratedKeys();
+			if (rs.next())
+				recommendationId = rs.getInt(1);
 
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return recommendationId;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return recommendationId;
     }
 
     /**
@@ -3550,7 +3550,7 @@ public class DBConnection {
      * @throws SQLException
      */
     private int getMostPopularId(AlgorithmDetails recommenderDetails) throws SQLException {
-	return getStereotypesId(recommenderDetails, false);
+		return getStereotypesId(recommenderDetails, false);
     }
 
     /**
@@ -3561,7 +3561,7 @@ public class DBConnection {
      * @throws SQLException
      */
     private int getStereotypesId(AlgorithmDetails recommenderDetails) throws SQLException {
-	return getStereotypesId(recommenderDetails, true);
+		return getStereotypesId(recommenderDetails, true);
     }
 
     /**
@@ -3573,154 +3573,166 @@ public class DBConnection {
      * @throws SQLException
      */
     private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotype) throws SQLException {
-	int stereotypeId = -1;
-	Statement stmt = null;
-	ResultSet rs = null;
-	String tableName, tableRowId, tableCategoryName = "";
-	if (stereotype) {
-	    tableName = constants.getStereotypeRecommendationDetails();
-	    tableRowId = constants.getStereotypeRecommendationDetailsId();
-	    tableCategoryName = constants.getStereotypeCategoryInStereotypeDetails();
-	} else {
-	    tableName = constants.getMostPopularRecommendationDetails();
-	    tableRowId = constants.getMostPopularRecommendationDetailsId();
-	    tableCategoryName = constants.getMostPopularCategoryInMostPopularDetails();
-	}
-	String query = "SELECT " + tableRowId + " FROM " + tableName + " WHERE " + tableCategoryName + "='"
-	    + recommenderDetails.getCategory() + "'";
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		stereotypeId = rs.getInt(tableRowId);
-		// logger.debug(tableName + ":" + stereotypeId);
-	    } else {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-		query = "INSERT INTO " + tableName + "(" + tableCategoryName + ") VALUES('"
-		    + recommenderDetails.getCategory() + "')";
-		stmt = con.createStatement();
-		// logger.debug(query);
-		stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
+		int stereotypeId = -1;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String tableName, tableRowId, tableCategoryName = "";
+		if (stereotype) {
+			tableName = constants.getStereotypeRecommendationDetails();
+			tableRowId = constants.getStereotypeRecommendationDetailsId();
+			tableCategoryName = constants.getStereotypeCategoryInStereotypeDetails();
+		} else {
+			tableName = constants.getMostPopularRecommendationDetails();
+			tableRowId = constants.getMostPopularRecommendationDetailsId();
+			tableCategoryName = constants.getMostPopularCategoryInMostPopularDetails();
+		}
+		String query = "SELECT " + tableRowId + " FROM " + tableName + " WHERE " + tableCategoryName + "='"
+			+ recommenderDetails.getCategory() + "'";
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				stereotypeId = rs.getInt(tableRowId);
+				// logger.debug(tableName + ":" + stereotypeId);
+			} else {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				query = "INSERT INTO " + tableName + "(" + tableCategoryName + ") VALUES('"
+					+ recommenderDetails.getCategory() + "')";
+				stmt = con.createStatement();
+				// logger.debug(query);
+				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 
-		// get the autogenerated key back
-		rs = stmt.getGeneratedKeys();
-		if (rs.next())
-		    stereotypeId = rs.getInt(1);
-		// logger.debug(stereotypeId);
-	    }
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    if (stmt != null)
-		stmt.close();
-	    if (rs != null)
-		rs.close();
-	}
-	return stereotypeId;
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					stereotypeId = rs.getInt(1);
+				// logger.debug(stereotypeId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
+		}
+		return stereotypeId;
     }
 
     /**
-     * please fill me!
+     * log details for CBF algorithms and return id of created / existing entry 
+	 * checks first if entry with given properties already exists
      * 
      * @param recommenderDetails
      * @return
      * @throws SQLException
      */
     private int getCbfId(AlgorithmDetails recommenderDetails) throws SQLException {
-	int cbfId = -1;
-	ResultSet rs = null;
-	boolean inputIsDocument = !recommenderDetails.getName().contains("Query");
-	String queryType = "";
-	if (!inputIsDocument)
-	    queryType = recommenderDetails.getQueryParser();
-	logger.debug(recommenderDetails.getCbfFeatureType());
-	boolean keyphrases = recommenderDetails.getCbfFeatureType()!= null &&
+		String featureType = recommenderDetails.getCbfFeatureType();
+		int cbfId = -1;
+		ResultSet rs = null;
+		boolean inputIsDocument = !recommenderDetails.getName().contains("Query");
+		String queryType = "";
+		if (!inputIsDocument)
+			queryType = recommenderDetails.getQueryParser();
+		logger.debug(recommenderDetails.getCbfFeatureType());
+		boolean keyphrases = recommenderDetails.getCbfFeatureType()!= null &&
 			recommenderDetails.getCbfFeatureType().equals("keyphrases");
 
-	String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE ("
-	    + constants.getInputType() + " =? OR ( " + constants.getInputType() + " IS NULL AND ? IS NULL)) AND ("
-	    + constants.getCbfFeatureType() + "=? OR ( " + constants.getCbfFeatureType()
-	    + " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFeatureCount() + "=? OR ( "
-	    + constants.getCbfFeatureCount() + " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFields()
-	    + "= ? OR ( " + constants.getCbfFields() + " IS NULL AND ? IS NULL))";
+		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE ("
+			+ constants.getInputType() + " =? OR ( " + constants.getInputType() + " IS NULL AND ? IS NULL)) AND ("
+			+ constants.getCbfFeatureType() + "=? OR ( " + constants.getCbfFeatureType()
+			+ " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFeatureCount() + "=? OR ( "
+			+ constants.getCbfFeatureCount() + " IS NULL AND ? IS NULL)) AND (" + constants.getCbfFields()
+			+ "= ? OR ( " + constants.getCbfFields() + " IS NULL AND ? IS NULL))";
 
-	if (keyphrases) {
-	    query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getNgramType() + "'";
-	}
-	if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
-	    query += " AND " + constants.getSearchMode() + " = '" + queryType + "'";
-	}
-
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setString(1, (inputIsDocument ? "document" : "query"));
-	    stmt.setString(2, (inputIsDocument ? "document" : "query"));
-
-	    if ((recommenderDetails.getCbfFeatureCount() == null))
-		stmt.setString(3, null);
-	    else
-		stmt.setString(3, recommenderDetails.getCbfFeatureType());
-	    if ((recommenderDetails.getCbfFeatureCount() == null))
-		stmt.setString(4, null);
-	    else
-		stmt.setString(4, recommenderDetails.getCbfFeatureType());
-
-	    stmt.setString(5, recommenderDetails.getCbfFeatureCount());
-	    stmt.setString(6, recommenderDetails.getCbfFeatureCount());
-
-	    stmt.setString(7, recommenderDetails.getCbfTextFields());
-	    stmt.setString(8, recommenderDetails.getCbfTextFields());
-	    rs = stmt.executeQuery();
-	    if (rs.next()) {
-		cbfId = rs.getInt(constants.getCbfId());
-		// System.out.printf("cbfId:%d\n", cbfId);
-	    } else {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-		String columns = constants.getCbfFeatureType() + "," + constants.getInputType();
-		columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
-		String values = "?,?,?,?";
 		if (keyphrases) {
-		    columns += ", " + constants.getCbfNgramType();
-		    values += ", '" + recommenderDetails.getNgramType() + "'";
+			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getNgramType() + "'";
+		} else if (featureType != null && featureType.equals("embedding")) {
+			query += " AND " + constants.getCbfDimensions() + " = '" + recommenderDetails.getDimensions() + "'";
+			query += " AND " + constants.getCbfCorpusUsed() + " = '" + recommenderDetails.getCorpusUsed() + "'";
 		}
 		if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
-		    columns += ", " + constants.getSearchMode();
-		    values += ", '" + queryType + "'";
+			query += " AND " + constants.getSearchMode() + " = '" + queryType + "'";
 		}
 
-		query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, (inputIsDocument ? "document" : "query"));
+			stmt.setString(2, (inputIsDocument ? "document" : "query"));
 
-		try (PreparedStatement stmtInsert = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-		    if ((recommenderDetails.getCbfFeatureCount() == null))
-			stmtInsert.setString(1, null);
-		    else
-			stmtInsert.setString(1, recommenderDetails.getCbfFeatureType());
-		    stmtInsert.setString(2, (inputIsDocument ? "document" : "query"));
-		    stmtInsert.setString(3, recommenderDetails.getCbfFeatureCount());
-		    stmtInsert.setString(4, recommenderDetails.getCbfTextFields());
-		    stmtInsert.executeUpdate();
+			if ((recommenderDetails.getCbfFeatureCount() == null))
+				stmt.setString(3, null);
+			else
+				stmt.setString(3, recommenderDetails.getCbfFeatureType());
+			if ((recommenderDetails.getCbfFeatureCount() == null))
+				stmt.setString(4, null);
+			else
+				stmt.setString(4, recommenderDetails.getCbfFeatureType());
 
-		    // get the autogenerated key back
-		    rs = stmtInsert.getGeneratedKeys();
-		    if (rs.next())
-			cbfId = rs.getInt(1);
+			stmt.setString(5, recommenderDetails.getCbfFeatureCount());
+			stmt.setString(6, recommenderDetails.getCbfFeatureCount());
+
+			stmt.setString(7, recommenderDetails.getCbfTextFields());
+			stmt.setString(8, recommenderDetails.getCbfTextFields());
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				cbfId = rs.getInt(constants.getCbfId());
+				// System.out.printf("cbfId:%d\n", cbfId);
+			} else {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				String columns = constants.getCbfFeatureType() + "," + constants.getInputType();
+				columns += ", " + constants.getCbfFeatureCount() + ", " + constants.getCbfFields();
+				String values = "?,?,?,?";
+				if (keyphrases) {
+					columns += ", " + constants.getCbfNgramType();
+					values += ", '" + recommenderDetails.getNgramType() + "'";
+				} else if (featureType != null && featureType.equals("embedding")) {
+					columns += ", " + constants.getCbfDimensions();
+					columns += ", " + constants.getCbfCorpusUsed();
+					values += ", '" + recommenderDetails.getDimensions() + "'";
+					values += ", '" + recommenderDetails.getCorpusUsed() + "'";
+				}
+				if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
+					columns += ", " + constants.getSearchMode();
+					values += ", '" + queryType + "'";
+				}
+
+				query = "INSERT INTO " + constants.getCbfDetails() + " (" + columns + ") VALUES(" + values + ")";
+
+				try (PreparedStatement stmtInsert = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+					if ((recommenderDetails.getCbfFeatureCount() == null))
+						stmtInsert.setString(1, null);
+					else
+						stmtInsert.setString(1, recommenderDetails.getCbfFeatureType());
+					stmtInsert.setString(2, (inputIsDocument ? "document" : "query"));
+					stmtInsert.setString(3, recommenderDetails.getCbfFeatureCount());
+					stmtInsert.setString(4, recommenderDetails.getCbfTextFields());
+
+					stmtInsert.executeUpdate();
+
+
+					// get the autogenerated key back
+					rs = stmtInsert.getGeneratedKeys();
+					if (rs.next())
+						cbfId = rs.getInt(1);
+				}
+				// logger.debug(cbfId);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if (rs != null)
+				rs.close();
 		}
-		// logger.debug(cbfId);
-	    }
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    if (rs != null)
-		rs.close();
-	}
-	return cbfId;
+		return cbfId;
     }
 
     /**
@@ -3731,46 +3743,46 @@ public class DBConnection {
      * @throws Exception
      */
     public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
-	int rerankingBibliometricId = -1;
-	String bibliometricIdQueryString = "";
-	Statement stmt = null;
-	ResultSet rs = null;
+		int rerankingBibliometricId = -1;
+		String bibliometricIdQueryString = "";
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	if (documentset.getBibliometricId() == -1)
-	    bibliometricIdQueryString = " IS NULL";
-	else
-	    bibliometricIdQueryString = "=" + documentset.getBibliometricId();
+		if (documentset.getBibliometricId() == -1)
+			bibliometricIdQueryString = " IS NULL";
+		else
+			bibliometricIdQueryString = "=" + documentset.getBibliometricId();
 
-	// the query to get the person
-	String query = "SELECT " + constants.getAlgorithmRerankingBibliometricsId() + " FROM "
-	    + constants.getAlgorithmRerankingBibliometrics() + " WHERE " + constants.getNumberOfCandidatesToRerank()
-	    + "=" + documentset.getNumberOfCandidatesToReRank() + " AND " + constants.getRerankingOrder() + "='"
-	    + documentset.getRankingOrder() + "' AND "
-	    + constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + bibliometricIdQueryString + " AND "
-	    + constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "' AND "
-	    + constants.getFallbackReranking() + "='" + (documentset.isFallbackRanking() ? 'Y' : 'N') + "'";
+		// the query to get the person
+		String query = "SELECT " + constants.getAlgorithmRerankingBibliometricsId() + " FROM "
+			+ constants.getAlgorithmRerankingBibliometrics() + " WHERE " + constants.getNumberOfCandidatesToRerank()
+			+ "=" + documentset.getNumberOfCandidatesToReRank() + " AND " + constants.getRerankingOrder() + "='"
+			+ documentset.getRankingOrder() + "' AND "
+			+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + bibliometricIdQueryString + " AND "
+			+ constants.getRerankingCombindation() + "='" + documentset.getReRankingCombination() + "' AND "
+			+ constants.getFallbackReranking() + "='" + (documentset.isFallbackRanking() ? 'Y' : 'N') + "'";
 
-	try {
-	    stmt = con.createStatement();
-	    stmt.executeQuery(query);
-	    rs = stmt.getResultSet();
+		try {
+			stmt = con.createStatement();
+			stmt.executeQuery(query);
+			rs = stmt.getResultSet();
 
-	    if (rs.next())
-		rerankingBibliometricId = rs.getInt(constants.getAlgorithmRerankingBibliometricsId());
+			if (rs.next())
+				rerankingBibliometricId = rs.getInt(constants.getAlgorithmRerankingBibliometricsId());
 
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return rerankingBibliometricId;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return rerankingBibliometricId;
     }
 
     /**
@@ -3781,85 +3793,85 @@ public class DBConnection {
      * @throws Exception
      */
     public int logBibReranking(DocumentSet documentset) throws Exception {
-	PreparedStatement stmt = null;
-	ResultSet rs = null;
-	int rerankingBibliometricId = -1;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		int rerankingBibliometricId = -1;
 
-	rerankingBibliometricId = searchLogBibRerankingId(documentset);
+		rerankingBibliometricId = searchLogBibRerankingId(documentset);
 
-	if (rerankingBibliometricId == -1) {
+		if (rerankingBibliometricId == -1) {
 
-	    try {
-		// insertion query
-		String query = "INSERT INTO " + constants.getAlgorithmRerankingBibliometrics() + " ("
-		    + constants.getNumberOfCandidatesToRerank() + ", " + constants.getRerankingOrder() + ", "
-		    + constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + ", "
-		    + constants.getRerankingCombindation() + ", " + constants.getFallbackReranking() + ") VALUES ('"
-		    + documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder()
-		    + "', ?, '" + documentset.getReRankingCombination() + "', ?);";
+			try {
+				// insertion query
+				String query = "INSERT INTO " + constants.getAlgorithmRerankingBibliometrics() + " ("
+					+ constants.getNumberOfCandidatesToRerank() + ", " + constants.getRerankingOrder() + ", "
+					+ constants.getBibliometricIdInAlgorithmRerankingBibliometrics() + ", "
+					+ constants.getRerankingCombindation() + ", " + constants.getFallbackReranking() + ") VALUES ('"
+					+ documentset.getNumberOfCandidatesToReRank() + "', '" + documentset.getRankingOrder()
+					+ "', ?, '" + documentset.getReRankingCombination() + "', ?);";
 
-		stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+				stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
-		if (documentset.getBibliometricId() == -1) {
-		    stmt.setNull(1, java.sql.Types.BIGINT);
-		} else
-		    stmt.setInt(1, documentset.getBibliometricId());
+				if (documentset.getBibliometricId() == -1) {
+					stmt.setNull(1, java.sql.Types.BIGINT);
+				} else
+					stmt.setInt(1, documentset.getBibliometricId());
 
-		if (documentset.isFallbackRanking()) {
-		    stmt.setString(2, "Y");
-		} else
-		    stmt.setString(2, "N");
+				if (documentset.isFallbackRanking()) {
+					stmt.setString(2, "Y");
+				} else
+					stmt.setString(2, "N");
 
-		stmt.executeUpdate();
+				stmt.executeUpdate();
 
-		// get the autogenerated key back
-		rs = stmt.getGeneratedKeys();
-		if (rs.next())
-		    rerankingBibliometricId = rs.getInt(1);
+				// get the autogenerated key back
+				rs = stmt.getGeneratedKeys();
+				if (rs.next())
+					rerankingBibliometricId = rs.getInt(1);
 
-	    } catch (Exception e) {
-		e.printStackTrace();
-		throw e;
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw e;
 
-	    } finally {
-		try {
-		    if (stmt != null)
-			stmt.close();
-		} catch (SQLException e) {
-		    throw e;
+			} finally {
+				try {
+					if (stmt != null)
+						stmt.close();
+				} catch (SQLException e) {
+					throw e;
+				}
+			}
 		}
-	    }
-	}
-	return rerankingBibliometricId;
+		return rerankingBibliometricId;
     }
 
     /**
      * please fill me
      */
     public void calculateSumOfAuthors() {
-	Statement stmt = null;
+		Statement stmt = null;
 
-	// TODO: make variables
-	String query = "insert INTO bibliometrics_documents (document_id, bibliometrics_id, value) select D.id, 4 , "
-	    + "sum(BP.value) as sumOfPvalue from document D JOIN xj_persons_documents PD ON PD.document_id = D.id "
-	    + "JOIN bibliometrics_persons BP ON BP.person_id = PD.person_id WHERE D.id > 1 AND D.id < 9505296 "
-	    + "GROUP BY D.id";
+		// TODO: make variables
+		String query = "insert INTO bibliometrics_documents (document_id, bibliometrics_id, value) select D.id, 4 , "
+			+ "sum(BP.value) as sumOfPvalue from document D JOIN xj_persons_documents PD ON PD.document_id = D.id "
+			+ "JOIN bibliometrics_persons BP ON BP.person_id = PD.person_id WHERE D.id > 1 AND D.id < 9505296 "
+			+ "GROUP BY D.id";
 
-	try {
+		try {
 
-	    stmt = con.createStatement();
-	    stmt.executeQuery(query);
+			stmt = con.createStatement();
+			stmt.executeQuery(query);
 
-	} catch (Exception e) {
-	    logger.debug("query failed", e);
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
+		} catch (Exception e) {
 			logger.debug("query failed", e);
-	    }
-	}
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				logger.debug("query failed", e);
+			}
+		}
 
     }
 
@@ -3873,33 +3885,33 @@ public class DBConnection {
      */
 
     public void writeBibliometricsInDatabase(String id, String metric, String dataType, int value, String dataSource) {
-	Statement stmt = null;
-	int bibId = -1;
+		Statement stmt = null;
+		int bibId = -1;
 
-	try {
-	    bibId = getBibId(metric, dataType, dataSource);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
-	// TODO: make variables
-	String query = "insert INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
-	    + ", bibliometrics_id, " + constants.getMetricValue() + ") VALUES (" + id + ", " + bibId + ", " + value
-	    + ")";
+		try {
+			bibId = getBibId(metric, dataType, dataSource);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// TODO: make variables
+		String query = "insert INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
+			+ ", bibliometrics_id, " + constants.getMetricValue() + ") VALUES (" + id + ", " + bibId + ", " + value
+			+ ")";
 
-	try {
-	    stmt = con.createStatement();
-	    stmt.executeUpdate(query);
+		try {
+			stmt = con.createStatement();
+			stmt.executeUpdate(query);
 
-	} catch (Exception e) {
-	    logger.debug("query failed", e);
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
+		} catch (Exception e) {
 			logger.debug("query failed", e);
-	    }
-	}
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				logger.debug("query failed", e);
+			}
+		}
 
     }
 
@@ -3913,71 +3925,71 @@ public class DBConnection {
      */
 
     public void writeBibliometricsInDatabase(String id, int bibId, double value) {
-	Statement stmt = null;
+		Statement stmt = null;
 
-	// TODO: make variables
-	String query = "insert INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
-	    + ", " + constants.getBibliometricIdInBibliometricDocument() + ", " + constants.getMetricValue()
-	    + ") VALUES (" + id + ", " + bibId + ", " + value + ")";
+		// TODO: make variables
+		String query = "insert INTO " + constants.getBibDocuments() + " (" + constants.getDocumentIdInBibliometricDoc()
+			+ ", " + constants.getBibliometricIdInBibliometricDocument() + ", " + constants.getMetricValue()
+			+ ") VALUES (" + id + ", " + bibId + ", " + value + ")";
 
-	try {
-	    stmt = con.createStatement();
-	    // logger.debug(query);
-	    stmt.executeUpdate(query);
+		try {
+			stmt = con.createStatement();
+			// logger.debug(query);
+			stmt.executeUpdate(query);
 
-	} catch (Exception e) {
-	    logger.debug(query);
-	    logger.debug("query failed", e);
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
+		} catch (Exception e) {
+			logger.debug(query);
 			logger.debug("query failed", e);
-	    }
-	}
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				logger.debug("query failed", e);
+			}
+		}
 
     }
 
     public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
-	Statement stmt = null;
-	ResultSet rs = null;
-	int metricValue = -1;
-	int bibDocId = -1;
-	DisplayDocument document = new DisplayDocument();
+		Statement stmt = null;
+		ResultSet rs = null;
+		int metricValue = -1;
+		int bibDocId = -1;
+		DisplayDocument document = new DisplayDocument();
 
-	// selection query
-	String query = "SELECT " + constants.getBibliometricDocumentsId() + ", " + constants.getMetricValue() + " FROM "
-	    + constants.getBibDocuments() + " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = '"
-	    + documentId + "' AND " + constants.getBibliometricIdInBibliometricDocument() + " = '" + bibliometricId
-	    + "';";
+		// selection query
+		String query = "SELECT " + constants.getBibliometricDocumentsId() + ", " + constants.getMetricValue() + " FROM "
+			+ constants.getBibDocuments() + " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = '"
+			+ documentId + "' AND " + constants.getBibliometricIdInBibliometricDocument() + " = '" + bibliometricId
+			+ "';";
 
-	try {
+		try {
 
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    // get the data from the result set
-	    if (rs.next()) {
-		metricValue = rs.getInt("value");
-		bibDocId = rs.getInt("bibliometric_document_id");
-	    }
+			// get the data from the result set
+			if (rs.next()) {
+				metricValue = rs.getInt("value");
+				bibDocId = rs.getInt("bibliometric_document_id");
+			}
 
-	    // add the data to the document
-	    document.setBibDocId(bibDocId);
-	    document.setBibScore(metricValue);
+			// add the data to the document
+			document.setBibDocId(bibDocId);
+			document.setBibScore(metricValue);
 
-	} catch (Exception e) {
-	    throw e;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		throw e;
-	    }
-	}
-	return document;
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+		return document;
     }
 
     /**
@@ -3988,43 +4000,43 @@ public class DBConnection {
      * @return
      */
     public List<DisplayDocument> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
-	List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
-	DisplayDocument document = new DisplayDocument();
-	Statement stmt = null;
-	ResultSet rs = null;
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
+		DisplayDocument document = new DisplayDocument();
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	try {
-	    stmt = con.createStatement();
+		try {
+			stmt = con.createStatement();
 
-	    // selection query
-	    String query = "select BD.value, D.title_clean from bibliometric_person BP "
-		+ "JOIN document_person PD ON PD.person_id = BP.person_id "
-		+ "JOIN bibliometric_document BD ON BD.document_id = PD.document_id "
-		+ "JOIN document D ON D.id = PD.document_id WHERE BD.bibliometrics_id=" + bibliometricId
-		+ " AND PD.document_id < 9505296 AND BP.person_id=" + authorId;
+			// selection query
+			String query = "select BD.value, D.title_clean from bibliometric_person BP "
+				+ "JOIN document_person PD ON PD.person_id = BP.person_id "
+				+ "JOIN bibliometric_document BD ON BD.document_id = PD.document_id "
+				+ "JOIN document D ON D.id = PD.document_id WHERE BD.bibliometrics_id=" + bibliometricId
+				+ " AND PD.document_id < 9505296 AND BP.person_id=" + authorId;
 
-	    rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery(query);
 
-	    // add the retrieved person to the list
-	    while (rs.next()) {
-		document = new DisplayDocument();
-		document.setCleanTitle(rs.getString(constants.getTitleClean()));
-		document.setBibScore(rs.getInt(constants.getMetricValue()));
-		documentList.add(document);
-	    }
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return documentList;
+			// add the retrieved person to the list
+			while (rs.next()) {
+				document = new DisplayDocument();
+				document.setCleanTitle(rs.getString(constants.getTitleClean()));
+				document.setBibScore(rs.getInt(constants.getMetricValue()));
+				documentList.add(document);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documentList;
     }
 
     /**
@@ -4034,32 +4046,32 @@ public class DBConnection {
      * @return
      */
     public long getNumberOfAbstractsInLanguage(String language) {
-	Statement stmt = null;
-	ResultSet rs = null;
-	String query = "SELECT COUNT(*) FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
-	    + "`='" + language + "'";
-	// logger.debug(query);
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "SELECT COUNT(*) FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
+			+ "`='" + language + "'";
+		// logger.debug(query);
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
-	    if (rs.next()) {
-		return rs.getInt(1);
-	    }
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
 
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return 0;
     }
 
     /**
@@ -4070,35 +4082,35 @@ public class DBConnection {
      * @return
      */
     public List<SimpleEntry<Long, Abstract>> fillAbstractsList(String language, long offset) {
-	Statement stmt = null;
-	ResultSet rs = null;
-	String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
-	    + "`='" + language + "' LIMIT " + offset + ",500";
-	// logger.debug(query);
-	List<SimpleEntry<Long, Abstract>> abstractList = new ArrayList<AbstractMap.SimpleEntry<Long, Abstract>>();
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
-	    while (rs.next()) {
-		abstractList
-		    .add(new AbstractMap.SimpleEntry<Long, Abstract>(rs.getLong(constants.getAbstractDocumentId()),
-								     new Abstract(rs.getString(constants.getAbstr()), language)));
-	    }
-	    return abstractList;
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	logger.debug("Didn't return normally");
-	return null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
+			+ "`='" + language + "' LIMIT " + offset + ",500";
+		// logger.debug(query);
+		List<SimpleEntry<Long, Abstract>> abstractList = new ArrayList<AbstractMap.SimpleEntry<Long, Abstract>>();
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				abstractList
+					.add(new AbstractMap.SimpleEntry<Long, Abstract>(rs.getLong(constants.getAbstractDocumentId()),
+																	 new Abstract(rs.getString(constants.getAbstr()), language)));
+			}
+			return abstractList;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		logger.debug("Didn't return normally");
+		return null;
     }
 
     /**
@@ -4113,33 +4125,33 @@ public class DBConnection {
      * @return
      */
     public int addTranslatedEntry(long documentId, String type, String text, String translationTool,
-				  String sourceLanguage, String targetLanguage) {
-	PreparedStatement stmt = null;
-	String query = "INSERT INTO " + "translated_document_fields"
-	    + "(document_id,field_type,translation_tool,source_language,target_language,text)" + " VALUES("
-	    + "?, ?, ?, ?, ?, ?)";
-	try {
-	    stmt = con.prepareStatement(query);
-	    stmt.setLong(1, documentId);
-	    stmt.setString(2, type);
-	    stmt.setString(3, translationTool);
-	    stmt.setString(4, sourceLanguage);
-	    stmt.setString(5, targetLanguage);
-	    stmt.setString(6, replaceHighComma(text).replaceAll("[^A-Za-z0-9 ]", ""));
-	    stmt.executeUpdate();
-	    return 1;
-	} catch (SQLException e) {
-	    logger.debug(stmt.toString());
-	    e.printStackTrace();
-	    return -1;
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
+								  String sourceLanguage, String targetLanguage) {
+		PreparedStatement stmt = null;
+		String query = "INSERT INTO " + "translated_document_fields"
+			+ "(document_id,field_type,translation_tool,source_language,target_language,text)" + " VALUES("
+			+ "?, ?, ?, ?, ?, ?)";
+		try {
+			stmt = con.prepareStatement(query);
+			stmt.setLong(1, documentId);
+			stmt.setString(2, type);
+			stmt.setString(3, translationTool);
+			stmt.setString(4, sourceLanguage);
+			stmt.setString(5, targetLanguage);
+			stmt.setString(6, replaceHighComma(text).replaceAll("[^A-Za-z0-9 ]", ""));
+			stmt.executeUpdate();
+			return 1;
+		} catch (SQLException e) {
+			logger.debug(stmt.toString());
+			e.printStackTrace();
+			return -1;
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
     }
 
     /**
@@ -4149,314 +4161,314 @@ public class DBConnection {
      * @return
      */
     public int addTranslatedAbstract(AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract) {
-	return addTranslatedEntry(translatedAbstract.getKey(), "abstract", translatedAbstract.getValue().getContent(),
-				  "joshua", "de", "en");
+		return addTranslatedEntry(translatedAbstract.getKey(), "abstract", translatedAbstract.getValue().getContent(),
+								  "joshua", "de", "en");
     }
 
     public List<DisplayDocument> getRankingValuesOfDocumentsOfSpecifiedAuthor(int personId, int bibliometricId) {
-	List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
-	DisplayDocument document;
-	Statement stmt = null;
-	ResultSet rs = null;
+		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
+		DisplayDocument document;
+		Statement stmt = null;
+		ResultSet rs = null;
 
-	// the query
-	String query = "SELECT " + constants.getMetricValue() + ", " + constants.getTitleClean() + " FROM "
-	    + constants.getDocPers() + " DP JOIN " + constants.getBibDocuments() + " BD ON DP."
-	    + constants.getDocumentIDInDocPers() + "= BD." + constants.getDocumentIdInBibliometricDoc() + " JOIN "
-	    + constants.getDocuments() + " D ON D." + constants.getDocumentId() + "= BD."
-	    + constants.getDocumentIdInBibliometricDoc() + " WHERE "
-	    + constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND "
-	    + constants.getPersonIDInDocPers() + " = " + personId + ";";
+		// the query
+		String query = "SELECT " + constants.getMetricValue() + ", " + constants.getTitleClean() + " FROM "
+			+ constants.getDocPers() + " DP JOIN " + constants.getBibDocuments() + " BD ON DP."
+			+ constants.getDocumentIDInDocPers() + "= BD." + constants.getDocumentIdInBibliometricDoc() + " JOIN "
+			+ constants.getDocuments() + " D ON D." + constants.getDocumentId() + "= BD."
+			+ constants.getDocumentIdInBibliometricDoc() + " WHERE "
+			+ constants.getBibliometricIdInBibliometricDocument() + " = " + bibliometricId + " AND "
+			+ constants.getPersonIDInDocPers() + " = " + personId + ";";
 
-	try {
-	    stmt = con.createStatement();
-	    rs = stmt.executeQuery(query);
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery(query);
 
-	    while (rs.next()) {
-		document = new DisplayDocument();
-		document.setCleanTitle(rs.getString(constants.getTitleClean()));
-		document.setBibScore(rs.getInt(constants.getMetricValue()));
-		documentList.add(document);
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-	    } catch (SQLException e) {
-		e.printStackTrace();
-	    }
-	}
-	return documentList;
+			while (rs.next()) {
+				document = new DisplayDocument();
+				document.setCleanTitle(rs.getString(constants.getTitleClean()));
+				document.setBibScore(rs.getInt(constants.getMetricValue()));
+				documentList.add(document);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return documentList;
     }
 
     public boolean updateStereotypes(ArrayList<SimpleEntry<String, String>> updates) {
 
-	PreparedStatement stmt = null;
-	String query = "INSERT INTO " + constants.getStereotypeRecommendations() + " ( "
-	    + constants.getDocumentIdinStereotypeRecommendations() + ", " + constants.getStereotypeCategory()
-	    + ") VALUES (?,?)";
-	try {
-	    stmt = con.prepareStatement(query);
-	    for (SimpleEntry<String, String> entry : updates) {
+		PreparedStatement stmt = null;
+		String query = "INSERT INTO " + constants.getStereotypeRecommendations() + " ( "
+			+ constants.getDocumentIdinStereotypeRecommendations() + ", " + constants.getStereotypeCategory()
+			+ ") VALUES (?,?)";
 		try {
-		    stmt.setInt(1, Integer.parseInt(entry.getKey()));
-		} catch (NumberFormatException f) {
-		    String documentId = getDocumentIdFromURL(entry.getKey());
-		    if (documentId.equals("No such document in database")) {
-			logger.debug("This URL has no assosciated document in our database:");
-			logger.debug(entry.getKey());
-			continue;
-		    }
-		    stmt.setInt(1, Integer.parseInt(documentId));
+			stmt = con.prepareStatement(query);
+			for (SimpleEntry<String, String> entry : updates) {
+				try {
+					stmt.setInt(1, Integer.parseInt(entry.getKey()));
+				} catch (NumberFormatException f) {
+					String documentId = getDocumentIdFromURL(entry.getKey());
+					if (documentId.equals("No such document in database")) {
+						logger.debug("This URL has no assosciated document in our database:");
+						logger.debug(entry.getKey());
+						continue;
+					}
+					stmt.setInt(1, Integer.parseInt(documentId));
+				}
+				stmt.setString(2, entry.getValue());
+				stmt.executeUpdate();
+			}
+		} catch (SQLException e) {
+			logger.debug(query);
+			e.printStackTrace();
+			return false;
 		}
-		stmt.setString(2, entry.getValue());
-		stmt.executeUpdate();
-	    }
-	} catch (SQLException e) {
-	    logger.debug(query);
-	    e.printStackTrace();
-	    return false;
-	}
 
-	return true;
+		return true;
     }
 
     private String getDocumentIdFromURL(String key) {
-	if (key.contains("sowiport")) {
-	    String[] parts = key.split("/");
-	    String originalId = parts[parts.length - 1];
-	    DisplayDocument document;
-	    try {
-		document = getDocumentBy("id_original", originalId);
-		return document.getDocumentId();
-	    } catch (Exception e) {
-		e.printStackTrace();
-	    }
+		if (key.contains("sowiport")) {
+			String[] parts = key.split("/");
+			String originalId = parts[parts.length - 1];
+			DisplayDocument document;
+			try {
+				document = getDocumentBy("id_original", originalId);
+				return document.getDocumentId();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
-	} else if (key.contains("core")) {
-	    String[] parts = key.split("/");
-	    String originalId = parts[parts.length - 1];
-	    DisplayDocument document;
-	    try {
-		document = getDocumentBy("id_original", "core-" + originalId);
-		return document.getDocumentId();
-	    } catch (Exception e) {
-		e.printStackTrace();
-	    }
-	}
-	return "No document in database";
+		} else if (key.contains("core")) {
+			String[] parts = key.split("/");
+			String originalId = parts[parts.length - 1];
+			DisplayDocument document;
+			try {
+				document = getDocumentBy("id_original", "core-" + originalId);
+				return document.getDocumentId();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return "No document in database";
     }
 
     public void logRecommendationSetReceivedAcknowledgement(String recommendationSetId, Long requestRecieved)
-	throws SQLException {
-	String query = "UPDATE " + constants.getRecommendationSets() + " SET "
-	    + constants.getRecommendationSetReceivedTime() + "=  IF( "
-	    + constants.getRecommendationSetReceivedTime() + " IS NULL, ?, "
-	    + constants.getRecommendationSetReceivedTime() + ") WHERE " + constants.getRecommendationSetsId()
-	    + "=?";
+		throws SQLException {
+		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
+			+ constants.getRecommendationSetReceivedTime() + "=  IF( "
+			+ constants.getRecommendationSetReceivedTime() + " IS NULL, ?, "
+			+ constants.getRecommendationSetReceivedTime() + ") WHERE " + constants.getRecommendationSetsId()
+			+ "=?";
 
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setTimestamp(1, new Timestamp(requestRecieved));
-	    stmt.setString(2, recommendationSetId);
-	    stmt.executeUpdate();
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	    throw e;
-	}
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setTimestamp(1, new Timestamp(requestRecieved));
+			stmt.setString(2, recommendationSetId);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw e;
+		}
     }
 
     public String getTitleStringId(DisplayDocument requestDocument) throws SQLException {
-	String titleStringId = "";
-	ResultSet rs = null;
+		String titleStringId = "";
+		ResultSet rs = null;
 
-	String query = "SELECT " + constants.getTitleSearchId() + " FROM " + constants.getDocumentTitleSearchTable()
-	    + " WHERE " + constants.getTitleSearchString() + "= ? AND " + constants.getOriginalSearchString()
-	    + "=?";
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setString(1, requestDocument.getCleanTitle());
-	    stmt.setString(2, requestDocument.getTitle());
-	    rs = stmt.executeQuery();
-	    if (rs.next()) {
-		titleStringId = rs.getString(constants.getTitleSearchId());
-	    } else {
-		if (stmt != null)
-		    stmt.close();
-		if (rs != null)
-		    rs.close();
-		query = "INSERT INTO " + constants.getDocumentTitleSearchTable() + "("
-		    + constants.getTitleSearchString() + "," + constants.getOriginalSearchString()
-		    + ") VALUES(	?,?)";
-		try (PreparedStatement stmtAlternate = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-		    stmtAlternate.setString(1, requestDocument.getCleanTitle());
-		    stmtAlternate.setString(2, requestDocument.getTitle());
-		    stmtAlternate.executeUpdate();
+		String query = "SELECT " + constants.getTitleSearchId() + " FROM " + constants.getDocumentTitleSearchTable()
+			+ " WHERE " + constants.getTitleSearchString() + "= ? AND " + constants.getOriginalSearchString()
+			+ "=?";
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, requestDocument.getCleanTitle());
+			stmt.setString(2, requestDocument.getTitle());
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				titleStringId = rs.getString(constants.getTitleSearchId());
+			} else {
+				if (stmt != null)
+					stmt.close();
+				if (rs != null)
+					rs.close();
+				query = "INSERT INTO " + constants.getDocumentTitleSearchTable() + "("
+					+ constants.getTitleSearchString() + "," + constants.getOriginalSearchString()
+					+ ") VALUES(	?,?)";
+				try (PreparedStatement stmtAlternate = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+					stmtAlternate.setString(1, requestDocument.getCleanTitle());
+					stmtAlternate.setString(2, requestDocument.getTitle());
+					stmtAlternate.executeUpdate();
 
-		    // get the autogenerated key back
-		    rs = stmtAlternate.getGeneratedKeys();
-		    if (rs.next())
-			titleStringId = rs.getString(1);
+					// get the autogenerated key back
+					rs = stmtAlternate.getGeneratedKeys();
+					if (rs.next())
+						titleStringId = rs.getString(1);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 		} catch (SQLException e) {
-		    e.printStackTrace();
+			e.printStackTrace();
+			throw e;
+		} finally {
+			if (rs != null)
+				rs.close();
 		}
-	    }
-	} catch (SQLException e) {
-	    e.printStackTrace();
-	    throw e;
-	} finally {
-	    if (rs != null)
-		rs.close();
-	}
-	return titleStringId;
+		return titleStringId;
     }
 
     public String getIdInApplications(String appName, String column) throws NoEntryException {
-	String query = "SELECT " + column + " FROM " + constants.getApplication() + " WHERE "
-	    + constants.getApplicationPublicName() + "=?";
+		String query = "SELECT " + column + " FROM " + constants.getApplication() + " WHERE "
+			+ constants.getApplicationPublicName() + "=?";
 
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setString(1, appName);
-	    ResultSet rs = stmt.executeQuery();
-	    if (rs.next()) {
-		return rs.getString(column);
-	    } else {
-		throw new NoEntryException(appName);
-	    }
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, appName);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(column);
+			} else {
+				throw new NoEntryException(appName);
+			}
 
-	} catch (SQLException e) {
-	    logger.debug("SQL Exception in getApplicationId");
-	    logger.debug("Query: " + query);
-	    logger.debug("Argument: " + appName);
-	    throw new NoEntryException(appName, "Application");
-	}
+		} catch (SQLException e) {
+			logger.debug("SQL Exception in getApplicationId");
+			logger.debug("Query: " + query);
+			logger.debug("Argument: " + appName);
+			throw new NoEntryException(appName, "Application");
+		}
     }
 
     public String getOrganizationId(String orgName) throws NoEntryException {
-	String query = "SELECT " + constants.getOrganizationId() + " FROM " + constants.getOrganization() + " WHERE "
-	    + constants.getOrganizationPublicName() + "=?";
+		String query = "SELECT " + constants.getOrganizationId() + " FROM " + constants.getOrganization() + " WHERE "
+			+ constants.getOrganizationPublicName() + "=?";
 
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setString(1, orgName);
-	    ResultSet rs = stmt.executeQuery();
-	    if (rs.next()) {
-		return rs.getString(constants.getOrganizationId());
-	    } else {
-		throw new NoEntryException(orgName);
-	    }
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, orgName);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(constants.getOrganizationId());
+			} else {
+				throw new NoEntryException(orgName);
+			}
 
-	} catch (SQLException e) {
-	    logger.debug("SQL Exception in getApplicationId");
-	    logger.debug("Query: " + query);
-	    logger.debug("Argument: " + orgName);
-	    throw new NoEntryException(orgName, "Organization");
-	}
+		} catch (SQLException e) {
+			logger.debug("SQL Exception in getApplicationId");
+			logger.debug("Query: " + query);
+			logger.debug("Argument: " + orgName);
+			throw new NoEntryException(orgName, "Organization");
+		}
     }
 
     public Boolean verifyLinkAppOrg(String applicationId, String organizationId) {
-	String query = "SELECT " + constants.getOrganizationInApplication() + " FROM " + constants.getApplication()
-	    + " WHERE " + constants.getApplicationId() + "=?";
+		String query = "SELECT " + constants.getOrganizationInApplication() + " FROM " + constants.getApplication()
+			+ " WHERE " + constants.getApplicationId() + "=?";
 
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setString(1, applicationId);
-	    ResultSet rs = stmt.executeQuery();
-	    if (rs.next()) {
-		return rs.getString(constants.getOrganizationInApplication()).equals(organizationId);
-	    } else {
-		throw new NoEntryException(applicationId, "Application");
-	    }
-	} catch (SQLException e) {
-	    logger.debug("SQL Exception in getApplicationId");
-	    logger.debug("Query: " + query);
-	    logger.debug("Argument: " + applicationId);
-	    throw new NoEntryException(applicationId, "Application");
-	}
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, applicationId);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getString(constants.getOrganizationInApplication()).equals(organizationId);
+			} else {
+				throw new NoEntryException(applicationId, "Application");
+			}
+		} catch (SQLException e) {
+			logger.debug("SQL Exception in getApplicationId");
+			logger.debug("Query: " + query);
+			logger.debug("Argument: " + applicationId);
+			throw new NoEntryException(applicationId, "Application");
+		}
     }
 
     public Boolean matchCollectionPattern(String inputQuery, String organizationId) {
-	String query = "";
-	if (organizationId == null || organizationId.equals("1")) {
-	    query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes();
-	} else {
-	    query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes() + " WHERE "
-		+ constants.getOrganizationIdInPartnerPrefixes() + " = ?";
-	}
-	List<String> prefixes = new ArrayList<String>();
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    if (organizationId != null && !organizationId.equals("1"))
-		stmt.setString(1, organizationId);
-	    ResultSet rs = stmt.executeQuery();
-	    while (rs.next()) {
-		prefixes.add(rs.getString(constants.getPrefix()));
-	    }
-	} catch (SQLException e) {
-	    if (constants.getDebugModeOn())
-		logger.debug("The query that broke the system is:" + query);
-	    return false;
-	}
-	Boolean match = false;
-	for (String prefix : prefixes) {
-	    if (inputQuery.startsWith(prefix + "-")) {
-		match = true;
-		break;
-	    }
-	}
-	return match;
+		String query = "";
+		if (organizationId == null || organizationId.equals("1")) {
+			query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes();
+		} else {
+			query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes() + " WHERE "
+				+ constants.getOrganizationIdInPartnerPrefixes() + " = ?";
+		}
+		List<String> prefixes = new ArrayList<String>();
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			if (organizationId != null && !organizationId.equals("1"))
+				stmt.setString(1, organizationId);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				prefixes.add(rs.getString(constants.getPrefix()));
+			}
+		} catch (SQLException e) {
+			if (constants.getDebugModeOn())
+				logger.debug("The query that broke the system is:" + query);
+			return false;
+		}
+		Boolean match = false;
+		for (String prefix : prefixes) {
+			if (inputQuery.startsWith(prefix + "-")) {
+				match = true;
+				break;
+			}
+		}
+		return match;
     }
 
     public List<String> getAccessableCollections(String accessingOrganization) {
-	List<String> allowedCollections = new ArrayList<String>();
-	if (accessingOrganization == null) {
-	    allowedCollections.add("2");
-	} else {
-	    String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
-		+ constants.getOrganizationInCollection() + " IN (SELECT " + constants.getAccessedOrganization()
-		+ " FROM " + constants.getAccessRightsTable() + " WHERE " + constants.getAccessingOrganization()
-		+ " = ?)";
-	    try (PreparedStatement stmt = con.prepareStatement(query)) {
-		stmt.setString(1, accessingOrganization);
-		ResultSet rs = stmt.executeQuery();
-		while (rs.next()) {
-		    allowedCollections.add(rs.getString(constants.getCollectionID()));
+		List<String> allowedCollections = new ArrayList<String>();
+		if (accessingOrganization == null) {
+			allowedCollections.add("2");
+		} else {
+			String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
+				+ constants.getOrganizationInCollection() + " IN (SELECT " + constants.getAccessedOrganization()
+				+ " FROM " + constants.getAccessRightsTable() + " WHERE " + constants.getAccessingOrganization()
+				+ " = ?)";
+			try (PreparedStatement stmt = con.prepareStatement(query)) {
+				stmt.setString(1, accessingOrganization);
+				ResultSet rs = stmt.executeQuery();
+				while (rs.next()) {
+					allowedCollections.add(rs.getString(constants.getCollectionID()));
+				}
+				if (allowedCollections.isEmpty())
+					allowedCollections.add("2");
+			} catch (SQLException e) {
+				logger.debug("Error in SQL query execution in getAccessableCollections method. Details:");
+				logger.debug(query + "\n " + "?=" + accessingOrganization);
+				allowedCollections = new ArrayList<String>();
+				allowedCollections.add("2");
+			}
 		}
-		if (allowedCollections.isEmpty())
-		    allowedCollections.add("2");
-	    } catch (SQLException e) {
-		logger.debug("Error in SQL query execution in getAccessableCollections method. Details:");
-		logger.debug(query + "\n " + "?=" + accessingOrganization);
-		allowedCollections = new ArrayList<String>();
-		allowedCollections.add("2");
-	    }
-	}
-	return allowedCollections;
+		return allowedCollections;
     }
 
     public String getApplicationId(String appName) {
-	return getIdInApplications(appName, constants.getApplicationId());
+		return getIdInApplications(appName, constants.getApplicationId());
     }
 
     public Pair<List<Long>, List<Boolean>> getDocumentSets(int startingSet, int numberOfSets) {
-	String query = "SELECT " + constants.getRecommendationSetsId() + ", AVG(" + constants.getRankDelivered() + "/"
-	    + constants.getRankAfterReRanking() + ")!=1 AS 'shuffled' FROM " + constants.getRecommendations()
-	    + " WHERE " + constants.getRecommendationSetsId() + " >= ? " + "GROUP BY "
-	    + constants.getRecommendationSetsId() + " LIMIT ?";
-	List<Long> recommendationSetIds = new ArrayList<Long>();
-	List<Boolean> shuffled = new ArrayList<Boolean>();
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setInt(1, startingSet);
-	    stmt.setInt(2, numberOfSets);
-	    ResultSet rs = stmt.executeQuery();
-	    while (rs.next()) {
-		recommendationSetIds.add(rs.getLong(constants.getRecommendationSetsId()));
-		shuffled.add(rs.getBoolean("shuffled"));
-	    }
+		String query = "SELECT " + constants.getRecommendationSetsId() + ", AVG(" + constants.getRankDelivered() + "/"
+			+ constants.getRankAfterReRanking() + ")!=1 AS 'shuffled' FROM " + constants.getRecommendations()
+			+ " WHERE " + constants.getRecommendationSetsId() + " >= ? " + "GROUP BY "
+			+ constants.getRecommendationSetsId() + " LIMIT ?";
+		List<Long> recommendationSetIds = new ArrayList<Long>();
+		List<Boolean> shuffled = new ArrayList<Boolean>();
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setInt(1, startingSet);
+			stmt.setInt(2, numberOfSets);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				recommendationSetIds.add(rs.getLong(constants.getRecommendationSetsId()));
+				shuffled.add(rs.getBoolean("shuffled"));
+			}
 
-	} catch (SQLException e) {
-	    System.out.printf(query + "    ? = %d , %d\n", startingSet, numberOfSets);
-	}
-	return new Pair<List<Long>, List<Boolean>>(recommendationSetIds, shuffled);
+		} catch (SQLException e) {
+			System.out.printf(query + "    ? = %d , %d\n", startingSet, numberOfSets);
+		}
+		return new Pair<List<Long>, List<Boolean>>(recommendationSetIds, shuffled);
     }
 
     /*public Boolean checkShuffled(Long id) {
@@ -4479,160 +4491,160 @@ public class DBConnection {
       }*/
 
     public List<Boolean> getShuffledFlagInDB(Long startingSet, Long endingSet) {
-	List<Boolean> shuffled = new ArrayList<Boolean>();
-	String query = "SELECT " + constants.getShuffled() + " FROM " + constants.getRecommendationAlgorithm()
-	    + " AS ra JOIN " + constants.getRecommendationSets() + " AS rs ON ra."
-	    + constants.getRecommendationAlgorithmId() + "= rs." + constants.getRecommendationAlgorithmId()
-	    + " RIGHT JOIN " + constants.getRecommendations() +" as r on r." 
-	    + constants.getRecommendationSetsId() + "=rs." + constants.getRecommendationSetsId()
-	    + " WHERE r." + constants.getRecommendationSetsId() + " BETWEEN ? AND ? GROUP BY r."
-	    + constants.getRecommendationSetsId() + " HAVING COUNT(r." + constants.getRecommendationId() + ")>0"; 
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setLong(1, startingSet);
-	    stmt.setLong(2, endingSet);
-	    ResultSet rs = stmt.executeQuery();
-	    while (rs.next()) {
-		shuffled.add(rs.getBoolean(constants.getShuffled()));
-	    }
+		List<Boolean> shuffled = new ArrayList<Boolean>();
+		String query = "SELECT " + constants.getShuffled() + " FROM " + constants.getRecommendationAlgorithm()
+			+ " AS ra JOIN " + constants.getRecommendationSets() + " AS rs ON ra."
+			+ constants.getRecommendationAlgorithmId() + "= rs." + constants.getRecommendationAlgorithmId()
+			+ " RIGHT JOIN " + constants.getRecommendations() +" as r on r." 
+			+ constants.getRecommendationSetsId() + "=rs." + constants.getRecommendationSetsId()
+			+ " WHERE r." + constants.getRecommendationSetsId() + " BETWEEN ? AND ? GROUP BY r."
+			+ constants.getRecommendationSetsId() + " HAVING COUNT(r." + constants.getRecommendationId() + ")>0"; 
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setLong(1, startingSet);
+			stmt.setLong(2, endingSet);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				shuffled.add(rs.getBoolean(constants.getShuffled()));
+			}
 
-	} catch (SQLException e) {
-	    System.out.printf(query + "    ? = %d , %d\n", startingSet, endingSet);
-	}
-	return shuffled;
+		} catch (SQLException e) {
+			System.out.printf(query + "    ? = %d , %d\n", startingSet, endingSet);
+		}
+		return shuffled;
 
     }
 
     public Long switchShuffledFlag(Long id) {
-	String query = "SELECT * FROM " + constants.getRecommendationAlgorithm() + " WHERE "
-	    + constants.getRecommendationAlgorithmId() + " IN (SELECT " + constants.getRecommendationAlgorithmId()
-	    + " FROM " + constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId()
-	    + " = ?)";
-	Boolean shuffled = null, reRanking = null;
-	String recommendationClass = null, langRestriction = null;
-	int desiredNumber = 0;
-	Long algorithmId = null, bibRerankingId = null;
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setLong(1, id);
-	    ResultSet rs = stmt.executeQuery();
-	    if (rs.next()) {
-		//logger.debug(id + " , " + rs.getString(1));
-		recommendationClass = rs.getString(constants.getRecommendationClass());
-		langRestriction = rs.getString(constants.getLanguageRestrictionInRecommenderAlgorithm());
-		shuffled = rs.getBoolean(constants.getShuffled());
-		reRanking = rs.getBoolean(constants.getBibReRankingApplied());
-		desiredNumber = rs.getInt(constants.getDesiredRecommendationsInRecommendationAlgorithms());
-		algorithmId = null;
+		String query = "SELECT * FROM " + constants.getRecommendationAlgorithm() + " WHERE "
+			+ constants.getRecommendationAlgorithmId() + " IN (SELECT " + constants.getRecommendationAlgorithmId()
+			+ " FROM " + constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId()
+			+ " = ?)";
+		Boolean shuffled = null, reRanking = null;
+		String recommendationClass = null, langRestriction = null;
+		int desiredNumber = 0;
+		Long algorithmId = null, bibRerankingId = null;
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setLong(1, id);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				//logger.debug(id + " , " + rs.getString(1));
+				recommendationClass = rs.getString(constants.getRecommendationClass());
+				langRestriction = rs.getString(constants.getLanguageRestrictionInRecommenderAlgorithm());
+				shuffled = rs.getBoolean(constants.getShuffled());
+				reRanking = rs.getBoolean(constants.getBibReRankingApplied());
+				desiredNumber = rs.getInt(constants.getDesiredRecommendationsInRecommendationAlgorithms());
+				algorithmId = null;
+				switch (recommendationClass) {
+				case "cbf": {
+					algorithmId = rs.getLong(constants.getCbfId());
+					break;
+				}
+				case "stereotype": {
+					algorithmId = rs.getLong(constants.getStereotypeRecommendationDetailsId());
+					break;
+				}
+
+				case "most_popular": {
+					algorithmId = rs.getLong(constants.getMostPopularRecommendationDetailsId());
+					break;
+				}
+				default:
+					break;
+				}
+				bibRerankingId = null;
+				if (reRanking)
+					bibRerankingId = rs.getLong("reranking_bibliometric_reranking_details");
+			}
+		} catch (SQLException e) {
+			logger.debug(query + " ? = " + Long.toString(id));
+			e.printStackTrace();
+			return (long) 0;
+		}
+
+		Boolean newShuffledStatus = !shuffled;
+		String selectQuery = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
+			+ constants.getRecommendationAlgorithm() + " WHERE ";
+		selectQuery += constants.getRecommendationClass() + "='" + recommendationClass + "' AND "
+			+ constants.getLanguageRestrictionInRecommenderAlgorithm() + "='" + langRestriction + "' AND "
+			+ constants.getShuffled() + "='" + (newShuffledStatus ? "Y" : "N") + "' AND "
+			+ constants.getBibReRankingApplied() + "=" + (reRanking ? "'Y'" : "'N'") + " AND "
+			+ constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
+			+ Integer.toString(desiredNumber) + "'";
+		if (reRanking) {
+			selectQuery += " AND reranking_bibliometric_reranking_details" + "=" + Long.toString(bibRerankingId);
+		}
 		switch (recommendationClass) {
 		case "cbf": {
-		    algorithmId = rs.getLong(constants.getCbfId());
-		    break;
+			selectQuery += " AND " + constants.getCbfId() + "=" + Long.toString(algorithmId);
+			break;
 		}
 		case "stereotype": {
-		    algorithmId = rs.getLong(constants.getStereotypeRecommendationDetailsId());
-		    break;
+			selectQuery += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
+				+ Long.toString(algorithmId);
+			break;
 		}
 
 		case "most_popular": {
-		    algorithmId = rs.getLong(constants.getMostPopularRecommendationDetailsId());
-		    break;
+			selectQuery += " AND " + constants.getMostPopularRecommendationDetailsId() + "="
+				+ Long.toString(algorithmId);
+			break;
 		}
-		default:
-		    break;
+
 		}
-		bibRerankingId = null;
-		if (reRanking)
-		    bibRerankingId = rs.getLong("reranking_bibliometric_reranking_details");
-	    }
-	} catch (SQLException e) {
-	    logger.debug(query + " ? = " + Long.toString(id));
-	    e.printStackTrace();
-	    return (long) 0;
-	}
+		try (PreparedStatement selectStmt = con.prepareStatement(selectQuery);
+			 ResultSet result = selectStmt.executeQuery();) {
 
-	Boolean newShuffledStatus = !shuffled;
-	String selectQuery = "SELECT " + constants.getRecommendationAlgorithmId() + " FROM "
-	    + constants.getRecommendationAlgorithm() + " WHERE ";
-	selectQuery += constants.getRecommendationClass() + "='" + recommendationClass + "' AND "
-	    + constants.getLanguageRestrictionInRecommenderAlgorithm() + "='" + langRestriction + "' AND "
-	    + constants.getShuffled() + "='" + (newShuffledStatus ? "Y" : "N") + "' AND "
-	    + constants.getBibReRankingApplied() + "=" + (reRanking ? "'Y'" : "'N'") + " AND "
-	    + constants.getDesiredRecommendationsInRecommendationAlgorithms() + " = '"
-	    + Integer.toString(desiredNumber) + "'";
-	if (reRanking) {
-	    selectQuery += " AND reranking_bibliometric_reranking_details" + "=" + Long.toString(bibRerankingId);
-	}
-	switch (recommendationClass) {
-	case "cbf": {
-	    selectQuery += " AND " + constants.getCbfId() + "=" + Long.toString(algorithmId);
-	    break;
-	}
-	case "stereotype": {
-	    selectQuery += " AND " + constants.getStereotypeRecommendationDetailsId() + "="
-		+ Long.toString(algorithmId);
-	    break;
-	}
-
-	case "most_popular": {
-	    selectQuery += " AND " + constants.getMostPopularRecommendationDetailsId() + "="
-		+ Long.toString(algorithmId);
-	    break;
-	}
-
-	}
-	try (PreparedStatement selectStmt = con.prepareStatement(selectQuery);
-	     ResultSet result = selectStmt.executeQuery();) {
-
-	    if (result.next()) {
-		return result.getLong(constants.getRecommendationAlgorithmId());
-	    }
-	} catch (SQLException e) {
-	    logger.debug(query);
-	    return (long) 0;
-	}
+			if (result.next()) {
+				return result.getLong(constants.getRecommendationAlgorithmId());
+			}
+		} catch (SQLException e) {
+			logger.debug(query);
+			return (long) 0;
+		}
 		
-	String insertQuery = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
-	String columns = "";
-	String values = "";
+		String insertQuery = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
+		String columns = "";
+		String values = "";
 
-	columns += constants.getRecommendationClass() + ", " + constants.getLanguageRestrictionInRecommenderAlgorithm()
-	    + ", " + constants.getBibReRankingApplied()
-	    + ((reRanking) ? (", " + "reranking_bibliometric_reranking_details") : "")
-	    + (recommendationClass.contains("random") ? ""
-	       : (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
-	    + ", " + constants.getShuffled() + ", "
-	    + constants.getDesiredRecommendationsInRecommendationAlgorithms();
-	values += "'" + recommendationClass + "', '" + langRestriction + "', " + (reRanking ? "'Y'" : "'N'")
-	    + (reRanking ? (", " + Long.toString(bibRerankingId)) : "")
-	    + (recommendationClass.contains("random") ? "" : (", " + Long.toString(algorithmId))) + ", "
-	    + (newShuffledStatus ? "'Y' " : "'N' ") + ", '" + desiredNumber + "'";
-	insertQuery += (columns + ") VALUES(" + values + ")");
-	try (PreparedStatement insertStmt = con.prepareStatement(insertQuery,
-								 PreparedStatement.RETURN_GENERATED_KEYS);) {
-	    insertStmt.executeUpdate();
-	    ResultSet insertResults = insertStmt.getGeneratedKeys();
-	    if (insertResults.next()) {
-		return insertResults.getLong(1);
-	    }
-	} catch (SQLException e) {
-	    logger.debug(insertQuery);
-	    e.printStackTrace();
-	}
-	return (long) -2;
+		columns += constants.getRecommendationClass() + ", " + constants.getLanguageRestrictionInRecommenderAlgorithm()
+			+ ", " + constants.getBibReRankingApplied()
+			+ ((reRanking) ? (", " + "reranking_bibliometric_reranking_details") : "")
+			+ (recommendationClass.contains("random") ? ""
+			   : (", " + "recommendation_algorithm__details_" + recommendationClass + "_id"))
+			+ ", " + constants.getShuffled() + ", "
+			+ constants.getDesiredRecommendationsInRecommendationAlgorithms();
+		values += "'" + recommendationClass + "', '" + langRestriction + "', " + (reRanking ? "'Y'" : "'N'")
+			+ (reRanking ? (", " + Long.toString(bibRerankingId)) : "")
+			+ (recommendationClass.contains("random") ? "" : (", " + Long.toString(algorithmId))) + ", "
+			+ (newShuffledStatus ? "'Y' " : "'N' ") + ", '" + desiredNumber + "'";
+		insertQuery += (columns + ") VALUES(" + values + ")");
+		try (PreparedStatement insertStmt = con.prepareStatement(insertQuery,
+																 PreparedStatement.RETURN_GENERATED_KEYS);) {
+			insertStmt.executeUpdate();
+			ResultSet insertResults = insertStmt.getGeneratedKeys();
+			if (insertResults.next()) {
+				return insertResults.getLong(1);
+			}
+		} catch (SQLException e) {
+			logger.debug(insertQuery);
+			e.printStackTrace();
+		}
+		return (long) -2;
     }
 
     public Pair<Long, Boolean> updateRecommendationAlgorithmIdInRecomemndationSet(Pair<Long, Long> fixedPair) {
-	String query = "UPDATE " + constants.getRecommendationSets() + " SET "
-	    + constants.getRecommendationAlgorithmId() + "=? WHERE " + constants.getRecommendationSetsId() + " =?";
-	try (PreparedStatement stmt = con.prepareStatement(query)) {
-	    stmt.setLong(1, fixedPair.getValue());
-	    stmt.setLong(2, fixedPair.getKey());
-	    stmt.executeUpdate();
-	} catch (SQLException e) {
-	    logger.debug(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
-	    return new Pair<Long, Boolean>(fixedPair.getKey(), false);
-	}
+		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
+			+ constants.getRecommendationAlgorithmId() + "=? WHERE " + constants.getRecommendationSetsId() + " =?";
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setLong(1, fixedPair.getValue());
+			stmt.setLong(2, fixedPair.getKey());
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.debug(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
+			return new Pair<Long, Boolean>(fixedPair.getKey(), false);
+		}
 
-	return new Pair<Long, Boolean>(fixedPair.getKey(), true);
+		return new Pair<Long, Boolean>(fixedPair.getKey(), true);
     }
 
 }

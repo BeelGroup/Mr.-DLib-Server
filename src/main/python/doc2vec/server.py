@@ -36,7 +36,7 @@ class Server:
         self.read_config()
 
         for language in Server.AUTO_LOAD:
-            self.load_model_task(language, DEFAULT_MODE)
+            self.load_model_task(language, Server.DEFAULT_MODE)
         
     def read_config(self, fname='config.properties'):
         ''' Read standard config file or file given by command line argument. Return as dictionary. Also parse other command line arguments.
@@ -67,7 +67,7 @@ class Server:
 
     def search(self, req, query):
         language = req.args.get('language', 'en')
-        mode = req.args.get('mode', DEFAULT_MODE)
+        mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if language not in Server.LANGUAGES:
             return Response('Language code not valid / supported', status=400, mimetype='text/plain')
@@ -88,7 +88,7 @@ class Server:
 
     def related(self, req, docId):
         language = req.args.get('language', 'en')
-        mode = req.args.get('mode', DEFAULT_MODE)
+        mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if language not in Server.LANGUAGES:
             return Response('Language code not valid / supported', status=400, mimetype='text/plain')
@@ -126,7 +126,7 @@ class Server:
         if 'mode' not in req.args:
             return Response('Mode parameter not provided.', status=400, mimetype='text/plain')
         language = req.args.get('language', 'en')
-        mode = req.args.get('mode', DEFAULT_MODE)
+        mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if mode not in Server.MODES:
             return Response('Mode not valid / supported', status=400, mimetype='text/plain')
@@ -138,7 +138,7 @@ class Server:
         return Response('Started training.', status=200, mimetype='text/plain')
 
     def load_model_task(self, language, mode):
-        logger.info(f"Starting loading model for {language} @ {datetime.datetime.now()}")
+        logger.info(f"Starting loading model for {language} / {mode} @ {datetime.datetime.now()}")
         model_id = f"{language}_{mode}"
         self.models[model_id] = Model.load(f"model_{model_id}")
         logger.info(f"Loaded model for {language} / {mode} @ {datetime.datetime.now()}")
@@ -151,7 +151,7 @@ class Server:
         if 'mode' not in req.args:
             return Response('Mode parameter not provided.', status=400, mimetype='text/plain')
         language = req.args.get('language', 'en')
-        mode = req.args.get('mode', DEFAULT_MODE)
+        mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if language not in Server.LANGUAGES:
             return Response('Language code not valid / supported', status=400, mimetype='text/plain')

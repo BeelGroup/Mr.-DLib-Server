@@ -17,7 +17,9 @@ public class Doc2VecRecommender extends RelatedDocuments {
     public Doc2VecRecommender(DBConnection con) {
         con = con;
 		constants = new Constants();
-        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "cbf", true, "abstract", "embedding", "50");
+        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "cbf", true, "abstract", "embedding", "0");
+		algorithmLoggingInfo.setDimensions("50");
+		algorithmLoggingInfo.setCorpusUsed("GloVe");
 		service = new WebServiceConnection(constants.getDoc2VecSearchRoute(), constants.getDoc2VecDocumentRoute(), con);
     }
 

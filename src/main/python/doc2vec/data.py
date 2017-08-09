@@ -4,6 +4,7 @@ from operator import itemgetter
 class DocumentReader:
     ''' Abstract class for accessing documents (titles, abstracts, combined) from MrDlib.
     '''
+    MODES = ['abstract', 'title']
 
     def __init__(self, mode, language):
         ''' Create a wrapper around DB Access / CSV Dumps / ... that returns text & ids, laoading them lazily.
@@ -13,8 +14,9 @@ class DocumentReader:
         mode - 'abstract' | 'title' | 'combined' : what data to load
         language - iso language code : restrict documents to this language
         '''
-        if mode != 'abstract':
+        if mode not in DocumentReader.MODES:
             raise NotImplementedError(f"Mode not implemented: {mode}")
+
         self.mode = mode
         self.language = language
         self.opened = False

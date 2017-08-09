@@ -5,7 +5,7 @@ class Model:
     LOCK_VECTORS = 0.0 # modify word embeddings or not
     WORKERS = 8
     EPOCHS = 20 
-    DIMENSIONS = 300 
+    DIMENSIONS = 50 
     NUM_TREES = 10 # for nearest neighbor approximation; TODO: test different tree sizes; benchmark
     INDEX = False 
     MIN_COUNT = 5

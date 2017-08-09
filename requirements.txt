@@ -1,6 +1,0 @@
-gensim # note: needed gfortran for that, blas-devel & atlas-devel (only libatlas-dev on debian)
-sqlalchemy
-pymysql
-werkzeug
-mod_wsgi # needed apache2-dev for that (for apxs)
-annoy
