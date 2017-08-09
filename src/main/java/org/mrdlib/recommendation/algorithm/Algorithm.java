@@ -8,5 +8,9 @@ public enum Algorithm {
 	FROM_SOLR_WITH_KEYPHRASES,
 	STEREOTYPE,
 	MOST_POPULAR,
-	DOC2VEC
+	DOC2VEC;
+
+	public static Algorithm parse(String name) throws IllegalArgumentException, NullPointerException {
+		return Algorithm.valueOf(name.toUpperCase());
+	}
 }

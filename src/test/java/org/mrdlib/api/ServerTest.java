@@ -67,6 +67,10 @@ public class ServerTest {
 			options.add(new Object[] { d, d.getOriginalDocumentId(), null });
 			options.add(new Object[] { d, d.getDocumentId(), null });
 			options.add(new Object[] { d, d.getTitle(), null });
+			// foo - invalid algorithm_name
+			options.add(new Object[] { d, d.getOriginalDocumentId(), "foo" });
+			options.add(new Object[] { d, d.getDocumentId(), "foo" });
+			options.add(new Object[] { d, d.getTitle(), "foo" });
 		}
 		con.close();
 		return options;
@@ -103,7 +107,7 @@ public class ServerTest {
 			.setPort(9000)
 			.setPath("/mdl-server/documents/" + query + "/related_documents");
 		if (algo != null)
-			url = url.addParameter("algorithm_id", algo.name());
+			url = url.addParameter("algorithm_name", algo.name());
 		HttpGet get = new HttpGet(url.build());
 		HttpResponse res = http.execute(get);
 		JAXBContext jaxbContext = JAXBContext.newInstance(RootElement.class);
@@ -138,7 +142,7 @@ public class ServerTest {
 
 	@Test
 	public void requestRecommendation() throws Exception {
-		logger.debug("Querying for {} with algorithm_id = {}", query, algorithm);
+		logger.debug("Querying for {} with algorithm_name = {}", query, algorithm);
 		
 		RootElement result = fetchRootElement(query,algorithm);
 		if (languageRestrictedAlgorithms.contains(algorithm) && doc.getLanguage() == null ||

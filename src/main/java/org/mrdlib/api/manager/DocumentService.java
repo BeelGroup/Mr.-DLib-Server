@@ -212,7 +212,7 @@ public class DocumentService {
 											 @QueryParam("app_id") String appName,
 											 @QueryParam("app_version") String appVersion,
 											 @QueryParam("app_lang") String appLang,
-											 @QueryParam("algorithm_id") String algorithmId) {
+											 @QueryParam("algorithm_name") String algorithmName) {
 		logger.info("started getRelatedDocumentSet with input: {}?{}", request.getRequestURL(), request.getQueryString());
 
 		String ipAddress = request.getHeader("X-FORWARDED-FOR");
@@ -287,54 +287,64 @@ public class DocumentService {
 			timeToUserModel = timeToPickAlgorithm;
 
 			try {
-				if (algorithmId == null || algorithmId.equals("")) {
+				if (algorithmName == null || algorithmName.equals("")) {
 					documentset = executeAlgorithmRandomly(requestDocument,requestByTitle, documentset);
 				} else {
-					Algorithm algo = Algorithm.valueOf(algorithmId);
+					Algorithm algo = Algorithm.parse(algorithmName);
 					documentset = executeAlgorithmById(algo,documentset,requestDocument);
 				}
+
+
+				logger.trace("Do the documentset stuff");
+				timeAfterExecution = System.currentTimeMillis();
+
+				if (documentset.getSize() > 0) {
+					documentset = ar.selectRandomRanking(documentset);
+					documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
+					documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
+					documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
+
+					documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
+					documentset.setRankDelivered();
+					documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
+				} else {
+					throw new NoRelatedDocumentsException(requestDocument.getDocumentId(),
+														requestDocument.getOriginalDocumentId());
+				}
+
 			} catch(IllegalArgumentException e) {
-				StatusReport status = new StatusReport(400, String.format("Invalid algorithm id specified: {}", algorithmId));
+				StatusReport status = new StatusReport(400, String.format("Invalid algorithm name specified: %s", algorithmName));
 				statusReportSet.addStatusReport(status);
+				rootElement.setDocumentSet(null);
+				rootElement.setStatusReportSet(statusReportSet);
+				return rootElement;
+			} catch(NoRelatedDocumentsException e) {
+				logger.info("{} returned no related documents for {}", algorithmName, inputQuery);
+				if (!requestByTitle) {
+
+					statusReportSet.addStatusReport(new StatusReport(204,
+																	"No related documents found for document id: " + requestDocument.getDocumentId()
+																	+ " (original document id : " + requestDocument.getOriginalDocumentId() + ")"));
+				} else {
+					statusReportSet.addStatusReport(new StatusReport(204, "Documents related to query by title ("
+																	+ requestDocument.getTitle() + " ) were not found"));
+				}
 			}
 
-
-			logger.trace("Do the documentset stuff");
-
-			timeAfterExecution = System.currentTimeMillis();
-
-			if (documentset.getSize() > 0) {
-				documentset = ar.selectRandomRanking(documentset);
-				documentset.setAfterAlgorithmExecutionTime(timeAfterExecution - timeToUserModel);
-				documentset.setAfterAlgorithmChoosingTime(timeToPickAlgorithm - requestRecieved);
-				documentset.setAfterUserModelTime(timeToUserModel - timeToPickAlgorithm);
-
-				documentset.setAfterRerankTime(System.currentTimeMillis() - timeAfterExecution);
-				documentset.setRankDelivered();
-				documentset.setNumberOfDisplayedRecommendations(documentset.getSize());
-			} else {
-				throw new NoRelatedDocumentsException(requestDocument.getDocumentId(),
-													  requestDocument.getOriginalDocumentId());
-			}
-
-		} catch(NoRelatedDocumentsException e) {
-			logger.info("{} returned no related documents for {}", algorithmId, inputQuery);
-			if (!requestByTitle) {
-
-				statusReportSet.addStatusReport(new StatusReport(204,
-																 "No related documents found for document id: " + requestDocument.getDocumentId()
-																 + " (original document id : " + requestDocument.getOriginalDocumentId() + ")"));
-			} else {
-				statusReportSet.addStatusReport(new StatusReport(204, "Documents related to query by title ("
-																 + requestDocument.getTitle() + " ) were not found"));
-			}
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
 			statusReportSet.addStatusReport(new StatusReport(404, "No such document with document id "
 															 + requestDocument.getDocumentId() + " exists in our database"));
+			rootElement.setDocumentSet(null);
+			rootElement.setStatusReportSet(statusReportSet);
+			return rootElement;
+
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 			logger.warn("Caught exception while handling {}", inputQuery, e);
+			rootElement.setDocumentSet(null);
+			rootElement.setStatusReportSet(statusReportSet);
+			return rootElement;
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)

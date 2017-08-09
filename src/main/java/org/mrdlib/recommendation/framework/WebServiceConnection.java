@@ -2,6 +2,7 @@ package org.mrdlib.recommendation.framework;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -69,16 +70,21 @@ public class WebServiceConnection {
 		HttpResponse res = http.execute(req);
 		int code = res.getStatusLine().getStatusCode();
 
-		if (code != 200)
+		if (code == 200) {
+			HttpEntity entity = res.getEntity();
+			List<WebServiceRecommendation> results;
+			if (parser == null)
+				results = Arrays.asList(json.deserialize(entity.getContent(), WebServiceRecommendation[].class));
+			else
+				results = parser.apply(entity.getContent());
+			return results;
+		} else if (code == 404) { // no data for this document
+			// empty result list - throw NoRelatedDocumentsException later
+			return new ArrayList<WebServiceRecommendation>(); 
+		} else {
 			throw new HttpException("Error while making request: HTTP Status " + code + ", caused by request " + req.toString());
+		}
 
-		HttpEntity entity = res.getEntity();
-		List<WebServiceRecommendation> results;
-		if (parser == null)
-			results = Arrays.asList(json.deserialize(entity.getContent(), WebServiceRecommendation[].class));
-		else
-			results = parser.apply(entity.getContent());
-		return results;
     }
 
     /**
