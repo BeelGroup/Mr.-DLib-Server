@@ -9,21 +9,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.net.SocketTimeoutException;
+import java.io.InputStream;
 
-import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.HttpException;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.client.utils.URIBuilder;
 
 import com.owlike.genson.Genson;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class CoreApi {
@@ -53,17 +56,18 @@ public class CoreApi {
 	private static final String endpoint = "https://core.ac.uk/api-v2/";
 	private static final String articleBatchPath = "articles/get";
 	private static final String articleSearchPath = "articles/search";
-	public static final int MAX_PAGE_SIZE = 100;
-	public static final int MAX_BATCH_SIZE = 90; // test fails for 100 for some reason
-	public static final int QUOTA_TIME_SEARCH = 10 * 1000;
-	public static final int QUOTA_TIME_GET = 10 * 1000;
+    public static final int MAX_PAGE_SIZE = 100;
+    public static final int MAX_BATCH_SIZE = 100; 
+    public static final int QUOTA_TIME_SEARCH = 10 * 1000;
+    public static final int QUOTA_TIME_GET = 10 * 1000;
 	public static final int TIMEOUT = 30*1000;
 	public static final int RETRIES = 5;
-	public static final int RETRY_WAIT = 10 * 1000;
+	public static final int RETRY_WAIT = 15 * 1000;
 
 
+	private Logger logger = LoggerFactory.getLogger(CoreApi.class);
 	private String apiKey;
-	private HttpClient http;
+	private CloseableHttpClient http;
 	private Genson json;
 	private RequestConfig config;
 
@@ -78,11 +82,11 @@ public class CoreApi {
 			.build();
 	}
 
-	private HttpEntity doRequest(String path, String body, RequestParams params) throws Exception {
+	private CloseableHttpResponse doRequest(String path, String body, RequestParams params) throws Exception {
 		return doRequest(path, body, params, 0);
 	}
 
-	private HttpEntity doRequest(String path, String body, RequestParams params, int retriesLeft) throws Exception {
+	private CloseableHttpResponse doRequest(String path, String body, RequestParams params, int retriesLeft) throws Exception {
 		URIBuilder url = new URIBuilder(endpoint + path);
 		// don't write when equal to default value
 		if (!params.metadata)
@@ -104,24 +108,28 @@ public class CoreApi {
 		HttpPost post = new HttpPost(url.toString());
 		post.setConfig(config);
 		post.setEntity(new StringEntity(body, "UTF-8"));
+		logger.trace("Requesting {} : {}", url.toString(), body);
+		CloseableHttpResponse res = null;
 		try {
-			HttpResponse res = http.execute(post);
+			res = http.execute(post);
 			int code = res.getStatusLine().getStatusCode();
 			if (code != 200)
 				throw new HttpException("Error while making request: HTTP Status " + code + ", caused by request " + post.toString());
 
-			HttpEntity entity = res.getEntity();
-	
-			return entity;
-		} catch (HttpException | SocketTimeoutException e) {
-			System.err.println("Something went wrong:");
-			e.printStackTrace();
-			System.out.println("Retrying...");
-			if (retriesLeft > 0) {
-				Thread.sleep(RETRY_WAIT);
-				return doRequest(path, body, params, retriesLeft - 1);
-			} else {
-				throw new HttpException("Error while making request: " + e.toString());
+			return res;
+		} catch (HttpException | SocketTimeoutException | ConnectionPoolTimeoutException e) {
+			try {
+				if (res != null) res.close();
+			} finally {
+				System.err.println("Something went wrong:");
+				e.printStackTrace();
+				System.out.println("Retrying...");
+				if (retriesLeft > 0) {
+					Thread.sleep(RETRY_WAIT);
+					return doRequest(path, body, params, retriesLeft - 1);
+				} else {
+					throw new HttpException("Error while making request: " + e.toString());
+				}
 			}
 		} 
 	}
@@ -146,9 +154,13 @@ public class CoreApi {
 			int to = (batch+1) * MAX_BATCH_SIZE;
 			List<Integer> batchIds = ids.subList(from, Math.min(ids.size(), to));
 
-			HttpEntity entity = doRequest(articleBatchPath, json.serialize(batchIds), params);
+			CloseableHttpResponse res = doRequest(articleBatchPath, json.serialize(batchIds), params);
+			InputStream content = res.getEntity().getContent();
 
-			ArticleResponse[] responses = json.deserialize(entity.getContent(), ArticleResponse[].class);
+			ArticleResponse[] responses = json.deserialize(content, ArticleResponse[].class);
+			logger.trace("Got {} responses to request.", responses.length);
+			content.close();
+			res.close();
 
 			for (ArticleResponse response : responses) {
 				String status = response.getStatus();
@@ -162,6 +174,7 @@ public class CoreApi {
 			}
 			Thread.sleep(QUOTA_TIME_GET);
 		}
+		logger.trace("Finished batch of size {}", articles.size());
 		return articles;
 	}
     
@@ -206,9 +219,12 @@ public class CoreApi {
 		} 
 
 		long startTime = System.currentTimeMillis();
-		HttpEntity entity = doRequest(articleSearchPath, json.serialize(queries), params);
+		CloseableHttpResponse res = doRequest(articleSearchPath, json.serialize(queries), params);
+		InputStream content = res.getEntity().getContent();
 
-		ArticleSearchResponse[] responses = json.deserialize(entity.getContent(), ArticleSearchResponse[].class);
+		ArticleSearchResponse[] responses = json.deserialize(content, ArticleSearchResponse[].class);
+		content.close();
+		res.close();
 
 		long totalHits = -1; // did we get all?
 
