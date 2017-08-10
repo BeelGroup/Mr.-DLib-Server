@@ -4,7 +4,7 @@ from operator import itemgetter
 class DocumentReader:
     ''' Abstract class for accessing documents (titles, abstracts, combined) from MrDlib.
     '''
-    MODES = ['abstract', 'title']
+    MODES = ['abstract', 'title', 'combined']
 
     def __init__(self, mode, language):
         ''' Create a wrapper around DB Access / CSV Dumps / ... that returns text & ids, laoading them lazily.
@@ -59,7 +59,7 @@ class DocumentReader:
 class DocumentDumpReader(DocumentReader):
     '''
     '''
-    MIN_TEXT_LENGTH=50
+    MIN_TEXT_LENGTH=20
 
     def __init__(self, mode, language, fname, config):
         super().__init__(mode, language)
@@ -98,6 +98,13 @@ class DocumentDumpReader(DocumentReader):
             get_document_id = itemgetter(int(self.config['titleDocumentIdColumnIndex']))
             get_text = itemgetter(int(self.config['titleTextColumnIndex']))
 
+        elif self.mode == 'combined':
+            get_language = itemgetter(int(self.config['combinedLanguageDetectedColumnIndex']))
+            get_document_id = itemgetter(int(self.config['combinedDocumentIdColumnIndex']))
+            get_title_text = itemgetter(int(self.config['combinedTitleColumnIndex']))
+            get_abstract_text = itemgetter(int(self.config['combinedAbstractColumnIndex']))
+            get_text = lambda row: get_title_text(row) + (get_abstract_text(row) or '')
+            
         else:
             raise NotImplementedError()
 

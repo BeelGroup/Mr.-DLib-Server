@@ -1,4 +1,4 @@
-from .data import DocumentDumpReader
+from .data import DocumentReader, DocumentDumpReader
 from .model import Model
 
 import threading
@@ -13,11 +13,12 @@ from werkzeug.routing import Map, Rule
 logger = logging.getLogger(__name__)
 
 class Server:
-    LIMIT=6
+    LIMIT=10
     LANGUAGES=['en', 'de']
-    AUTO_LOAD=['en']
-    MODES=['title', 'abstract']
+    AUTO_LOAD=[ ['en', 'abstract'], ['en', 'title'] ]
+    MODES=DocumentReader.MODES
     DEFAULT_MODE='abstract'
+    DEFAULT_LANGUAGE='en'
     def __init__(self):
         self.routes = Map([
             Rule('/search/<query>', endpoint='search'),
@@ -35,8 +36,8 @@ class Server:
         self.config = None
         self.read_config()
 
-        for language in Server.AUTO_LOAD:
-            self.load_model_task(language, Server.DEFAULT_MODE)
+        for language, mode in Server.AUTO_LOAD:
+            self.load_model_task(language, mode)
         
     def read_config(self, fname='config.properties'):
         ''' Read standard config file or file given by command line argument. Return as dictionary. Also parse other command line arguments.
@@ -66,7 +67,7 @@ class Server:
 
 
     def search(self, req, query):
-        language = req.args.get('language', 'en')
+        language = req.args.get('language', Server.DEFAULT_LANGUAGE)
         mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if language not in Server.LANGUAGES:
@@ -87,7 +88,7 @@ class Server:
 
 
     def related(self, req, docId):
-        language = req.args.get('language', 'en')
+        language = req.args.get('language', Server.DEFAULT_LANGUAGE)
         mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if language not in Server.LANGUAGES:
@@ -125,7 +126,7 @@ class Server:
             return Response('Language parameter not provided.', status=400, mimetype='text/plain')
         if 'mode' not in req.args:
             return Response('Mode parameter not provided.', status=400, mimetype='text/plain')
-        language = req.args.get('language', 'en')
+        language = req.args.get('language', Server.DEFAULT_LANGUAGE)
         mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if mode not in Server.MODES:
@@ -150,7 +151,7 @@ class Server:
 
         if 'mode' not in req.args:
             return Response('Mode parameter not provided.', status=400, mimetype='text/plain')
-        language = req.args.get('language', 'en')
+        language = req.args.get('language', Server.DEFAULT_LANGUAGE)
         mode = req.args.get('mode', Server.DEFAULT_MODE)
 
         if language not in Server.LANGUAGES:
