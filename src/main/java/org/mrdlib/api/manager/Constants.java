@@ -506,6 +506,8 @@ public class Constants {
 			this.keywords = prop.getProperty("keywords");
 			this.license = prop.getProperty("license");
 			this.fulltextFormat = prop.getProperty("fulltextFormat");
+			this.documentAdded = prop.getProperty("added");
+			this.documentDeleted = prop.getProperty("deleted");
 
 			this.accessingOrganization = prop.getProperty("accessingOrganization");
 			this.accessedOrganization = prop.getProperty("accessedOrganization");
@@ -609,6 +611,21 @@ public class Constants {
 			}
 		}
 	}
+
+	
+	private String documentAdded;
+
+	public String getAdded() {
+		return documentAdded;
+	}
+
+	
+	private String documentDeleted;
+
+	public String getDeleted() {
+		return documentAdded;
+	}
+
 
 	public String getCoreAPIKey() {
 		return coreAPIKey;

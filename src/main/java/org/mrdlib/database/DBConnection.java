@@ -1647,12 +1647,24 @@ public class DBConnection {
 	}
 
 	public List<DisplayDocument> getDocumentsByIdSchema(String idSchema, long start, long batchsize) throws Exception {
+		return getDocumentsByIdSchema(idSchema,start,batchsize,null);
+	}
+
+	public List<DisplayDocument> getDocumentsByIdSchemaMissingField(String idSchema, long start, long batchsize, String missing) throws Exception {
+		return getDocumentsByIdSchema(idSchema,start,batchsize, missing + " is null");
+	}
+
+
+	private List<DisplayDocument> getDocumentsByIdSchema(String idSchema, long start, long batchsize, String condition) throws Exception {
 
 		// get all information of a document stored in a database by the
 		// value of a custom column
-		String query = String.format(
-									 "SELECT * FROM %1$s WHERE %2$s LIKE ? AND %3$s >= ? AND %3$s < ? LIMIT ?",
-									 constants.getDocuments(), constants.getIdOriginal(), constants.getDocumentId());
+		String format = "SELECT * FROM %1$s WHERE %2$s LIKE ? AND %3$s >= ? AND %3$s < ?";
+		if (condition != null && !condition.equals(""))
+			format += " AND " + condition;
+		format += " LIMIT ?";
+
+		String query = String.format(format, constants.getDocuments(), constants.getIdOriginal(), constants.getDocumentId());
 		PreparedStatement stmt = con.prepareStatement(query);
 
 		stmt.setString(1, "%" + idSchema + "%");
