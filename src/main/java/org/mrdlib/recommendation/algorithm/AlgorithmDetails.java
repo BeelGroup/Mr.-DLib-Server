@@ -2,7 +2,7 @@ package org.mrdlib.recommendation.algorithm;
 
 import org.mrdlib.api.manager.UnknownException;
 
-public class AlgorithmDetails {
+public class AlgorithmDetails implements Cloneable {
 
 	private String name;
 	private String recommendationClass;
@@ -66,6 +66,30 @@ public class AlgorithmDetails {
 		this(name, recommendationClass, languageRestriction, cbfTextFields, cbfFeatureType, cbfFeatureCount);
 		this.setQueryParser(queryParser);
 	}
+
+	
+	private String dimensions;
+
+	public String getDimensions() {
+		return dimensions;
+	}
+
+	public void setDimensions(String dimensions) {
+		this.dimensions = dimensions;
+	}
+
+	
+	private String corpusUsed;
+
+	public String getCorpusUsed() {
+		return corpusUsed;
+	}
+
+	public void setCorpusUsed(String corpusUsed) {
+		this.corpusUsed = corpusUsed;
+	}
+
+
 
 	/**
 	 * @return the name
@@ -275,6 +299,10 @@ public class AlgorithmDetails {
 
 	public String getRecommendationProviderId() {
 		return recommendationProviderId;
+	}
+
+	public AlgorithmDetails clone() throws CloneNotSupportedException {
+		return (AlgorithmDetails) super.clone();
 	}
 
 }

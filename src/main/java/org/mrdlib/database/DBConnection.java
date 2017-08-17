@@ -21,10 +21,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.Random;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
@@ -42,9 +46,6 @@ import org.mrdlib.utils.Pair;
 
 import main.java.org.mrdlib.partnerContentManager.mediatum.MediaTUMXMLDocument;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  *
  * @author Millah
@@ -54,11 +55,11 @@ import org.slf4j.LoggerFactory;
  */
 public class DBConnection {
 
-	private Connection con = null;
-	private Constants constants = new Constants();
-	Context ctx = null;
-	// stores the length of the database fields to check for truncation error
-	private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
+    private Connection con = null;
+    private Constants constants = new Constants();
+    Context ctx = null;
+    // stores the length of the database fields to check for truncation error
+    private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
 
 	private Logger logger = LoggerFactory.getLogger(DBConnection.class);
 
@@ -86,7 +87,7 @@ public class DBConnection {
 			fillMap(rs2);
 			// rs3 = stmt.executeQuery("SHOW VARIABLES LIKE '%collation%'");
 			// while (rs3.next())
-			// System.out.println(rs3.getString("Variable_name") + " : " +
+			// logger.debug(rs3.getString("Variable_name") + " : " +
 			// rs3.getString("Value"));
 			// rs3 = stmt.executeQuery("SHOW COLUMNS FROM " +
 			// constants.getPersons());
@@ -108,20 +109,20 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	public Connection getConnection() {
+    public Connection getConnection() {
 		return con;
-	}
+    }
 
-	/**
-	 * stores the lengths of the database field in the length map
-	 *
-	 * @param ResultSet
-	 *            of a query which asked for column information of the database
-	 * @throws SQLException
-	 */
-	private void fillMap(ResultSet rs) throws SQLException {
+    /**
+     * stores the lengths of the database field in the length map
+     * 
+     * @param ResultSet
+     *            of a query which asked for column information of the database
+     * @throws SQLException
+     */
+    private void fillMap(ResultSet rs) throws SQLException {
 		String result = "";
 		try {
 			while (rs.next()) {
@@ -135,71 +136,71 @@ public class DBConnection {
 		} catch (SQLException e) {
 			throw e;
 		}
-	}
+    }
 
-	/**
-	 * close connection
-	 */
-	@Override
-	protected void finalize() throws Throwable {
+    /**
+     * close connection
+     */
+    @Override
+    protected void finalize() throws Throwable {
 		con.close();
 		super.finalize();
-	}
+    }
 
-	public void close() throws SQLException {
+    public void close() throws SQLException {
 		con.close();
-	}
+    }
 
-	/**
-	 * creates connection from Connection Pool (configured in the tomcat config
-	 * files)
-	 *
-	 * @throws Exception
-	 */
-	public Connection createConnectionTomcat() throws Exception {
+    /**
+     * creates connection from Connection Pool (configured in the tomcat config
+     * files)
+     * 
+     * @throws Exception
+     */
+    public Connection createConnectionTomcat() throws Exception {
 		try {
 			Context initContext = new InitialContext();
 			Context envContext = (Context) initContext.lookup("java:comp/env");
 			DataSource ds = (DataSource) envContext.lookup("jdbc/" + constants.getDb());
 			con = ds.getConnection();
 		} catch (Exception e) {
-			System.out.println("Exception in Database connection via tomcat");
+			logger.debug("Exception in Database connection via tomcat");
 			if (con == null)
-				System.out.println("No connection");
+				logger.debug("No connection");
 			e.printStackTrace();
 			throw e;
 		}
 		return con;
-	}
+    }
 
-	/**
-	 * creates connection to database if no pool is needed
-	 *
-	 * @throws Exception
-	 */
-	public Connection createConnectionJar() throws Exception {
+    /**
+     * creates connection to database if no pool is needed
+     * 
+     * @throws Exception
+     */
+    public Connection createConnectionJar() throws Exception {
 		try {
 			Class.forName(constants.getDbClass());
 			con = DriverManager.getConnection(constants.getUrl() + constants.getDb(), constants.getUser(),
 											  constants.getPassword());
 		} catch (Exception e) {
-			System.out.println("Exception in Database connection via jar");
+			logger.debug("Exception in Database connection via jar");
 			e.printStackTrace();
 		}
 		return con;
-	}
+    }
 
-	/**
-	 * Please fill me!
-	 *
-	 * @param metric
-	 * @param dataType
-	 * @param dataSource
-	 * @return
-	 * @throws Exception
-	 */
+    /**
+     * Please fill me!
+     * 
+     * @param metric
+     * @param dataType
+     * @param dataSource
+     * @return
+     * @throws Exception
+     */
 
-	public int getBibId(String metric, String dataType, String dataSource) throws Exception {
+    public int getBibId(String metric, String dataType, String dataSource) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int bibId = -1;
@@ -230,25 +231,25 @@ public class DBConnection {
 			}
 		}
 		return bibId;
-	}
+    }
 
-	/**
-	 *
-	 * write the author Bibliometric in the database
-	 *
-	 * @param int,
-	 *            id of the author
-	 * @param String,
-	 *            metric (eg "simple_count")
-	 * @param String,
-	 *            data_type (eg "readership")
-	 * @param String,
-	 *            datasource (eg "mendeley")
-	 * @param double,
-	 *            value of the bibliometric
-	 * @throws Exception
-	 */
-	public void writeAuthorBibliometricsInDatabase(int id, String metric, String dataType, String dataSource,
+    /**
+     * 
+     * write the author Bibliometric in the database
+     * 
+     * @param int,
+     *            id of the author
+     * @param String,
+     *            metric (eg "simple_count")
+     * @param String,
+     *            data_type (eg "readership")
+     * @param String,
+     *            datasource (eg "mendeley")
+     * @param double,
+     *            value of the bibliometric
+     * @throws Exception
+     */
+    public void writeAuthorBibliometricsInDatabase(int id, String metric, String dataType, String dataSource,
 												   double value) {
 		PreparedStatement stmt = null;
 		String query = "";
@@ -261,7 +262,7 @@ public class DBConnection {
 		}
 
 		if (bibId == -1)
-			System.out.println("new Combination: " + metric + ", " + dataType + ", " + dataSource);
+			logger.debug("new Combination: " + metric + ", " + dataType + ", " + dataSource);
 
 		try {
 			// insertion query
@@ -282,21 +283,21 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-	}
+    }
 
-	/**
-	 *
-	 * write the author Bibliometric in the database
-	 *
-	 * @param int,
-	 *            id of the author
-	 * @param bibId,
-	 *            bibliometric id
-	 * @param double,
-	 *            value of the bibliometric
-	 * @throws Exception
-	 */
-	public void writeAuthorBibliometricsInDatabase(int id, int bibId, double value) {
+    /**
+     * 
+     * write the author Bibliometric in the database
+     * 
+     * @param int,
+     *            id of the author
+     * @param bibId,
+     *            bibliometric id
+     * @param double,
+     *            value of the bibliometric
+     * @throws Exception
+     */
+    public void writeAuthorBibliometricsInDatabase(int id, int bibId, double value) {
 		PreparedStatement stmt = null;
 		String query = "";
 
@@ -319,17 +320,17 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-	}
+    }
 
-	/**
-	 *
-	 * get the related information to a personId out of the database.
-	 *
-	 * @param authorID
-	 * @return complete Author
-	 * @throws Exception
-	 */
-	public Person getPersonById(Long authorID) throws Exception {
+    /**
+     * 
+     * get the related information to a personId out of the database.
+     * 
+     * @param authorID
+     * @return complete Author
+     * @throws Exception
+     */
+    public Person getPersonById(Long authorID) throws Exception {
 		Person person = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -362,15 +363,15 @@ public class DBConnection {
 			}
 		}
 		return person;
-	}
+    }
 
-	/**
-	 * escapes high comma in a text to make it processable in a MySQL query
-	 *
-	 * @param text
-	 * @return escaped text
-	 */
-	public String replaceHighComma(String text) {
+    /**
+     * escapes high comma in a text to make it processable in a MySQL query
+     * 
+     * @param text
+     * @return escaped text
+     */
+    public String replaceHighComma(String text) {
 		if (text != null)
 			if (text.contains("'"))
 				return text.replace("'", "''");
@@ -378,23 +379,23 @@ public class DBConnection {
 				return text;
 		else
 			return null;
-	}
+    }
 
-	/**
-	 * stores a author in a database if he is not already present and gives back
-	 * the auto generated id of him. If he exists (which means there is another
-	 * person with exactly the same name), the id of this already present person
-	 * is given back
-	 *
-	 * @param document,
-	 *            the related document which is currently processed to trace
-	 *            error back
-	 * @param author,
-	 *            the author who has to be inserted
-	 * @return the id the (inserted or retrieved) author
-	 * @throws SQLException
-	 */
-	public Long addPersonToDbIfNotExists(XMLDocument document, Person author) throws SQLException {
+    /**
+     * stores a author in a database if he is not already present and gives back
+     * the auto generated id of him. If he exists (which means there is another
+     * person with exactly the same name), the id of this already present person
+     * is given back
+     * 
+     * @param document,
+     *            the related document which is currently processed to trace
+     *            error back
+     * @param author,
+     *            the author who has to be inserted
+     * @return the id the (inserted or retrieved) author
+     * @throws SQLException
+     */
+    public Long addPersonToDbIfNotExists(XMLDocument document, Person author) throws SQLException {
 		PreparedStatement stateAuthorExists = null;
 		PreparedStatement stateInsertAuthor = null;
 		ResultSet rs = null;
@@ -468,7 +469,7 @@ public class DBConnection {
 						authorKey = rs2.getLong(1);
 
 				} catch (SQLException e) {
-					System.out.println(document.getDocumentPath() + ": " + document.getId());
+					logger.debug(document.getDocumentPath() + ": " + document.getId());
 					throw e;
 				} finally {
 					rs.close();
@@ -479,10 +480,10 @@ public class DBConnection {
 				// get the key of the already present author
 				authorKey = (long) rs.getInt(constants.getPersonID());
 		} catch (SQLException sqle) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw sqle;
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw e;
 		} finally {
 			try {
@@ -494,23 +495,23 @@ public class DBConnection {
 			}
 		}
 		return authorKey;
-	}
+    }
 
-	/**
-	 * stores a author in a database if he is not already present and gives back
-	 * the auto generated id of him. If he exists (which means there is another
-	 * person with exactly the same name), the id of this already present person
-	 * is given back
-	 *
-	 * @param JSON
-	 *            document, the related document which is currently processed to
-	 *            trace error back
-	 * @param author,
-	 *            the author who has to be inserted
-	 * @return the id the (inserted or retrieved) author
-	 * @throws SQLException
-	 */
-	public Long addPersonToDbIfNotExists(JSONDocument document, Person author) throws SQLException {
+    /**
+     * stores a author in a database if he is not already present and gives back
+     * the auto generated id of him. If he exists (which means there is another
+     * person with exactly the same name), the id of this already present person
+     * is given back
+     * 
+     * @param JSON
+     *            document, the related document which is currently processed to
+     *            trace error back
+     * @param author,
+     *            the author who has to be inserted
+     * @return the id the (inserted or retrieved) author
+     * @throws SQLException
+     */
+    public Long addPersonToDbIfNotExists(JSONDocument document, Person author) throws SQLException {
 		PreparedStatement stateAuthorExists = null;
 		PreparedStatement stateInsertAuthor = null;
 		ResultSet rs = null;
@@ -584,8 +585,8 @@ public class DBConnection {
 						authorKey = rs2.getLong(1);
 
 				} catch (SQLException e) {
-					System.out.println(
-									   document.getDocumentPath() + ": " + document.getIdentifier() + "SetIfNulladdPersonToDB");
+					logger.debug(
+								 document.getDocumentPath() + ": " + document.getIdentifier() + "SetIfNulladdPersonToDB");
 					e.printStackTrace();
 					throw e;
 				} finally {
@@ -597,10 +598,10 @@ public class DBConnection {
 				// get the key of the already present author
 				authorKey = (long) rs.getInt(constants.getPersonID());
 		} catch (SQLException sqle) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB1");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB1");
 			throw sqle;
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB2");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB2");
 			e.printStackTrace();
 			throw e;
 		} finally {
@@ -613,22 +614,22 @@ public class DBConnection {
 			}
 		}
 		return authorKey;
-	}
+    }
 
-	/**
-	 *
-	 * This method inserts the person - document relation to the database
-	 *
-	 * @param document
-	 *            for trace back the error
-	 * @param documentId
-	 * @param authorId
-	 * @param rank,
-	 *            location of the naming of the author of the respective
-	 *            document
-	 * @throws Exception
-	 */
-	public void addPersonDocumentRelation(XMLDocument document, Long documentId, Long authorId, int rank)
+    /**
+     * 
+     * This method inserts the person - document relation to the database
+     * 
+     * @param document
+     *            for trace back the error
+     * @param documentId
+     * @param authorId
+     * @param rank,
+     *            location of the naming of the author of the respective
+     *            document
+     * @throws Exception
+     */
+    public void addPersonDocumentRelation(XMLDocument document, Long documentId, Long authorId, int rank)
 		throws Exception {
 		Statement stmt = null;
 		try {
@@ -641,7 +642,7 @@ public class DBConnection {
 
 			stmt.executeUpdate(query);
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw e;
 		} finally {
 			try {
@@ -651,22 +652,22 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 *
-	 * This method inserts the person - document relation to the database
-	 *
-	 * @param JSON
-	 *            document for trace back the error
-	 * @param documentId
-	 * @param authorId
-	 * @param rank,
-	 *            location of the naming of the author of the respective
-	 *            document
-	 * @throws Exception
-	 */
-	public void addPersonDocumentRelation(JSONDocument document, Long documentId, Long authorId, int rank)
+    /**
+     * 
+     * This method inserts the person - document relation to the database
+     * 
+     * @param JSON
+     *            document for trace back the error
+     * @param documentId
+     * @param authorId
+     * @param rank,
+     *            location of the naming of the author of the respective
+     *            document
+     * @throws Exception
+     */
+    public void addPersonDocumentRelation(JSONDocument document, Long documentId, Long authorId, int rank)
 		throws Exception {
 		Statement stmt = null;
 		try {
@@ -679,7 +680,7 @@ public class DBConnection {
 
 			stmt.executeUpdate(query);
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonDocRel");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonDocRel");
 			throw e;
 		} finally {
 			try {
@@ -689,19 +690,19 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 * get the Id of a collection by searching for its SHORT name
-	 *
-	 * @param document,
-	 *            for error backtracing
-	 * @param collectionName
-	 *            the short name of the collection
-	 * @return the id of the collection
-	 * @throws SQLException
-	 */
-	public Long getCollectionIDByName(XMLDocument document, String collectionName) throws SQLException {
+    /**
+     * get the Id of a collection by searching for its SHORT name
+     * 
+     * @param document,
+     *            for error backtracing
+     * @param collectionName
+     *            the short name of the collection
+     * @return the id of the collection
+     * @throws SQLException
+     */
+    public Long getCollectionIDByName(XMLDocument document, String collectionName) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		Long id = null;
@@ -718,7 +719,7 @@ public class DBConnection {
 			if (rs.next())
 				id = rs.getLong(constants.getCollectionID());
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw e;
 		} finally {
 			try {
@@ -731,28 +732,28 @@ public class DBConnection {
 			}
 		}
 		return id;
-	}
+    }
 
-	/**
-	 * this method prepares parts of a given prepared statement to handle null
-	 * values and high commata
-	 *
-	 * @param document,
-	 *            for error backtracing
-	 * @param stmt,
-	 *            the statement which is editet
-	 * @param value,
-	 *            the value which has to be inserted
-	 * @param index,
-	 *            the index of the related ? marker (where to insert)
-	 * @param type,
-	 *            the corresponding type of the inserted value
-	 * @param columnName,
-	 *            the column name of the value
-	 * @return
-	 * @throws SQLException
-	 */
-	public <T> PreparedStatement SetIfNull(XMLDocument document, PreparedStatement stmt, T value, int index,
+    /**
+     * this method prepares parts of a given prepared statement to handle null
+     * values and high commata
+     * 
+     * @param document,
+     *            for error backtracing
+     * @param stmt,
+     *            the statement which is editet
+     * @param value,
+     *            the value which has to be inserted
+     * @param index,
+     *            the index of the related ? marker (where to insert)
+     * @param type,
+     *            the corresponding type of the inserted value
+     * @param columnName,
+     *            the column name of the value
+     * @return
+     * @throws SQLException
+     */
+    public <T> PreparedStatement SetIfNull(XMLDocument document, PreparedStatement stmt, T value, int index,
 										   String type, String columnName) throws SQLException {
 
 		try {
@@ -760,15 +761,12 @@ public class DBConnection {
 				// replace high commata
 				String valueString = replaceHighComma((String) value);
 				// ignore values which have no specific length
-				if (!columnName.equals(constants.getType())
-					&& !columnName.equals(constants.getLicense())
-					&& !columnName.equals(constants.getFulltextFormat())
-					&& !columnName.equals(constants.getUnstructured())
-					&& !columnName.equals(constants.getAbstr())) {
+				if (!(columnName.equals(constants.getType()) || columnName.equals(constants.getUnstructured())
+					  || columnName.equals(constants.getAbstr()))) {
 					// check for truncation error
 					if (valueString.length() > lengthMap.get(columnName))
-						System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
-										   + columnName + " because too long!");
+						logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
+									 + columnName + " because too long!");
 				}
 				value = (T) valueString;
 			}
@@ -793,32 +791,32 @@ public class DBConnection {
 				stmt.setObject(index, value);
 
 		} catch (SQLException e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw e;
 		}
 		return stmt;
-	}
+    }
 
-	/**
-	 * this method prepares parts of a given prepared statement to handle null
-	 * values and high comma
-	 *
-	 * @param JSON
-	 *            document, for error backtracing
-	 * @param stmt,
-	 *            the statement which is editet
-	 * @param value,
-	 *            the value which has to be inserted
-	 * @param index,
-	 *            the index of the related ? marker (where to insert)
-	 * @param type,
-	 *            the corresponding type of the inserted value
-	 * @param columnName,
-	 *            the column name of the value
-	 * @return
-	 * @throws SQLException
-	 */
-	public <T> PreparedStatement SetIfNull(JSONDocument document, PreparedStatement stmt, T value, int index,
+    /**
+     * this method prepares parts of a given prepared statement to handle null
+     * values and high comma
+     * 
+     * @param JSON
+     *            document, for error backtracing
+     * @param stmt,
+     *            the statement which is editet
+     * @param value,
+     *            the value which has to be inserted
+     * @param index,
+     *            the index of the related ? marker (where to insert)
+     * @param type,
+     *            the corresponding type of the inserted value
+     * @param columnName,
+     *            the column name of the value
+     * @return
+     * @throws SQLException
+     */
+    public <T> PreparedStatement SetIfNull(JSONDocument document, PreparedStatement stmt, T value, int index,
 										   String type, String columnName) throws SQLException {
 
 		try {
@@ -830,8 +828,8 @@ public class DBConnection {
 					  || columnName.equals(constants.getAbstr()))) {
 					// check for truncation error
 					if (valueString.length() > lengthMap.get(columnName))
-						System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
-										   + columnName + " because too long!");
+						logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
+									 + columnName + " because too long!");
 				}
 				value = (T) valueString;
 			}
@@ -857,22 +855,22 @@ public class DBConnection {
 				stmt.setObject(index, value);
 
 		} catch (SQLException e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + " SetIfNullMethod");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + " SetIfNullMethod");
 			throw e;
 		}
 		return stmt;
-	}
+    }
 
-	/**
-	 * insert a XMLDocument to the database with all the related information
-	 * (like authors and so on) if it not already exists (based on the original
-	 * id of the cooperation partner)
-	 *
-	 * @param document,
-	 *            the parsed XMLDocument
-	 * @throws Exception
-	 */
-	public void insertDocument(XMLDocument document) throws Exception {
+    /**
+     * insert a XMLDocument to the database with all the related information
+     * (like authors and so on) if it not already exists (based on the original
+     * id of the cooperation partner)
+     * 
+     * @param document,
+     *            the parsed XMLDocument
+     * @throws Exception
+     */
+    public void insertDocument(XMLDocument document) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		PreparedStatement stateQueryDoc = null;
@@ -880,7 +878,7 @@ public class DBConnection {
 		LinkedHashSet<Person> authors = document.getAuthors();
 		Long[] authorKey = new Long[authors.size()];
 		// if (document.getAuthors().size() == 0)
-		// System.out.println(document.getDocumentPath() + ": " +
+		// logger.debug(document.getDocumentPath() + ": " +
 		// document.getId() + ": No Authors!");
 
 		// query to check if document already exists
@@ -891,11 +889,11 @@ public class DBConnection {
 			rs = stmt.executeQuery(docExists);
 			// if there is a document with the same original id
 			if (rs.next()) {
-				System.out.println(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
+				logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
 				return;
 			}
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw e;
 		} finally {
 			try {
@@ -904,7 +902,7 @@ public class DBConnection {
 				if (rs != null)
 					rs.close();
 			} catch (SQLException e) {
-				System.out.println(document.getDocumentPath() + ": " + document.getId());
+				logger.debug(document.getDocumentPath() + ": " + document.getId());
 				throw e;
 			}
 		}
@@ -952,7 +950,7 @@ public class DBConnection {
 				if (generatedKeys.next()) {
 					docKey = generatedKeys.getLong(1);
 				} else {
-					System.out.println(document.getDocumentPath() + ": " + document.getId());
+					logger.debug(document.getDocumentPath() + ": " + document.getId());
 					throw new SQLException("Creating document failed, no ID obtained.");
 				}
 			}
@@ -969,20 +967,20 @@ public class DBConnection {
 			}
 
 		} catch (SQLException sqle) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw sqle;
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getId());
+			logger.debug(document.getDocumentPath() + ": " + document.getId());
 			throw e;
 		} finally {
 			try {
 				stateQueryDoc.close();
 			} catch (SQLException e) {
-				System.out.println(document.getDocumentPath() + ": " + document.getId());
+				logger.debug(document.getDocumentPath() + ": " + document.getId());
 				throw e;
 			}
 		}
-	}
+    }
 
 	public void insertMediaTUMDocument(MediaTUMXMLDocument document) throws Exception {
 		Statement stmt = null;
@@ -1180,7 +1178,7 @@ public class DBConnection {
 		LinkedHashSet<Person> authors = document.getAuthors();
 		Long[] authorKey = new Long[authors.size()];
 		if (document.getAuthors().size() == 0)
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + ": No Authors!");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": No Authors!");
 
 		// query to check if document already exists
 		String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
@@ -1191,11 +1189,11 @@ public class DBConnection {
 			rs = stmt.executeQuery(docExists);
 			// if there is a document with the same original id
 			if (rs.next()) {
-				System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + ": Double Entry");
+				logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Double Entry");
 				return;
 			}
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDoc");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDoc");
 			throw e;
 		} finally {
 			try {
@@ -1263,7 +1261,7 @@ public class DBConnection {
 				if (generatedKeys.next()) {
 					docKey = generatedKeys.getLong(1);
 				} else {
-					System.out.println(document.getDocumentPath() + ": " + document.getIdentifier());
+					logger.debug(document.getDocumentPath() + ": " + document.getIdentifier());
 					throw new SQLException("Creating document failed, no ID obtained.");
 				}
 			}
@@ -1280,32 +1278,32 @@ public class DBConnection {
 			}
 
 		} catch (SQLException sqle) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer1");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer1");
 			throw sqle;
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer2");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer2");
 			e.printStackTrace();
 			throw e;
 		} finally {
 			try {
 				stateQueryDoc.close();
 			} catch (SQLException e) {
-				System.out.println(
-								   document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer3");
+				logger.debug(
+							 document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer3");
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 * get the short name of a collection by its id
-	 *
-	 * @param id
-	 *            of the collection
-	 * @return the short name of the collection
-	 * @throws SQLException
-	 */
-	public String getCollectionShortNameById(Long id) throws SQLException {
+    /**
+     * get the short name of a collection by its id
+     * 
+     * @param id
+     *            of the collection
+     * @return the short name of the collection
+     * @throws SQLException
+     */
+    public String getCollectionShortNameById(Long id) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String name = "";
@@ -1333,20 +1331,20 @@ public class DBConnection {
 			}
 		}
 		return name;
-	}
+    }
 
-	/**
-	 * insert an abstract to the abstract table
-	 *
-	 * @param document,
-	 *            for error backtracing
-	 * @param abstr,
-	 *            the corresponding Abstract object
-	 * @param docKey,
-	 *            the document key from the database
-	 * @throws Exception
-	 */
-	private void addAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) throws Exception {
+    /**
+     * insert an abstract to the abstract table
+     * 
+     * @param document,
+     *            for error backtracing
+     * @param abstr,
+     *            the corresponding Abstract object
+     * @param docKey,
+     *            the document key from the database
+     * @throws Exception
+     */
+    private void addAbstractToDocument(XMLDocument document, Abstract abstr, Long docKey) throws Exception {
 		PreparedStatement stmt = null;
 		try {
 			// query which inserts the abstract information
@@ -1408,20 +1406,20 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 * insert an abstract to the abstract table
-	 *
-	 * @param JSON
-	 *            document, for error backtracing
-	 * @param abstr,
-	 *            the corresponding Abstract object
-	 * @param docKey,
-	 *            the document key from the database
-	 * @throws Exception
-	 */
-	private void addAbstractToDocument(JSONDocument document, Abstract abstr, Long docKey) throws Exception {
+    /**
+     * insert an abstract to the abstract table
+     * 
+     * @param JSON
+     *            document, for error backtracing
+     * @param abstr,
+     *            the corresponding Abstract object
+     * @param docKey,
+     *            the document key from the database
+     * @throws Exception
+     */
+    private void addAbstractToDocument(JSONDocument document, Abstract abstr, Long docKey) throws Exception {
 		PreparedStatement stmt = null;
 		try {
 			// query which inserts the abstract information
@@ -1438,7 +1436,7 @@ public class DBConnection {
 
 			stmt.executeUpdate();
 		} catch (Exception e) {
-			System.out.println(document.getDocumentPath() + ": " + document.getIdentifier() + "addAbsToDoc");
+			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addAbsToDoc");
 			throw e;
 		} finally {
 			try {
@@ -1448,16 +1446,16 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 * get all authors of a given document
-	 *
-	 * @param i
-	 * @return a list of authors
-	 * @throws Exception
-	 */
-	public List<Person> getPersonsByDocumentID(String i) throws Exception {
+    /**
+     * get all authors of a given document
+     * 
+     * @param i
+     * @return a list of authors
+     * @throws Exception
+     */
+    public List<Person> getPersonsByDocumentID(String i) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		List<Person> persons = new ArrayList<Person>();
@@ -1498,22 +1496,22 @@ public class DBConnection {
 			}
 		}
 		return persons;
-	}
+    }
 
-	/**
-	 *
-	 * Get a complete displayable Document by any customized field (returns only
-	 * first retrieved document! Please use unique columns to obtain like
-	 * original id or id!
-	 *
-	 * @param columnName
-	 *            for which should be searched (please use original id or id)
-	 * @param id,
-	 *            either original id or id
-	 * @return the (first) retrieved Document
-	 * @throws Exception
-	 */
-	public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
+    /**
+     * 
+     * Get a complete displayable Document by any customized field (returns only
+     * first retrieved document! Please use unique columns to obtain like
+     * original id or id!
+     * 
+     * @param columnName
+     *            for which should be searched (please use original id or id)
+     * @param id,
+     *            either original id or id
+     * @return the (first) retrieved Document
+     * @throws Exception
+     */
+    public DisplayDocument getDocumentBy(String columnName, String id) throws Exception {
 		DisplayDocument document = null;
 		String authorNames = null;
 		StringJoiner joiner = new StringJoiner(", ");
@@ -1567,12 +1565,12 @@ public class DBConnection {
 			} else
 				throw new NoEntryException(id);
 		} catch (SQLException e) {
-			System.out.println("SQL Exception");
+			logger.debug("SQL Exception");
 			throw e;
 		} catch (NoEntryException e) {
 			throw e;
 		} catch (Exception e) {
-			System.out.println("Regualar exception");
+			logger.debug("Regualar exception");
 			throw e;
 		} finally {
 			try {
@@ -1584,21 +1582,22 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 *
-	 * Gets a document with all information from documents, without authors and
-	 * collection name
-	 *
-	 * @param columnName
-	 *            for which should be searched (please use original id or id)
-	 * @param id,
-	 *            either original id or id
-	 * @return the (first) retrieved Document
-	 * @throws Exception
-	 */
-	public DisplayDocument getPureDocumentBy(String columnName, String id) throws Exception {
+
+    /**
+     * 
+     * Gets a document with all information from documents, without authors and
+     * collection name
+     * 
+     * @param columnName
+     *            for which should be searched (please use original id or id)
+     * @param id,
+     *            either original id or id
+     * @return the (first) retrieved Document
+     * @throws Exception
+     */
+    public DisplayDocument getPureDocumentBy(String columnName, String id) throws Exception {
 		DisplayDocument document = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1649,7 +1648,7 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
 	public List<DisplayDocument> getDocumentsByIdSchema(String idSchema, long start, long batchsize) throws Exception {
 		return getDocumentsByIdSchema(idSchema,start,batchsize,null);
@@ -1893,18 +1892,24 @@ public class DBConnection {
 		return documentDataList;
 	}
 
-	/**
-	 *
-	 * Insert a row to the external_identifiers database
-	 *
-	 * @param id,
-	 *            id from the corresponding document
-	 * @param externalName,
-	 *            type of the externalId (eg ISBN)
-	 * @param externalId,
-	 *            value of the external id
-	 */
-	public void writeIdentifiersInDatabase(int id, String externalName, String externalId) {
+	public List<DisplayDocument> getRandomDocuments(int batchSize) {
+		int max = getBiggestIdFromDocuments();
+		int start = new Random().nextInt(max - batchSize);
+		return getDocumentDataInBatches(start, batchSize);
+	}
+
+    /**
+     * 
+     * Insert a row to the external_identifiers database
+     * 
+     * @param id,
+     *            id from the corresponding document
+     * @param externalName,
+     *            type of the externalId (eg ISBN)
+     * @param externalId,
+     *            value of the external id
+     */
+    public void writeIdentifiersInDatabase(int id, String externalName, String externalId) {
 		PreparedStatement stmt = null;
 		String query = "";
 		try {
@@ -1918,7 +1923,7 @@ public class DBConnection {
 			stmt.executeUpdate();
 
 		} catch (Exception e) {
-			System.out.println(query);
+			logger.debug(query);
 			e.printStackTrace();
 		} finally {
 			try {
@@ -1928,27 +1933,27 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-	}
+    }
 
-	/**
-	 *
-	 * logs the event in the logging table
-	 *
-	 * @param referenceId,
-	 *            the reference for the request: documentId for recommendation
-	 *            request, recommendationId for click_url request, titleSearchId
-	 *            for recommendation by title
-	 * @param Long,
-	 *            time, where the request was registered
-	 * @param RootElement,
-	 *            the rootElement, where everything is stored
-	 * @param String,
-	 *            the type of request - request_for_recommendations,
-	 *            url_redirect, search_by_title
-	 * @return int, id of the created event
-	 * @throws Exception
-	 */
-	private int logEvent(String referenceId, RootElement rootElement, String requestType) throws Exception {
+    /**
+     * 
+     * logs the event in the logging table
+     * 
+     * @param referenceId,
+     *            the reference for the request: documentId for recommendation
+     *            request, recommendationId for click_url request, titleSearchId
+     *            for recommendation by title
+     * @param Long,
+     *            time, where the request was registered
+     * @param RootElement,
+     *            the rootElement, where everything is stored
+     * @param String,
+     *            the type of request - request_for_recommendations,
+     *            url_redirect, search_by_title
+     * @return int, id of the created event
+     * @throws Exception
+     */
+    private int logEvent(String referenceId, RootElement rootElement, String requestType) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
@@ -2016,7 +2021,7 @@ public class DBConnection {
 			if (noEntryExceptionRecorded) {
 				stmt.setNull(1, java.sql.Types.BIGINT);
 				if (constants.getDebugModeOn())
-					System.out.println("No entry exception woohoo");
+					logger.debug("No entry exception woohoo");
 			} else {
 				stmt.setString(1, referenceId);
 			}
@@ -2070,77 +2075,77 @@ public class DBConnection {
 			}
 		}
 		return loggingId;
-	}
+    }
 
-	/**
-	 *
-	 * logs the recommendation set starting point for the logging process
-	 *
-	 * @param documentId,
-	 *            from the requested document
-	 * @param Long,
-	 *            time, where the request was registered
-	 * @param RootElement,
-	 *            the rootElement, where everything is stored
-	 * @return documentset, with new logging metadata
-	 * @throws Exception
-	 */
-	/*
-	 * public DocumentSet logRecommendationDelivery(String documentId, Long
-	 * requestTime, RootElement rootElement) throws Exception {
-	 * PreparedStatement stmt = null; ResultSet rs = null; int
-	 * recommendationSetId = -1; int loggingId = -1; DocumentSet documentset =
-	 * rootElement.getDocumentSet(); String accessKeyString = "mdl" +
-	 * requestTime; String accessKeyHash = "";
-	 *
-	 * try { MessageDigest m = MessageDigest.getInstance("MD5");
-	 * m.update(accessKeyString.getBytes(), 0, accessKeyString.length());
-	 * accessKeyHash = new BigInteger(1, m.digest()).toString(16); } catch
-	 * (Exception e) { e.printStackTrace(); }
-	 *
-	 * loggingId = logEvent(documentId, requestTime, rootElement, false);
-	 *
-	 * try { // insertion query String query = "INSERT INTO " +
-	 * constants.getRecommendationSets() + " (" +
-	 * constants.getLoggingIdInRecommendationSets() + ", " +
-	 * constants.getNumberOfReturnedResults() + ", " +
-	 * constants.getDeliveredRecommendations() + ", " + constants.getTrigger() +
-	 * ", " + constants.getAccessKey() + ") VALUES (" + loggingId + ", " +
-	 * documentset.getNumberOfReturnedResults() + ", " + documentset.getSize() +
-	 * ", 'system', '" + accessKeyHash + "');";
-	 *
-	 * System.out.println(query); stmt = con.prepareStatement(query,
-	 * Statement.RETURN_GENERATED_KEYS); stmt.executeUpdate();
-	 *
-	 * // get the autogenerated key back rs = stmt.getGeneratedKeys(); if
-	 * (rs.next()) recommendationSetId = rs.getInt(1);
-	 *
-	 * // set the generated key as recommendation set id
-	 * documentset.setRecommendationSetId(recommendationSetId + "");
-	 *
-	 * for (int i = 0; i < documentset.getSize(); i++) { DisplayDocument current
-	 * = documentset.getDisplayDocument(i); // log each single recommendation
-	 * current.setRecommendationId(logRecommendations(current, documentset) +
-	 * ""); current.setAccessKeyHash(accessKeyHash); }
-	 *
-	 * } catch (Exception e) { throw e; } finally { try { if (stmt != null)
-	 * stmt.close(); } catch (SQLException e) { e.printStackTrace(); throw e; }
-	 * } return documentset; }
-	 */
+    /**
+     * 
+     * logs the recommendation set starting point for the logging process
+     * 
+     * @param documentId,
+     *            from the requested document
+     * @param Long,
+     *            time, where the request was registered
+     * @param RootElement,
+     *            the rootElement, where everything is stored
+     * @return documentset, with new logging metadata
+     * @throws Exception
+     */
+    /*
+     * public DocumentSet logRecommendationDelivery(String documentId, Long
+     * requestTime, RootElement rootElement) throws Exception {
+     * PreparedStatement stmt = null; ResultSet rs = null; int
+     * recommendationSetId = -1; int loggingId = -1; DocumentSet documentset =
+     * rootElement.getDocumentSet(); String accessKeyString = "mdl" +
+     * requestTime; String accessKeyHash = "";
+     * 
+     * try { MessageDigest m = MessageDigest.getInstance("MD5");
+     * m.update(accessKeyString.getBytes(), 0, accessKeyString.length());
+     * accessKeyHash = new BigInteger(1, m.digest()).toString(16); } catch
+     * (Exception e) { e.printStackTrace(); }
+     * 
+     * loggingId = logEvent(documentId, requestTime, rootElement, false);
+     * 
+     * try { // insertion query String query = "INSERT INTO " +
+     * constants.getRecommendationSets() + " (" +
+     * constants.getLoggingIdInRecommendationSets() + ", " +
+     * constants.getNumberOfReturnedResults() + ", " +
+     * constants.getDeliveredRecommendations() + ", " + constants.getTrigger() +
+     * ", " + constants.getAccessKey() + ") VALUES (" + loggingId + ", " +
+     * documentset.getNumberOfReturnedResults() + ", " + documentset.getSize() +
+     * ", 'system', '" + accessKeyHash + "');";
+     * 
+     * logger.debug(query); stmt = con.prepareStatement(query,
+     * Statement.RETURN_GENERATED_KEYS); stmt.executeUpdate();
+     * 
+     * // get the autogenerated key back rs = stmt.getGeneratedKeys(); if
+     * (rs.next()) recommendationSetId = rs.getInt(1);
+     * 
+     * // set the generated key as recommendation set id
+     * documentset.setRecommendationSetId(recommendationSetId + "");
+     * 
+     * for (int i = 0; i < documentset.getSize(); i++) { DisplayDocument current
+     * = documentset.getDisplayDocument(i); // log each single recommendation
+     * current.setRecommendationId(logRecommendations(current, documentset) +
+     * ""); current.setAccessKeyHash(accessKeyHash); }
+     * 
+     * } catch (Exception e) { throw e; } finally { try { if (stmt != null)
+     * stmt.close(); } catch (SQLException e) { e.printStackTrace(); throw e; }
+     * } return documentset; }
+     */
 
-	/**
-	 * Utility method to easily access the document_id given the
-	 * recommendation_id from the recommendations table
-	 *
-	 * @param recommendationId
-	 *            the recommendation_id
-	 *
-	 * @return
-	 *
-	 * @throws Exception
-	 *             if SQL errors occur
-	 */
-	public List<String> getReferencesFromRecommendation(String recommendationId, Boolean needDocumentId)
+    /**
+     * Utility method to easily access the document_id given the
+     * recommendation_id from the recommendations table
+     * 
+     * @param recommendationId
+     *            the recommendation_id
+     * 
+     * @return
+     * 
+     * @throws Exception
+     *             if SQL errors occur
+     */
+    public List<String> getReferencesFromRecommendation(String recommendationId, Boolean needDocumentId)
 		throws Exception {
 		String docId = "dummy";
 		String referenceId = "dummy";
@@ -2176,26 +2181,26 @@ public class DBConnection {
 		references.add(docId);
 		references.add(referenceId);
 		return references;
-	}
+    }
 
-	/**
-	 * Utility method to verify the accesskey provided by the user against the
-	 * one present in our database for that recommendation_id or
-	 * recommendationSetId
-	 *
-	 * @param Id
-	 *            the id for which we need to check the accessKey if
-	 *            recommendationSet=true, then Id = recommendationSetId else it
-	 *            is recommendationId
-	 * @param accessKey
-	 *            the access key hash provided by the user
-	 * @param recommendationSet
-	 *            if recommendationSet=true, then Id = recommendationSetId else
-	 *            it is recommendationId
-	 * @return True if access key matches, false if not
-	 * @throws SQLException
-	 */
-	public Boolean checkAccessKey(String Id, String accessKey, boolean recommendationSet)
+    /**
+     * Utility method to verify the accesskey provided by the user against the
+     * one present in our database for that recommendation_id or
+     * recommendationSetId
+     * 
+     * @param Id
+     *            the id for which we need to check the accessKey if
+     *            recommendationSet=true, then Id = recommendationSetId else it
+     *            is recommendationId
+     * @param accessKey
+     *            the access key hash provided by the user
+     * @param recommendationSet
+     *            if recommendationSet=true, then Id = recommendationSetId else
+     *            it is recommendationId
+     * @return True if access key matches, false if not
+     * @throws SQLException
+     */
+    public Boolean checkAccessKey(String Id, String accessKey, boolean recommendationSet)
 		throws SQLException, NoEntryException {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2239,25 +2244,25 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 * This method updates the clicked column in the recommendations table of
-	 * our database with the timestamp at which the click was recorded and also
-	 * creates a log entry in the logging table
-	 *
-	 * @param recommendationId
-	 *            the recommendation_id for which the click needs to be recorded
-	 * @param documentId
-	 *            the document_id corresponding to the recommendation
-	 * @param rootElement
-	 *            In order to check the status of the current request and verify
-	 *            that there were no errors upstream
-	 * @param accessKeyCheck
-	 * @return true if logged successfully, exception in every other case
-	 * @throws SQLException
-	 */
-	public Boolean logRecommendationClick(String recommendationId, RootElement rootElement, Boolean accessKeyCheck)
+    /**
+     * This method updates the clicked column in the recommendations table of
+     * our database with the timestamp at which the click was recorded and also
+     * creates a log entry in the logging table
+     * 
+     * @param recommendationId
+     *            the recommendation_id for which the click needs to be recorded
+     * @param documentId
+     *            the document_id corresponding to the recommendation
+     * @param rootElement
+     *            In order to check the status of the current request and verify
+     *            that there were no errors upstream
+     * @param accessKeyCheck
+     * @return true if logged successfully, exception in every other case
+     * @throws SQLException
+     */
+    public Boolean logRecommendationClick(String recommendationId, RootElement rootElement, Boolean accessKeyCheck)
 		throws Exception {
 		Statement stmt = null;
 		int loggingId = -1;
@@ -2278,7 +2283,7 @@ public class DBConnection {
 				stmt.executeUpdate(query);
 				int clickCount = updateClicksInRecommendationSet(recommendationId);
 				if (clickCount == 0) {
-					System.out.println("Something went wrong in the updateClicksInRecommendationSet function");
+					logger.debug("Something went wrong in the updateClicksInRecommendationSet function");
 				}
 			}
 
@@ -2294,15 +2299,15 @@ public class DBConnection {
 		}
 
 		return loggingId > 0;
-	}
+    }
 
-	/**
-	 * please fill me!
-	 *
-	 * @param recommendationId
-	 * @return
-	 */
-	private int updateClicksInRecommendationSet(String recommendationId) {
+    /**
+     * please fill me!
+     * 
+     * @param recommendationId
+     * @return
+     */
+    private int updateClicksInRecommendationSet(String recommendationId) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int recommendationSetId = getRecommendationSetIdFromRecommendationId(recommendationId);
@@ -2322,7 +2327,7 @@ public class DBConnection {
 			query = "SELECT click_count, " + constants.getDeliveredRecommendations() + " FROM "
 				+ constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId() + " = "
 				+ recommendationSetId;
-			// System.out.println(query);
+			// logger.debug(query);
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
@@ -2339,9 +2344,9 @@ public class DBConnection {
 			stmt.executeUpdate(ctrUpdate);
 			return 1;
 		} catch (SQLException e) {
-			System.out.println(updateQuery);
-			System.out.println(query);
-			System.out.println(ctrUpdate);
+			logger.debug(updateQuery);
+			logger.debug(query);
+			logger.debug(ctrUpdate);
 			e.printStackTrace();
 			return 0;
 		} finally {
@@ -2355,15 +2360,15 @@ public class DBConnection {
 			}
 		}
 
-	}
+    }
 
-	/**
-	 * PLease fill me!
-	 *
-	 * @param recommendationId
-	 * @return
-	 */
-	private int getRecommendationSetIdFromRecommendationId(String recommendationId) {
+    /**
+     * PLease fill me!
+     * 
+     * @param recommendationId
+     * @return
+     */
+    private int getRecommendationSetIdFromRecommendationId(String recommendationId) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "SELECT " + constants.getRecommendationSetIdInRecommendations() + " FROM "
@@ -2376,8 +2381,8 @@ public class DBConnection {
 				return rs.getInt(constants.getRecommendationSetIdInRecommendations());
 			}
 		} catch (SQLException e) {
-			System.out.println(query);
-			System.out.println("Didn't get recommendationSetId from Recommendations for id" + recommendationId);
+			logger.debug(query);
+			logger.debug("Didn't get recommendationSetId from Recommendations for id" + recommendationId);
 		} finally {
 			try {
 				if (stmt != null)
@@ -2389,72 +2394,72 @@ public class DBConnection {
 			}
 		}
 		return -1;
-	}
+    }
 
-	/*
-	 * /**
-	 *
-	 * get the ranking value (altmetric) from the database for a document
-	 *
-	 * @param documentId, the belonging document, the altmetric is requested
-	 * from
-	 *
-	 * @param String, metric (eg "simple_count")
-	 *
-	 * @param String, data_type (eg "readership")
-	 *
-	 * @param String, datasource (eg "mendeley")
-	 *
-	 * @return DisplayDocument, the document belonging to the id, with the
-	 * attached ranking Value
-	 *
-	 * @throws Exception
-	 *
-	 * public DisplayDocument getRankingValue(String documentId, String metric,
-	 * String dataType, String dataSource) { Statement stmt = null; ResultSet rs
-	 * = null; int metricValue = -1; int bibId = -1; DisplayDocument document =
-	 * new DisplayDocument(constants);
-	 *
-	 * // selection query String query = "SELECT " +
-	 * constants.getBibliometricDocumentsId() + ", " +
-	 * constants.getMetricValue() + " FROM " + constants.getBibDocuments() +
-	 * " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = '" +
-	 * documentId + "' AND " + constants.getMetric() + " = '" + metric +
-	 * "' AND " + constants.getDataType() + " = '" + dataType + "' AND " +
-	 * constants.getDataSource() + " = '" + dataSource + "';";
-	 *
-	 * try {
-	 *
-	 * stmt = con.createStatement(); rs = stmt.executeQuery(query);
-	 *
-	 * // get the data from the result set if (rs.next()) { metricValue =
-	 * rs.getInt(constants.getMetricValue()); bibId =
-	 * rs.getInt(constants.getBibliometricDocumentsId()); }
-	 *
-	 * // add the data to the document document.setBibId(bibId);
-	 * document.setRankingValue(metricValue);
-	 *
-	 * } catch (Exception e) { e.printStackTrace(); } finally { try { if (stmt
-	 * != null) stmt.close(); } catch (SQLException e) { e.printStackTrace(); }
-	 * } return document; }
-	 */
+    /*
+     * /**
+     * 
+     * get the ranking value (altmetric) from the database for a document
+     * 
+     * @param documentId, the belonging document, the altmetric is requested
+     * from
+     * 
+     * @param String, metric (eg "simple_count")
+     * 
+     * @param String, data_type (eg "readership")
+     * 
+     * @param String, datasource (eg "mendeley")
+     * 
+     * @return DisplayDocument, the document belonging to the id, with the
+     * attached ranking Value
+     * 
+     * @throws Exception
+     *
+     * public DisplayDocument getRankingValue(String documentId, String metric,
+     * String dataType, String dataSource) { Statement stmt = null; ResultSet rs
+     * = null; int metricValue = -1; int bibId = -1; DisplayDocument document =
+     * new DisplayDocument(constants);
+     * 
+     * // selection query String query = "SELECT " +
+     * constants.getBibliometricDocumentsId() + ", " +
+     * constants.getMetricValue() + " FROM " + constants.getBibDocuments() +
+     * " WHERE " + constants.getDocumentIdInBibliometricDoc() + " = '" +
+     * documentId + "' AND " + constants.getMetric() + " = '" + metric +
+     * "' AND " + constants.getDataType() + " = '" + dataType + "' AND " +
+     * constants.getDataSource() + " = '" + dataSource + "';";
+     * 
+     * try {
+     * 
+     * stmt = con.createStatement(); rs = stmt.executeQuery(query);
+     * 
+     * // get the data from the result set if (rs.next()) { metricValue =
+     * rs.getInt(constants.getMetricValue()); bibId =
+     * rs.getInt(constants.getBibliometricDocumentsId()); }
+     * 
+     * // add the data to the document document.setBibId(bibId);
+     * document.setRankingValue(metricValue);
+     * 
+     * } catch (Exception e) { e.printStackTrace(); } finally { try { if (stmt
+     * != null) stmt.close(); } catch (SQLException e) { e.printStackTrace(); }
+     * } return document; }
+     */
 
-	/**
-	 *
-	 * get the ranking value (altmetric) from the database for a author
-	 *
-	 * @param author,
-	 *            the belonging author, the altmetric is requested from
-	 * @param String,
-	 *            metric (eg "simple_count")
-	 * @param String,
-	 *            data_type (eg "readership")
-	 * @param String,
-	 *            datasource (eg "mendeley")
-	 * @return int, the requested metricValue
-	 * @throws Exception
-	 */
-	public int getRankingValueAuthor(String authorId, String metric, String dataType, String dataSource)
+    /**
+     * 
+     * get the ranking value (altmetric) from the database for a author
+     * 
+     * @param author,
+     *            the belonging author, the altmetric is requested from
+     * @param String,
+     *            metric (eg "simple_count")
+     * @param String,
+     *            data_type (eg "readership")
+     * @param String,
+     *            datasource (eg "mendeley")
+     * @return int, the requested metricValue
+     * @throws Exception
+     */
+    public int getRankingValueAuthor(String authorId, String metric, String dataType, String dataSource)
 		throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2494,20 +2499,20 @@ public class DBConnection {
 			}
 		}
 		return metricValue;
-	}
+    }
 
-	/**
-	 *
-	 * get the ranking value (altmetric) from the database for every paper, that
-	 * has a associated rankingValue
-	 *
-	 * @param int,
-	 *            bibliometricId
-	 * @return DisplayDocument List, a list of all documents, that has a
-	 *         rankingValue, with its associated data
-	 * @throws Exception
-	 */
-	public List<DisplayDocument> getRankingValueDocuments(int bibliometricId) {
+    /**
+     * 
+     * get the ranking value (altmetric) from the database for every paper, that
+     * has a associated rankingValue
+     * 
+     * @param int,
+     *            bibliometricId
+     * @return DisplayDocument List, a list of all documents, that has a
+     *         rankingValue, with its associated data
+     * @throws Exception
+     */
+    public List<DisplayDocument> getRankingValueDocuments(int bibliometricId) {
 		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 		DisplayDocument newDocument = null;
 		Statement stmt = null;
@@ -2544,28 +2549,28 @@ public class DBConnection {
 			}
 		}
 		return documentList;
-	}
+    }
 
-	/**
-	 *
-	 * get the ranking value (altmetric) from the database for authors in
-	 * batch-sized chunks
-	 *
-	 * @param String,
-	 *            metric (eg "simple_count")
-	 * @param String,
-	 *            data_type (eg "readership")
-	 * @param String,
-	 *            datasource (eg "mendeley")
-	 * @param int,
-	 *            start id
-	 * @param int,
-	 *            bachtsize
-	 * @return person List, list of batchsize of authors with associated
-	 *         rankingValues
-	 * @throws Exception
-	 */
-	public List<Person> getRankingValueAuthorsInBatches(int bibliometricId, int start, int batchsize) {
+    /**
+     * 
+     * get the ranking value (altmetric) from the database for authors in
+     * batch-sized chunks
+     * 
+     * @param String,
+     *            metric (eg "simple_count")
+     * @param String,
+     *            data_type (eg "readership")
+     * @param String,
+     *            datasource (eg "mendeley")
+     * @param int,
+     *            start id
+     * @param int,
+     *            bachtsize
+     * @return person List, list of batchsize of authors with associated
+     *         rankingValues
+     * @throws Exception
+     */
+    public List<Person> getRankingValueAuthorsInBatches(int bibliometricId, int start, int batchsize) {
 		List<Person> authorDataList = new ArrayList<Person>();
 		Person newPerson = null;
 		Statement stmt = null;
@@ -2604,20 +2609,20 @@ public class DBConnection {
 			}
 		}
 		return authorDataList;
-	}
+    }
 
-	/**
-	 *
-	 * get the authors in batch-sized chunks
-	 *
-	 * @param int,
-	 *            start id
-	 * @param int,
-	 *            bachtsize
-	 * @return person List, list of batchsize of authors
-	 * @throws Exception
-	 */
-	public List<Person> getAllPersonsInBatches(int start, int batchsize) {
+    /**
+     * 
+     * get the authors in batch-sized chunks
+     * 
+     * @param int,
+     *            start id
+     * @param int,
+     *            bachtsize
+     * @return person List, list of batchsize of authors
+     * @throws Exception
+     */
+    public List<Person> getAllPersonsInBatches(int start, int batchsize) {
 		List<Person> personList = new ArrayList<Person>();
 		Person person = null;
 		Statement stmt = null;
@@ -2654,21 +2659,21 @@ public class DBConnection {
 			}
 		}
 		return personList;
-	}
+    }
 
-	/**
-	 *
-	 * get the author ids in batch-sized chunks, who have a document which has a
-	 * specified bibliometric and have the necessary data quality
-	 *
-	 * @param int,
-	 *            start id
-	 * @param int,
-	 *            bachtsize
-	 * @return Integer List, list of batchsize of author ids
-	 * @throws Exception
-	 */
-	public List<Integer> getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(int start, int batchsize,
+    /**
+     * 
+     * get the author ids in batch-sized chunks, who have a document which has a
+     * specified bibliometric and have the necessary data quality
+     * 
+     * @param int,
+     *            start id
+     * @param int,
+     *            bachtsize
+     * @return Integer List, list of batchsize of author ids
+     * @throws Exception
+     */
+    public List<Integer> getAllPersonsWithAssociatedDocumentsWithBibliometricInBatches(int start, int batchsize,
 																					   int bibliometricId) {
 		List<Integer> personList = new ArrayList<Integer>();
 		Integer personId = null;
@@ -2685,7 +2690,7 @@ public class DBConnection {
 			+ " < " + (start + batchsize) + " AND P.data_quality IS NULL GROUP BY DP."
 			+ constants.getPersonIDInDocPers() + ";";
 
-		System.out.println(query);
+		logger.debug(query);
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
@@ -2709,23 +2714,23 @@ public class DBConnection {
 			}
 		}
 		return personList;
-	}
+    }
 
-	/**
-	 *
-	 * get the author_ids in batch-sized chunks, which have a specified
-	 * bibliometric id
-	 *
-	 * @param bibliometric
-	 *            id
-	 * @param int,
-	 *            start id
-	 * @param int,
-	 *            bachtsize
-	 * @return person List, list of batchsize of authors
-	 * @throws Exception
-	 */
-	public List<Person> getAllPersonsInBatchesIfBibliometricId(int bibliometricId, int start, int batchsize) {
+    /**
+     * 
+     * get the author_ids in batch-sized chunks, which have a specified
+     * bibliometric id
+     * 
+     * @param bibliometric
+     *            id
+     * @param int,
+     *            start id
+     * @param int,
+     *            bachtsize
+     * @return person List, list of batchsize of authors
+     * @throws Exception
+     */
+    public List<Person> getAllPersonsInBatchesIfBibliometricId(int bibliometricId, int start, int batchsize) {
 		List<Person> personList = new ArrayList<Person>();
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2758,9 +2763,9 @@ public class DBConnection {
 			}
 		}
 		return personList;
-	}
+    }
 
-	public List<Integer> getAllDocumentsWithBadAuthorsAndSpecificBibliometric(int bibliometricId) {
+    public List<Integer> getAllDocumentsWithBadAuthorsAndSpecificBibliometric(int bibliometricId) {
 		List<Integer> docIds = new ArrayList<Integer>();
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2793,9 +2798,9 @@ public class DBConnection {
 			}
 		}
 		return docIds;
-	}
+    }
 
-	public int getBibDocId(int docId, int bibliometricId) {
+    public int getBibDocId(int docId, int bibliometricId) {
 		int bibDocId = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2825,9 +2830,9 @@ public class DBConnection {
 			}
 		}
 		return bibDocId;
-	}
+    }
 
-	public int getBibDocSum(int docId, int bibliometricId) {
+    public int getBibDocSum(int docId, int bibliometricId) {
 		int value = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2858,9 +2863,9 @@ public class DBConnection {
 			}
 		}
 		return value;
-	}
+    }
 
-	public void executeUpdate(String query) {
+    public void executeUpdate(String query) {
 		Statement stmt = null;
 
 		try {
@@ -2877,9 +2882,9 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-	}
+    }
 
-	public double getBibDocAvg(int docId, int bibliometricId) {
+    public double getBibDocAvg(int docId, int bibliometricId) {
 		double value = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -2909,19 +2914,19 @@ public class DBConnection {
 			}
 		}
 		return value;
-	}
+    }
 
-	/**
-	 *
-	 * get all Documents a specific author wrote
-	 *
-	 * @param id,
-	 *            the id of the person
-	 * @return DisplayDocument List, list of all associated documents from this
-	 *         author
-	 * @throws Exception
-	 */
-	public DocumentSet getDocumentsByPersonId(int id) {
+    /**
+     * 
+     * get all Documents a specific author wrote
+     * 
+     * @param id,
+     *            the id of the person
+     * @return DisplayDocument List, list of all associated documents from this
+     *         author
+     * @throws Exception
+     */
+    public DocumentSet getDocumentsByPersonId(int id) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		DocumentSet documents = new DocumentSet();
@@ -2955,15 +2960,15 @@ public class DBConnection {
 			}
 		}
 		return documents;
-	}
+    }
 
-	/**
-	 *
-	 * get the biggest author id (to know how big the table is)
-	 *
-	 * @return int, biggest author id
-	 */
-	public int getBiggestIdFromAuthors() {
+    /**
+     * 
+     * get the biggest author id (to know how big the table is)
+     * 
+     * @return int, biggest author id
+     */
+    public int getBiggestIdFromAuthors() {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int size = 0;
@@ -2991,18 +2996,18 @@ public class DBConnection {
 			}
 		}
 		return size;
-	}
+    }
 
-	/**
-	 *
-	 * get the biggest BibPers id, who has a bibliometric value for specified
-	 * bibliometric id
-	 *
-	 * @param bibliometric
-	 *            id
-	 * @return int, biggest BibPers id
-	 */
-	public int[] getRangeFromBibAuthors(int bibliometricId) {
+    /**
+     * 
+     * get the biggest BibPers id, who has a bibliometric value for specified
+     * bibliometric id
+     * 
+     * @param bibliometric
+     *            id
+     * @return int, biggest BibPers id
+     */
+    public int[] getRangeFromBibAuthors(int bibliometricId) {
 		int[] range = new int[2];
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -3033,23 +3038,23 @@ public class DBConnection {
 			}
 		}
 		return range;
-	}
+    }
 
-	/**
-	 * This method returns a subset of the stereotype set of documents which are
-	 * stored in our database
-	 *
-	 * @param requestDoc
-	 *            document for which stereotype recommendations have been
-	 *            requested
-	 * @param numberOfRelatedDocs
-	 *            how many to return in the document set
-	 * @param algorithmLoggingInfo
-	 * @return DocumentSet containing <code>numberOfRelatedDocs</code> number of
-	 *         randomly chosen stereotype documents
-	 * @throws Exception
-	 */
-	public DocumentSet getStereotypeRecommendations(DocumentSet documentSet) throws Exception {
+    /**
+     * This method returns a subset of the stereotype set of documents which are
+     * stored in our database
+     * 
+     * @param requestDoc
+     *            document for which stereotype recommendations have been
+     *            requested
+     * @param numberOfRelatedDocs
+     *            how many to return in the document set
+     * @param algorithmLoggingInfo
+     * @return DocumentSet containing <code>numberOfRelatedDocs</code> number of
+     *         randomly chosen stereotype documents
+     * @throws Exception
+     */
+    public DocumentSet getStereotypeRecommendations(DocumentSet documentSet) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -3072,7 +3077,7 @@ public class DBConnection {
 				query += "='" + algorithmLoggingInfo.getCategory() + "'";
 			}
 			query += " ORDER BY RAND()";
-			System.out.println(query);
+			logger.debug(query);
 			rs = stmt.executeQuery(query);
 
 			documentSet.setSuggested_label("Related Articles");
@@ -3129,32 +3134,32 @@ public class DBConnection {
 			}
 		}
 
-	}
+    }
 
-	/**
-	 * Get the minimum basis for comparison using keyphrases. Example: doc A has
-	 * 10 unigrams, 3 bigrams, and 2 trigrams We want to compare over unigrams
-	 * and bigrams Then minimum basis is 3, because we have a maximum of 3
-	 * bigrams that we can use
-	 *
-	 * Returns -1 if one of the fields to be used for comparison has no entries
-	 * for the particular document ex. Doc B has 3 unigrams, 1 bigram, and no
-	 * trigram. If we want to compare using bigrams and trigrams, this method
-	 * would return -1 as there are no trigram keyphrases associated with this
-	 * document
-	 *
-	 * @param documentId
-	 *            documentId for which we need to calcualate minimum basis
-	 * @param gramity
-	 *            String which can take any of the following values: unigrams,
-	 *            bigrams, trigrams, unibi, unitri, bitri, unibitri
-	 * @param source
-	 *            keyphrase source: titles only, or titles and abstracts
-	 * @return int representing the minimum basis for comparison
-	 * @throws Exception
-	 *             if database connection fails
-	 */
-	public int getMinimumNumberOfKeyphrases(String documentId, String gramity, String source) throws Exception {
+    /**
+     * Get the minimum basis for comparison using keyphrases. Example: doc A has
+     * 10 unigrams, 3 bigrams, and 2 trigrams We want to compare over unigrams
+     * and bigrams Then minimum basis is 3, because we have a maximum of 3
+     * bigrams that we can use
+     * 
+     * Returns -1 if one of the fields to be used for comparison has no entries
+     * for the particular document ex. Doc B has 3 unigrams, 1 bigram, and no
+     * trigram. If we want to compare using bigrams and trigrams, this method
+     * would return -1 as there are no trigram keyphrases associated with this
+     * document
+     * 
+     * @param documentId
+     *            documentId for which we need to calcualate minimum basis
+     * @param gramity
+     *            String which can take any of the following values: unigrams,
+     *            bigrams, trigrams, unibi, unitri, bitri, unibitri
+     * @param source
+     *            keyphrase source: titles only, or titles and abstracts
+     * @return int representing the minimum basis for comparison
+     * @throws Exception
+     *             if database connection fails
+     */
+    public int getMinimumNumberOfKeyphrases(String documentId, String gramity, String source) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -3164,7 +3169,7 @@ public class DBConnection {
 
 		try {
 			stmt = con.createStatement();
-			// System.out.println(query);
+			// logger.debug(query);
 			rs = stmt.executeQuery(query);
 			switch (gramity) {
 
@@ -3243,7 +3248,7 @@ public class DBConnection {
 			}
 			}
 		} catch (Exception e) {
-			System.out.println(e);
+			logger.debug("query failed", e);
 			throw e;
 		} finally {
 			try {
@@ -3256,24 +3261,24 @@ public class DBConnection {
 			}
 		}
 		return -1;
-	}
+    }
 
-	/**
-	 * Get the language of the abstract, if recorded in the database
-	 *
-	 * @param requestDocument
-	 *            document for which we need the details about the abstract
-	 * @return two character language code if abstract exists in our database.
-	 *         ex.: 'en', 'de', else 'NONE'
-	 * @throws Exception
-	 */
-	public String getAbstractDetails(DisplayDocument requestDocument) throws Exception {
+    /**
+     * Get the language of the abstract, if recorded in the database
+     * 
+     * @param requestDocument
+     *            document for which we need the details about the abstract
+     * @return two character language code if abstract exists in our database.
+     *         ex.: 'en', 'de', else 'NONE'
+     * @throws Exception
+     */
+    public String getAbstractDetails(DisplayDocument requestDocument, String field) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 
 		// Select query to lookup abstract language using the documentId from
 		// the document_abstracts table
-		String query = "SELECT `" + constants.getAbstractLanguage() + "` AS lang FROM " + constants.getAbstracts()
+		String query = "SELECT `" + field + "` AS lang FROM " + constants.getAbstracts()
 			+ " WHERE " + constants.getAbstractDocumentId() + " = " + requestDocument.getDocumentId();
 
 		try {
@@ -3298,18 +3303,18 @@ public class DBConnection {
 			}
 		}
 
-	}
+    }
 
-	/**
-	 * Get the fist 25 words of the abstract, if recorded in the database
-	 *
-	 * @param docId
-	 *            document id for which we need the details about the abstract
-	 * @return the first 25 words of the document abstract else 'NONE'
-	 * @throws Exception
-	 */
+    /**
+     * Get the fist 25 words of the abstract, if recorded in the database
+     * 
+     * @param docId
+     *            document id for which we need the details about the abstract
+     * @return the first 25 words of the document abstract else 'NONE'
+     * @throws Exception
+     */
 
-	public String getDocAbstractById(String docId) throws Exception {
+    public String getDocAbstractById(String docId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String docAbstract = null;
@@ -3352,17 +3357,17 @@ public class DBConnection {
 			}
 		}
 
-	}
+    }
 
-	/**
-	 * Please fill me!
-	 *
-	 * @param documentId
-	 * @param rootElement
-	 * @return
-	 * @throws Exception
-	 */
-	public DocumentSet logRecommendationDeliveryNew(String referenceId, RootElement rootElement, Boolean requestByTitle)
+    /**
+     * Please fill me!
+     * 
+     * @param documentId
+     * @param rootElement
+     * @return
+     * @throws Exception
+     */
+    public DocumentSet logRecommendationDeliveryNew(String referenceId, RootElement rootElement, Boolean requestByTitle)
 		throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -3469,9 +3474,10 @@ public class DBConnection {
 			}
 		}
 		return documentset;
-	}
+    }
 
-	private AlgorithmDetails setRecommendationProvider(AlgorithmDetails algorithmDetails) {
+    private AlgorithmDetails setRecommendationProvider(AlgorithmDetails algorithmDetails) {
+		if(algorithmDetails==null) return null;
 		String algorithmName = algorithmDetails.getName();
 		if(algorithmName.toLowerCase().contains(constants.getCore().toLowerCase())){
 			algorithmDetails.setRecommendationProvider(getIdInApplications("core_recsys", constants.getApplicationFullName()));
@@ -3481,36 +3487,36 @@ public class DBConnection {
 			algorithmDetails.setRecommendationProviderId(getIdInApplications("mdl_recsys", constants.getApplicationId()));
 		}
 		return algorithmDetails;
-	}
+    }
 
-	/**
-	 * Helper function to log the recommendationAlgorithmId in the
-	 * recommendations table Searches using the fields in the
-	 * algorithmLoggingInfo hashmap for an exact match for an algorithm in the
-	 * recommendationAlgorithms table in the database, and returns the id if
-	 * present.
-	 *
-	 * If not, adds the entry into the table and returns the newly created row's
-	 * id
-	 *
-	 * This method is for the case where all the documents in a document set all
-	 * have been chosen using the same recommendation algorithm
-	 *
-	 * @param documentset
-	 *            DocumentSet which contains the recommendations that have to be
-	 *            logged
-	 * @param requestByTitle
-	 * @return the recommendationAlgorithm id
-	 * @throws Exception
-	 */
-	private DocumentSet logRecommendationAlgorithmNew(DocumentSet documentset) throws Exception {
+    /**
+     * Helper function to log the recommendationAlgorithmId in the
+     * recommendations table Searches using the fields in the
+     * algorithmLoggingInfo hashmap for an exact match for an algorithm in the
+     * recommendationAlgorithms table in the database, and returns the id if
+     * present.
+     * 
+     * If not, adds the entry into the table and returns the newly created row's
+     * id
+     * 
+     * This method is for the case where all the documents in a document set all
+     * have been chosen using the same recommendation algorithm
+     * 
+     * @param documentset
+     *            DocumentSet which contains the recommendations that have to be
+     *            logged
+     * @param requestByTitle
+     * @return the recommendationAlgorithm id
+     * @throws Exception
+     */
+    private DocumentSet logRecommendationAlgorithmNew(DocumentSet documentset) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int recommendationAlgorithmId = -1;
 
 		// get the hashmap which has the details of the recommendation algorithm
 		AlgorithmDetails recommenderDetails = documentset.getAlgorithmDetails();
-		// System.out.println(recommenderDetails.getQueryParser());
+		// logger.debug(recommenderDetails.getQueryParser());
 
 		String recommendationClass = recommenderDetails.getRecommendationClass();
 		Boolean fallback = recommenderDetails.isFallback();
@@ -3565,10 +3571,10 @@ public class DBConnection {
 			}
 
 			}
-			System.out.println(query);
+			logger.debug(query);
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(query);
-
+	    
 			// if found, get the id of the exact match
 			if (rs.next()) {
 				recommendationAlgorithmId = rs.getInt(constants.getRecommendationAlgorithmId());
@@ -3582,7 +3588,7 @@ public class DBConnection {
 				query = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
 				String columns = "";
 				String values = "";
-
+		
 				columns += constants.getRecommendationClass() + ", "
 					+ constants.getLanguageRestrictionInRecommenderAlgorithm() + ", "
 					+ constants.getBibReRankingApplied()
@@ -3600,11 +3606,11 @@ public class DBConnection {
 					+ ", " + (documentset.isShuffled() ? "'Y' " : "'N' ") + ", '"
 					+ documentset.getDesiredNumberFromAlgorithm() + "'";
 				query += (columns + ") VALUES(" + values + ")");
-
+		
 				stmt = con.createStatement();
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 				rs = stmt.getGeneratedKeys();
-
+		
 				// Get back the generated keys
 				if (rs.next())
 					recommendationAlgorithmId = rs.getInt(1);
@@ -3622,16 +3628,16 @@ public class DBConnection {
 				throw e;
 			}
 		}
-
+	
 		// return the algorithm Id
 		documentset.setRecommendationAlgorithmId(recommendationAlgorithmId);
 		documentset.setFallback(fallback);
 		return documentset;
-	}
-
-	private void logRankingStatistics(DocumentSet documentset) throws Exception {
+    }
+    
+    private void logRankingStatistics(DocumentSet documentset) throws Exception {
 		PreparedStatement stmt = null;
-
+	
 		String query = "INSERT INTO " + constants.getRecommendationStatisticsReRankingBibliometric() + " ("
 			+ constants.getRecommendationStatisticsRecommendationSetId() + ", "
 			+ constants.getPercentageOfRecommendationsWithBibliometricDisplay() + ", "
@@ -3643,26 +3649,26 @@ public class DBConnection {
 			+ constants.getMeanBibRerank() + ", " + constants.getMedianBibRerank() + ", "
 			+ constants.getModeBibRerank() + ") VALUES ('" + documentset.getRecommendationSetId()
 			+ "',?,?,?,?,?,?,?,?,?,?,?,?);";
-
-		// System.out.println(query);
-
+	
+		// logger.debug(query);
+	
 		try {
 			stmt = con.prepareStatement(query);
-
+	    
 			for (Statistics currentStats : documentset.getDebugDetailsPerSet().getRankStats()) {
-
+		
 				if (currentStats.getType().equals("bibliometricDisplay")) {
 					stmt.setDouble(1, currentStats.getPercentageRankingValue());
 					stmt.setDouble(2, currentStats.getRankVMin());
 					stmt.setDouble(3, currentStats.getRankVMax());
 					stmt.setDouble(4, currentStats.getRankVMean());
 					stmt.setDouble(5, currentStats.getRankVMedian());
-
+		    
 					if (currentStats.getRankVMode() == -1) {
 						stmt.setNull(6, java.sql.Types.FLOAT);
 					} else
 						stmt.setDouble(6, currentStats.getRankVMode());
-
+		    
 				} else if (currentStats.getType().equals("bibliometricRerank")) {
 					stmt.setDouble(7, currentStats.getPercentageRankingValue());
 					stmt.setDouble(8, currentStats.getRankVMin());
@@ -3681,7 +3687,7 @@ public class DBConnection {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println(query);
+			logger.debug(query);
 			throw e;
 		} finally {
 			try {
@@ -3691,20 +3697,20 @@ public class DBConnection {
 				throw e;
 			}
 		}
-	}
+    }
 
-	/**
-	 *
-	 * logs the single recommendations
-	 *
-	 * @param DisplayDocument
-	 *            document, the recommendation to log
-	 * @param documentSet,
-	 *            needed for metadata, ids, and further processing
-	 * @return int, id of the created recommendation log
-	 * @throws Exception
-	 */
-	public int logRecommendationsNew(DisplayDocument document, DocumentSet documentset) throws Exception {
+    /**
+     * 
+     * logs the single recommendations
+     * 
+     * @param DisplayDocument
+     *            document, the recommendation to log
+     * @param documentSet,
+     *            needed for metadata, ids, and further processing
+     * @return int, id of the created recommendation log
+     * @throws Exception
+     */
+    public int logRecommendationsNew(DisplayDocument document, DocumentSet documentset) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int recommendationId = -1;
@@ -3744,7 +3750,7 @@ public class DBConnection {
 			} else
 				stmt.setInt(4, document.getRankAfterShuffling());
 
-			// System.out.println(query);
+			// logger.debug(query);
 			stmt.executeUpdate();
 
 			// get the autogenerated key back
@@ -3765,39 +3771,39 @@ public class DBConnection {
 			}
 		}
 		return recommendationId;
-	}
+    }
 
-	/**
-	 * Please fill me!
-	 *
-	 * @param recommenderDetails
-	 * @return
-	 * @throws SQLException
-	 */
-	private int getMostPopularId(AlgorithmDetails recommenderDetails) throws SQLException {
+    /**
+     * Please fill me!
+     * 
+     * @param recommenderDetails
+     * @return
+     * @throws SQLException
+     */
+    private int getMostPopularId(AlgorithmDetails recommenderDetails) throws SQLException {
 		return getStereotypesId(recommenderDetails, false);
-	}
+    }
 
-	/**
-	 * Please fill me!
-	 *
-	 * @param recommenderDetails
-	 * @return
-	 * @throws SQLException
-	 */
-	private int getStereotypesId(AlgorithmDetails recommenderDetails) throws SQLException {
+    /**
+     * Please fill me!
+     * 
+     * @param recommenderDetails
+     * @return
+     * @throws SQLException
+     */
+    private int getStereotypesId(AlgorithmDetails recommenderDetails) throws SQLException {
 		return getStereotypesId(recommenderDetails, true);
-	}
+    }
 
-	/**
-	 * Please fill me!
-	 *
-	 * @param recommenderDetails
-	 * @param stereotype
-	 * @return
-	 * @throws SQLException
-	 */
-	private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotype) throws SQLException {
+    /**
+     * Please fill me!
+     * 
+     * @param recommenderDetails
+     * @param stereotype
+     * @return
+     * @throws SQLException
+     */
+    private int getStereotypesId(AlgorithmDetails recommenderDetails, boolean stereotype) throws SQLException {
 		int stereotypeId = -1;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -3818,7 +3824,7 @@ public class DBConnection {
 			rs = stmt.executeQuery(query);
 			if (rs.next()) {
 				stereotypeId = rs.getInt(tableRowId);
-				// System.out.println(tableName + ":" + stereotypeId);
+				// logger.debug(tableName + ":" + stereotypeId);
 			} else {
 				if (stmt != null)
 					stmt.close();
@@ -3827,14 +3833,14 @@ public class DBConnection {
 				query = "INSERT INTO " + tableName + "(" + tableCategoryName + ") VALUES('"
 					+ recommenderDetails.getCategory() + "')";
 				stmt = con.createStatement();
-				// System.out.println(query);
+				// logger.debug(query);
 				stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS);
 
 				// get the autogenerated key back
 				rs = stmt.getGeneratedKeys();
 				if (rs.next())
 					stereotypeId = rs.getInt(1);
-				// System.out.println(stereotypeId);
+				// logger.debug(stereotypeId);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -3846,23 +3852,27 @@ public class DBConnection {
 				rs.close();
 		}
 		return stereotypeId;
-	}
+    }
 
-	/**
-	 * please fill me!
-	 *
-	 * @param recommenderDetails
-	 * @return
-	 * @throws SQLException
-	 */
-	private int getCbfId(AlgorithmDetails recommenderDetails) throws SQLException {
+    /**
+     * log details for CBF algorithms and return id of created / existing entry 
+	 * checks first if entry with given properties already exists
+     * 
+     * @param recommenderDetails
+     * @return
+     * @throws SQLException
+     */
+    private int getCbfId(AlgorithmDetails recommenderDetails) throws SQLException {
+		String featureType = recommenderDetails.getCbfFeatureType();
 		int cbfId = -1;
 		ResultSet rs = null;
 		boolean inputIsDocument = !recommenderDetails.getName().contains("Query");
 		String queryType = "";
 		if (!inputIsDocument)
 			queryType = recommenderDetails.getQueryParser();
-		boolean keyphrases = recommenderDetails.getCbfFeatureType().equals("keyphrases");
+		logger.debug(recommenderDetails.getCbfFeatureType());
+		boolean keyphrases = recommenderDetails.getCbfFeatureType()!= null &&
+			recommenderDetails.getCbfFeatureType().equals("keyphrases");
 
 		String query = "SELECT " + constants.getCbfId() + " FROM " + constants.getCbfDetails() + " WHERE ("
 			+ constants.getInputType() + " =? OR ( " + constants.getInputType() + " IS NULL AND ? IS NULL)) AND ("
@@ -3873,6 +3883,9 @@ public class DBConnection {
 
 		if (keyphrases) {
 			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getNgramType() + "'";
+		} else if (featureType != null && featureType.equals("embedding")) {
+			query += " AND " + constants.getCbfDimensions() + " = '" + recommenderDetails.getDimensions() + "'";
+			query += " AND " + constants.getCbfCorpusUsed() + " = '" + recommenderDetails.getCorpusUsed() + "'";
 		}
 		if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
 			query += " AND " + constants.getSearchMode() + " = '" + queryType + "'";
@@ -3911,6 +3924,11 @@ public class DBConnection {
 				if (keyphrases) {
 					columns += ", " + constants.getCbfNgramType();
 					values += ", '" + recommenderDetails.getNgramType() + "'";
+				} else if (featureType != null && featureType.equals("embedding")) {
+					columns += ", " + constants.getCbfDimensions();
+					columns += ", " + constants.getCbfCorpusUsed();
+					values += ", '" + recommenderDetails.getDimensions() + "'";
+					values += ", '" + recommenderDetails.getCorpusUsed() + "'";
 				}
 				if (!inputIsDocument && !recommenderDetails.getName().toLowerCase().contains(constants.getCore())) {
 					columns += ", " + constants.getSearchMode();
@@ -3927,6 +3945,7 @@ public class DBConnection {
 					stmtInsert.setString(2, (inputIsDocument ? "document" : "query"));
 					stmtInsert.setString(3, recommenderDetails.getCbfFeatureCount());
 					stmtInsert.setString(4, recommenderDetails.getCbfTextFields());
+
 					stmtInsert.executeUpdate();
 
 					// get the autogenerated key back
@@ -3934,7 +3953,7 @@ public class DBConnection {
 					if (rs.next())
 						cbfId = rs.getInt(1);
 				}
-				// System.out.println(cbfId);
+				// logger.debug(cbfId);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -3944,16 +3963,16 @@ public class DBConnection {
 				rs.close();
 		}
 		return cbfId;
-	}
+    }
 
-	/**
-	 * Please fill me!
-	 *
-	 * @param documentset
-	 * @return
-	 * @throws Exception
-	 */
-	public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
+    /**
+     * Please fill me!
+     * 
+     * @param documentset
+     * @return
+     * @throws Exception
+     */
+    public int searchLogBibRerankingId(DocumentSet documentset) throws Exception {
 		int rerankingBibliometricId = -1;
 		String bibliometricIdQueryString = "";
 		Statement stmt = null;
@@ -3994,16 +4013,16 @@ public class DBConnection {
 			}
 		}
 		return rerankingBibliometricId;
-	}
+    }
 
-	/**
-	 * Please fill me!
-	 *
-	 * @param documentset
-	 * @return
-	 * @throws Exception
-	 */
-	public int logBibReranking(DocumentSet documentset) throws Exception {
+    /**
+     * Please fill me!
+     * 
+     * @param documentset
+     * @return
+     * @throws Exception
+     */
+    public int logBibReranking(DocumentSet documentset) throws Exception {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int rerankingBibliometricId = -1;
@@ -4054,12 +4073,12 @@ public class DBConnection {
 			}
 		}
 		return rerankingBibliometricId;
-	}
+    }
 
-	/**
-	 * please fill me
-	 */
-	public void calculateSumOfAuthors() {
+    /**
+     * please fill me
+     */
+    public void calculateSumOfAuthors() {
 		Statement stmt = null;
 
 		// TODO: make variables
@@ -4074,28 +4093,28 @@ public class DBConnection {
 			stmt.executeQuery(query);
 
 		} catch (Exception e) {
-			System.out.println(e);
+			logger.debug("query failed", e);
 		} finally {
 			try {
 				if (stmt != null)
 					stmt.close();
 			} catch (SQLException e) {
-				System.out.println(e);
+				logger.debug("query failed", e);
 			}
 		}
 
-	}
+    }
 
-	/**
-	 * please fill me
-	 *
-	 * @param documentId
-	 * @param bibliometricId
-	 * @return
-	 * @throws Exception
-	 */
+    /**
+     * please fill me
+     * 
+     * @param documentId
+     * @param bibliometricId
+     * @return
+     * @throws Exception
+     */
 
-	public void writeBibliometricsInDatabase(String id, String metric, String dataType, int value, String dataSource) {
+    public void writeBibliometricsInDatabase(String id, String metric, String dataType, int value, String dataSource) {
 		Statement stmt = null;
 		int bibId = -1;
 
@@ -4114,28 +4133,28 @@ public class DBConnection {
 			stmt.executeUpdate(query);
 
 		} catch (Exception e) {
-			System.out.println(e);
+			logger.debug("query failed", e);
 		} finally {
 			try {
 				if (stmt != null)
 					stmt.close();
 			} catch (SQLException e) {
-				System.out.println(e);
+				logger.debug("query failed", e);
 			}
 		}
 
-	}
+    }
 
-	/**
-	 * please fill me
-	 *
-	 * @param documentId
-	 * @param bibliometricId
-	 * @return
-	 * @throws Exception
-	 */
+    /**
+     * please fill me
+     * 
+     * @param documentId
+     * @param bibliometricId
+     * @return
+     * @throws Exception
+     */
 
-	public void writeBibliometricsInDatabase(String id, int bibId, double value) {
+    public void writeBibliometricsInDatabase(String id, int bibId, double value) {
 		Statement stmt = null;
 
 		// TODO: make variables
@@ -4145,24 +4164,24 @@ public class DBConnection {
 
 		try {
 			stmt = con.createStatement();
-			// System.out.println(query);
+			// logger.debug(query);
 			stmt.executeUpdate(query);
 
 		} catch (Exception e) {
-			System.out.println(query);
-			System.out.println(e);
+			logger.debug(query);
+			logger.debug("query failed", e);
 		} finally {
 			try {
 				if (stmt != null)
 					stmt.close();
 			} catch (SQLException e) {
-				System.out.println(e);
+				logger.debug("query failed", e);
 			}
 		}
 
-	}
+    }
 
-	public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
+    public DisplayDocument getRankingValue(String documentId, int bibliometricId) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
 		int metricValue = -1;
@@ -4201,16 +4220,16 @@ public class DBConnection {
 			}
 		}
 		return document;
-	}
+    }
 
-	/**
-	 * please fill me
-	 *
-	 * @param bibliometricId
-	 * @param authorId
-	 * @return
-	 */
-	public List<DisplayDocument> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
+    /**
+     * please fill me
+     * 
+     * @param bibliometricId
+     * @param authorId
+     * @return
+     */
+    public List<DisplayDocument> getRankingValuesOfAuthorPerDocument(int bibliometricId, int authorId) {
 		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 		DisplayDocument document = new DisplayDocument();
 		Statement stmt = null;
@@ -4248,20 +4267,20 @@ public class DBConnection {
 			}
 		}
 		return documentList;
-	}
+    }
 
-	/**
-	 * please fill me
-	 *
-	 * @param language
-	 * @return
-	 */
-	public long getNumberOfAbstractsInLanguage(String language) {
+    /**
+     * please fill me
+     * 
+     * @param language
+     * @return
+     */
+    public long getNumberOfAbstractsInLanguage(String language) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "SELECT COUNT(*) FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
 			+ "`='" + language + "'";
-		// System.out.println(query);
+		// logger.debug(query);
 
 		try {
 			stmt = con.createStatement();
@@ -4283,21 +4302,21 @@ public class DBConnection {
 			}
 		}
 		return 0;
-	}
+    }
 
-	/**
-	 * please fill me
-	 *
-	 * @param language
-	 * @param offset
-	 * @return
-	 */
-	public List<SimpleEntry<Long, Abstract>> fillAbstractsList(String language, long offset) {
+    /**
+     * please fill me
+     * 
+     * @param language
+     * @param offset
+     * @return
+     */
+    public List<SimpleEntry<Long, Abstract>> fillAbstractsList(String language, long offset) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		String query = "SELECT * FROM " + constants.getAbstracts() + " WHERE `" + constants.getAbstractLanguage()
 			+ "`='" + language + "' LIMIT " + offset + ",500";
-		// System.out.println(query);
+		// logger.debug(query);
 		List<SimpleEntry<Long, Abstract>> abstractList = new ArrayList<AbstractMap.SimpleEntry<Long, Abstract>>();
 		try {
 			stmt = con.createStatement();
@@ -4320,22 +4339,22 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Didn't return normally");
+		logger.debug("Didn't return normally");
 		return null;
-	}
+    }
 
-	/**
-	 * please fill me
-	 *
-	 * @param documentId
-	 * @param type
-	 * @param text
-	 * @param translationTool
-	 * @param sourceLanguage
-	 * @param targetLanguage
-	 * @return
-	 */
-	public int addTranslatedEntry(long documentId, String type, String text, String translationTool,
+    /**
+     * please fill me
+     * 
+     * @param documentId
+     * @param type
+     * @param text
+     * @param translationTool
+     * @param sourceLanguage
+     * @param targetLanguage
+     * @return
+     */
+    public int addTranslatedEntry(long documentId, String type, String text, String translationTool,
 								  String sourceLanguage, String targetLanguage) {
 		PreparedStatement stmt = null;
 		String query = "INSERT INTO " + "translated_document_fields"
@@ -4352,7 +4371,7 @@ public class DBConnection {
 			stmt.executeUpdate();
 			return 1;
 		} catch (SQLException e) {
-			System.out.println(stmt.toString());
+			logger.debug(stmt.toString());
 			e.printStackTrace();
 			return -1;
 		} finally {
@@ -4363,20 +4382,20 @@ public class DBConnection {
 				e.printStackTrace();
 			}
 		}
-	}
+    }
 
-	/**
-	 * please fill me!
-	 *
-	 * @param translatedAbstract
-	 * @return
-	 */
-	public int addTranslatedAbstract(AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract) {
+    /**
+     * please fill me!
+     * 
+     * @param translatedAbstract
+     * @return
+     */
+    public int addTranslatedAbstract(AbstractMap.SimpleEntry<Long, Abstract> translatedAbstract) {
 		return addTranslatedEntry(translatedAbstract.getKey(), "abstract", translatedAbstract.getValue().getContent(),
 								  "joshua", "de", "en");
-	}
+    }
 
-	public List<DisplayDocument> getRankingValuesOfDocumentsOfSpecifiedAuthor(int personId, int bibliometricId) {
+    public List<DisplayDocument> getRankingValuesOfDocumentsOfSpecifiedAuthor(int personId, int bibliometricId) {
 		List<DisplayDocument> documentList = new ArrayList<DisplayDocument>();
 		DisplayDocument document;
 		Statement stmt = null;
@@ -4414,9 +4433,9 @@ public class DBConnection {
 			}
 		}
 		return documentList;
-	}
+    }
 
-	public boolean updateStereotypes(ArrayList<SimpleEntry<String, String>> updates) {
+    public boolean updateStereotypes(ArrayList<SimpleEntry<String, String>> updates) {
 
 		PreparedStatement stmt = null;
 		String query = "INSERT INTO " + constants.getStereotypeRecommendations() + " ( "
@@ -4430,8 +4449,8 @@ public class DBConnection {
 				} catch (NumberFormatException f) {
 					String documentId = getDocumentIdFromURL(entry.getKey());
 					if (documentId.equals("No such document in database")) {
-						System.out.println("This URL has no assosciated document in our database:");
-						System.out.println(entry.getKey());
+						logger.debug("This URL has no assosciated document in our database:");
+						logger.debug(entry.getKey());
 						continue;
 					}
 					stmt.setInt(1, Integer.parseInt(documentId));
@@ -4440,15 +4459,15 @@ public class DBConnection {
 				stmt.executeUpdate();
 			}
 		} catch (SQLException e) {
-			System.out.println(query);
+			logger.debug(query);
 			e.printStackTrace();
 			return false;
 		}
 
 		return true;
-	}
+    }
 
-	private String getDocumentIdFromURL(String key) {
+    private String getDocumentIdFromURL(String key) {
 		if (key.contains("sowiport")) {
 			String[] parts = key.split("/");
 			String originalId = parts[parts.length - 1];
@@ -4472,9 +4491,9 @@ public class DBConnection {
 			}
 		}
 		return "No document in database";
-	}
+    }
 
-	public void logRecommendationSetReceivedAcknowledgement(String recommendationSetId, Long requestRecieved)
+    public void logRecommendationSetReceivedAcknowledgement(String recommendationSetId, Long requestRecieved)
 		throws SQLException {
 		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
 			+ constants.getRecommendationSetReceivedTime() + "=  IF( "
@@ -4490,9 +4509,9 @@ public class DBConnection {
 			e.printStackTrace();
 			throw e;
 		}
-	}
+    }
 
-	public String getTitleStringId(DisplayDocument requestDocument) throws SQLException {
+    public String getTitleStringId(DisplayDocument requestDocument) throws SQLException {
 		String titleStringId = "";
 		ResultSet rs = null;
 
@@ -4534,9 +4553,9 @@ public class DBConnection {
 				rs.close();
 		}
 		return titleStringId;
-	}
+    }
 
-	public String getIdInApplications(String appName, String column) throws NoEntryException {
+    public String getIdInApplications(String appName, String column) throws NoEntryException {
 		String query = "SELECT " + column + " FROM " + constants.getApplication() + " WHERE "
 			+ constants.getApplicationPublicName() + "=?";
 
@@ -4550,14 +4569,14 @@ public class DBConnection {
 			}
 
 		} catch (SQLException e) {
-			System.out.println("SQL Exception in getApplicationId");
-			System.out.println("Query: " + query);
-			System.out.println("Argument: " + appName);
+			logger.debug("SQL Exception in getApplicationId");
+			logger.debug("Query: " + query);
+			logger.debug("Argument: " + appName);
 			throw new NoEntryException(appName, "Application");
 		}
-	}
+    }
 
-	public String getOrganizationId(String orgName) throws NoEntryException {
+    public String getOrganizationId(String orgName) throws NoEntryException {
 		String query = "SELECT " + constants.getOrganizationId() + " FROM " + constants.getOrganization() + " WHERE "
 			+ constants.getOrganizationPublicName() + "=?";
 
@@ -4571,14 +4590,14 @@ public class DBConnection {
 			}
 
 		} catch (SQLException e) {
-			System.out.println("SQL Exception in getApplicationId");
-			System.out.println("Query: " + query);
-			System.out.println("Argument: " + orgName);
+			logger.debug("SQL Exception in getApplicationId");
+			logger.debug("Query: " + query);
+			logger.debug("Argument: " + orgName);
 			throw new NoEntryException(orgName, "Organization");
 		}
-	}
+    }
 
-	public Boolean verifyLinkAppOrg(String applicationId, String organizationId) {
+    public Boolean verifyLinkAppOrg(String applicationId, String organizationId) {
 		String query = "SELECT " + constants.getOrganizationInApplication() + " FROM " + constants.getApplication()
 			+ " WHERE " + constants.getApplicationId() + "=?";
 
@@ -4591,14 +4610,14 @@ public class DBConnection {
 				throw new NoEntryException(applicationId, "Application");
 			}
 		} catch (SQLException e) {
-			System.out.println("SQL Exception in getApplicationId");
-			System.out.println("Query: " + query);
-			System.out.println("Argument: " + applicationId);
+			logger.debug("SQL Exception in getApplicationId");
+			logger.debug("Query: " + query);
+			logger.debug("Argument: " + applicationId);
 			throw new NoEntryException(applicationId, "Application");
 		}
-	}
+    }
 
-	public Boolean matchCollectionPattern(String inputQuery, String organizationId) {
+    public Boolean matchCollectionPattern(String inputQuery, String organizationId) {
 		String query = "";
 		if (organizationId == null || organizationId.equals("1")) {
 			query = "SELECT " + constants.getPrefix() + " FROM " + constants.getPartnerPrefixes();
@@ -4616,7 +4635,7 @@ public class DBConnection {
 			}
 		} catch (SQLException e) {
 			if (constants.getDebugModeOn())
-				System.out.println("The query that broke the system is:" + query);
+				logger.debug("The query that broke the system is:" + query);
 			return false;
 		}
 		Boolean match = false;
@@ -4627,9 +4646,9 @@ public class DBConnection {
 			}
 		}
 		return match;
-	}
+    }
 
-	public List<String> getAccessableCollections(String accessingOrganization) {
+    public List<String> getAccessableCollections(String accessingOrganization) {
 		List<String> allowedCollections = new ArrayList<String>();
 		if (accessingOrganization == null) {
 			allowedCollections.add("2");
@@ -4647,20 +4666,20 @@ public class DBConnection {
 				if (allowedCollections.isEmpty())
 					allowedCollections.add("2");
 			} catch (SQLException e) {
-				System.out.println("Error in SQL query execution in getAccessableCollections method. Details:");
-				System.out.println(query + "\n " + "?=" + accessingOrganization);
+				logger.debug("Error in SQL query execution in getAccessableCollections method. Details:");
+				logger.debug(query + "\n " + "?=" + accessingOrganization);
 				allowedCollections = new ArrayList<String>();
 				allowedCollections.add("2");
 			}
 		}
 		return allowedCollections;
-	}
+    }
 
-	public String getApplicationId(String appName) {
+    public String getApplicationId(String appName) {
 		return getIdInApplications(appName, constants.getApplicationId());
-	}
+    }
 
-	public Pair<List<Long>, List<Boolean>> getDocumentSets(int startingSet, int numberOfSets) {
+    public Pair<List<Long>, List<Boolean>> getDocumentSets(int startingSet, int numberOfSets) {
 		String query = "SELECT " + constants.getRecommendationSetsId() + ", AVG(" + constants.getRankDelivered() + "/"
 			+ constants.getRankAfterReRanking() + ")!=1 AS 'shuffled' FROM " + constants.getRecommendations()
 			+ " WHERE " + constants.getRecommendationSetsId() + " >= ? " + "GROUP BY "
@@ -4680,36 +4699,36 @@ public class DBConnection {
 			System.out.printf(query + "    ? = %d , %d\n", startingSet, numberOfSets);
 		}
 		return new Pair<List<Long>, List<Boolean>>(recommendationSetIds, shuffled);
-	}
+    }
 
-	/*public Boolean checkShuffled(Long id) {
-	  String query = "SELECT " + constants.getRankAfterReRanking() + ", " + constants.getRankDelivered() + " FROM "
-	  + constants.getRecommendations() + " WHERE " + constants.getRecommendationSetsId() + "=?";
-	  try (PreparedStatement stmt = con.prepareStatement(query)) {
-	  stmt.setLong(1, id);
-	  ResultSet rs = stmt.executeQuery();
-	  List<Integer> rankAfterReRank = new ArrayList<Integer>();
-	  List<Integer> rankDelivered = new ArrayList<Integer>();
-	  while (rs.next()) {
-	  rankAfterReRank.add(rs.getInt(constants.getRankAfterReRanking()));
-	  rankDelivered.add(rs.getInt(constants.getRankDelivered()));
-	  }
-	  return !rankAfterReRank.equals(rankDelivered);
-	  } catch (SQLException e) {
-	  System.out.printf(query + " ?= %d", id);
-	  }
-	  return null;
-	  }*/
+    /*public Boolean checkShuffled(Long id) {
+      String query = "SELECT " + constants.getRankAfterReRanking() + ", " + constants.getRankDelivered() + " FROM "
+      + constants.getRecommendations() + " WHERE " + constants.getRecommendationSetsId() + "=?";
+      try (PreparedStatement stmt = con.prepareStatement(query)) {
+      stmt.setLong(1, id);
+      ResultSet rs = stmt.executeQuery();
+      List<Integer> rankAfterReRank = new ArrayList<Integer>();
+      List<Integer> rankDelivered = new ArrayList<Integer>();
+      while (rs.next()) {
+      rankAfterReRank.add(rs.getInt(constants.getRankAfterReRanking()));
+      rankDelivered.add(rs.getInt(constants.getRankDelivered()));
+      }
+      return !rankAfterReRank.equals(rankDelivered);
+      } catch (SQLException e) {
+      System.out.printf(query + " ?= %d", id);
+      }
+      return null;
+      }*/
 
-	public List<Boolean> getShuffledFlagInDB(Long startingSet, Long endingSet) {
+    public List<Boolean> getShuffledFlagInDB(Long startingSet, Long endingSet) {
 		List<Boolean> shuffled = new ArrayList<Boolean>();
 		String query = "SELECT " + constants.getShuffled() + " FROM " + constants.getRecommendationAlgorithm()
 			+ " AS ra JOIN " + constants.getRecommendationSets() + " AS rs ON ra."
 			+ constants.getRecommendationAlgorithmId() + "= rs." + constants.getRecommendationAlgorithmId()
-			+ " RIGHT JOIN " + constants.getRecommendations() +" as r on r."
+			+ " RIGHT JOIN " + constants.getRecommendations() +" as r on r." 
 			+ constants.getRecommendationSetsId() + "=rs." + constants.getRecommendationSetsId()
 			+ " WHERE r." + constants.getRecommendationSetsId() + " BETWEEN ? AND ? GROUP BY r."
-			+ constants.getRecommendationSetsId() + " HAVING COUNT(r." + constants.getRecommendationId() + ")>0";
+			+ constants.getRecommendationSetsId() + " HAVING COUNT(r." + constants.getRecommendationId() + ")>0"; 
 		try (PreparedStatement stmt = con.prepareStatement(query)) {
 			stmt.setLong(1, startingSet);
 			stmt.setLong(2, endingSet);
@@ -4723,9 +4742,9 @@ public class DBConnection {
 		}
 		return shuffled;
 
-	}
+    }
 
-	public Long switchShuffledFlag(Long id) {
+    public Long switchShuffledFlag(Long id) {
 		String query = "SELECT * FROM " + constants.getRecommendationAlgorithm() + " WHERE "
 			+ constants.getRecommendationAlgorithmId() + " IN (SELECT " + constants.getRecommendationAlgorithmId()
 			+ " FROM " + constants.getRecommendationSets() + " WHERE " + constants.getRecommendationSetsId()
@@ -4738,7 +4757,7 @@ public class DBConnection {
 			stmt.setLong(1, id);
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
-				//System.out.println(id + " , " + rs.getString(1));
+				//logger.debug(id + " , " + rs.getString(1));
 				recommendationClass = rs.getString(constants.getRecommendationClass());
 				langRestriction = rs.getString(constants.getLanguageRestrictionInRecommenderAlgorithm());
 				shuffled = rs.getBoolean(constants.getShuffled());
@@ -4767,7 +4786,7 @@ public class DBConnection {
 					bibRerankingId = rs.getLong("reranking_bibliometric_reranking_details");
 			}
 		} catch (SQLException e) {
-			System.out.println(query + " ? = " + Long.toString(id));
+			logger.debug(query + " ? = " + Long.toString(id));
 			e.printStackTrace();
 			return (long) 0;
 		}
@@ -4809,10 +4828,10 @@ public class DBConnection {
 				return result.getLong(constants.getRecommendationAlgorithmId());
 			}
 		} catch (SQLException e) {
-			System.out.println(query);
+			logger.debug(query);
 			return (long) 0;
 		}
-
+		
 		String insertQuery = "INSERT INTO " + constants.getRecommendationAlgorithm() + "(";
 		String columns = "";
 		String values = "";
@@ -4837,13 +4856,13 @@ public class DBConnection {
 				return insertResults.getLong(1);
 			}
 		} catch (SQLException e) {
-			System.out.println(insertQuery);
+			logger.debug(insertQuery);
 			e.printStackTrace();
 		}
 		return (long) -2;
-	}
+    }
 
-	public Pair<Long, Boolean> updateRecommendationAlgorithmIdInRecomemndationSet(Pair<Long, Long> fixedPair) {
+    public Pair<Long, Boolean> updateRecommendationAlgorithmIdInRecomemndationSet(Pair<Long, Long> fixedPair) {
 		String query = "UPDATE " + constants.getRecommendationSets() + " SET "
 			+ constants.getRecommendationAlgorithmId() + "=? WHERE " + constants.getRecommendationSetsId() + " =?";
 		try (PreparedStatement stmt = con.prepareStatement(query)) {
@@ -4851,11 +4870,11 @@ public class DBConnection {
 			stmt.setLong(2, fixedPair.getKey());
 			stmt.executeUpdate();
 		} catch (SQLException e) {
-			System.out.println(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
+			logger.debug(query + "?=" + fixedPair.getKey() + ", " + fixedPair.getValue());
 			return new Pair<Long, Boolean>(fixedPair.getKey(), false);
 		}
 
 		return new Pair<Long, Boolean>(fixedPair.getKey(), true);
-	}
+    }
 
 }

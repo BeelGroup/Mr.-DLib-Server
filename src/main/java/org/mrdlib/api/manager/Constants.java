@@ -249,6 +249,8 @@ public class Constants {
 	private String cbfFeatureCount;
 	private String cbfFields;
 	private String cbfNgramType;
+	private String cbfCorpusUsed;
+	private String cbfDimensions;
 	private String inputType;
 	private String searchMode;
 
@@ -564,6 +566,8 @@ public class Constants {
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
 			this.cbfFields = prop.getProperty("cbfFields");
 			this.cbfNgramType = prop.getProperty("cbfNgramType");
+			this.cbfDimensions = prop.getProperty("cbfDimensions");
+			this.cbfCorpusUsed = prop.getProperty("cbfCorpusUsed");
 			this.searchMode = prop.getProperty("searchMode");
 			this.inputType = prop.getProperty("inputType");
 
@@ -1306,6 +1310,13 @@ public class Constants {
 
 	public String getCbfFeatureType() {
 		return cbfFeatureType;
+	}
+
+	public String getCbfDimensions() {
+		return cbfDimensions;
+	}
+	public String getCbfCorpusUsed() {
+		return cbfCorpusUsed;
 	}
 
 	public String getCbfFeatureCount() {

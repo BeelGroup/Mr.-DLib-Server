@@ -5,9 +5,9 @@ class Model:
     LOCK_VECTORS = 0.0 # modify word embeddings or not
     WORKERS = 8
     EPOCHS = 20 
-    # TODO: test more dimensions now that we are doing delete_temporary_training_data
-    DIMENSIONS = 50 # more dimensions let server run out of memory
-    NUM_TREES = 100 # for nearest neighbor approximation
+    DIMENSIONS = 50 
+    NUM_TREES = 10 # for nearest neighbor approximation; TODO: test different tree sizes; benchmark
+    INDEX = False 
     MIN_COUNT = 5
     INFERENCE = False # no search
 
@@ -53,9 +53,11 @@ class Model:
 
         self.model.save(fname)
 
-        # build annoy indexer
-        self.index = AnnoyIndexer(self.model, Model.NUM_TREES)
-        self.index.save(f"{fname}.index")
+        if Model.INDEX:
+            # build annoy indexer
+            self.index = AnnoyIndexer(self.model, Model.NUM_TREES)
+            self.index.save(f"{fname}.index")
+
         return self
 
 
@@ -63,14 +65,15 @@ class Model:
     def load(fname):
         model = Model()
         model.model = gensim.models.Doc2Vec.load(fname, mmap='r')
-
-        model.index = AnnoyIndexer()
-        try:
-            model.index.load(f"{fname}.index")
-            model.index.model = model.model
-        except IOError:
-            model.index = AnnoyIndexer(model.model, Model.NUM_TREES)
-            model.index.save(f"{fname}.index")
+        model.model.delete_temporary_training_data(keep_doctags_vectors=True, keep_inference=Model.INFERENCE)
+        if Model.INDEX:
+            model.index = AnnoyIndexer()
+            try:
+                model.index.load(f"{fname}.index")
+                model.index.model = model.model
+            except IOError:
+                model.index = AnnoyIndexer(model.model, Model.NUM_TREES)
+                model.index.save(f"{fname}.index")
 
         return model
 
@@ -100,5 +103,9 @@ class Model:
         if not self.model:
             raise Exception("No model built/loaded.")
         
-        results = self.model.docvecs.most_similar([vector], topn=limit, indexer=self.model.index)
+        if Model.INDEX and self.index:
+            results = self.model.docvecs.most_similar([vector], topn=limit, indexer=self.index)
+        else:
+            results = self.model.docvecs.most_similar([vector], topn=limit)
+
         return [ {'id': docId, 'similarity': sim } for docId, sim in results]
