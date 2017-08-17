@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
+import java.net.URLEncoder;
 
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.api.response.DisplayDocument;
@@ -55,13 +56,15 @@ public class WebServiceConnection {
 
 
     private List<WebServiceRecommendation> sendDocumentQuery(String docId, String language, int limit, String... arguments) throws Exception {
-		String url = String.format(documentPattern, docId, language, String.valueOf(limit), arguments);
+		String q = URLEncoder.encode(docId);
+		String url = String.format(documentPattern, q, language, String.valueOf(limit), arguments);
 		return sendQuery(url);
 
     }
 
     private List<WebServiceRecommendation> sendSearchQuery(String query, String language, int limit, String... arguments) throws Exception {
-		String url = String.format(searchPattern, query, language, String.valueOf(limit), arguments);
+		String q = URLEncoder.encode(query);
+		String url = String.format(searchPattern, q, language, String.valueOf(limit), arguments);
 		return sendQuery(url);
     }
 

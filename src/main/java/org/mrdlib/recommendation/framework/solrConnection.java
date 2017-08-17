@@ -299,6 +299,7 @@ public class solrConnection {
 		List<String> allowedCollections = con.getAccessableCollections(relatedDocuments.getRequestingPartnerId());
 
 		String title = requestedDocument.getCleanTitle();
+		logger.trace("requesting solr documents for {}, clean_title = {} with parameters {}", requestedDocument, title, logginginfo);
 		SolrQuery query = new SolrQuery();
 		QueryResponse response = null;
 		DisplayDocument oneRelatedDocument = new DisplayDocument();

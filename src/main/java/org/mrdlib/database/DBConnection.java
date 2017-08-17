@@ -1561,6 +1561,10 @@ public class DBConnection {
 				document.setLanguage(rs.getString(constants.getLanguage()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
 				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
+
+				document.setAdded(rs.getTimestamp(constants.getAdded()));
+				document.setDeleted(rs.getTimestamp(constants.getDeleted()));
+				document.setChecked(rs.getTimestamp(constants.getChecked()));
 				return document;
 			} else
 				throw new NoEntryException(id);
@@ -1967,13 +1971,15 @@ public class DBConnection {
 		switch (requestType) {
 		case "related_documents": {
 			referenceColumnName = constants.getDocumentIdInLogging();
-			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+			int status = rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode();
+			if (status == 404 || status == 204)
 				noEntryExceptionRecorded = true;
 			break;
 		}
 		case "url_for_recommended_document": {
 			referenceColumnName = constants.getRecommendationIdInLogging();
-			if (rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode() == 404)
+			int status = rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode();
+			if (status == 404 || status == 204)
 				noEntryExceptionRecorded = true;
 
 			break;
@@ -2014,16 +2020,18 @@ public class DBConnection {
 				+ new Timestamp(System.currentTimeMillis()) + "', '" + (System.currentTimeMillis() - requestTime)
 				+ "', '" + statusCode + "',?, ?,?,?,?,?,?);";
 
+			logger.trace("Constructed query: {}", query);
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
 
 			// if there was noEntryException, then set referenceId to NULL, else
 			// carry on
-			if (noEntryExceptionRecorded) {
+			if (noEntryExceptionRecorded || "".equals(referenceId)) {
 				stmt.setNull(1, java.sql.Types.BIGINT);
 				if (constants.getDebugModeOn())
 					logger.debug("No entry exception woohoo");
 			} else {
-				stmt.setString(1, referenceId);
+				stmt.setLong(1, Long.parseLong(referenceId));
 			}
 
 			String ipAddress = documentSet.getIpAddress();

@@ -3,6 +3,7 @@ package org.mrdlib.api.response;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -353,5 +354,38 @@ public class DisplayDocument implements Serializable {
 	return String.format("title=%s, authors=%s, year=%d, docId=%s, id_org=%s",
 			     getTitle(), getAuthorNames(), getYear(), getDocumentId(), getOriginalDocumentId());
     }
+
+	
+	private Date added;
+
+	public Date getAdded() {
+		return added;
+	}
+
+	public void setAdded(Date added) {
+		this.added = added;
+	}
+
+	
+	private Date deleted;
+
+	public Date getDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(Date deleted) {
+		this.deleted = deleted;
+	}
+
+	
+	private Date checked;
+
+	public Date getChecked() {
+		return checked;
+	}
+
+	public void setChecked(Date checked) {
+		this.checked = checked;
+	}
 	
 }

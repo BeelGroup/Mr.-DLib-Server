@@ -63,8 +63,21 @@ public class DocumentService {
 		}
 	}
 
-	
 
+	/*
+	 * reduce document set to documents valid for recommendation,
+	 * e.g. delete documents marked as deleted, ...
+	 */
+	private void filterDocuments(DocumentSet docs) {
+		for (int i = 0; i < docs.getSize(); i++) {
+			DisplayDocument doc = docs.getDisplayDocument(i);
+			if (doc.getDeleted() != null) {
+				logger.info("Removing document {} from result list", doc);
+				docs.removeDisplayDocument(i);
+				i--;
+			}
+		}
+	}
 
 	/*
 	 * Try to find the document in our database described by this query, dwim way.
@@ -120,18 +133,13 @@ public class DocumentService {
 					Boolean prefixMatch = con.matchCollectionPattern(inputQuery, partnerId);
 					requestDocument = new DisplayDocument();
 					requestDocument.setTitle(inputQuery);
-					String originalInputQuery = inputQuery;
-					inputQuery = inputQuery
-						.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\|\\'|\\;", " ");
-					requestDocument.setCleanTitle(inputQuery);
 					if (!prefixMatch) {
-						inputQuery = inputQuery.toLowerCase();
 						// lucene does not like these chars
 						logger.trace("requestDocument: {}", requestDocument.getTitle());
 						return null;
 					} else {
-						requestDocument.setDocumentId(originalInputQuery);
-						throw new NoEntryException(originalInputQuery);
+						requestDocument.setDocumentId(inputQuery);
+						throw new NoEntryException(inputQuery);
 					}
 				}
 			}
@@ -280,7 +288,10 @@ public class DocumentService {
 			if (requestDocument == null) {
 				requestByTitle = true;
 				inputQuery = inputQuery.toLowerCase();
+				inputQuery = inputQuery
+					.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\|\\'|\\;", " ");
 				requestDocument = new DisplayDocument(inputQuery, inputQuery, inputQuery);
+				requestDocument.setCleanTitle(inputQuery);
 			}
 
 			timeToPickAlgorithm = System.currentTimeMillis();
@@ -294,9 +305,10 @@ public class DocumentService {
 					documentset = executeAlgorithmById(algo,documentset,requestDocument);
 				}
 
-
 				logger.trace("Do the documentset stuff");
 				timeAfterExecution = System.currentTimeMillis();
+
+				filterDocuments(documentset);
 
 				if (documentset.getSize() > 0) {
 					documentset = ar.selectRandomRanking(documentset);
@@ -313,6 +325,7 @@ public class DocumentService {
 				}
 
 			} catch(IllegalArgumentException e) {
+				logger.warn("Illegal argument exception", e);
 				StatusReport status = new StatusReport(400, String.format("Invalid algorithm name specified: %s", algorithmName));
 				statusReportSet.addStatusReport(status);
 				rootElement.setDocumentSet(null);
