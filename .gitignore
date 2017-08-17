@@ -17,7 +17,7 @@ build/
 /.gradle
 .vscode
 # files containing passwords
-/src/main/resources/config.properties
+/src/main/resources/config.secret.properties
 /tomcat.xml
 *.*~
 /GPATH

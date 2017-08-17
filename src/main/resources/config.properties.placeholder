@@ -1,3 +1,0 @@
-config.properties needs to go in the directory this file is in.
-This contains various constants and e.g. the database password.
-You can find this file in the dropbox share.

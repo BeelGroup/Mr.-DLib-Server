@@ -42,6 +42,9 @@ import org.mrdlib.utils.Pair;
 
 import main.java.org.mrdlib.partnerContentManager.mediatum.MediaTUMXMLDocument;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author Millah
@@ -56,6 +59,8 @@ public class DBConnection {
 	Context ctx = null;
 	// stores the length of the database fields to check for truncation error
 	private Map<String, Integer> lengthMap = new HashMap<String, Integer>();
+
+	private Logger logger = LoggerFactory.getLogger(DBConnection.class);
 
 	public DBConnection(String type) throws Exception {
 		Statement stmt = null;
@@ -1650,8 +1655,10 @@ public class DBConnection {
 		return getDocumentsByIdSchema(idSchema,start,batchsize,null);
 	}
 
-	public List<DisplayDocument> getDocumentsByIdSchemaMissingField(String idSchema, long start, long batchsize, String missing) throws Exception {
-		return getDocumentsByIdSchema(idSchema,start,batchsize, missing + " is null");
+	public List<DisplayDocument> getDeleteCandidates(String idSchema, long start, long batchsize) throws Exception {
+		Timestamp due = new Timestamp(System.currentTimeMillis() - constants.getCheckInterval());
+		String condition = constants.getDeleted() + " is null and (checked > '" + due + "' or checked is null)";
+		return getDocumentsByIdSchema(idSchema,start,batchsize, condition);
 	}
 
 
@@ -1672,6 +1679,7 @@ public class DBConnection {
 		stmt.setLong(3, start + batchsize);
 		stmt.setLong(4, batchsize);
 
+		logger.trace("Executing query: {}", stmt);
 		ResultSet rs = stmt.executeQuery();
 
 		List<DisplayDocument> results = new ArrayList<DisplayDocument>((int)batchsize);

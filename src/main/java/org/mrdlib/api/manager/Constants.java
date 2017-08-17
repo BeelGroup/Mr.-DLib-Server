@@ -13,7 +13,8 @@ import java.util.Properties;
 
 public class Constants {
 
-	private String tomcatConfigPath = "config.properties";
+	private String normalConfigPath = "config.properties";
+	private String secretConfigPath = "config.secret.properties";
 
 	// environment
 	private String environment;
@@ -318,26 +319,39 @@ public class Constants {
 	// load the config file
 	public Constants() {
 
-		Properties prop = new Properties();
 		InputStream input = null;
+		Properties prop;
 	
 		try {
-			input = getClass().getClassLoader().getResourceAsStream(tomcatConfigPath);
+			input = getClass().getClassLoader().getResourceAsStream(secretConfigPath);
+			prop = new Properties();
 			prop.load(input);
 
-			// get the property value
-			this.environment = prop.getProperty("environment");
-
+			// secret configuration settings (access data)
 			this.coreAPIKey = prop.getProperty("coreAPIKey");
-
-			this.doc2vecSearchRoute = prop.getProperty("doc2vecSearchRoute");
-			this.doc2vecDocumentRoute = prop.getProperty("doc2vecDocumentRoute");
-
 			this.dbClass = prop.getProperty("dbClass");
 			this.db = prop.getProperty("db");
 			this.url = prop.getProperty("url");
 			this.user = prop.getProperty("user");
 			this.password = prop.getProperty("password");
+
+			this.emailNotificationUsername = prop.getProperty("emailNotificationUsername");
+			this.emailNotificationPassword = prop.getProperty("emailNotificationPassword");
+			this.emailNotificationHost = prop.getProperty("emailNotificationHost");
+			this.emailNotificationAddress = prop.getProperty("emailNotificationAddress");
+
+			// normal configuration settings
+			input = getClass().getClassLoader().getResourceAsStream(normalConfigPath);
+			prop = new Properties();
+			prop.load(input);
+
+			// get the property value
+			this.environment = prop.getProperty("environment");
+
+
+			this.doc2vecSearchRoute = prop.getProperty("doc2vecSearchRoute");
+			this.doc2vecDocumentRoute = prop.getProperty("doc2vecDocumentRoute");
+
 
 			this.documents = prop.getProperty("documents");
 			this.persons = prop.getProperty("persons");
@@ -508,6 +522,8 @@ public class Constants {
 			this.fulltextFormat = prop.getProperty("fulltextFormat");
 			this.documentAdded = prop.getProperty("added");
 			this.documentDeleted = prop.getProperty("deleted");
+			this.documentChecked = prop.getProperty("checked");
+			this.checkInterval = Long.parseLong(prop.getProperty("checkInterval"));
 
 			this.accessingOrganization = prop.getProperty("accessingOrganization");
 			this.accessedOrganization = prop.getProperty("accessedOrganization");
@@ -588,10 +604,6 @@ public class Constants {
 			this.numberOfRetries = Integer.parseInt(prop.getProperty("numberOfRetries"));
 			String debugModeOn = prop.getProperty("debugModeOn");
 
-			this.emailNotificationUsername = prop.getProperty("emailNotificationUsername");
-			this.emailNotificationPassword = prop.getProperty("emailNotificationPassword");
-			this.emailNotificationHost = prop.getProperty("emailNotificationHost");
-			this.emailNotificationAddress = prop.getProperty("emailNotificationAddress");
 
 			// map string true and false to boolean
 			if (debugModeOn.equals("true"))
@@ -613,19 +625,29 @@ public class Constants {
 	}
 
 	
+	private long checkInterval;
+
+	public long getCheckInterval() {
+		return checkInterval;
+	}
+	
+	private String documentChecked;
+
+	public String getChecked() {
+		return documentChecked;
+	}
+	
 	private String documentAdded;
 
 	public String getAdded() {
 		return documentAdded;
 	}
-
 	
 	private String documentDeleted;
 
 	public String getDeleted() {
-		return documentAdded;
+		return documentDeleted;
 	}
-
 
 	public String getCoreAPIKey() {
 		return coreAPIKey;

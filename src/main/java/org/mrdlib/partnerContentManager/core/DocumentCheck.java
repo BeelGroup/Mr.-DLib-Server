@@ -40,10 +40,7 @@ public class DocumentCheck
     }
 
     public List<DisplayDocument> getCoreDocumentsBatch(long batch) throws Exception {
-		return db.getDocumentsByIdSchemaMissingField(constants.getCore(), batch * BATCH_SIZE, BATCH_SIZE, constants.getDeleted());
-    }
-    public List<DisplayDocument> getCoreDocumentsById(long start) throws Exception {
-		return db.getDocumentsByIdSchemaMissingField(constants.getCore(), start, BATCH_SIZE, constants.getDeleted());
+		return db.getDeleteCandidates(constants.getCore(), batch * BATCH_SIZE, BATCH_SIZE);
     }
 
     public long getBatchesForAllDocuments() throws Exception {
@@ -101,6 +98,8 @@ public class DocumentCheck
 				List<Integer> ids = check.getCoreIdsFromDocuments(docs);
 				List<Object> missing = new ArrayList<Object>();
 				List<Object> deletedTimestamps = new ArrayList<Object>();
+				List<Object> checked = new ArrayList<Object>();
+				List<Object> checkedTimestamps = new ArrayList<Object>();
 
 				if (ids.size() != 0) {
 					try {
@@ -109,10 +108,13 @@ public class DocumentCheck
 							throw new Exception("Missing document in query results: " + articles.toString() + " vs " + ids.toString());
 						}
 						for (int i = 0; i < articles.size(); i++) {
+							String id = String.format("core-%d", ids.get(i));
+							Timestamp time = new Timestamp(System.currentTimeMillis());
+							checked.add(id);
+							checkedTimestamps.add(time);
 							if (articles.get(i) == null) {
 								progress.append("-" + ids.get(i) + System.lineSeparator());
-								missing.add(ids.get(i));
-								Timestamp time = new Timestamp(System.currentTimeMillis());
+								missing.add(id);
 								deletedTimestamps.add(time);
 							}
 						}
@@ -128,37 +130,15 @@ public class DocumentCheck
 				check.db.setRowValues(check.constants.getDocuments(),
 					check.constants.getIdOriginal(), missing, Types.VARCHAR,
 					check.constants.getDeleted(), deletedTimestamps, Types.TIMESTAMP);
+
+				check.db.setRowValues(check.constants.getDocuments(),
+					check.constants.getIdOriginal(), checked, Types.VARCHAR,
+					check.constants.getChecked(), checkedTimestamps, Types.TIMESTAMP);
 			}
 			progress.close();
+			check.db.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
     }
-
-	// public static void main(String[] args) throws Exception {
-	// 	DocumentCheck check = new DocumentCheck();
-	// 	String filename = args[0];
-	// 	BufferedReader file = new BufferedReader(new FileReader(filename));
-	// 	String line;
-	// 	Timestamp time = new Timestamp(System.currentTimeMillis());
-	// 	List<Object> missing = new ArrayList<Object>();
-	// 	List<Object> deletedTimestamps = new ArrayList<Object>();
-	// 	check.logger.info("Collecting documents to mark as deleted.");
-	// 	long i = 0;
-	// 	while ((line = file.readLine()) != null) {
-	// 		char type = line.charAt(0);
-	// 		if (type == '-') { 
-	// 			String id = String.format("core-%s", line.substring(1));
-	// 			missing.add(id);
-	// 			deletedTimestamps.add(time);
-	// 			if (++i % 1000 == 0) {
-	// 				check.logger.info("Progress: {} documents collected.", i);
-	// 			}
-	// 		}
-	// 	}
-	// 	check.logger.info("Marking documents as deleted.");
-	// 	check.db.setRowValues(check.constants.getDocuments(),
-	// 		check.constants.getIdOriginal(), missing, Types.VARCHAR,
-	// 		check.constants.getDeleted(), deletedTimestamps, Types.TIMESTAMP);
-	// }
 }
