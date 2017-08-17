@@ -1,5 +1,5 @@
 SELECT logging.document_id, logging.request_received, recommendation_algorithm_id FROM mrdlib.recommendation_statistics__recommendation_set, mrdlib.logging
 where recommendation_statistics__recommendation_set.logging_id = logging.logging_id and recommendation_statistics__recommendation_set.recommendation_algorithm_id in 
 (select recommendation_algorithm_id from mrdlib.recommendation_algorithm where recommendation_algorithm__details_cbf_id in
-(select recommendation_algorithm__details_cbf_id from mrdlib.recommendation_algorithm__details_cbf where feature_type = 'embedding')) 
+(select recommendation_algorithm__details_cbf_id from mrdlib.recommendation_algorithm__details_cbf where feature_type = 'embeddings')) 
 order by logging.request_received desc;

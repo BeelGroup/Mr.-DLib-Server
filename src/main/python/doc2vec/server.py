@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Server:
     LIMIT=10
     LANGUAGES=['en', 'de']
-    AUTO_LOAD=[ ['en', 'abstract'], ['en', 'title'] ]
+    AUTO_LOAD=[ ['en', 'abstract'], ['en', 'title'], ['en', 'title_abstract'] ]
     SOURCES=DocumentReader.SOURCES
     DEFAULT_SOURCE='abstract'
     DEFAULT_LANGUAGE='en'
@@ -39,7 +39,7 @@ class Server:
         for language, source in Server.AUTO_LOAD:
             self.load_model_task(language, source)
         
-    def read_config(self, fname='config.properties'):
+    def read_config(self, fname='config.properties', fname_secret='config.secret.properties'):
         ''' Read standard config file or file given by command line argument. Return as dictionary. Also parse other command line arguments.
         >>> c = read_config()
         >>> 'db_host' in c
@@ -49,7 +49,9 @@ class Server:
         '''
         config = configparser.ConfigParser()
         config.read(fname)
-        self.config = config['MrDlib']
+        config_secret = configparser.ConfigParser()
+        config_secret.read(fname_secret)
+        self.config = { **config['MrDlib'], **config_secret['MrDlib'] }
         return self
 
     def dispatch(self, request):

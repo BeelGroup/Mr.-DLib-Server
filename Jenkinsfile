@@ -7,7 +7,7 @@ pipeline {
     stages {
     	stage('setup') {
 			steps {
-				sh 'cp $HOME/configs/config.properties ./src/main/resources/'
+				sh 'cp $HOME/configs/config.secret.properties ./src/main/resources/'
 				sh 'cp $HOME/configs/logback-test.xml ./src/main/resources/'
 				sh 'cp $HOME/configs/tomcat.xml .'
 			}
