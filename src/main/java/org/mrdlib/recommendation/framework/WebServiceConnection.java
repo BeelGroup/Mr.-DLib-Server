@@ -54,14 +54,14 @@ public class WebServiceConnection {
     }
 
 
-    private List<WebServiceRecommendation> sendDocumentQuery(String docId, String language, int limit) throws Exception {
-		String url = String.format(documentPattern, docId, language, limit);
+    private List<WebServiceRecommendation> sendDocumentQuery(String docId, String language, int limit, String... arguments) throws Exception {
+		String url = String.format(documentPattern, docId, language, String.valueOf(limit), arguments);
 		return sendQuery(url);
 
     }
 
-    private List<WebServiceRecommendation> sendSearchQuery(String query, String language, int limit) throws Exception {
-		String url = String.format(searchPattern, query, language, limit);
+    private List<WebServiceRecommendation> sendSearchQuery(String query, String language, int limit, String... arguments) throws Exception {
+		String url = String.format(searchPattern, query, language, String.valueOf(limit), arguments);
 		return sendQuery(url);
     }
 
@@ -90,7 +90,7 @@ public class WebServiceConnection {
     /**
      * query recommendations from a webservice
      */
-    public DocumentSet getRelatedDocumentSetByDocument(DocumentSet relatedDocuments) throws Exception {
+    public DocumentSet getRelatedDocumentSetByDocument(DocumentSet relatedDocuments, String... arguments) throws Exception {
 
 		DisplayDocument document = relatedDocuments.getRequestedDocument();
 		AlgorithmDetails logginginfo = relatedDocuments.getAlgorithmDetails();
@@ -101,7 +101,7 @@ public class WebServiceConnection {
 		DisplayDocument relDocument = new DisplayDocument();
 		String fallback_url = "";
 
-	    List<WebServiceRecommendation> docs = sendDocumentQuery(document.getDocumentId(), language, limitBuffer);
+	    List<WebServiceRecommendation> docs = sendDocumentQuery(document.getDocumentId(), language, limitBuffer, arguments);
 		logger.info("Requesting {} documents from web service; returned {}; need {}", limitBuffer, docs.size(), limit);
 
 	    // no related documents found

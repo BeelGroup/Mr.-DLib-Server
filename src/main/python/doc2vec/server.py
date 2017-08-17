@@ -16,8 +16,8 @@ class Server:
     LIMIT=10
     LANGUAGES=['en', 'de']
     AUTO_LOAD=[ ['en', 'abstract'], ['en', 'title'] ]
-    MODES=DocumentReader.MODES
-    DEFAULT_MODE='abstract'
+    SOURCES=DocumentReader.SOURCES
+    DEFAULT_SOURCE='abstract'
     DEFAULT_LANGUAGE='en'
     def __init__(self):
         self.routes = Map([
@@ -36,8 +36,8 @@ class Server:
         self.config = None
         self.read_config()
 
-        for language, mode in Server.AUTO_LOAD:
-            self.load_model_task(language, mode)
+        for language, source in Server.AUTO_LOAD:
+            self.load_model_task(language, source)
         
     def read_config(self, fname='config.properties'):
         ''' Read standard config file or file given by command line argument. Return as dictionary. Also parse other command line arguments.
@@ -68,16 +68,16 @@ class Server:
 
     def search(self, req, query):
         language = req.args.get('language', Server.DEFAULT_LANGUAGE)
-        mode = req.args.get('mode', Server.DEFAULT_MODE)
+        source = req.args.get('source', Server.DEFAULT_SOURCE)
 
         if language not in Server.LANGUAGES:
             return Response('Language code not valid / supported', status=400, mimetype='text/plain')
-        if mode not in Server.MODES:
-            return Response('Mode not valid / supported', status=400, mimetype='text/plain')
-        model_id = f"{language}_{mode}"
+        if source not in Server.SOURCES:
+            return Response('Source not valid / supported', status=400, mimetype='text/plain')
+        model_id = f"{language}_{source}"
 
         if model_id not in self.models:
-            return Response('No model for this language-mode-combination found.', status=501, mimetype='text/plain')
+            return Response('No model for this language-source-combination found.', status=501, mimetype='text/plain')
 
         limit = int(req.args.get('limit', Server.LIMIT))
         model = self.models[model_id]
@@ -89,17 +89,17 @@ class Server:
 
     def related(self, req, docId):
         language = req.args.get('language', Server.DEFAULT_LANGUAGE)
-        mode = req.args.get('mode', Server.DEFAULT_MODE)
+        source = req.args.get('source', Server.DEFAULT_SOURCE)
 
         if language not in Server.LANGUAGES:
             return Response('Language code not valid / supported', status=400, mimetype='text/plain')
 
-        if mode not in Server.MODES:
-            return Response('Mode not valid / supported', status=400, mimetype='text/plain')
-        model_id = f"{language}_{mode}"
+        if source not in Server.SOURCES:
+            return Response('Source not valid / supported', status=400, mimetype='text/plain')
+        model_id = f"{language}_{source}"
 
         if model_id not in self.models:
-            return Response('No model for this language-mode-combination found.', status=501, mimetype='text/plain')
+            return Response('No model for this language-source-combination found.', status=501, mimetype='text/plain')
 
         limit = int(req.args.get('limit', Server.LIMIT))
         model = self.models[model_id]
@@ -111,55 +111,55 @@ class Server:
             return Response('No such document found.', status=404, mimetype='text/plain')
 
 
-    def train_model_task(self, language, mode):
-        logger.info(f"Starting training doc2vec for {language} / {mode} @ {datetime.datetime.now()}.")
-        data = DocumentDumpReader(mode, language, f"dump_{mode}", self.config)
+    def train_model_task(self, language, source):
+        logger.info(f"Starting training doc2vec for {language} / {source} @ {datetime.datetime.now()}.")
+        data = DocumentDumpReader(source, language, f"dump_{source}", self.config)
         model = Model()
-        model_id = f"{language}_{mode}"
+        model_id = f"{language}_{source}"
         model.preprocess(data).build(f"vectors_{language}").train(f"model_{model_id}")
         self.models[model_id] = model
-        logger.info(f"Finished training for {language} / {mode} @ {datetime.datetime.now()}. Saving...")
+        logger.info(f"Finished training for {language} / {source} @ {datetime.datetime.now()}. Saving...")
 
 
     def train(self, req):
         if 'language' not in req.args:
             return Response('Language parameter not provided.', status=400, mimetype='text/plain')
-        if 'mode' not in req.args:
-            return Response('Mode parameter not provided.', status=400, mimetype='text/plain')
+        if 'source' not in req.args:
+            return Response('Source parameter not provided.', status=400, mimetype='text/plain')
         language = req.args.get('language', Server.DEFAULT_LANGUAGE)
-        mode = req.args.get('mode', Server.DEFAULT_MODE)
+        source = req.args.get('source', Server.DEFAULT_SOURCE)
 
-        if mode not in Server.MODES:
-            return Response('Mode not valid / supported', status=400, mimetype='text/plain')
+        if source not in Server.SOURCES:
+            return Response('Source not valid / supported', status=400, mimetype='text/plain')
         if language not in Server.LANGUAGES:
             return Response('Language code not valid / supported', status=400, mimetype='text/plain')
 
-        thread = threading.Thread(target=self.train_model_task, args=(language,mode), daemon=False)
+        thread = threading.Thread(target=self.train_model_task, args=(language,source), daemon=False)
         thread.start()
         return Response('Started training.', status=200, mimetype='text/plain')
 
-    def load_model_task(self, language, mode):
-        logger.info(f"Starting loading model for {language} / {mode} @ {datetime.datetime.now()}")
-        model_id = f"{language}_{mode}"
+    def load_model_task(self, language, source):
+        logger.info(f"Starting loading model for {language} / {source} @ {datetime.datetime.now()}")
+        model_id = f"{language}_{source}"
         self.models[model_id] = Model.load(f"model_{model_id}")
-        logger.info(f"Loaded model for {language} / {mode} @ {datetime.datetime.now()}")
+        logger.info(f"Loaded model for {language} / {source} @ {datetime.datetime.now()}")
 
 
     def load(self, req):
         if 'language' not in req.args:
             return Response('Language parameter not provided.', status=400, mimetype='text/plain')
 
-        if 'mode' not in req.args:
-            return Response('Mode parameter not provided.', status=400, mimetype='text/plain')
+        if 'source' not in req.args:
+            return Response('Source parameter not provided.', status=400, mimetype='text/plain')
         language = req.args.get('language', Server.DEFAULT_LANGUAGE)
-        mode = req.args.get('mode', Server.DEFAULT_MODE)
+        source = req.args.get('source', Server.DEFAULT_SOURCE)
 
         if language not in Server.LANGUAGES:
             return Response('Language code not valid / supported', status=400, mimetype='text/plain')
 
-        if mode not in Server.MODES:
-            return Response('Mode not valid / supported', status=400, mimetype='text/plain')
-        thread = threading.Thread(target=self.load_model_task, args=(language,mode), daemon=False)
+        if source not in Server.SOURCES:
+            return Response('Source not valid / supported', status=400, mimetype='text/plain')
+        thread = threading.Thread(target=self.load_model_task, args=(language,source), daemon=False)
         thread.start()
         return Response(f'Started loading model.', status=200, mimetype='text/plain') 
 

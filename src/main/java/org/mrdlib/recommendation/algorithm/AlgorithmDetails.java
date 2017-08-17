@@ -2,7 +2,7 @@ package org.mrdlib.recommendation.algorithm;
 
 import org.mrdlib.api.manager.UnknownException;
 
-public class AlgorithmDetails {
+public class AlgorithmDetails implements Cloneable {
 
 	private String name;
 	private String recommendationClass;
@@ -299,6 +299,10 @@ public class AlgorithmDetails {
 
 	public String getRecommendationProviderId() {
 		return recommendationProviderId;
+	}
+
+	public AlgorithmDetails clone() throws CloneNotSupportedException {
+		return (AlgorithmDetails) super.clone();
 	}
 
 }
