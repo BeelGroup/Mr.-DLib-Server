@@ -277,6 +277,18 @@ public class DisplayDocument implements Serializable {
 		this.fallbackUrl = fallbackUrl;
 	}
 
+	
+	private String languageDetected;
+
+	public String getLanguageDetected() {
+		return languageDetected;
+	}
+
+	public void setLanguageDetected(String languageDetected) {
+		this.languageDetected = languageDetected;
+	}
+
+
 	public String getLanguage() {
 		return language;
 	}

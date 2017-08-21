@@ -98,6 +98,7 @@ public class solrConnection {
 		// set display params
 		query.setParam("fl", "score,id");
 		try {
+			logger.trace("Querying solr: {}", query);
 			response = solr.query(query);
 
 			SolrDocumentList docs = response.getResults();

@@ -1559,6 +1559,7 @@ public class DBConnection {
 				// get the collection id and then the shortName of the
 				// collection
 				document.setLanguage(rs.getString(constants.getLanguage()));
+				document.setLanguageDetected(rs.getString(constants.getLanguageDetected()));
 				document.setCollectionId(rs.getLong(constants.getDocumentCollectionID()));
 				document.setCollectionShortName(getCollectionShortNameById(document.getCollectionId()));
 
@@ -4059,6 +4060,8 @@ public class DBConnection {
 					stmt.setString(2, "Y");
 				} else
 					stmt.setString(2, "N");
+
+				logger.trace("Executing statement: {}", stmt);
 
 				stmt.executeUpdate();
 

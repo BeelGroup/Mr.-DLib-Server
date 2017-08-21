@@ -12,13 +12,20 @@ import org.mrdlib.database.NoEntryException;
 public class RecommenderFactory {
 
 	public static RelatedDocuments getAlgorithmById(Algorithm id, DBConnection con) throws Exception {
+		return getAlgorithmById(id,con,false);
+	}
+
+	public static RelatedDocuments getAlgorithmById(Algorithm id, DBConnection con, boolean byTitle) throws Exception {
 		switch(id) {
 		case RANDOM_DOCUMENT:
 			return new RandomDocumentRecommender(con);
 		case RANDOM_LANGUAGE_RESTRICTED:
 			return new RandomDocumentRecommenderLanguageRestricted(con);
 		case FROM_SOLR:
-			return new RelatedDocumentsMLT(con);
+			if (byTitle)
+				return new RelatedDocumentsQuery(con);
+			else
+				return new RelatedDocumentsMLT(con);
 		case STEREOTYPE:
 			return new StereotypeRecommender(con);
 		case MOST_POPULAR:

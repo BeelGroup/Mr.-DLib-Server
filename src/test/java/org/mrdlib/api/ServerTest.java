@@ -4,13 +4,17 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.io.InputStream;
+import java.io.StringWriter;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.Marshaller;
+import java.net.URLEncoder;
 
-import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.HttpException;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.utils.URIBuilder;
@@ -37,7 +41,7 @@ import org.mrdlib.recommendation.algorithm.Algorithm;
 
 @RunWith(Parameterized.class)
 public class ServerTest {
-	private HttpClient http;
+	private CloseableHttpClient http;
 	private List<String> documentIds, searchQueries, originalIds;
 	private Logger logger;
 
@@ -48,7 +52,9 @@ public class ServerTest {
 	@Parameter(1)
 	public String query;
 	@Parameter(2)
-	public Algorithm algorithm;
+	public String algorithm;
+	@Parameter(3)
+	public boolean byTitle;
 
 	@Parameters(name="{index}: /documents/{1}/related_documents?algorithm_id={2}")
 	public static Collection<Object[]> data() throws Exception {
@@ -59,18 +65,18 @@ public class ServerTest {
 		List<DisplayDocument> docs = con.getRandomDocuments(TEST_QUERIES);
 		for (DisplayDocument d : docs) {
 			for (Algorithm a : Algorithm.values()) {
-				options.add(new Object[] { d, d.getOriginalDocumentId(), a });
-				options.add(new Object[] { d, d.getDocumentId(), a });
-				options.add(new Object[] { d, d.getTitle(), a });
+				options.add(new Object[] { d, d.getOriginalDocumentId(), a.name(), false });
+				options.add(new Object[] { d, d.getDocumentId(), a.name(), false });
+				options.add(new Object[] { d, d.getTitle(), a.name(), true });
 			}
 			// null = don't specify algorithm_id
-			options.add(new Object[] { d, d.getOriginalDocumentId(), null });
-			options.add(new Object[] { d, d.getDocumentId(), null });
-			options.add(new Object[] { d, d.getTitle(), null });
+			options.add(new Object[] { d, d.getOriginalDocumentId(), null, false });
+			options.add(new Object[] { d, d.getDocumentId(), null, false });
+			options.add(new Object[] { d, d.getTitle(), null, true });
 			// foo - invalid algorithm_name
-			options.add(new Object[] { d, d.getOriginalDocumentId(), "foo" });
-			options.add(new Object[] { d, d.getDocumentId(), "foo" });
-			options.add(new Object[] { d, d.getTitle(), "foo" });
+			options.add(new Object[] { d, d.getOriginalDocumentId(), "foo", false });
+			options.add(new Object[] { d, d.getDocumentId(), "foo", false });
+			options.add(new Object[] { d, d.getTitle(), "foo", true});
 		}
 		con.close();
 		return options;
@@ -83,7 +89,7 @@ public class ServerTest {
 		logger = LoggerFactory.getLogger(ServerTest.class);
 	}
 
-	private void testRootElement(RootElement result, boolean ensureStatusOk) throws Exception {
+	private void testXml(RootElement result) throws Exception {
 		assertNotNull(result);
 		StatusReportSet status = result.getStatusReportSet();
 		assertNotNull(status);
@@ -92,30 +98,44 @@ public class ServerTest {
 		assertNotNull(reports);
 		StatusReport report = reports.get(0);
 		assertNotNull(report);
-		if (ensureStatusOk) {
-			assertEquals(200, report.getStatusCode());
+	}
+
+	private void testStatus(RootElement result) throws Exception {
+		StatusReport report = result.getStatusReportSet().getStatusReportList().get(0);
+		assertThat(report.getStatusCode(), anyOf(equalTo(200), equalTo(204)));
+		if (report.getStatusCode() == 200) {
 			DocumentSet documents = result.getDocumentSet();
 			assertNotNull(documents);
 			assertThat(documents.getSize(), greaterThan(0));
 		}
 	}
 
-	private RootElement fetchRootElement(String query, Algorithm algo) throws Exception {
+	private RootElement fetchRootElement(String query, String algo) throws Exception {
+		String q = URLEncoder.encode(query);
 		URIBuilder url = new URIBuilder()
 			.setScheme("http")
 			.setHost("localhost")
 			.setPort(9000)
-			.setPath("/mdl-server/documents/" + query + "/related_documents");
+			.setPath("/mdl-server/documents/" + q + "/related_documents");
 		if (algo != null)
-			url = url.addParameter("algorithm_name", algo.name());
+			url = url.addParameter("algorithm_name", algo);
 		HttpGet get = new HttpGet(url.build());
-		HttpResponse res = http.execute(get);
+		CloseableHttpResponse res = http.execute(get);
 		JAXBContext jaxbContext = JAXBContext.newInstance(RootElement.class);
 		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		return (RootElement) jaxbUnmarshaller.unmarshal(res.getEntity().getContent());
+		InputStream is = res.getEntity().getContent();
+		RootElement result = (RootElement) jaxbUnmarshaller.unmarshal(is);
+	    StringWriter responseContent = new StringWriter();
+		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+		jaxbMarshaller.marshal(result, responseContent);
+		is.close();
+		res.close();
+		logger.info("Got response to query {}: {}", url, responseContent);
+		return result;
 	}
 
-	private String getAlgorithmClassName(Algorithm algorithm) throws Exception {
+	private String getAlgorithmClassName(String algo, boolean byTitle) throws Exception {
+		Algorithm algorithm = Algorithm.parse(algo);
 		switch (algorithm) {
 		case RANDOM_DOCUMENT:
 			return "RandomDocumentRecommender";
@@ -126,7 +146,10 @@ public class ServerTest {
 		case STEREOTYPE:
 			return "StereotypeRecommender";
 		case FROM_SOLR:
-			return "RelatedDocumentsFromSolr";
+			if (byTitle)
+				return "RelatedDocumentsFromSolrByQuery";
+			else
+				return "RelatedDocumentsFromSolr";
 		case FROM_SOLR_WITH_KEYPHRASES:
 			return "RelatedDocumentsFromSolrWithKeyphrases";
 		case DOC2VEC:
@@ -135,35 +158,36 @@ public class ServerTest {
 			throw new Exception("Unknown algorithm: " + algorithm);
 		}
 	}
-	private static final List<Algorithm> languageRestrictedAlgorithms =
-		Arrays.asList(new Algorithm[] { Algorithm.DOC2VEC, Algorithm.FROM_SOLR_WITH_KEYPHRASES, Algorithm.RANDOM_LANGUAGE_RESTRICTED });
-	private static final List<Algorithm> englishRestrictedAlgorithms = 
-		Arrays.asList(new Algorithm[] { Algorithm.DOC2VEC, Algorithm.FROM_SOLR_WITH_KEYPHRASES });
 
 	@Test
 	public void requestRecommendation() throws Exception {
-		logger.debug("Querying for {} with algorithm_name = {}", query, algorithm);
+		logger.info("Querying for {} with algorithm_name = {}", query, algorithm);
 		
 		RootElement result = fetchRootElement(query,algorithm);
-		if (languageRestrictedAlgorithms.contains(algorithm) && doc.getLanguage() == null ||
-			(englishRestrictedAlgorithms.contains(algorithm) && !doc.getLanguage().equals("en"))) {
-			testRootElement(result, false);
+		if ("foo".equals(algorithm)) {
+			testXml(result);
 			List<StatusReport> status = result.getStatusReportSet().getStatusReportList();
-			assertThat(status, hasItem(hasProperty("statusCode", anyOf(equalTo(204), equalTo(200)))));
+			assertThat(status, hasItem(hasProperty("statusCode", equalTo(400))));
 		} else {
-			if (algorithm != Algorithm.DOC2VEC && algorithm != Algorithm.FROM_SOLR_WITH_KEYPHRASES)
-				testRootElement(result, true);
-			else // TODO: check requirements of algorithms further
-				testRootElement(result, false);
-
 			if (algorithm != null) {
-				String algoName = result
-					.getDocumentSet()
-					.getDebugDetailsPerSet()
-					.getAlgoDetails()
-					.getName();
-				String expected = getAlgorithmClassName(algorithm);
-				assertEquals(expected, algoName);
+				Algorithm algo = Algorithm.parse(algorithm);
+				StatusReport status = result.getStatusReportSet().getStatusReportList().get(0);
+				if (byTitle == true && !algo.hasTitleSearch()) {
+					assertThat(status, hasProperty("statusCode", equalTo(400)));
+				} else if (!algo.hasLanguageSupport(doc.getLanguageDetected())) {
+					// TODO properly check for fulfilled conditions
+					assertThat(status, hasProperty("statusCode", anyOf(equalTo(204), equalTo(200))));
+				} else {
+					testStatus(result);
+					if (result.getDocumentSet() != null) {
+						DebugDetailsPerSet details = result.getDocumentSet().getDebugDetailsPerSet();
+						if (details != null)
+							assertThat(details, hasProperty("algoDetails", hasProperty("name", equalTo(getAlgorithmClassName(algorithm, byTitle)))));
+					}
+				}
+			} else {
+				testXml(result);
+				testStatus(result);
 			}
 		}
 	}

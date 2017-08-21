@@ -157,7 +157,7 @@ public class DocumentService {
 		// left
 		while (!validAlgorithmFlag && numberOfAttempts < constants.getNumberOfRetries()) {
 			try {
-				logger.trace("trying to get the algorithm from the factory");
+				logger.trace("trying to get the algorithm from the factory; byTitle: {}", requestByTitle);
 				relatedDocumentGenerator = RecommenderFactory.getRandomRDG(con, documentset, requestByTitle);
 				logger.trace("chosen algorithm: {}", relatedDocumentGenerator.algorithmLoggingInfo.getName());
 
@@ -195,8 +195,17 @@ public class DocumentService {
 		return documentset;
 	}
 
-	private DocumentSet executeAlgorithmById(Algorithm algo, DocumentSet documentset, DisplayDocument requestDocument) throws Exception {
-		RelatedDocuments algorithm = RecommenderFactory.getAlgorithmById(algo, con);
+	private DocumentSet executeAlgorithmById(Algorithm algo, DocumentSet documentset, DisplayDocument requestDocument, boolean byTitle) throws Exception {
+		RelatedDocuments algorithm;
+		if (byTitle) {
+			if (algo.hasTitleSearch()) {
+				algorithm = RecommenderFactory.getAlgorithmById(algo, con, byTitle);
+			} else {
+				throw new IllegalArgumentException(String.format("% does not support title searches.", algo));
+			}
+		} else {
+			algorithm = RecommenderFactory.getAlgorithmById(algo, con);
+		}
 		documentset.setRequestedDocument(requestDocument);
 		documentset.setDesiredNumberFromAlgorithm(ar.getNumberOfCandidatesToReRank());
 		documentset = algorithm.getRelatedDocumentSet(documentset);
@@ -302,7 +311,8 @@ public class DocumentService {
 					documentset = executeAlgorithmRandomly(requestDocument,requestByTitle, documentset);
 				} else {
 					Algorithm algo = Algorithm.parse(algorithmName);
-					documentset = executeAlgorithmById(algo,documentset,requestDocument);
+					logger.trace("requestByTitle: {}; algorithm: {}", requestByTitle, algorithmName);
+					documentset = executeAlgorithmById(algo,documentset,requestDocument, requestByTitle);
 				}
 
 				logger.trace("Do the documentset stuff");
@@ -333,6 +343,7 @@ public class DocumentService {
 				return rootElement;
 			} catch(NoRelatedDocumentsException e) {
 				logger.info("{} returned no related documents for {}", algorithmName, inputQuery);
+				documentset.getDocumentList().clear();
 				if (!requestByTitle) {
 
 					statusReportSet.addStatusReport(new StatusReport(204,
