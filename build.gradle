@@ -117,8 +117,8 @@ subprojects {
     sourceSets.main.resources.srcDirs = ['../src/main/resources']
 }
 
-doc2vecDir = "/home/admin/apps/doc2vec"
-deployDest = "/home/admin/deployed/v1.war"
+def doc2vecDir = "/home/admin/apps/doc2vec"
+def deployDest = "/home/admin/deployed/"
 
 task copyDoc2Vec(type: Copy) {
 	from 'src/main/python/'	
@@ -126,15 +126,17 @@ task copyDoc2Vec(type: Copy) {
 }
 task installDoc2Vec(type: Exec, dependsOn: copyDoc2Vec) {
 	workingDir doc2vecDir
-	commandLine 'bash', '-c', '"source miniconda/activate root; pip install --upgrade doc2vec/"'
-}
-task restartDoc2Vec(type: Exec, dependsOn: installDoc2Vec) {
-	commandLine 'systemctl', 'restart', 'doc2vec'
+	commandLine 'bash', '-c', 'source miniconda/activate root; pip install --upgrade doc2vec/'
 }
 task copyWar(type: Copy, dependsOn: build) {
 	from 'build/libs/mdl-server.war'
+	rename 'mdl-server.war', 'v1.war'
 	into deployDest
 }
-task deploy(dependsOn: [copyWar, restartDoc2Vec] {
-	
+task deploy(dependsOn: [copyWar, installDoc2Vec]) {
+	doLast {
+		println "Deployed build successfully. You may need to restart some services for this to have an effect."
+		println ""
+		println "# systemctl restart doc2vec"
+	}
 }
