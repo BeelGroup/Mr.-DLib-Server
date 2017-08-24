@@ -5,7 +5,9 @@ import org.mrdlib.partnerContentManager.core.model.*;
 import org.mrdlib.partnerContentManager.general.QuotaReachedException;
 
 import java.util.List;
-import java.util.Collection;
+import java.util.Calendar;
+import java.util.stream.Stream;
+import java.util.function.Supplier;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.net.SocketTimeoutException;
@@ -56,11 +58,13 @@ public class CoreApi {
 	private static final String endpoint = "https://core.ac.uk/api-v2/";
 	private static final String articleBatchPath = "articles/get";
 	private static final String articleSearchPath = "articles/search";
-    public static final int MAX_PAGE_SIZE = 100;
-    public static final int MAX_BATCH_SIZE = 100; 
+    public static final int MAX_SEARCH_PAGE_SIZE = 100;
+    public static final int MAX_SEARCH_BATCH_SIZE = 10;
+    public static final int MAX_GET_BATCH_SIZE = 100; 
     public static final int QUOTA_TIME_SEARCH = 10 * 1000;
     public static final int QUOTA_TIME_GET = 10 * 1000;
-	public static final int TIMEOUT = 30*1000;
+	public static final int TIMEOUT_GET = 30*1000;
+	public static final int TIMEOUT_SEARCH = 90*1000;
 	public static final int RETRIES = 5;
 	public static final int RETRY_WAIT = 15 * 1000;
 
@@ -69,24 +73,29 @@ public class CoreApi {
 	private String apiKey;
 	private CloseableHttpClient http;
 	private Genson json;
-	private RequestConfig config;
+	private RequestConfig config_get, config_search;
 
 	public CoreApi() {
 		apiKey = new Constants().getCoreAPIKey();
 		http = HttpClients.createDefault();
 		json = new Genson();
-		config = RequestConfig.custom()
-			.setConnectionRequestTimeout(TIMEOUT)
-			.setConnectTimeout(TIMEOUT)
-			.setSocketTimeout(TIMEOUT)
+		config_search = RequestConfig.custom()
+			.setConnectionRequestTimeout(TIMEOUT_SEARCH)
+			.setConnectTimeout(TIMEOUT_SEARCH)
+			.setSocketTimeout(TIMEOUT_SEARCH)
+			.build();
+		config_get = RequestConfig.custom()
+			.setConnectionRequestTimeout(TIMEOUT_GET)
+			.setConnectTimeout(TIMEOUT_GET)
+			.setSocketTimeout(TIMEOUT_GET)
 			.build();
 	}
 
-	private CloseableHttpResponse doRequest(String path, String body, RequestParams params) throws Exception {
-		return doRequest(path, body, params, 0);
+	private CloseableHttpResponse doRequest(String path, String body, RequestParams params, RequestConfig config) throws Exception {
+		return doRequest(path, body, params, config, 0);
 	}
 
-	private CloseableHttpResponse doRequest(String path, String body, RequestParams params, int retriesLeft) throws Exception {
+	private CloseableHttpResponse doRequest(String path, String body, RequestParams params, RequestConfig config, int retriesLeft) throws Exception {
 		URIBuilder url = new URIBuilder(endpoint + path);
 		// don't write when equal to default value
 		if (!params.metadata)
@@ -126,7 +135,7 @@ public class CoreApi {
 				System.out.println("Retrying...");
 				if (retriesLeft > 0) {
 					Thread.sleep(RETRY_WAIT);
-					return doRequest(path, body, params, retriesLeft - 1);
+					return doRequest(path, body, params, config, retriesLeft - 1);
 				} else {
 					throw new HttpException("Error while making request: " + e.toString());
 				}
@@ -144,17 +153,17 @@ public class CoreApi {
 	 */
 	public List<Article> getArticles(List<Integer> ids, RequestParams params) throws Exception {
 
-		int batches = ids.size() /  MAX_BATCH_SIZE;
-		if (ids.size() % MAX_BATCH_SIZE != 0) batches++;
+		int batches = ids.size() /  MAX_GET_BATCH_SIZE;
+		if (ids.size() % MAX_GET_BATCH_SIZE != 0) batches++;
 		List<Article> articles = new ArrayList<Article>(ids.size());
 
 		for (int batch = 0; batch < batches; batch++) {
 
-			int from = batch * MAX_BATCH_SIZE;
-			int to = (batch+1) * MAX_BATCH_SIZE;
+			int from = batch * MAX_GET_BATCH_SIZE;
+			int to = (batch+1) * MAX_GET_BATCH_SIZE;
 			List<Integer> batchIds = ids.subList(from, Math.min(ids.size(), to));
 
-			CloseableHttpResponse res = doRequest(articleBatchPath, json.serialize(batchIds), params);
+			CloseableHttpResponse res = doRequest(articleBatchPath, json.serialize(batchIds), params, config_get);
 			InputStream content = res.getEntity().getContent();
 
 			ArticleResponse[] responses = json.deserialize(content, ArticleResponse[].class);
@@ -182,7 +191,73 @@ public class CoreApi {
 		return getArticles(ids, new RequestParams());
 	}
 
-	public Collection<Article> listArticles(int year, long offset, long limit) throws Exception {
+	public Stream<Article> listArticles(int year) {
+		return listArticles(year, new RequestParams());
+	}
+
+
+	class ArticleStream implements Supplier<Article> {
+		private long offset;
+		private long limit;
+		private int year;
+		private RequestParams params;
+		private int lastYear = Calendar.getInstance().get(Calendar.YEAR);
+		private boolean end = false;
+
+		private List<Article> batch;
+		private int index = 0;
+
+		public Article get() {
+			logger.info("Getting Article");
+
+			if (batch == null) { // load next batch, or end of stream -> return null
+				logger.info("No articles loaded; requesting now");
+				try {
+					batch = listArticles(year, offset, limit, params);
+				} catch(Exception e) {
+					logger.warn("Could not load articles from CoreAPI", e);
+					batch = null;	
+				}
+				offset += limit; // next page of this year
+				index = 0;
+				if (batch == null) { // start from 0 at next year
+					offset = 0;
+					year++;
+					if (year <= lastYear) {
+						return get();
+					} else {
+						logger.info("Reached end of articles");
+						end = true;
+						return null;
+					}
+				}
+			}
+
+			Article next = batch.get(index);
+			index++;
+			if (index == batch.size()) {
+				batch = null; // load next page on next call
+			}
+			return next;
+		}
+	}
+
+	/**
+	 * helper function to fetch all articles starting from some year
+	 * @param startYear list articles starting from this year
+	 * @param params params to pass to CORE API
+	 * @returns all articles, ordered chronologically
+	 */
+	public Stream<Article> listArticles(int startYear, RequestParams params) {
+		ArticleStream stream = new ArticleStream();
+		stream. offset = 0;	
+		stream.limit = MAX_SEARCH_BATCH_SIZE * MAX_SEARCH_PAGE_SIZE;
+		stream.year = startYear;
+		stream.params = params;
+		return Stream.generate(stream);
+	}
+
+	public List<Article> listArticles(int year, long offset, long limit) throws Exception {
 		return listArticles(year, offset, limit, new RequestParams());
 	}
 
@@ -190,13 +265,13 @@ public class CoreApi {
 	/**
 	 * fetch articles from CORE API; no complete listing available, so query chronologically by year, page through all articles
 	 * @param year: year needed for query
-	 * @param offset: for paging/recursion: how many full pages (= MAX_PAGE_SIZE * offset articles) to skip; should be almost always zero when calling externally
+	 * @param offset: for paging/recursion: how many full pages (= MAX_SEARCH_PAGE_SIZE * offset articles) to skip; should be almost always zero when calling externally
    
 	 * @param limit: how many articles to fetch at most; 
 	 * @param rest: as in getArticles
 	 * @return: fetched articles
 	 */
-	public Collection<Article> listArticles(int year, long offset, long limit, RequestParams params) throws Exception {
+	public List<Article> listArticles(int year, long offset, long limit, RequestParams params) throws Exception {
 
 		// building queries with paging, going chronologically through all years
 		// no listAll in API; alternative: try all IDs
@@ -204,10 +279,10 @@ public class CoreApi {
 
 		String query = "year:" + year; // TODO: try from, to syntax
 		// go through as many pages as possible
-		for (long i = 1; (i-1) * MAX_PAGE_SIZE < limit * MAX_PAGE_SIZE && queries.size() < MAX_BATCH_SIZE; i++) {
+		for (long i = 1; (i-1) * MAX_SEARCH_PAGE_SIZE < limit * MAX_SEARCH_PAGE_SIZE && queries.size() < MAX_SEARCH_BATCH_SIZE; i++) {
 			SearchRequest search = new SearchRequest();
-			int pageSize = (int)(i * MAX_PAGE_SIZE < limit ?
-					     MAX_PAGE_SIZE : limit - (i-1) * MAX_PAGE_SIZE);
+			int pageSize = (int)(i * MAX_SEARCH_PAGE_SIZE < limit ?
+					     MAX_SEARCH_PAGE_SIZE : limit - (i-1) * MAX_SEARCH_PAGE_SIZE);
 			if (pageSize > 0)
 				queries.add(search
 					    .query(query)
@@ -218,8 +293,8 @@ public class CoreApi {
 				break;
 		} 
 
-		long startTime = System.currentTimeMillis();
-		CloseableHttpResponse res = doRequest(articleSearchPath, json.serialize(queries), params);
+		logger.info("Requesting {} with {}", articleSearchPath, queries);
+		CloseableHttpResponse res = doRequest(articleSearchPath, json.serialize(queries), params, config_search);
 		InputStream content = res.getEntity().getContent();
 
 		ArticleSearchResponse[] responses = json.deserialize(content, ArticleSearchResponse[].class);
@@ -256,13 +331,13 @@ public class CoreApi {
 			long newLimit = (limit < 0 ? limit : limit - articles.size());
 			long newOffset = offset + queries.size();
 			Thread.sleep(QUOTA_TIME_SEARCH);
-			Collection<Article> rest = listArticles(year, newOffset, newLimit, params);
+			List<Article> rest = listArticles(year, newOffset, newLimit, params);
 			for (Article a : rest) {
 				articles.put(a.getId(), a);
 			}
 		}
 
-		return articles.values();
+		return new ArrayList<Article>(articles.values());
 	}
 
     

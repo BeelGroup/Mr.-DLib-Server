@@ -116,3 +116,25 @@ subprojects {
     sourceSets.main.java.srcDirs = ['../src/main/java']
     sourceSets.main.resources.srcDirs = ['../src/main/resources']
 }
+
+doc2vecDir = "/home/admin/apps/doc2vec"
+deployDest = "/home/admin/deployed/v1.war"
+
+task copyDoc2Vec(type: Copy) {
+	from 'src/main/python/'	
+	into doc2vecDir
+}
+task installDoc2Vec(type: Exec, dependsOn: copyDoc2Vec) {
+	workingDir doc2vecDir
+	commandLine 'bash', '-c', '"source miniconda/activate root; pip install --upgrade doc2vec/"'
+}
+task restartDoc2Vec(type: Exec, dependsOn: installDoc2Vec) {
+	commandLine 'systemctl', 'restart', 'doc2vec'
+}
+task copyWar(type: Copy, dependsOn: build) {
+	from 'build/libs/mdl-server.war'
+	into deployDest
+}
+task deploy(dependsOn: [copyWar, restartDoc2Vec] {
+	
+}

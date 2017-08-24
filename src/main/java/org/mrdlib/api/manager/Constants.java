@@ -15,6 +15,7 @@ public class Constants {
 
 	private String normalConfigPath = "config.properties";
 	private String secretConfigPath = "config.secret.properties";
+	private String environmentConfigPath = "config.environment.properties";
 
 	// environment
 	private String environment;
@@ -347,9 +348,6 @@ public class Constants {
 			prop = new Properties();
 			prop.load(input);
 
-			// get the property value
-			this.environment = prop.getProperty("environment");
-
 
 			this.doc2vecSearchRoute = prop.getProperty("doc2vecSearchRoute");
 			this.doc2vecDocumentRoute = prop.getProperty("doc2vecDocumentRoute");
@@ -590,7 +588,6 @@ public class Constants {
 			this.fallbackReranking = prop.getProperty("fallbackReranking");
 
 			this.solrWebService = prop.getProperty("solrWebService");
-			this.solrMrdlib = prop.getProperty("solrMrdlib");
 			this.solrCollectionShortName = prop.getProperty("solrCollectionShortName");
 			this.documentIdInSolr = prop.getProperty("documentIdInSolr");
 
@@ -606,14 +603,16 @@ public class Constants {
 			this.probabilitiesConfigPath = prop.getProperty("probabilityConfigPath");
 
 			this.numberOfRetries = Integer.parseInt(prop.getProperty("numberOfRetries"));
-			String debugModeOn = prop.getProperty("debugModeOn");
+			this.debugModeOn = Boolean.parseBoolean(prop.getProperty("debugModeOn"));
 
 
-			// map string true and false to boolean
-			if (debugModeOn.equals("true"))
-				this.debugModeOn = true;
-			else
-				this.debugModeOn = false;
+			// server-specific settings
+			input = getClass().getClassLoader().getResourceAsStream(environmentConfigPath);
+			prop = new Properties();
+			prop.load(input);
+
+			this.environment = prop.getProperty("environment");
+			this.solrMrdlib = prop.getProperty("solrMrdlib");
 
 		} catch (Exception ex) {
 			ex.printStackTrace();

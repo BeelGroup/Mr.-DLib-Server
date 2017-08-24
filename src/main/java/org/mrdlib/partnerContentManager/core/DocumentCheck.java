@@ -81,6 +81,7 @@ public class DocumentCheck
 		try {
 			if (args.length == 0) {
 				System.err.println("Usage: ./gradlew coreDocumentCheck:run -Dexec.args=filename [startBatch]");
+				return;
 			}
 
 			String filename = args[0];

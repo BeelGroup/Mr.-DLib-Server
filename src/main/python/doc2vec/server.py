@@ -39,7 +39,7 @@ class Server:
         for language, source in Server.AUTO_LOAD:
             self.load_model_task(language, source)
         
-    def read_config(self, fname='config.properties', fname_secret='config.secret.properties'):
+    def read_config(self, files=['config.properties', 'config.secret.properties', 'config.environment.properties']):
         ''' Read standard config file or file given by command line argument. Return as dictionary. Also parse other command line arguments.
         >>> c = read_config()
         >>> 'db_host' in c
@@ -47,11 +47,12 @@ class Server:
         >>> 'password' in c
         True
         '''
-        config = configparser.ConfigParser()
-        config.read(fname)
-        config_secret = configparser.ConfigParser()
-        config_secret.read(fname_secret)
-        self.config = { **config['MrDlib'], **config_secret['MrDlib'] }
+        self.config = {}
+        for config_file in files:
+            config = configparser.ConfigParser(interpolation=None)
+            config.read(config_file)
+            self.config.update(config['MrDlib'])
+
         return self
 
     def dispatch(self, request):
