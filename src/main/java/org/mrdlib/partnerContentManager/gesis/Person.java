@@ -121,4 +121,17 @@ public class Person {
 		this.surname = surname;
 	}
 
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("Person{");
+		sb.append("id = ").append(getId());
+		sb.append(", firstname = ").append(getFirstname());
+		sb.append(", middlename = ").append(getMiddlename());
+		sb.append(", surname = ").append(getSurname());
+		sb.append(", unstructured = ").append(getUnstructured());
+		sb.append(", rankingValue = ").append(getRankingValue());
+		sb.append(", position = ").append(getPosition());
+		return sb.append("}").toString();
+	}
+
 }

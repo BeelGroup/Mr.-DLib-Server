@@ -24,7 +24,7 @@ public class CoreCheckTest {
 		check = new DocumentCheck();
     }
 
-    // @Test
+    @Test
     public void getDocumentsFromDB() throws Exception {
 		List<DisplayDocument> docs = check.getCoreDocumentsById(9506000);
 

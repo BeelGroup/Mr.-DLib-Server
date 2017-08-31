@@ -2,6 +2,7 @@ import csv
 from operator import itemgetter
 # TODO: add parameter: trainingCorpus, infer dimensions from embeddings
 
+
 class DocumentReader:
     ''' Abstract class for accessing documents (titles, abstracts, combined) from MrDlib.
     '''

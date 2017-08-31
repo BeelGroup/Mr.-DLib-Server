@@ -44,7 +44,7 @@ import org.mrdlib.recommendation.algorithm.AlgorithmDetails;
 import org.mrdlib.recommendation.framework.NoRelatedDocumentsException;
 import org.mrdlib.utils.Pair;
 
-import main.java.org.mrdlib.partnerContentManager.mediatum.MediaTUMXMLDocument;
+import org.mrdlib.partnerContentManager.mediatum.MediaTUMXMLDocument;
 
 /**
  *
@@ -586,7 +586,7 @@ public class DBConnection {
 
 				} catch (SQLException e) {
 					logger.debug(
-								 document.getDocumentPath() + ": " + document.getIdentifier() + "SetIfNulladdPersonToDB");
+								 document.getDocumentPath() + ": " + document.getId() + "SetIfNulladdPersonToDB");
 					e.printStackTrace();
 					throw e;
 				} finally {
@@ -598,10 +598,10 @@ public class DBConnection {
 				// get the key of the already present author
 				authorKey = (long) rs.getInt(constants.getPersonID());
 		} catch (SQLException sqle) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB1");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "addPersonToDB1");
 			throw sqle;
 		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonToDB2");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "addPersonToDB2");
 			e.printStackTrace();
 			throw e;
 		} finally {
@@ -680,7 +680,7 @@ public class DBConnection {
 
 			stmt.executeUpdate(query);
 		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addPersonDocRel");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "addPersonDocRel");
 			throw e;
 		} finally {
 			try {
@@ -693,7 +693,7 @@ public class DBConnection {
     }
 
     /**
-     * get the Id of a collection by searching for its SHORT name
+     * get the Id of a collection by searching for its short/long name
      * 
      * @param document,
      *            for error backtracing
@@ -702,14 +702,15 @@ public class DBConnection {
      * @return the id of the collection
      * @throws SQLException
      */
-    public Long getCollectionIDByName(XMLDocument document, String collectionName) throws SQLException {
+    public Long getCollectionIDByName(String collectionName, boolean byShortName) throws SQLException {
 		Statement stmt = null;
 		ResultSet rs = null;
 		Long id = null;
 
+		String nameColumn = byShortName ? constants.getCollectionShortName() : constants.getCollectionName();
 		// query to select the collectionName
 		String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
-			+ constants.getCollectionShortName() + " = '" + collectionName + "'";
+			+ nameColumn + " = '" + collectionName + "'";
 
 		try {
 			stmt = con.createStatement();
@@ -718,9 +719,6 @@ public class DBConnection {
 			// get first collection id
 			if (rs.next())
 				id = rs.getLong(constants.getCollectionID());
-		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getId());
-			throw e;
 		} finally {
 			try {
 				if (stmt != null)
@@ -828,7 +826,7 @@ public class DBConnection {
 					  || columnName.equals(constants.getAbstr()))) {
 					// check for truncation error
 					if (valueString.length() > lengthMap.get(columnName))
-						logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Truncate"
+						logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Truncate"
 									 + columnName + " because too long!");
 				}
 				value = (T) valueString;
@@ -855,7 +853,7 @@ public class DBConnection {
 				stmt.setObject(index, value);
 
 		} catch (SQLException e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + " SetIfNullMethod");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + " SetIfNullMethod");
 			throw e;
 		}
 		return stmt;
@@ -925,9 +923,9 @@ public class DBConnection {
 				+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
 				+ constants.getKeywords() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-			// get the collection id by its name, to store relation in documents
+			// get the collection id by its short name, to store relation in documents
 			// table
-			Long collectionId = getCollectionIDByName(document, document.getCollection());
+			Long collectionId = getCollectionIDByName(document.getCollectionId(), true);
 
 			stateQueryDoc = con.prepareStatement(queryDoc, Statement.RETURN_GENERATED_KEYS);
 
@@ -982,6 +980,7 @@ public class DBConnection {
 		}
     }
 
+	// TODO: delete, merge back into normal insertDocument
 	public void insertMediaTUMDocument(MediaTUMXMLDocument document) throws Exception {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -1037,9 +1036,9 @@ public class DBConnection {
 				+ constants.getLanguage() + ", " + constants.getYear() + ", " + constants.getType() + ", "
 				+ constants.getKeywords() + ", " + constants.getLicense() + ", " + constants.getFulltextFormat() + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-			// get the collection id by its name, to store relation in documents
+			// get the collection id by its short name, to store relation in documents
 			// table
-			Long collectionId = getCollectionIDByName(document, document.getCollection());
+			Long collectionId = getCollectionIDByName(document.getCollectionId(), true);
 
 			stateQueryDoc = con.prepareStatement(queryDoc, Statement.RETURN_GENERATED_KEYS);
 
@@ -1178,22 +1177,22 @@ public class DBConnection {
 		LinkedHashSet<Person> authors = document.getAuthors();
 		Long[] authorKey = new Long[authors.size()];
 		if (document.getAuthors().size() == 0)
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": No Authors!");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + ": No Authors!");
 
 		// query to check if document already exists
 		String docExists = "SELECT " + constants.getDocumentId() + " FROM " + constants.getDocuments() + " WHERE "
-			+ constants.getIdOriginal() + " = '" + document.getIdentifier() + "'";
+			+ constants.getIdOriginal() + " = '" + document.getId() + "'";
 
 		try {
 			stmt = con.createStatement();
 			rs = stmt.executeQuery(docExists);
 			// if there is a document with the same original id
 			if (rs.next()) {
-				logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + ": Double Entry");
+				logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
 				return;
 			}
 		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDoc");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "insertDoc");
 			throw e;
 		} finally {
 			try {
@@ -1203,7 +1202,7 @@ public class DBConnection {
 					rs.close();
 			} catch (SQLException e) {
 				System.out
-					.println(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocOutsideCon");
+					.println(document.getDocumentPath() + ": " + document.getId() + "insertDocOutsideCon");
 				throw e;
 			}
 		}
@@ -1236,7 +1235,7 @@ public class DBConnection {
 
 			// set the values of the documents with the wrapper method which
 			// checks for null values etc
-			SetIfNull(document, stateQueryDoc, document.getIdentifier(), 1, "string", constants.getIdOriginal());
+			SetIfNull(document, stateQueryDoc, document.getId(), 1, "string", constants.getIdOriginal());
 			// SetIfNull(document, stateQueryDoc, collectionId, 2, "long",
 			// constants.getDocumentCollectionID());
 			SetIfNull(document, stateQueryDoc, document.getRepository(), 2, "long",
@@ -1261,7 +1260,7 @@ public class DBConnection {
 				if (generatedKeys.next()) {
 					docKey = generatedKeys.getLong(1);
 				} else {
-					logger.debug(document.getDocumentPath() + ": " + document.getIdentifier());
+					logger.debug(document.getDocumentPath() + ": " + document.getId());
 					throw new SQLException("Creating document failed, no ID obtained.");
 				}
 			}
@@ -1278,10 +1277,10 @@ public class DBConnection {
 			}
 
 		} catch (SQLException sqle) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer1");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "insertDocAddAbsAddPer1");
 			throw sqle;
 		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer2");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "insertDocAddAbsAddPer2");
 			e.printStackTrace();
 			throw e;
 		} finally {
@@ -1289,7 +1288,7 @@ public class DBConnection {
 				stateQueryDoc.close();
 			} catch (SQLException e) {
 				logger.debug(
-							 document.getDocumentPath() + ": " + document.getIdentifier() + "insertDocAddAbsAddPer3");
+							 document.getDocumentPath() + ": " + document.getId() + "insertDocAddAbsAddPer3");
 				throw e;
 			}
 		}
@@ -1436,7 +1435,7 @@ public class DBConnection {
 
 			stmt.executeUpdate();
 		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getIdentifier() + "addAbsToDoc");
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "addAbsToDoc");
 			throw e;
 		} finally {
 			try {
@@ -4546,6 +4545,7 @@ public class DBConnection {
 				try (PreparedStatement stmtAlternate = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 					stmtAlternate.setString(1, requestDocument.getCleanTitle());
 					stmtAlternate.setString(2, requestDocument.getTitle());
+					logger.debug("Title search logging update: {}", stmtAlternate);
 					stmtAlternate.executeUpdate();
 
 					// get the autogenerated key back

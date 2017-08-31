@@ -268,7 +268,7 @@ public class DocumentService {
 						}
 						if (appVerified)
 							appVerified = con.verifyLinkAppOrg(applicationId, partnerId);
-						if (!appVerified)
+						else
 							statusReportSet.addStatusReport(new StatusReport(401, "Application_id " + appName
 																			 + " is not linked with organization_id: " + partnerName));
 					}

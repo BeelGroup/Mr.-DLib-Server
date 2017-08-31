@@ -1,4 +1,4 @@
-package main.java.org.mrdlib.partnerContentManager.mediatum;
+package org.mrdlib.partnerContentManager.mediatum;
 
 /**
  * Defines constants for marking crawled elements as either already explore or not (yet) explored.

@@ -63,8 +63,9 @@ public class CoreApi {
     public static final int MAX_GET_BATCH_SIZE = 100; 
     public static final int QUOTA_TIME_SEARCH = 10 * 1000;
     public static final int QUOTA_TIME_GET = 10 * 1000;
-	public static final int TIMEOUT_GET = 30*1000;
+	
 	public static final int TIMEOUT_SEARCH = 90*1000;
+	public static final int TIMEOUT_GET = 30*1000;
 	public static final int RETRIES = 5;
 	public static final int RETRY_WAIT = 15 * 1000;
 

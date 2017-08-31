@@ -192,7 +192,7 @@ public class readJSON {
                 	inf[i].setDocumentPath(path);
                 	
                 	//add a prefix "core-" to the identifers
-                	inf[i].setIdentifier("core-"+ identifier);
+                	inf[i].setId("core-"+ identifier);
                 	
                 	//get the repository value from the record in json file
                 	inf[i].setRepository((Long) jsonObject.get("ep:Repository")); 

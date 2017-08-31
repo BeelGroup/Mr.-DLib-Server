@@ -1,4 +1,4 @@
-package main.java.org.mrdlib.partnerContentManager.mediatum;
+package org.mrdlib.partnerContentManager.mediatum;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,7 +18,7 @@ import org.mrdlib.partnerContentManager.gesis.Tuple;
  * @author wuestehube
  *
  */
-public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDocument> {
+public class MediaTUMContentConverter {
 
 	/**
 	 * Creates the mapping of type codes used in mediaTUM and Mr. DLib. Types are the publication types.
@@ -87,7 +87,6 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 		return typeResolveMap;
 	}
 	
-	@Override
 	public MediaTUMXMLDocument convertPartnerContentToStorablePartnerContent(String pathOfFileToConvert) {
 		// extract information
 		OAIDCRecord oaidcRecord = readOAIDCRecordFromFile(pathOfFileToConvert);
@@ -150,11 +149,11 @@ public class MediaTUMContentConverter implements IContentConverter<MediaTUMXMLDo
 			xmlDocument.addAuthor(author);
 		}
 		for (String keyWord : keyWords) {
-			xmlDocument.addKeyWord(keyWord);
+			xmlDocument.addKeyword(keyWord);
 		}
 		xmlDocument.addType(type);
 		xmlDocument.setPublishedIn(publishedIn, "publisher");
-		xmlDocument.setCollection(collection);
+		xmlDocument.setCollectionId(collection);
 		xmlDocument.setLicense(license);
 		xmlDocument.setFullText(fullText);
 		

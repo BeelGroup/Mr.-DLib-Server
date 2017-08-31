@@ -1,4 +1,4 @@
-package main.java.org.mrdlib.partnerContentManager.mediatum;
+package org.mrdlib.partnerContentManager.mediatum;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,22 +15,12 @@ import org.apache.commons.io.FileUtils;
  * @author wuestehube
  *
  */
-public class MediaTUMContentDownloader implements IContentDownloader {
+public class MediaTUMContentDownloader {
 	
 	// choices for importing content of mediaTUM have been fixed
 	private final String baseUrl = "https://mediatum.ub.tum.de/oai/oai";
 	private final String metadataFormat = "oai_dc";
 
-	@Override
-	public void downloadAllContent(String folderToStoreContentIn) {
-		// not implemented for mediaTUM
-	}
-
-	@Override
-	public void downloadContentSince(String folderToStoreContentIn, Date since) {
-		// not implemented for mediaTUM
-	}
-	
 	/**
 	 * Returns true if the given file is a publication, otherwise false.
 	 * The file is no publication, if its XML indicates that it is no record (id too high).

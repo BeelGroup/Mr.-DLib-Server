@@ -1,4 +1,4 @@
-package main.java.org.mrdlib.partnerContentManager.mediatum;
+package org.mrdlib.partnerContentManager.mediatum;
 
 import java.io.IOException;
 import java.io.InputStream;

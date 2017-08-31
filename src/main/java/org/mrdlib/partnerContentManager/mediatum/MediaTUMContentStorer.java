@@ -1,4 +1,4 @@
-package main.java.org.mrdlib.partnerContentManager.mediatum;
+package org.mrdlib.partnerContentManager.mediatum;
 
 import org.mrdlib.database.DBConnection;
 
@@ -8,9 +8,8 @@ import org.mrdlib.database.DBConnection;
  * @author wuestehube
  *
  */
-public class MediaTUMContentStorer implements IContentStorer<MediaTUMXMLDocument> {
+public class MediaTUMContentStorer {
 
-	@Override
 	public Boolean store(DBConnection dbConnection, MediaTUMXMLDocument storableContent) {
 
 		// store the given document

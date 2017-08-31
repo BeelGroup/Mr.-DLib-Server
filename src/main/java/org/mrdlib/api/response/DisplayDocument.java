@@ -374,6 +374,7 @@ public class DisplayDocument implements Serializable {
 		return added;
 	}
 
+	@XmlTransient
 	public void setAdded(Date added) {
 		this.added = added;
 	}
@@ -381,6 +382,7 @@ public class DisplayDocument implements Serializable {
 	
 	private Date deleted;
 
+	@XmlTransient
 	public Date getDeleted() {
 		return deleted;
 	}
@@ -396,6 +398,7 @@ public class DisplayDocument implements Serializable {
 		return checked;
 	}
 
+	@XmlTransient
 	public void setChecked(Date checked) {
 		this.checked = checked;
 	}

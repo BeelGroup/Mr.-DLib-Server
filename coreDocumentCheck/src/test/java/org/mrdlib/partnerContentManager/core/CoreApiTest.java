@@ -61,7 +61,7 @@ public class CoreApiTest {
 	assertNull(articles.get(0));
     }
 
-    // @Test
+    @Test
     public void articleListRequest() throws Exception {
 	// test single page with limit
 	Collection<Article> articles = api.listArticles(2017, 0, 10);
@@ -97,7 +97,7 @@ public class CoreApiTest {
 	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * (CoreApi.MAX_BATCH_SIZE + 1)); // multiple requests
     }
 
-    // @Test()
+    @Test()
     public void reachQuotaLimit() throws Exception {
 	try {
 	    long startTime = System.currentTimeMillis();

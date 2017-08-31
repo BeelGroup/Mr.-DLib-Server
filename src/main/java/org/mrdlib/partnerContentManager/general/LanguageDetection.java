@@ -52,6 +52,15 @@ public class LanguageDetection {
             return language.substring(0, 2);
         }
     }
+    public static String detectLanguage(String text) {
+		try {
+			List<String> docs = new ArrayList<String>();
+			docs.add(text);
+			return detectLanguage(docs).get(0);
+		} catch(Exception e) {
+			return null;
+		}
+	}
 
     /** 
      * Go trough text and detect languages from it using Apache Tika

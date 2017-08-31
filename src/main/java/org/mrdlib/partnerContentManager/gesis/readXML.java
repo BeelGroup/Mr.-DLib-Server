@@ -209,7 +209,7 @@ public class readXML {
 						case "topic":
 						case "classification_txtP_mv":
 						case "facet_topic_str_mv":
-							inf[i].addKeyWord(eElement.getTextContent());
+							inf[i].addKeyword(eElement.getTextContent());
 							break;
 						case "doctype_lit_str":
 						case "doctype_lit_add_str":

@@ -21,9 +21,12 @@ build/
 /src/main/resources/config.environment.properties
 /tomcat.xml
 *.*~
+*~
 /GPATH
 /GRTAGS
 /GTAGS
+/tags
+/Session.vim
 /src/main/python/model_en
 /kst-config.txt
 *.pyc
