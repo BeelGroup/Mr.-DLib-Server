@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.mrdlib.partnerContentManager.general.Document;
+import org.mrdlib.database.DBConnection;
 
 /**
  * 
@@ -299,8 +300,14 @@ public class XMLDocument extends Document {
 	 * @param abstract
 	 * @param language
 	 */
-	public void addAbstract(String abstr, String lan) {
+	public void addAbstract(String abstr, String lan, String detected) {
 		lan = setLanguageToStandard("(" + lan + ")");
-		this.abstr.add(new Abstract(abstr, lan));
+		this.abstr.add(new Abstract(abstr, lan, detected));
 	}
+
+	@Override
+	public Long convertCollectionIdForDb(DBConnection db) throws Exception {
+		throw new Exception("Not implemented."); // stub, as was existing getCollectionId 
+	}
+
 }

@@ -3,6 +3,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.mrdlib.partnerContentManager.gesis.Abstract;
 import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.general.Document;
+import org.mrdlib.database.DBConnection;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -45,6 +46,11 @@ public class JSONDocument extends Document {
 	public String getDate()
 	{
 		return date;
+	}
+
+	@Override
+	public Long convertCollectionIdForDb(DBConnection db) throws Exception {
+		return db.getCollectionIDByName(getCollectionId(), false); // use long name
 	}
 	
 }

@@ -29,6 +29,7 @@ import org.apache.tika.langdetect.OptimaizeLangDetector;
  * 
  * @author Fabian Richter
  */
+// TODO: implement method without parallization, make nonstatic and cache model
 public class LanguageDetection {
     private static final long TIMEOUT = 30; // how long each awaitTermination blocks
     private static final long BATCH_SIZE = 10000; // how many entries to query from the DB at once
@@ -45,18 +46,30 @@ public class LanguageDetection {
             // fetch local instance
             LanguageDetector ld = detector.get();
             ld.reset();
-	    String language = ld.detect(this.title).getLanguage();
-	    if (language.length() < 2) {
-		return "??";
-	    }
+			String language = ld.detect(this.title).getLanguage();
+			if (language.length() < 2) {
+				return "??";
+			}
             return language.substring(0, 2);
         }
     }
+
+	/**
+	 * simple, non parallized version of language detection; caches model
+	 */
+	private static LanguageDetector model = null;
     public static String detectLanguage(String text) {
 		try {
-			List<String> docs = new ArrayList<String>();
-			docs.add(text);
-			return detectLanguage(docs).get(0);
+			if (model == null) {
+				model = new OptimaizeLangDetector();
+				model.loadModels();
+			}
+			model.reset();
+			String language = model.detect(text).getLanguage();
+			if (language.length() < 2) 
+				return "??";
+			else
+				return language.substring(0, 2);
 		} catch(Exception e) {
 			return null;
 		}

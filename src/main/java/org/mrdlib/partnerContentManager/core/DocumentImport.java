@@ -10,6 +10,7 @@ import org.mrdlib.database.NoEntryException;
 import org.mrdlib.api.response.DisplayDocument;
 import org.mrdlib.api.manager.Constants;
 import org.mrdlib.partnerContentManager.core.model.Article;
+import org.mrdlib.partnerContentManager.core.model.Repository;
 import org.mrdlib.partnerContentManager.general.Document;
 
 import org.slf4j.Logger;
@@ -20,22 +21,23 @@ public class DocumentImport
     private DBConnection db;
     private Constants constants;
     private CoreApi api;
+	private Long coreOrgId;
 	private Logger logger = LoggerFactory.getLogger(DocumentImport.class);
     public static final long BATCH_SIZE = 1000;
 
     public DocumentImport () {
 		try {
-			this.constants = new Constants();
-			this.db = new DBConnection("jar");
-			this.api = new CoreApi();
+			constants = new Constants();
+			db = new DBConnection("jar");
+			api = new CoreApi();
+			coreOrgId = db.getOrganizationId(constants.getCore());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Could not setup document import", e);
 		}
     }
 
-    public boolean hasDocumentInDB(Integer id) throws Exception {
+    public boolean hasDocumentInDB(String idOriginal) throws Exception {
 		try {
-			String idOriginal = String.format("%s-%d", constants.getCore(), id);
 			DisplayDocument doc = db.getDocumentBy(constants.getIdOriginal(), idOriginal);
 			return true;
 		} catch(NoEntryException e) {
@@ -49,14 +51,14 @@ public class DocumentImport
 			doc.addAuthor(author);
 		}
 		doc.setTitle(article.getTitle());
-		doc.setLanguage(article.getLanguage().getCode()); // TODO: check mapping
+		doc.setLanguage(article.getLanguage().getCode()); 
 		doc.setYear(article.getYear().toString());	
 		doc.normalize();
-		for (String keyword : article.getTopics()) { // or getSubjects()? TODO: check
+		for (String keyword : article.getTopics()) { 
 			doc.addKeyword(keyword);
 		}
 		if (article.getDescription() != null)
-			doc.addAbstract(article.getDescription());
+			doc.addAbstract(article.getDescription(), doc.getLanguage());
 		else
 			logger.trace("no abstract for article {}", article);
 		doc.setId("core-" + article.getId());
@@ -79,15 +81,28 @@ public class DocumentImport
 
 		if (article.getRepositories() != null && article.getRepositories().size() > 0) {
 			// uses long name
+			Repository repo = article.getRepositories().get(0);
 			try {
-				Long collectionId = db.getCollectionIDByName(article.getRepositories().get(0).getName(), false);
+				// TODO: deal with missing collections; must be created
+				logger.info("Searching for collection {}", repo.getName());
+				Long collectionId = db.getCollectionIDByName(repo.getName(), false);
+				logger.info("Got id: {}", collectionId);
 				doc.setCollectionId(collectionId.toString());
 			} catch(Exception e) {
-				logger.trace("Could not get collection id for name {} while importing article {}", 
-						article.getRepositories().get(0).getName(), article);
+				logger.info("Creating collection: {}", repo);
+				try {
+					Long collectionId = db.createCollection(
+							repo.getName(), String.format("core-collection-%d", repo.getId()),
+							coreOrgId, new Long(repo.getId()));
+					logger.info("Created collection; id {}", collectionId);
+					doc.setCollectionId(collectionId.toString());
+				} catch(Exception e2) {
+					logger.warn("Could not get or create collection id for name {} while importing article {}", 
+							article.getRepositories().get(0).getName(), article, e2);
+				}
 			}
 		} else {
-			logger.trace("no collection id for article {}", article);
+			logger.error("no collection id for article {}", article);
 		}
 
 		if(article.getOai() != null)
@@ -95,6 +110,8 @@ public class DocumentImport
 
 		if(article.getDoi() != null)
 			doc.addExternalId("doi", article.getDoi());
+
+		logger.info("Converted document: {}", doc);
 
 		return doc;	
 	}
@@ -108,14 +125,16 @@ public class DocumentImport
 		Stream<Article> articles = importer.api.listArticles(startYear);
 		Iterator<Article> iter = articles.iterator();
 		Article article;
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 20; i++) {
 			if ((article = iter.next()) != null) {
-				System.out.println(article);
+				Document doc = importer.convert(article);
+				if (!importer.hasDocumentInDB(doc.getId())) {
+					importer.db.insertDocument(doc);
+					importer.logger.info("Inserted document: {}", doc.getTitle());
+				} else {
+					importer.logger.info("Document already in database: {}", doc.getTitle());
+				}
 			}
-			System.out.println();
-			System.out.println("------------------------------------------------------------");
-			System.out.println();
-			System.out.println(importer.convert(article));
 		}
     }
 }

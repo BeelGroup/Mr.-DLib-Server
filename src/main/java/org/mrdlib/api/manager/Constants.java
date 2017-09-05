@@ -17,6 +17,8 @@ public class Constants {
 	private String secretConfigPath = "config.secret.properties";
 	private String environmentConfigPath = "config.environment.properties";
 
+
+
 	// environment
 	private String environment;
 
@@ -197,6 +199,7 @@ public class Constants {
 	private String collectionShortName;
 	private String collectionName;
 	private String organizationInCollection;
+	private String originalCollectionId;
 
 	// table application
 	private String applicationId;
@@ -531,7 +534,8 @@ public class Constants {
 			this.collectionID = prop.getProperty("collectionId");
 			this.collectionShortName = prop.getProperty("collectionShortName");
 			this.collectionName = prop.getProperty("collectionName");
-			this.organizationInCollection = prop.getProperty("organizationInCollection"); // TODO fix
+			this.organizationInCollection = prop.getProperty("organizationInCollection"); 
+			this.originalCollectionId = prop.getProperty("originalCollectionId");
 
 			this.prefix = prop.getProperty("prefix");
 			this.organizationIdInPartnerPrefixes = prop.getProperty("organizationIdInPartnerPrefixes");
@@ -1570,5 +1574,9 @@ public class Constants {
 
 	public String getEmailNotificationAddress() {
 		return emailNotificationAddress;
+	}
+
+	public String getOriginalCollectionId() {
+		return originalCollectionId;
 	}
 }

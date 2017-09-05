@@ -133,6 +133,7 @@ public class DocumentService {
 					Boolean prefixMatch = con.matchCollectionPattern(inputQuery, partnerId);
 					requestDocument = new DisplayDocument();
 					requestDocument.setTitle(inputQuery);
+					logger.trace("prefix matched: {}", prefixMatch);
 					if (!prefixMatch) {
 						// lucene does not like these chars
 						logger.trace("requestDocument: {}", requestDocument.getTitle());
@@ -262,7 +263,7 @@ public class DocumentService {
 					if (partnerName != null && !appName.equals("")) {
 						Boolean appVerified = true;
 						try {
-							partnerId = con.getOrganizationId(partnerName);
+							partnerId = con.getOrganizationId(partnerName).toString();
 						} catch (NoEntryException e) {
 							appVerified = false;
 						}
@@ -275,8 +276,12 @@ public class DocumentService {
 					partnerId = con.getIdInApplications(appName, constants.getOrganizationInApplication());
 
 				} catch (NoEntryException e) {
+					// TODO: still log
 					statusReportSet.addStatusReport(new StatusReport(401,
 																	 "The application with name: " + appName + " has not been registered with Mr. DLib"));
+					rootElement.setDocumentSet(null);
+					rootElement.setStatusReportSet(statusReportSet);
+					return rootElement;
 				}
 			}
 
@@ -294,6 +299,7 @@ public class DocumentService {
 			}
 
 			requestDocument = getRequestedDocument(inputQuery, partnerId);
+			logger.debug("Parsed requestDocument: {}", requestDocument);
 			if (requestDocument == null) {
 				requestByTitle = true;
 				inputQuery = inputQuery.toLowerCase();
@@ -357,8 +363,8 @@ public class DocumentService {
 
 		} catch (NoEntryException e1) {
 			// if there is no such document in the database
-			statusReportSet.addStatusReport(new StatusReport(404, "No such document with document id "
-															 + requestDocument.getDocumentId() + " exists in our database"));
+			statusReportSet.addStatusReport(new StatusReport(404, 
+						"No such document with document id " + inputQuery + " exists in our database"));
 			rootElement.setDocumentSet(null);
 			rootElement.setStatusReportSet(statusReportSet);
 			return rootElement;

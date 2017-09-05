@@ -16,6 +16,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.mrdlib.partnerContentManager.gesis.Abstract;
 import org.mrdlib.partnerContentManager.gesis.Person;
 import org.mrdlib.partnerContentManager.gesis.Tuple;
+import org.mrdlib.database.DBConnection;
 
 
 /**
@@ -38,6 +39,7 @@ public class Document {
     protected Set<String> keywords = new HashSet<String>();
     protected String publishedIn;
 
+
 	public void addExternalId(String name, String id) {
 		externalIds.put(name, id);
 	}
@@ -50,20 +52,8 @@ public class Document {
      * add an abstract to a document, detecting its language automatically
      * @param abstract
      */
-    public void addAbstract(String text) {
-        if(abstr == null) {
-            abstr = null;
-        }
-        else
-        {
-            if(text.contains("\\ud"))
-                text = text.replace("\\ud", " ");
-            if(text.contains("\n"))
-                text = text.replace("\n", "");
-            text = text.replaceAll("[^a-zA-Z\\s]", "").replaceAll("\\s+", " ");
-        }
-		Abstract abstractObj = new Abstract(text);
-		abstractObj.setLanguageDetected(LanguageDetection.detectLanguage(text));
+    public void addAbstract(String text, String language) {
+		Abstract abstractObj = new Abstract(text, language, LanguageDetection.detectLanguage(text));
         this.abstr.add(abstractObj);
     }
 
@@ -201,7 +191,6 @@ public class Document {
         this.id = id;
     }
 
-	// TODO: unify behavior: short name / long name / id
     public void setCollectionId(String collection) {
         this.collection = collection;
     }
@@ -235,6 +224,12 @@ public class Document {
     public String getCollectionId() {
         return collection;
     }
+
+	// use this to define whether the collectionId property is a long name / short name / id / ...
+	// return the ID as in database
+	public Long convertCollectionIdForDb(DBConnection db) throws Exception {
+		return Long.parseLong(getCollectionId());
+	}
 
     public String getType() {
         return type;

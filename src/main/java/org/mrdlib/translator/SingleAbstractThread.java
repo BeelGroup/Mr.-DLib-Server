@@ -35,7 +35,7 @@ public class SingleAbstractThread implements Callable<AbstractMap.SimpleEntry<Lo
 			//translatedAbstract.add(result); 
 		}*/
 		
-		return new SimpleEntry<Long,Abstract>(documentId, new Abstract(result,"de"));
+		return new SimpleEntry<Long,Abstract>(documentId, new Abstract(result,"de", "de"));
 	}
 
 }

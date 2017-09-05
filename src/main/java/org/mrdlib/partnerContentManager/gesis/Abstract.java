@@ -12,9 +12,10 @@ public class Abstract {
 	private String language;
 	private String languageDetected;
 
-	public Abstract(String content, String language) {
+	public Abstract(String content, String language, String languageDetected) {
 		this.content = content;
 		this.language = language;
+		this.languageDetected = languageDetected;
 	}
 	
 	public Abstract(String content) {

@@ -209,10 +209,10 @@ public class CoreApi {
 		private int index = 0;
 
 		public Article get() {
-			logger.info("Getting Article");
+			logger.debug("Getting Article");
 
 			if (batch == null) { // load next batch, or end of stream -> return null
-				logger.info("No articles loaded; requesting now");
+				logger.debug("No articles loaded; requesting now");
 				try {
 					batch = listArticles(year, offset, limit, params);
 				} catch(Exception e) {
@@ -227,7 +227,7 @@ public class CoreApi {
 					if (year <= lastYear) {
 						return get();
 					} else {
-						logger.info("Reached end of articles");
+						logger.debug("Reached end of articles");
 						end = true;
 						return null;
 					}
@@ -294,7 +294,7 @@ public class CoreApi {
 				break;
 		} 
 
-		logger.info("Requesting {} with {}", articleSearchPath, queries);
+		logger.debug("Requesting {} with {}", articleSearchPath, queries);
 		CloseableHttpResponse res = doRequest(articleSearchPath, json.serialize(queries), params, config_search);
 		InputStream content = res.getEntity().getContent();
 

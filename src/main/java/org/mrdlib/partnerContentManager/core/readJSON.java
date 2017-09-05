@@ -211,7 +211,8 @@ public class readJSON {
                 	}                	 
                 	 
                 	//get the abstracts for the documents
-                	inf[i].addAbstract((String) jsonObject.get("bibo:abstract"));
+					String abstractText = (String) jsonObject.get("bibo:abstract");
+                	inf[i].addAbstract(abstractText, null);
                 	
                 	//split the array of authors for each document
                 	Pattern p = Pattern.compile("\"([^\"]*)\"");
