@@ -26,8 +26,8 @@ public class CoreImportTest {
 
     @Test
     public void testDocumentInDB() throws Exception {
-		assertTrue(importer.hasDocumentInDB(10000));
-		assertFalse(importer.hasDocumentInDB(42));
+		assertTrue(importer.hasDocumentInDB(String.valueOf(10000)));
+		assertFalse(importer.hasDocumentInDB(String.valueOf(42)));
     }
 
 }

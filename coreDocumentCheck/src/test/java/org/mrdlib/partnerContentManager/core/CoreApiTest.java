@@ -37,8 +37,8 @@ public class CoreApiTest {
 
     @Test
     public void articleBatchRequest() throws Exception {
-	List<Integer> ids = new ArrayList(CoreApi.MAX_BATCH_SIZE + 1);
-	for (int i = 1; i <= CoreApi.MAX_BATCH_SIZE + 1; i++) {
+	List<Integer> ids = new ArrayList(CoreApi.MAX_GET_BATCH_SIZE + 1);
+	for (int i = 1; i <= CoreApi.MAX_GET_BATCH_SIZE + 1; i++) {
 	    ids.add(i);
 	}
 	List<Article> articles = api.getArticles(ids);
@@ -93,8 +93,8 @@ public class CoreApiTest {
 		assertFalse("no duplicates", other.contains(a));
 	    }
 	};
-	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * 2); // one request
-	fetchNArticles.accept(CoreApi.MAX_PAGE_SIZE * (CoreApi.MAX_BATCH_SIZE + 1)); // multiple requests
+	fetchNArticles.accept(CoreApi.MAX_SEARCH_PAGE_SIZE * 2); // one request
+	fetchNArticles.accept(CoreApi.MAX_SEARCH_PAGE_SIZE * (CoreApi.MAX_SEARCH_BATCH_SIZE + 1)); // multiple requests
     }
 
     @Test()

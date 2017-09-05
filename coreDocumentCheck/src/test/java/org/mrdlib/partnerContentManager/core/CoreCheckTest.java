@@ -26,7 +26,7 @@ public class CoreCheckTest {
 
     @Test
     public void getDocumentsFromDB() throws Exception {
-		List<DisplayDocument> docs = check.getCoreDocumentsById(9506000);
+		List<DisplayDocument> docs = check.getCoreDocumentsBatch(9506000 / DocumentCheck.BATCH_SIZE);
 
 		String[] titles = {
 			"Intellectual property and the EU rules on private international law: match or mismatch?",
