@@ -31,7 +31,7 @@ public class DebugDetailsPerSet {
 	private String bibSource;
 	private boolean fallbackRanking = false;
 
-	private AlgorithmDetails algoDetails;
+	private AlgorithmDetails algoDetails = new AlgorithmDetails();
 	private long numberOfReturnedResults;
 	private int desiredNumberFromAlgorithm;
 	private int numberOfDisplayedRecommendations = 1;

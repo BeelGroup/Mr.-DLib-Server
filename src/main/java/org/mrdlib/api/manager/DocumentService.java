@@ -249,6 +249,11 @@ public class DocumentService {
 		String applicationId = null;
 		String partnerId = null;
 		try {
+			documentset.setIpAddress(ipAddress);
+			documentset.setStartTime(requestRecieved);
+			rootElement.setStatusReportSet(statusReportSet);
+			rootElement.setDocumentSet(documentset);
+
 			/*
 			 * Do some checks based on the Query parameters. Add 401 status code
 			 * if anything is amiss Example: 401 if application_id is wrong or
@@ -256,12 +261,11 @@ public class DocumentService {
 			 * and organization_id is incorrect
 			 * 
 			 */
+			Boolean appVerified = true;
 			if (appName != null && !appName.equals("")) {
 				try {
-
 					applicationId = con.getApplicationId(appName);
 					if (partnerName != null && !appName.equals("")) {
-						Boolean appVerified = true;
 						try {
 							partnerId = con.getOrganizationId(partnerName).toString();
 						} catch (NoEntryException e) {
@@ -269,24 +273,20 @@ public class DocumentService {
 						}
 						if (appVerified)
 							appVerified = con.verifyLinkAppOrg(applicationId, partnerId);
-						else
+						else {
 							statusReportSet.addStatusReport(new StatusReport(401, "Application_id " + appName
-																			 + " is not linked with organization_id: " + partnerName));
+										+ " is not linked with organization_id: " + partnerName));
+						}
+																			 
 					}
 					partnerId = con.getIdInApplications(appName, constants.getOrganizationInApplication());
 
 				} catch (NoEntryException e) {
-					// TODO: still log
+					appVerified = false;
 					statusReportSet.addStatusReport(new StatusReport(401,
 																	 "The application with name: " + appName + " has not been registered with Mr. DLib"));
-					rootElement.setDocumentSet(null);
-					rootElement.setStatusReportSet(statusReportSet);
-					return rootElement;
 				}
 			}
-
-			documentset.setIpAddress(ipAddress);
-			documentset.setStartTime(requestRecieved);
 
 			if (applicationId != null)
 				documentset.setRequestingAppId(applicationId);
@@ -298,6 +298,7 @@ public class DocumentService {
 				documentset.setAppLang(appLang.substring(0, 2));
 			}
 
+			// parse query - needed for proper logging of later events and recommending, of course
 			requestDocument = getRequestedDocument(inputQuery, partnerId);
 			logger.debug("Parsed requestDocument: {}", requestDocument);
 			if (requestDocument == null) {
@@ -305,10 +306,22 @@ public class DocumentService {
 				inputQuery = inputQuery.toLowerCase();
 				inputQuery = inputQuery
 					.replaceAll(":|\\+|\\-|\\&|\\!|\\(|\\)|\\{|\\}|\\[|\\]|\\^|\"|\\~|\\?|\\*|\\\\|\\'|\\;", " ");
+				// title search term shares field with document id and so on because.. brevity?
 				requestDocument = new DisplayDocument(inputQuery, inputQuery, inputQuery);
 				requestDocument.setCleanTitle(inputQuery);
 			}
 
+			// now log and exit if it's a bad request
+			if (!appVerified) {
+				try {
+					con.logEvent(requestDocument.getDocumentId(), rootElement, requestByTitle ? "search_by_title" : "related_documents");
+				} finally {
+					rootElement.setDocumentSet(null);
+					return rootElement;
+				}
+			}
+
+			// get recommendations
 			timeToPickAlgorithm = System.currentTimeMillis();
 			timeToUserModel = timeToPickAlgorithm;
 
@@ -320,6 +333,7 @@ public class DocumentService {
 					logger.trace("requestByTitle: {}; algorithm: {}", requestByTitle, algorithmName);
 					documentset = executeAlgorithmById(algo,documentset,requestDocument, requestByTitle);
 				}
+				rootElement.setDocumentSet(documentset);
 
 				logger.trace("Do the documentset stuff");
 				timeAfterExecution = System.currentTimeMillis();
@@ -341,12 +355,15 @@ public class DocumentService {
 				}
 
 			} catch(IllegalArgumentException e) {
-				logger.warn("Illegal argument exception", e);
+				logger.warn("Getting recommendations / executing algorithm failed", e);
 				StatusReport status = new StatusReport(400, String.format("Invalid algorithm name specified: %s", algorithmName));
 				statusReportSet.addStatusReport(status);
-				rootElement.setDocumentSet(null);
-				rootElement.setStatusReportSet(statusReportSet);
-				return rootElement;
+				try {
+					con.logEvent(requestDocument.getDocumentId(), rootElement, requestByTitle ? "search_by_title" : "related_documents");
+				} finally {
+					rootElement.setDocumentSet(null);
+					return rootElement;
+				}
 			} catch(NoRelatedDocumentsException e) {
 				logger.info("{} returned no related documents for {}", algorithmName, inputQuery);
 				documentset.getDocumentList().clear();
@@ -365,16 +382,21 @@ public class DocumentService {
 			// if there is no such document in the database
 			statusReportSet.addStatusReport(new StatusReport(404, 
 						"No such document with document id " + inputQuery + " exists in our database"));
-			rootElement.setDocumentSet(null);
-			rootElement.setStatusReportSet(statusReportSet);
-			return rootElement;
-
+			try {
+				con.logEvent(null, rootElement, requestByTitle ? "search_by_title" : "related_documents");
+			} finally {
+				rootElement.setDocumentSet(null);
+				return rootElement;
+			}
 		} catch (Exception e) {
 			statusReportSet.addStatusReport(new UnknownException(e, constants.getDebugModeOn()).getStatusReport());
 			logger.warn("Caught exception while handling {}", inputQuery, e);
-			rootElement.setDocumentSet(null);
-			rootElement.setStatusReportSet(statusReportSet);
-			return rootElement;
+			try {
+				con.logEvent(null, rootElement, requestByTitle  ? "search_by_title" : "related_documents");
+			} finally {
+				rootElement.setDocumentSet(null);
+				return rootElement;
+			}
 		}
 		// if everything went ok
 		if (statusReportSet.getSize() == 0)
@@ -383,9 +405,6 @@ public class DocumentService {
 		logger.trace("Did the documentset stuff");
 
 		// add both the status message and the related document to the xml
-		rootElement.setDocumentSet(documentset);
-		rootElement.setStatusReportSet(statusReportSet);
-		logger.trace("added stuff to root element");
 		logger.trace("requestByTitle is: {}", requestByTitle);
 		logger.trace("Try to do the logging stuff");
 

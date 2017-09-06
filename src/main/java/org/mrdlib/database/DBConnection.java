@@ -1555,7 +1555,8 @@ public class DBConnection {
      * @return int, id of the created event
      * @throws Exception
      */
-    private int logEvent(String referenceId, RootElement rootElement, String requestType) throws Exception {
+    public int logEvent(String referenceId, RootElement rootElement, String requestType) throws Exception {
+		logger.trace("Logging event for {}: {}", referenceId, requestType);
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		int loggingId = -1;
@@ -1564,48 +1565,48 @@ public class DBConnection {
 		Boolean noEntryExceptionRecorded = false;
 		DocumentSet documentSet = rootElement.getDocumentSet();
 		Long requestTime = documentSet.getStartTime();
-
-		String referenceColumnName = "";
-		switch (requestType) {
-		case "related_documents": {
-			referenceColumnName = constants.getDocumentIdInLogging();
-			int status = rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode();
-			if (status == 404 || status == 204)
-				noEntryExceptionRecorded = true;
-			break;
-		}
-		case "url_for_recommended_document": {
-			referenceColumnName = constants.getRecommendationIdInLogging();
-			int status = rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode();
-			if (status == 404 || status == 204)
-				noEntryExceptionRecorded = true;
-
-			break;
-		}
-		case "search_by_title": {
-			referenceColumnName = constants.getTitleSearchIdInLogging();
-			break;
-		}
-		}
-
-		// if there occured multiple errors error
-		if (rootElement.getStatusReportSet().getSize() > 1) {
-			for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++) {
-				// gather every message
-				debugMessage = debugMessage
-					+ rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugMessage();
-			}
-			// set status code to mutiple errors
-			statusCode = "207";
-		} else {
-			// if theres only one report (either error or 200, gather it
-			StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
-			statusCode = statusReport.getStatusCode() + "";
-
-			debugMessage = statusReport.getDebugMessage();
-		}
-
 		try {
+
+			String referenceColumnName = "";
+			switch (requestType) {
+				case "related_documents": {
+											  referenceColumnName = constants.getDocumentIdInLogging();
+											  int status = rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode();
+											  if (status == 404 || status == 204)
+												  noEntryExceptionRecorded = true;
+											  break;
+				}
+				case "url_for_recommended_document": {
+														 referenceColumnName = constants.getRecommendationIdInLogging();
+														 int status = rootElement.getStatusReportSet().getStatusReportList().get(0).getStatusCode();
+														 if (status == 404 || status == 204)
+															 noEntryExceptionRecorded = true;
+
+														 break;
+				}
+				case "search_by_title": {
+											referenceColumnName = constants.getTitleSearchIdInLogging();
+											break;
+				}
+			}
+
+			// if there occured multiple errors error
+			if (rootElement.getStatusReportSet().getSize() > 1) {
+				for (int i = 0; i < rootElement.getStatusReportSet().getSize(); i++) {
+					// gather every message
+					debugMessage = debugMessage
+						+ rootElement.getStatusReportSet().getStatusReportList().get(i).getDebugMessage();
+				}
+				// set status code to mutiple errors
+				statusCode = "207";
+			} else {
+				// if theres only one report (either error or 200, gather it
+				StatusReport statusReport = rootElement.getStatusReportSet().getStatusReportList().get(0);
+				statusCode = statusReport.getStatusCode() + "";
+
+				debugMessage = statusReport.getDebugMessage();
+			}
+
 			// insertion query
 			String query = "INSERT INTO " + constants.getLoggings() + " (" + constants.getRequest() + ", "
 				+ referenceColumnName + ", " + constants.getRequestReceived() + ", "
@@ -1624,7 +1625,7 @@ public class DBConnection {
 
 			// if there was noEntryException, then set referenceId to NULL, else
 			// carry on
-			if (noEntryExceptionRecorded || "".equals(referenceId)) {
+			if (noEntryExceptionRecorded || referenceId == null || referenceId.equals("")) {
 				stmt.setNull(1, java.sql.Types.BIGINT);
 				if (constants.getDebugModeOn())
 					logger.debug("No entry exception woohoo");
@@ -1636,12 +1637,10 @@ public class DBConnection {
 
 			stmt.setString(4, ipAddress);
 			stmt.setString(5, documentSet.getRequestingAppId());
-			String processingAppId;
-			try {
+			String processingAppId = null;
+			if (documentSet.getAlgorithmDetails() != null)
 				processingAppId = documentSet.getAlgorithmDetails().getRecommendationProviderId();
-			} catch (NullPointerException e) {
-				processingAppId = null;
-			}
+
 			stmt.setString(6, processingAppId);
 			stmt.setString(7, documentSet.getAppVersion());
 			stmt.setString(8, documentSet.getAppLang());
@@ -1671,6 +1670,7 @@ public class DBConnection {
 				loggingId = rs.getInt(1);
 
 		} catch (Exception e) {
+			logger.warn("Logging event {} failed", rootElement, e);
 			throw e;
 		} finally {
 			try {
