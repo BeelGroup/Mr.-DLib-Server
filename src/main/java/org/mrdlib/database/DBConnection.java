@@ -3,6 +3,7 @@ package org.mrdlib.database;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.Connection;
+import java.sql.Savepoint;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -388,15 +389,12 @@ public class DBConnection {
      * person with exactly the same name), the id of this already present person
      * is given back
      * 
-     * @param JSON
-     *            document, the related document which is currently processed to
-     *            trace error back
      * @param author,
      *            the author who has to be inserted
      * @return the id the (inserted or retrieved) author
      * @throws SQLException
      */
-    public Long addPersonToDbIfNotExists(Document document, Person author) throws SQLException {
+    public Long addPersonToDbIfNotExists(Person author) throws SQLException {
 		PreparedStatement stateAuthorExists = null;
 		PreparedStatement stateInsertAuthor = null;
 		ResultSet rs = null;
@@ -468,11 +466,6 @@ public class DBConnection {
 					if (rs2.next())
 						authorKey = rs2.getLong(1);
 
-				} catch (SQLException e) {
-					logger.debug(
-								 document.getDocumentPath() + ": " + document.getId() + "SetIfNulladdPersonToDB");
-					e.printStackTrace();
-					throw e;
 				} finally {
 					if (rs2 != null)
 						rs2.close();
@@ -482,11 +475,8 @@ public class DBConnection {
 			} else
 				// get the key of the already present author
 				authorKey = (long) rs.getInt(constants.getPersonID());
-		} catch (SQLException sqle) {
-			logger.warn(document.getDocumentPath() + ": " + document.getId() + "addPersonToDB1", sqle);
-			throw sqle;
-		} catch (Exception e) {
-			logger.warn(document.getDocumentPath() + ": " + document.getId() + "addPersonToDB2", e);
+		} catch(Exception e) {
+			logger.warn("addPersonToDbIfNotExists({}) failed", author, e);
 			throw e;
 		} finally {
 			try {
@@ -526,7 +516,7 @@ public class DBConnection {
      *            document
      * @throws Exception
      */
-    public void addPersonDocumentRelation(Document document, Long documentId, Long authorId, int rank)
+    public void addPersonDocumentRelation(Long documentId, Long authorId, int rank)
 		throws Exception {
 		Statement stmt = null;
 		try {
@@ -538,8 +528,8 @@ public class DBConnection {
 				+ authorId + ", " + rank + ");";
 
 			stmt.executeUpdate(query);
-		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getId() + "addPersonDocRel");
+		} catch(Exception e) {
+			logger.warn("addPersonDocumentRelation({}, {}, {}) failed", documentId, authorId, rank, e);
 			throw e;
 		} finally {
 			try {
@@ -665,7 +655,7 @@ public class DBConnection {
 			// for each person, insert in database and store related key
 			for (int i = 0; i < authors.size(); i++) {
 				Person author = it.next();
-				authorKey[i] = addPersonToDbIfNotExists(document, author);
+				authorKey[i] = addPersonToDbIfNotExists(author);
 			}
 
 			// query to insert all information to the documents table
@@ -728,7 +718,7 @@ public class DBConnection {
 			// insert all author document relations with the related keys from
 			// author and document
 			for (int i = 0; i < authors.size(); i++) {
-				addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
+				addPersonDocumentRelation(docKey, authorKey[i], i + 1);
 			}
 
 			// insert every related abstract to the abstract table with the
@@ -800,6 +790,106 @@ public class DBConnection {
 	}
 
 	/**
+	 * Update of existing document keeping references intact
+	 * Find existing document by ID (id_original in DB), update entries across tables while keeping references intact
+	 */
+	public void updateDocument(Document document) throws Exception {
+		Boolean autocommit = null;
+		Savepoint save = null;
+		try {
+			// get document id
+			DisplayDocument doc = getPureDocumentBy(constants.getIdOriginal(), document.getId());
+			Long id = Long.parseLong(doc.getDocumentId());	
+
+			// prepare if rollback needed
+			autocommit = con.getAutoCommit();
+			con.setAutoCommit(false);
+			save = con.setSavepoint(); 
+
+			// delete all old person_document relations
+			String query = String.format("DELETE FROM %s WHERE %s = ?;",
+					constants.getDocPers(), constants.getDocumentId());
+			try (PreparedStatement stmt = con.prepareStatement(query)) {
+				stmt.setLong(1, id);
+				logger.info("old relations: {}", stmt);
+				stmt.executeUpdate();
+			}
+
+			// go through new authors; get/create entries
+			int rank = 1;
+			for (Person author : document.getAuthors()) {
+				Long person_id = addPersonToDbIfNotExists(author);
+				// add new relations
+				addPersonDocumentRelation(id, person_id, rank);
+				rank++;
+			}
+			// TODO: delete old authors if orphaned?
+			
+			// delete old abstracts
+			query = String.format("DELETE FROM %s WHERE %s = ?;",
+					constants.getAbstracts(), constants.getDocumentId());
+			try (PreparedStatement stmt = con.prepareStatement(query)) {
+				stmt.setLong(1, id);
+				logger.info("old abstracts: {}", stmt);
+				stmt.executeUpdate();
+			}
+
+			// insert new ones
+			for (Abstract abstr : document.getAbstracts()) {
+				addAbstractToDocument(abstr, id);
+			}
+
+			// update fields in document table
+			String[] columns = new String[] {
+				constants.getCollectionID(),
+				constants.getTitle(),
+				constants.getTitleClean(),
+				constants.getPublishedIn(),
+				constants.getLanguage(),
+				constants.getLanguageDetected(),
+				constants.getYear(),
+				constants.getType(),
+				constants.getKeywords(),
+				constants.getChecked(),
+				constants.getDeleted()
+			};
+			StringJoiner updates = new StringJoiner(" = ?, ");
+			for (String c : columns)
+				updates.add(c);
+			String update = updates.toString() + " = ?"; // for last column
+			query = String.format("UPDATE %s SET %s WHERE %s = ?;",
+					constants.getDocuments(), update, constants.getDocumentId());
+			try (PreparedStatement stmt = con.prepareStatement(query)) {
+				stmt.setLong(1, document.convertCollectionIdForDb(this));
+				stmt.setString(2, document.getTitle());
+				stmt.setString(3, document.getCleanTitle());
+				stmt.setString(4, document.getPublishedIn());
+				stmt.setString(5, document.getLanguage());
+				stmt.setString(6, document.getLanguageDetected());
+				stmt.setInt(7, document.getYear());
+				stmt.setString(8, document.getType());
+				stmt.setString(9, document.getKeywordsAsString());
+				stmt.setTimestamp(10, new Timestamp(System.currentTimeMillis()));
+				stmt.setNull(11, Types.TIMESTAMP);
+				stmt.setLong(12, id);
+				logger.info("document update: {}", stmt);
+				stmt.executeUpdate();
+			}
+
+			con.commit();
+			con.releaseSavepoint(save);
+			save = null;
+			logger.info("Updated document.");
+		} catch(SQLException e) {
+			logger.warn("Something went wrong while updating document {}; rolling back", document, e);
+			if (save != null) con.rollback(save);
+		} finally {
+			if (autocommit != null)
+				con.setAutoCommit(autocommit);
+		}
+	}
+
+	/**
 	 * unified document insertion to the database with all the related information
 	 * (like authors and so on) if it not already exists (based on the original
 	 * id of the cooperation partner)
@@ -826,20 +916,14 @@ public class DBConnection {
 				logger.debug(document.getDocumentPath() + ": " + document.getId() + ": Double Entry");
 				return;
 			}
-		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getId() + "insertDoc");
+		} catch (SQLException e) {
+			logger.debug(document.getDocumentPath() + ": " + document.getId() + "insertDoc", e);
 			throw e;
 		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				System.out
-					.println(document.getDocumentPath() + ": " + document.getId() + "insertDocOutsideCon");
-				throw e;
-			}
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
 		}
 
 		// if the document doesn't exists, insert it including authors,
@@ -851,7 +935,7 @@ public class DBConnection {
 			// for each person, insert in database and store related key
 			for (int i = 0; i < authors.size(); i++) {
 				Person author = it.next();
-				authorKey[i] = addPersonToDbIfNotExists(document, author);
+				authorKey[i] = addPersonToDbIfNotExists(author);
 			}
 
 			// query to insert all information to the documents table
@@ -903,12 +987,12 @@ public class DBConnection {
 			// insert every related abstract to the abstract table with the
 			// corresponding document id
 			for (int i = 0; i < document.getAbstracts().size(); i++)
-				addAbstractToDocument(document, document.getAbstracts().get(i), docKey);
+				addAbstractToDocument(document.getAbstracts().get(i), docKey);
 
 			// insert all author document relations with the related keys from
 			// author and document
 			for (int i = 0; i < authors.size(); i++) {
-				addPersonDocumentRelation(document, docKey, authorKey[i], i + 1);
+				addPersonDocumentRelation(docKey, authorKey[i], i + 1);
 			}
 
 		} catch (SQLException sqle) {
@@ -919,12 +1003,7 @@ public class DBConnection {
 			e.printStackTrace();
 			throw e;
 		} finally {
-			try {
-				stateQueryDoc.close();
-			} catch (SQLException e) {
-				logger.debug(document.getDocumentPath() + ": " + document.getId() + "insertDocAddAbsAddPer3");
-				throw e;
-			}
+			stateQueryDoc.close();
 		}	
 	}
 
@@ -1013,7 +1092,7 @@ public class DBConnection {
      *            the document key from the database
      * @throws Exception
      */
-    private void addAbstractToDocument(Document document, Abstract abstr, Long docKey) throws Exception {
+    private void addAbstractToDocument(Abstract abstr, Long docKey) throws Exception {
 		PreparedStatement stmt = null;
 		try {
 			// query which inserts the abstract information
@@ -1033,7 +1112,7 @@ public class DBConnection {
 
 			stmt.executeUpdate();
 		} catch (Exception e) {
-			logger.debug(document.getDocumentPath() + ": " + document.getId() + "addAbsToDoc");
+			logger.warn("addAbstractToDocument({}, {}) failed", abstr, docKey, e); 
 			throw e;
 		} finally {
 			try {
@@ -1166,23 +1245,11 @@ public class DBConnection {
 				return document;
 			} else
 				throw new NoEntryException(id);
-		} catch (SQLException e) {
-			logger.debug("SQL Exception");
-			throw e;
-		} catch (NoEntryException e) {
-			throw e;
-		} catch (Exception e) {
-			logger.debug("Regualar exception");
-			throw e;
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				throw e;
-			}
+		}  finally {
+			if (stmt != null)
+				stmt.close();
+			if (rs != null)
+				rs.close();
 		}
     }
 

@@ -83,23 +83,25 @@ public class DocumentImport
 			// uses long name
 			Repository repo = article.getRepositories().get(0);
 			try {
-				// TODO: deal with missing collections; must be created
-				logger.info("Searching for collection {}", repo.getName());
+				logger.trace("Searching for collection {}", repo.getName());
 				Long collectionId = db.getCollectionIDByName(repo.getName(), false);
-				logger.info("Got id: {}", collectionId);
+				if (collectionId == null) {
+					logger.trace("Creating collection: {}", repo);
+					try {
+						collectionId = db.createCollection(
+								repo.getName(), String.format("core-collection-%d", repo.getId()),
+								coreOrgId, new Long(repo.getId()));
+						logger.trace("Created collection; id {}", collectionId);
+					} catch(Exception e) {
+						logger.warn("Could not create collection id for name {} while importing article {}", 
+								article.getRepositories().get(0).getName(), article, e);
+					}
+				}
+				logger.trace("Got id: {}", collectionId);
 				doc.setCollectionId(collectionId.toString());
 			} catch(Exception e) {
-				logger.info("Creating collection: {}", repo);
-				try {
-					Long collectionId = db.createCollection(
-							repo.getName(), String.format("core-collection-%d", repo.getId()),
-							coreOrgId, new Long(repo.getId()));
-					logger.info("Created collection; id {}", collectionId);
-					doc.setCollectionId(collectionId.toString());
-				} catch(Exception e2) {
-					logger.warn("Could not get or create collection id for name {} while importing article {}", 
-							article.getRepositories().get(0).getName(), article, e2);
-				}
+				logger.warn("Could not associate collection for name {} while importing article {}", 
+						article.getRepositories().get(0).getName(), article, e);
 			}
 		} else {
 			logger.error("no collection id for article {}", article);
@@ -125,14 +127,15 @@ public class DocumentImport
 		Stream<Article> articles = importer.api.listArticles(startYear);
 		Iterator<Article> iter = articles.iterator();
 		Article article;
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 1; i++) {
 			if ((article = iter.next()) != null) {
 				Document doc = importer.convert(article);
 				if (!importer.hasDocumentInDB(doc.getId())) {
 					importer.db.insertDocument(doc);
 					importer.logger.info("Inserted document: {}", doc.getTitle());
 				} else {
-					importer.logger.info("Document already in database: {}", doc.getTitle());
+					importer.logger.info("Document already in database: {} - {}; updating", doc.getId(), doc.getTitle());
+					importer.db.updateDocument(doc);
 				}
 			}
 		}

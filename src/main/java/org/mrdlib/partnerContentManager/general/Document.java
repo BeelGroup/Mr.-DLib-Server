@@ -53,6 +53,7 @@ public class Document {
      * @param abstract
      */
     public void addAbstract(String text, String language) {
+		text = text.trim().replaceAll("\\s+", " ");
 		Abstract abstractObj = new Abstract(text, language, LanguageDetection.detectLanguage(text));
         this.abstr.add(abstractObj);
     }
@@ -103,6 +104,7 @@ public class Document {
             title = WordUtils.capitalizeFully(title);
         if (title.contains(" :"))
             title = title.replace(" :", ":");
+		title = title.trim().replaceAll("\\s+", " ");
 
 		tidyUpKeywords();
     }
