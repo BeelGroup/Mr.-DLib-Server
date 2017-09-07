@@ -56,7 +56,7 @@ public class ServerTest {
 	@Parameter(3)
 	public boolean byTitle;
 
-	@Parameters(name="{index}: /documents/{1}/related_documents?algorithm_id={2}")
+	@Parameters(name="{index}: /documents/{1}/related_documents?algorithm_name={2}")
 	public static Collection<Object[]> data() throws Exception {
 		// test by querying a set of random documents in three different ways
 		// let test access queried document to account for restrictions of algorithms
@@ -69,7 +69,7 @@ public class ServerTest {
 				options.add(new Object[] { d, d.getDocumentId(), a.name(), false });
 				options.add(new Object[] { d, d.getTitle(), a.name(), true });
 			}
-			// null = don't specify algorithm_id
+			// null = don't specify algorithm_name
 			options.add(new Object[] { d, d.getOriginalDocumentId(), null, false });
 			options.add(new Object[] { d, d.getDocumentId(), null, false });
 			options.add(new Object[] { d, d.getTitle(), null, true });

@@ -130,6 +130,7 @@ public class DocumentService {
 				} catch (Exception e2) {
 					logger.trace("it seems there is no document in our database with this title");
 					logger.trace("trying if this matches a pattern in our database. In that case, we have a 404 error");
+					// FIXME
 					Boolean prefixMatch = con.matchCollectionPattern(inputQuery, partnerId);
 					requestDocument = new DisplayDocument();
 					requestDocument.setTitle(inputQuery);

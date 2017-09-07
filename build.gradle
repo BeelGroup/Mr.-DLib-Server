@@ -128,15 +128,17 @@ task installDoc2Vec(type: Exec, dependsOn: copyDoc2Vec) {
 	workingDir doc2vecDir
 	commandLine 'bash', '-c', 'source miniconda/activate root; pip install --upgrade doc2vec/'
 }
-task copyWar(type: Copy, dependsOn: build) {
+task copyWar(type: Copy, dependsOn: assemble) {
 	from 'build/libs/mdl-server.war'
 	rename 'mdl-server.war', 'v1.war'
 	into deployDest
 }
-task deploy(dependsOn: [copyWar, installDoc2Vec]) {
+task deployFast(dependsOn: [copyWar, installDoc2Vec]) {
 	doLast {
 		println "Deployed build successfully. You may need to restart some services for this to have an effect."
 		println ""
 		println "# systemctl restart doc2vec"
 	}
+}
+task deploy(dependsOn: [build, deployFast]) {
 }

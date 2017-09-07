@@ -38,7 +38,7 @@ public class Doc2VecRecommender extends RelatedDocuments {
 		algorithmLoggingInfo.setCbfTextFields(source);
 
 		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo.clone());
-		return service.getRelatedDocumentSetByDocument(requestDocSet);
+		return service.getRelatedDocumentSetByDocument(requestDocSet, source);
     }
 
 }

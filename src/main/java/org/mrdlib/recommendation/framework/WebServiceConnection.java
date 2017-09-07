@@ -55,19 +55,6 @@ public class WebServiceConnection {
     }
 
 
-    private List<WebServiceRecommendation> sendDocumentQuery(String docId, String language, int limit, String... arguments) throws Exception {
-		String q = URLEncoder.encode(docId);
-		String url = String.format(documentPattern, q, language, String.valueOf(limit), arguments);
-		return sendQuery(url);
-
-    }
-
-    private List<WebServiceRecommendation> sendSearchQuery(String query, String language, int limit, String... arguments) throws Exception {
-		String q = URLEncoder.encode(query);
-		String url = String.format(searchPattern, q, language, String.valueOf(limit), arguments);
-		return sendQuery(url);
-    }
-
     private List<WebServiceRecommendation> sendQuery(String url) throws Exception {
 		HttpGet req = new HttpGet(url);
 		HttpResponse res = http.execute(req);
@@ -104,7 +91,14 @@ public class WebServiceConnection {
 		DisplayDocument relDocument = new DisplayDocument();
 		String fallback_url = "";
 
-	    List<WebServiceRecommendation> docs = sendDocumentQuery(document.getDocumentId(), language, limitBuffer, arguments);
+		ArrayList<Object> args = new ArrayList<Object>();
+		args.add(document.getDocumentId());
+		args.add(language);
+		args.add(limitBuffer);
+		for (String a : arguments) args.add(a);
+		Object[] argArray = new Object[args.size()];
+		args.toArray(argArray);
+	    List<WebServiceRecommendation> docs = sendQuery(String.format(documentPattern, argArray));
 		logger.info("Requesting {} documents from web service; returned {}; need {}", limitBuffer, docs.size(), limit);
 
 	    // no related documents found
