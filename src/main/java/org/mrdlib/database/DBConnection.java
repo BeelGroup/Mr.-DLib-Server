@@ -542,7 +542,7 @@ public class DBConnection {
     }
 
 	public Long createCollection(String longName, String shortName, Long organizationId, Long originalId) throws SQLException {
-		String[] columns = new String[] { ", ", constants.getCollectionName(), constants.getCollectionShortName(),
+		String[] columns = new String[] { constants.getCollectionName(), constants.getCollectionShortName(),
 			constants.getOrganizationInCollection(), constants.getOriginalCollectionId() };
 		String placeholders = String.join(", ", Collections.nCopies(columns.length, "?"));
 		String query = String.format("INSERT INTO %s (%s) VALUES (%s)", constants.getCollections(), 

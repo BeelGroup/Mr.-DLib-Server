@@ -251,7 +251,7 @@ public class CoreApi {
 	 */
 	public Stream<Article> listArticles(int startYear, RequestParams params) {
 		ArticleStream stream = new ArticleStream();
-		stream. offset = 0;	
+		stream.offset = 0;	
 		stream.limit = MAX_SEARCH_BATCH_SIZE * MAX_SEARCH_PAGE_SIZE;
 		stream.year = startYear;
 		stream.params = params;

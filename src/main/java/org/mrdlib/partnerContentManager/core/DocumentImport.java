@@ -127,16 +127,14 @@ public class DocumentImport
 		Stream<Article> articles = importer.api.listArticles(startYear);
 		Iterator<Article> iter = articles.iterator();
 		Article article;
-		for (int i = 0; i < 1; i++) {
-			if ((article = iter.next()) != null) {
-				Document doc = importer.convert(article);
-				if (!importer.hasDocumentInDB(doc.getId())) {
-					importer.db.insertDocument(doc);
-					importer.logger.info("Inserted document: {}", doc.getTitle());
-				} else {
-					importer.logger.info("Document already in database: {} - {}; updating", doc.getId(), doc.getTitle());
-					importer.db.updateDocument(doc);
-				}
+		while ((article = iter.next()) != null) {
+			Document doc = importer.convert(article);
+			if (!importer.hasDocumentInDB(doc.getId())) {
+				importer.db.insertDocument(doc);
+				importer.logger.info("Inserted document: {}", doc.getTitle());
+			} else {
+				importer.logger.info("Document already in database: {} - {}; updating", doc.getId(), doc.getTitle());
+				importer.db.updateDocument(doc);
 			}
 		}
     }
