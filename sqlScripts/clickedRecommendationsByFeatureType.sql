@@ -2,6 +2,6 @@ SELECT * FROM mrdlib.recommendation_statistics__recommendation where recommendat
 (select recommendation_set_id from mrdlib.recommendation_statistics__recommendation_set
 where recommendation_statistics__recommendation_set.recommendation_algorithm_id in 
 (select recommendation_algorithm_id from mrdlib.recommendation_algorithm where recommendation_algorithm__details_cbf_id in
-(select recommendation_algorithm__details_cbf_id from mrdlib.recommendation_algorithm__details_cbf where feature_type = 'embedding')))
+(select recommendation_algorithm__details_cbf_id from mrdlib.recommendation_algorithm__details_cbf where feature_type = 'embeddings')))
 and clicked is not null
 order by recommendation_set_id desc;

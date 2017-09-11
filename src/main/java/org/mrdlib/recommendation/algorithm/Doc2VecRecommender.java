@@ -20,9 +20,14 @@ public class Doc2VecRecommender extends RelatedDocuments {
         con = con;
 		constants = new Constants();
 
-        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "cbf", true, null, "embeddings", "0");
+		// select text source randomly (A/B Test)
+		String[] choices  = new String[] { "title", "abstract", "title_abstract" };
+		String source = choices[new Random().nextInt(choices.length)];
+
+        algorithmLoggingInfo = new AlgorithmDetails("Doc2VecRecommender", "cbf", true, null, constants.getCbfFeatureTypeEmbeddings(), "0");
 		algorithmLoggingInfo.setDimensions("50");
 		algorithmLoggingInfo.setCorpusUsed("GloVe");
+		algorithmLoggingInfo.setCbfTextFields(source);
 
 		service = new WebServiceConnection(constants.getDoc2VecSearchRoute(), constants.getDoc2VecDocumentRoute(), con);
     }
@@ -33,12 +38,8 @@ public class Doc2VecRecommender extends RelatedDocuments {
      * returns mostPopular documents from database
      */
     public DocumentSet getRelatedDocumentSet(DocumentSet requestDocSet) throws Exception {
-		String[] choices  = new String[] { "title", "abstract", "title_abstract" };
-		String source = choices[new Random().nextInt(choices.length)];
-		algorithmLoggingInfo.setCbfTextFields(source);
-
-		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo.clone());
-		return service.getRelatedDocumentSetByDocument(requestDocSet, source);
+		requestDocSet.setAlgorithmDetails(algorithmLoggingInfo);
+		return service.getRelatedDocumentSetByDocument(requestDocSet, algorithmLoggingInfo.getCbfTextFields());
     }
 
 }

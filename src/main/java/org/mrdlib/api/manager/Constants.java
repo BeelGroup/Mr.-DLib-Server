@@ -250,6 +250,7 @@ public class Constants {
 	// db table z_recommendation_algorithms__details_cbf
 	private String cbfId;
 	private String cbfFeatureType;
+	private String cbfFeatureTypeEmbeddings;
 	private String cbfFeatureCount;
 	private String cbfFields;
 	private String cbfNgramType;
@@ -565,6 +566,7 @@ public class Constants {
 
 			this.cbfId = prop.getProperty("cbfId");
 			this.cbfFeatureType = prop.getProperty("cbfFeatureType");
+			this.cbfFeatureTypeEmbeddings = prop.getProperty("cbfFeatureTypeEmbeddings");
 			this.cbfFeatureCount = prop.getProperty("cbfFeatureCount");
 			this.cbfFields = prop.getProperty("cbfFields");
 			this.cbfNgramType = prop.getProperty("cbfNgramType");
@@ -1309,6 +1311,10 @@ public class Constants {
 
 	public String getCbfDetails() {
 		return cbfDetails;
+	}
+
+	public String getCbfFeatureTypeEmbeddings() {
+		return cbfFeatureTypeEmbeddings;
 	}
 
 	public String getCbfFeatureType() {

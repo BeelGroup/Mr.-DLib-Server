@@ -3453,7 +3453,7 @@ public class DBConnection {
 
 		if (keyphrases) {
 			query += " AND " + constants.getCbfNgramType() + " = '" + recommenderDetails.getNgramType() + "'";
-		} else if (featureType != null && featureType.equals("embedding")) {
+		} else if (featureType != null && featureType.equals(constants.getCbfFeatureTypeEmbeddings())) {
 			query += " AND " + constants.getCbfDimensions() + " = '" + recommenderDetails.getDimensions() + "'";
 			query += " AND " + constants.getCbfCorpusUsed() + " = '" + recommenderDetails.getCorpusUsed() + "'";
 		}
@@ -3494,7 +3494,7 @@ public class DBConnection {
 				if (keyphrases) {
 					columns += ", " + constants.getCbfNgramType();
 					values += ", '" + recommenderDetails.getNgramType() + "'";
-				} else if (featureType != null && featureType.equals("embedding")) {
+				} else if (featureType != null && featureType.equals(constants.getCbfFeatureTypeEmbeddings())) {
 					columns += ", " + constants.getCbfDimensions();
 					columns += ", " + constants.getCbfCorpusUsed();
 					values += ", '" + recommenderDetails.getDimensions() + "'";
