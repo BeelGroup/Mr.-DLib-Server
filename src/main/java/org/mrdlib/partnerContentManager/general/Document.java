@@ -100,8 +100,10 @@ public class Document {
         if (cleanTitle.length() <= title.length() / 2)
             cleanTitle = title;
 
-        if (title.matches("[^a-z]*"))
+        if (title.matches("^[a-z\\s]*$"))
             title = WordUtils.capitalizeFully(title);
+		else if (title.matches("^[A-Z\\s]*$"))
+            title = WordUtils.capitalizeFully(title.toLowerCase());
         if (title.contains(" :"))
             title = title.replace(" :", ":");
 		title = title.trim().replaceAll("\\s+", " ");
