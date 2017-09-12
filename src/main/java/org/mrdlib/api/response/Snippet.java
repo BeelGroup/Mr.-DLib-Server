@@ -75,7 +75,7 @@ public class Snippet implements Serializable {
 		//Should use String formatter, separate this presentation out to CSS, or separate View code out completely
 		String fontHTMLTag = "<font color='#000000' size='4' face='Arial, Helvetica, sans-serif'>";		
 
-		String formattedTitle = title != null ? "<a href='" + clickUrl + "'>" + fontHTMLTag + title + "</font></a>. " : ""; 
+		String formattedTitle = title != null ? "<a href=''>" + fontHTMLTag + title + "</font></a>. " : ""; 
 		String formattedAuthors = authorNames != null ? fontHTMLTag + authorNames + ". "  : fontHTMLTag; 
 		String formattedPublishedIn = publishedIn != null ? "<i>" + publishedIn + "</i>. "  : "";
 		String formattedYear = year > 0 ? year + "</font>" : "</font>";
@@ -94,7 +94,7 @@ public class Snippet implements Serializable {
 	 * @return snippet as String
 	 */
 	private String formatContentHtmlPlain(String title, String authorNames, String publishedIn, int year) {
-		String formattedTitle = title != null ? "<a href='" + clickUrl + "'>" + title + "</a>. " : ""; 
+		String formattedTitle = title != null ? "<a href=''>" + title + "</a>. " : ""; 
 		String formattedAuthors = authorNames != null ? authorNames + ". "  : ""; 
 		String formattedPublishedIn = publishedIn != null ? publishedIn + ". "  : "";
 		String formattedYear = year > 0 ? year	+ "." : "";
