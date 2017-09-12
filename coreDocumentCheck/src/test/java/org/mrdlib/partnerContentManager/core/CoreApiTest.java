@@ -97,7 +97,7 @@ public class CoreApiTest {
 	fetchNArticles.accept(CoreApi.MAX_SEARCH_PAGE_SIZE * (CoreApi.MAX_SEARCH_BATCH_SIZE + 1)); // multiple requests
     }
 
-    @Test()
+    //@Test() // defunct, as requests already take way longer than the limit. may be needed if parallel requests are implemented
     public void reachQuotaLimit() throws Exception {
 	try {
 	    long startTime = System.currentTimeMillis();
