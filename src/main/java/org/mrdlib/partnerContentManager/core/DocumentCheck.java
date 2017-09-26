@@ -28,15 +28,12 @@ public class DocumentCheck
     private CoreApi api;
 	private Logger logger = LoggerFactory.getLogger(DocumentCheck.class);
     public static final long BATCH_SIZE = 1000;
+	public static final long RETRY_SLEEP_TIME = 5000;
 
-    public DocumentCheck () {
-		try {
-			this.constants = new Constants();
-			this.db = new DBConnection("jar");
-			this.api = new CoreApi();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    public DocumentCheck () throws Exception {
+		this.constants = new Constants();
+		this.db = new DBConnection("jar");
+		this.api = new CoreApi();
     }
 
     public List<DisplayDocument> getCoreDocumentsBatch(long batch) throws Exception {
@@ -78,68 +75,90 @@ public class DocumentCheck
     }
 
     public static void main(String args[]) {
+		boolean success = false;
+		long sleepTime = RETRY_SLEEP_TIME;
+		DocumentCheck check = null;
+		long batches = 0;
 		try {
-			if (args.length == 0) {
-				System.err.println("Usage: ./gradlew coreDocumentCheck:run -Dexec.args=filename [startBatch]");
-				return;
-			}
+			check = new DocumentCheck();
+			batches = check.getBatchesForAllDocuments();
+		} catch (Exception e) {
+			System.err.println("Failed initializing document checker"); 
+			e.printStackTrace();
+			System.exit(1);
+		}
+		try {
+			for (long batch = 0; batch < batches; batch++) {
+				List<DisplayDocument> docs = null;
+				List<Integer> ids = null;
+				while (!success) {
+					try {
+						docs = check.getCoreDocumentsBatch(batch);
+						ids = check.getCoreIdsFromDocuments(docs);
+						success = true;
+					} catch (Exception e) {
+						check.logger.warn("Getting documents from DB failed; retrying in {}s", sleepTime / 1000, e);
+						Thread.sleep(sleepTime);
+						sleepTime += RETRY_SLEEP_TIME;
+					}
+				}
 
-			String filename = args[0];
-			long start = 0;
-			if (args.length >= 2) 
-				start = Long.parseLong(args[1]);
-			FileWriter progress = new FileWriter(filename, true);
-			DocumentCheck check = new DocumentCheck();
-			long batches = check.getBatchesForAllDocuments();
-			SimpleDateFormat elapsed = new SimpleDateFormat("HH:mm:ss");
-			elapsed.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-			for (long batch = start; batch < batches; batch++) {
-				List<DisplayDocument> docs = check.getCoreDocumentsBatch(batch);
-				List<Integer> ids = check.getCoreIdsFromDocuments(docs);
 				List<Object> missing = new ArrayList<Object>();
 				List<Object> deletedTimestamps = new ArrayList<Object>();
 				List<Object> checked = new ArrayList<Object>();
 				List<Object> checkedTimestamps = new ArrayList<Object>();
-
+				List<Article> articles = null;
 				if (ids.size() != 0) {
-					try {
-						List<Article> articles = check.api.getArticles(ids);
-						if (ids.size() != articles.size()) {
-							throw new Exception("Missing document in query results: " + articles.toString() + " vs " + ids.toString());
-						}
-						for (int i = 0; i < articles.size(); i++) {
-							String id = String.format("core-%d", ids.get(i));
-							Timestamp time = new Timestamp(System.currentTimeMillis());
-							checked.add(id);
-							checkedTimestamps.add(time);
-							if (articles.get(i) == null) {
-								progress.append("-" + ids.get(i) + System.lineSeparator());
-								missing.add(id);
-								deletedTimestamps.add(time);
+					success = false;
+					sleepTime = RETRY_SLEEP_TIME;
+					while(!success) {
+						try {
+							articles = check.api.getArticles(ids);
+							if (ids.size() != articles.size()) {
+								throw new Exception("Missing document in query results: " + articles.toString() + " vs " + ids.toString());
 							}
+							success = true;
+						} catch(Exception e) {
+							check.logger.warn("Getting documents from Core API failed; retrying in {}s", sleepTime / 1000, e);
+							Thread.sleep(sleepTime);
+							sleepTime += RETRY_SLEEP_TIME;
 						}
-					} catch(Exception e) {
-						progress.append("!" + batch + " " + e + System.lineSeparator());
-						progress.flush();
-						continue;
+					}
+					for (int i = 0; i < articles.size(); i++) {
+						String id = String.format("core-%d", ids.get(i));
+						Timestamp time = new Timestamp(System.currentTimeMillis());
+						checked.add(id);
+						checkedTimestamps.add(time);
+						if (articles.get(i) == null) {
+							missing.add(id);
+							deletedTimestamps.add(time);
+						}
 					}
 				}
-				progress.append("+" + batch + System.lineSeparator());
-				progress.flush();
 
-				check.db.setRowValues(check.constants.getDocuments(),
-					check.constants.getIdOriginal(), missing, Types.VARCHAR,
-					check.constants.getDeleted(), deletedTimestamps, Types.TIMESTAMP);
+				success = false;
+				sleepTime = RETRY_SLEEP_TIME;
+				while (!success) {
+					try {
+						check.db.setRowValues(check.constants.getDocuments(),
+								check.constants.getIdOriginal(), missing, Types.VARCHAR,
+								check.constants.getDeleted(), deletedTimestamps, Types.TIMESTAMP);
 
-				check.db.setRowValues(check.constants.getDocuments(),
-					check.constants.getIdOriginal(), checked, Types.VARCHAR,
-					check.constants.getChecked(), checkedTimestamps, Types.TIMESTAMP);
+						check.db.setRowValues(check.constants.getDocuments(),
+								check.constants.getIdOriginal(), checked, Types.VARCHAR,
+								check.constants.getChecked(), checkedTimestamps, Types.TIMESTAMP);
+						success = true;
+					} catch(Exception e) {
+						check.logger.warn("Saving results to database failed; retyring in {}s", sleepTime / 1000, e);
+						Thread.sleep(sleepTime);
+						sleepTime += RETRY_SLEEP_TIME;
+					}
+				}
 			}
-			progress.close();
 			check.db.close();
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch(Exception e) {
+			check.logger.warn("Something went rather wrong.", e);
 		}
     }
+
 }

@@ -32,6 +32,7 @@ public class Constants {
 	// db connection properties
 	private String dbClass;
 	private String db;
+	private String dbConnectionParams;
 	private String url;
 	private String user;
 	private String password;
@@ -356,6 +357,7 @@ public class Constants {
 			this.doc2vecSearchRoute = prop.getProperty("doc2vecSearchRoute");
 			this.doc2vecDocumentRoute = prop.getProperty("doc2vecDocumentRoute");
 
+			this.dbConnectionParams = prop.getProperty("dbConnectionParams");
 
 			this.documents = prop.getProperty("documents");
 			this.persons = prop.getProperty("persons");
@@ -1208,6 +1210,10 @@ public class Constants {
 
 	public String getDb() {
 		return db;
+	}
+
+	public String getDbConnectionParams() {
+		return dbConnectionParams;
 	}
 
 	public String getUrl() {

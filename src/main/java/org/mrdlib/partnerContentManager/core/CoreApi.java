@@ -192,9 +192,6 @@ public class CoreApi {
 		return getArticles(ids, new RequestParams());
 	}
 
-	public Stream<Article> listArticles(int year) {
-		return listArticles(year, new RequestParams());
-	}
 
 
 	class ArticleStream implements Supplier<Article> {
@@ -246,16 +243,21 @@ public class CoreApi {
 	/**
 	 * helper function to fetch all articles starting from some year
 	 * @param startYear list articles starting from this year
+	 * @param offset how many articles to skip
 	 * @param params params to pass to CORE API
 	 * @returns all articles, ordered chronologically
 	 */
-	public Stream<Article> listArticles(int startYear, RequestParams params) {
+	public Stream<Article> streamArticles(int startYear, int offset, RequestParams params) {
 		ArticleStream stream = new ArticleStream();
-		stream.offset = 0;	
+		stream.offset = (long) (Math.floor(offset / MAX_SEARCH_PAGE_SIZE));	
 		stream.limit = MAX_SEARCH_BATCH_SIZE * MAX_SEARCH_PAGE_SIZE;
 		stream.year = startYear;
 		stream.params = params;
 		return Stream.generate(stream);
+	}
+
+	public Stream<Article> streamArticles(int year, int offset) {
+		return streamArticles(year, offset, new RequestParams());
 	}
 
 	public List<Article> listArticles(int year, long offset, long limit) throws Exception {
