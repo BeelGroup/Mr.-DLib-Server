@@ -581,18 +581,19 @@ public class DBConnection {
      * @throws SQLException
      */
     public Long getCollectionIDByName(String collectionName, boolean byShortName) throws SQLException {
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		Long id = null;
 
 		String nameColumn = byShortName ? constants.getCollectionShortName() : constants.getCollectionName();
 		// query to select the collectionName
 		String query = "SELECT " + constants.getCollectionID() + " FROM " + constants.getCollections() + " WHERE "
-			+ nameColumn + " = '" + collectionName + "'";
+			+ nameColumn + " = ?";
 
 		try {
-			stmt = con.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = con.prepareStatement(query);
+			stmt.setString(1, collectionName);
+			rs = stmt.executeQuery();
 
 			// get first collection id
 			if (rs.next())

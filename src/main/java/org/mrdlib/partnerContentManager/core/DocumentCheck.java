@@ -48,10 +48,15 @@ public class DocumentCheck
 		return batches;
     }
 
-    public List<Integer> getCoreIdsFromDocuments(List<DisplayDocument> docs) throws Exception {
+    public static List<Integer> getCoreIdsFromDocuments(List<DisplayDocument> docs) throws Exception {
+		return getCoreIdsFromStrings(
+				docs.stream()
+				.map(doc -> doc.getOriginalDocumentId())
+				.collect(Collectors.toList()));
+	}
+    public static List<Integer> getCoreIdsFromStrings(List<String> docs) throws Exception {
 		Pattern idRegex = Pattern.compile("^core-(\\d+)$");
 		List<Integer> ids = docs.stream()
-			.map( d -> d.getOriginalDocumentId())
 			.map(id -> {
 					try {
 						Matcher match = idRegex.matcher(id);
@@ -91,6 +96,7 @@ public class DocumentCheck
 			for (long batch = 0; batch < batches; batch++) {
 				List<DisplayDocument> docs = null;
 				List<Integer> ids = null;
+				success = false;
 				while (!success) {
 					try {
 						docs = check.getCoreDocumentsBatch(batch);

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.stream.Stream;
 import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -124,76 +125,113 @@ public class DocumentImport
 		return doc;	
 	}
 
+	public void upsertDocument(Document doc, List<String> failedImports) {
+		try {
+			if (!hasDocumentInDB(doc.getId())) {
+				db.insertDocument(doc);
+				logger.info("Inserted document: {}", doc.getTitle());
+			} else {
+				logger.info("Document already in database: {} - {}; updating", doc.getId(), doc.getTitle());
+				db.updateDocument(doc);
+			}
+		} catch(Exception e) {
+			logger.warn("Could not import document {} - {}", doc.getId(), doc.getTitle(), e);
+			failedImports.add(doc.getId());
+		}
+	}
+
+	public File getSettings(String filename, Properties settings) {
+		File file = null;
+		try {
+			file = new File(filename);
+			file.createNewFile();
+		} catch (Exception e) {
+			logger.warn("could not load progress/settings file; will be created", e);
+		}
+		// default values
+		try (FileInputStream in = new FileInputStream(file)){
+			settings.load(in);
+		}  catch(Exception e) {
+			logger.warn("Error while loading settings", e);
+		}
+		return file;
+	}
+
 	public static void main(String args[]) {
+		String filename = "coreImportStatus.properties";
+		if (args.length > 0) {
+			filename = args[0];
+		}
 		DocumentImport importer = new DocumentImport();
 
-		String file = "coreImportStatus.properties";
-		if (args.length > 0) {
-			file = args[0];
-		}
 		Properties settings = new Properties();
-		// default values
-		try {
-			try (FileInputStream in = new FileInputStream(file)){
-				settings.load(in);
-			} 
-		} catch(Exception e) {
-			importer.logger.warn("could not load progress/settings file; will be created", e);
-		}
-		int startYear = Integer.parseInt(settings.getProperty("year", 
+		File file = importer.getSettings(filename, settings);
+
+		int year = Integer.parseInt(settings.getProperty("year", 
 					String.valueOf(Calendar.getInstance().get(Calendar.YEAR))));
-		int progress = Integer.parseInt(settings.getProperty("offset", "0"));
+		long progress = Long.parseLong(settings.getProperty("offset", "0"));
+
+
 		List<String> failedImports = new ArrayList<String>();
-		for (String failed : settings.getProperty("errors").split(",")) {
+		for (String failed : settings.getProperty("errors", "").split(",")) {
 			failedImports.add(failed);
 		}
-		Stream<Article> articles = importer.api.streamArticles(startYear, progress);
-		Iterator<Article> iter = articles.iterator();
-		Article article = null;
+		// try failed imports again, reset failures
+		failedImports = new ArrayList<String>();
+		List<Article> failedArticles = null;
+		List<Integer> ids = null;
+		try {
+			ids = DocumentCheck.getCoreIdsFromStrings(failedImports);
+			failedArticles = importer.api.getArticles(ids);
+		} catch(Exception e) {
+			importer.logger.warn("Tried requesting failed documents again but encountered error", e);
+			for (Integer id : ids) {
+				failedImports.add("core-"+id.toString());
+			}
+		}
+
+		for (Article a : failedArticles) {
+			importer.upsertDocument(importer.convert(a), failedImports);
+		}
+
+		// look for new articles
+
+		Stream<CoreApi.StreamedArticle> articles = importer.api.streamArticles(year, progress);
+		Iterator<CoreApi.StreamedArticle> iter = articles.iterator();
+		CoreApi.StreamedArticle article = null;
 		long sleepTime = RETRY_SLEEP_TIME;
 		boolean success = false;
-		try (FileOutputStream out = new FileOutputStream(file)) {
-			do {
-				while (!success) {
-					try {
-						article = iter.next();
-						success = true;
-					} catch(Exception e) {
-						importer.logger.warn("Getting next article from core api failed; retrying in {}s", sleepTime / 1000, e);
-						Thread.sleep(sleepTime);
-						sleepTime += RETRY_SLEEP_TIME;
-					}
-				}
-				Document doc = importer.convert(article);
+		do {
+			success = false;
+			while (!success) {
 				try {
-					if (!importer.hasDocumentInDB(doc.getId())) {
-						importer.db.insertDocument(doc);
-						importer.logger.info("Inserted document: {}", doc.getTitle());
-					} else {
-						importer.logger.info("Document already in database: {} - {}; updating", doc.getId(), doc.getTitle());
-						importer.db.updateDocument(doc);
-					}
+					article = iter.next();
+					success = true;
 				} catch(Exception e) {
-					importer.logger.warn("Could not import document {} - {}", doc.getId(), doc.getTitle(), e);
-					failedImports.add(doc.getId());
+					importer.logger.warn("Getting next article from core api failed; retrying in {}s", sleepTime / 1000, e);
+					try { Thread.sleep(sleepTime); } catch(Exception ee) {}
+					sleepTime += RETRY_SLEEP_TIME;
 				}
-				progress++;
-				settings.setProperty("offset", String.valueOf(progress));
-				String[] failedArray = new String[failedImports.size()];
-				settings.setProperty("errors", String.join(",", failedImports.toArray(failedArray)));
-				try {
-					settings.store(out, "Progress & Settings of core document import");
-					out.flush();
-				} catch(IOException e) {
-					String last = null;
-					if (failedImports.size() != 0)
-						last = failedImports.get(failedImports.size() - 1);
-					importer.logger.warn("Could not save progress: year = {}, progress = {}, last error: {}",
-							startYear, progress, last, e);
-				}
-			} while (article != null);
-		} catch(Exception e) {
-			importer.logger.error("could not open progress/settings file for writing; exiting.", e);
-		}
+			}
+			Document doc = importer.convert(article.article);
+			importer.upsertDocument(doc, failedImports);
+
+			progress = article.offset;
+			year = article.year;
+			settings.setProperty("offset", String.valueOf(progress));
+			settings.setProperty("year", String.valueOf(year));
+			String[] failedArray = new String[failedImports.size()];
+			settings.setProperty("errors", String.join(",", failedImports.toArray(failedArray)));
+			try (FileOutputStream out = new FileOutputStream(file, false)) {
+				settings.store(out, "Progress & Settings of core document import");
+				out.flush();
+			} catch(IOException e) {
+				String last = null;
+				if (failedImports.size() != 0)
+					last = failedImports.get(failedImports.size() - 1);
+				importer.logger.warn("Could not save progress: year = {}, progress = {}, last error: {}",
+						year, progress, last, e);
+			}
+		} while (article != null);
 	}
 }

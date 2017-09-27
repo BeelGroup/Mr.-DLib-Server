@@ -70,7 +70,7 @@ public class CoreCheckTest {
 			assertEquals(titles[i], doc.getTitle());
 			assertEquals(ids[i], doc.getOriginalDocumentId());
 		}
-		assertEquals(idValues, check.getCoreIdsFromDocuments(docs.subList(0, 10)));
+		assertEquals(idValues, check.getCoreIdsFromDocuments(docs.subList(0, 9)));
     }
 
 }

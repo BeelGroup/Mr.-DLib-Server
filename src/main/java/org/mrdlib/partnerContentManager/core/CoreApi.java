@@ -193,8 +193,19 @@ public class CoreApi {
 	}
 
 
+	public static class StreamedArticle {
+		public Article article;
+		public long offset;
+		public int year;
+		public StreamedArticle(Article article, long offset, int year) {
+			this.article = article;
+			this.offset = offset;
+			this.year = year;
+		}
+	}
 
-	class ArticleStream implements Supplier<Article> {
+
+	class ArticleStream implements Supplier<StreamedArticle> {
 		private long offset;
 		private long limit;
 		private int year;
@@ -205,7 +216,7 @@ public class CoreApi {
 		private List<Article> batch;
 		private int index = 0;
 
-		public Article get() {
+		public StreamedArticle get() {
 			logger.debug("Getting Article");
 
 			if (batch == null) { // load next batch, or end of stream -> return null
@@ -236,7 +247,7 @@ public class CoreApi {
 			if (index == batch.size()) {
 				batch = null; // load next page on next call
 			}
-			return next;
+			return new StreamedArticle(next, offset, year);
 		}
 	}
 
@@ -247,7 +258,7 @@ public class CoreApi {
 	 * @param params params to pass to CORE API
 	 * @returns all articles, ordered chronologically
 	 */
-	public Stream<Article> streamArticles(int startYear, int offset, RequestParams params) {
+	public Stream<StreamedArticle> streamArticles(int startYear, long offset, RequestParams params) {
 		ArticleStream stream = new ArticleStream();
 		stream.offset = (long) (Math.floor(offset / MAX_SEARCH_PAGE_SIZE));	
 		stream.limit = MAX_SEARCH_BATCH_SIZE * MAX_SEARCH_PAGE_SIZE;
@@ -256,7 +267,7 @@ public class CoreApi {
 		return Stream.generate(stream);
 	}
 
-	public Stream<Article> streamArticles(int year, int offset) {
+	public Stream<StreamedArticle> streamArticles(int year, long offset) {
 		return streamArticles(year, offset, new RequestParams());
 	}
 
