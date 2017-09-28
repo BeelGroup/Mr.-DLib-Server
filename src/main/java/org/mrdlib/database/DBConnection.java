@@ -80,7 +80,6 @@ public class DBConnection {
 			else
 				createConnectionJar();
 			stmt = con.createStatement();
-			stmt.executeQuery("SET NAMES 'latin1'");
 
 			// get all the lengths of the database fields and store it in a map
 			rs = stmt.executeQuery("SHOW COLUMNS FROM " + constants.getDocuments());

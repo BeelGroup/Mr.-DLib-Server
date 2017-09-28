@@ -172,16 +172,19 @@ public class DocumentImport
 		long progress = Long.parseLong(settings.getProperty("offset", "0"));
 
 
+		// try failed imports again,
 		List<String> failedImports = new ArrayList<String>();
-		for (String failed : settings.getProperty("errors", "").split(",")) {
-			failedImports.add(failed);
+		String errorList = settings.getProperty("errors", "").trim();
+		if (errorList.length() != 0) {
+			for (String failed : errorList.split(",")) {
+				failedImports.add(failed);
+			}
 		}
-		// try failed imports again, reset failures
-		failedImports = new ArrayList<String>();
 		List<Article> failedArticles = null;
 		List<Integer> ids = null;
 		try {
 			ids = DocumentCheck.getCoreIdsFromStrings(failedImports);
+			importer.logger.info("Rechecking {} failed imports", ids.size());
 			failedArticles = importer.api.getArticles(ids);
 		} catch(Exception e) {
 			importer.logger.warn("Tried requesting failed documents again but encountered error", e);
@@ -190,9 +193,12 @@ public class DocumentImport
 			}
 		}
 
+		// reset failures
+		failedImports = new ArrayList<String>();
 		for (Article a : failedArticles) {
 			importer.upsertDocument(importer.convert(a), failedImports);
 		}
+		importer.logger.info("Finished rechecking failed imports");
 
 		// look for new articles
 
@@ -201,12 +207,23 @@ public class DocumentImport
 		CoreApi.StreamedArticle article = null;
 		long sleepTime = RETRY_SLEEP_TIME;
 		boolean success = false;
-		do {
+		while (true) {
 			success = false;
 			while (!success) {
 				try {
 					article = iter.next();
-					success = true;
+					if (article == null) {
+						String message = "Finished importing articles.";
+						importer.logger.info(message);
+						System.out.println(message);
+						settings.setProperty("finished", String.valueOf(true));
+						try (FileOutputStream out = new FileOutputStream(file, false)) {
+							settings.store(out, "Progress & Settings of core document import");
+						}
+						return;
+					} else {
+						success = true;
+					}
 				} catch(Exception e) {
 					importer.logger.warn("Getting next article from core api failed; retrying in {}s", sleepTime / 1000, e);
 					try { Thread.sleep(sleepTime); } catch(Exception ee) {}
@@ -224,7 +241,6 @@ public class DocumentImport
 			settings.setProperty("errors", String.join(",", failedImports.toArray(failedArray)));
 			try (FileOutputStream out = new FileOutputStream(file, false)) {
 				settings.store(out, "Progress & Settings of core document import");
-				out.flush();
 			} catch(IOException e) {
 				String last = null;
 				if (failedImports.size() != 0)
@@ -232,6 +248,6 @@ public class DocumentImport
 				importer.logger.warn("Could not save progress: year = {}, progress = {}, last error: {}",
 						year, progress, last, e);
 			}
-		} while (article != null);
+		}
 	}
 }
