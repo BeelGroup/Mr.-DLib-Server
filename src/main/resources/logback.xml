@@ -1,6 +1,4 @@
 <configuration>
-  <timestamp key="bySecond" datePattern="yyyyMMdd'T'HHmmss"/>
-
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 		<level>WARN</level>
@@ -11,18 +9,8 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
-  <appender name="TRACE_LOG" class="ch.qos.logback.core.FileAppender">
-	<file>${HOME}/logs/trace-${bySecond}.log</file>
-	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-		<level>TRACE</level>
-	</filter>
-
-	<encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-	</encoder>
-  </appender>
   <appender name="INFO_LOG" class="ch.qos.logback.core.FileAppender">
-	<file>${HOME}/logs/info-${bySecond}.log</file>
+	<file>${HOME}/logs/info.log</file>
 	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 		<level>INFO</level>
 	</filter>
@@ -32,7 +20,6 @@
   </appender>
 
   <logger name="org.mrdlib" level="TRACE">
-	<appender-ref ref="TRACE_LOG" />
 	<appender-ref ref="INFO_LOG" />
   </logger>
 
